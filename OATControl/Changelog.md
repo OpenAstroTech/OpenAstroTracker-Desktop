@@ -1,3 +1,10 @@
+**V0.9.9.15 - Updates**
+- Fix for switching RA/DEC steps to floating point.
+
+**V0.9.9.14 - Updates**
+- Added Button to open logs folder.
+- Widened Connection dialog.
+
 **V0.9.9.13 - Updates**
 - Improved detection of connection error conditions.
 

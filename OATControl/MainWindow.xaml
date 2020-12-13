@@ -551,11 +551,11 @@
 
 				<TextBlock Grid.Column="0" Grid.Row="2" Text="RA Steps" Margin="0,0"  Style="{StaticResource TextBlockLabelSmall}" />
 				<Controls:NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding RAStepsPerDegree}" Margin="10,0,0,0" 
-									NumericInputMode="Numbers" StringFormat="0" Maximum="10000" Minimum="100" Interval="1" Style="{StaticResource NumericBorder}"/>
+									NumericInputMode="Decimal" StringFormat="0.0" Maximum="1000" Minimum="100" Interval="0.1" Style="{StaticResource NumericBorder}"/>
 
 				<TextBlock Grid.Column="0" Grid.Row="3" Text="DEC Steps" Margin="0,0"  Style="{StaticResource TextBlockLabelSmall}" />
 				<Controls:NumericUpDown Grid.Column="1" Grid.Row="3" Value="{Binding DECStepsPerDegree}" Margin="10,0,0,0" 
-									NumericInputMode="Numbers" StringFormat="0" Maximum="10000" Minimum="100" Interval="1" Style="{StaticResource NumericBorder}"/>
+									NumericInputMode="Decimal" StringFormat="0.0" Maximum="1000" Minimum="100" Interval="0.1" Style="{StaticResource NumericBorder}"/>
 
 				<TextBlock Grid.Column="0" Grid.Row="4" Text="HA" Margin="0,0"  Style="{StaticResource TextBlockLabelSmall}" />
 				<TextBlock Grid.Column="2" Grid.Row="4" MinWidth="64" Text="{Binding CurrentHA}"  Style="{StaticResource TextBlockLabelValue}"/>
