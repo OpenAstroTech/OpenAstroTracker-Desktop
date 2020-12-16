@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Xml.Linq;
-using ASCOM.Utilities;
 using OATCommunications;
 using OATCommunications.Model;
 using OATCommunications.WPF.CommunicationHandlers;
@@ -59,8 +58,6 @@ namespace OATControl.ViewModels
 		string _mountStatus = string.Empty;
 		string _currentHA = string.Empty;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
-		Util _util;
-		ASCOM.Astrometry.Transform.Transform _transform;
 		bool _raIsNEMA;
 		bool _decIsNEMA;
 		List<string> _oatAddonStates = new List<string>();
@@ -127,9 +124,6 @@ namespace OATControl.ViewModels
 			_driftAlignCommand = new DelegateCommand(async dur => await OnRunDriftAlignment(int.Parse(dur.ToString())), () => MountConnected);
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
-
-			_util = new Util();
-			_transform = new ASCOM.Astrometry.Transform.Transform();
 
 			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
 			Log.WriteLine("Mount: Attempting to read Point of Interest from {0}...", poiFile);
@@ -481,18 +475,18 @@ namespace OATControl.ViewModels
 				{
 					try
 					{
-						_transform.SiteElevation = 0; //  _oatMount.SiteElevation;
-						Log.WriteLine("Mount: Getting OAT Latitude");
-						_transform.SiteLatitude = await _oatMount.GetSiteLatitude();
-						Log.WriteLine("Mount: Received Latitude {0}. Getting OAT Longitude...", _util.HoursToHMS(_transform.SiteLatitude, ":", ":", ":"));
-						_transform.SiteLongitude = await _oatMount.GetSiteLongitude();
-						Log.WriteLine("Mount: Received Longitude {0}.", _util.HoursToHMS(_transform.SiteLongitude, ":", ":", ":"));
-						_transform.SetAzimuthElevation(0, 90);
-						var lst = _transform.RATopocentric;
-						var lstS = _util.HoursToHMS(lst, "", "", "");
+						var SiteLatitude = await _oatMount.GetSiteLatitude();
+						var SiteLongitude = await _oatMount.GetSiteLongitude();
 
-						Log.WriteLine("Mount: Current LST is {0}. Sending to OAT.", _util.HoursToHMS(lst, "h", "m", "s"));
-						var stringResult = await RunCustomOATCommandAsync(string.Format(":SHL{0}#,n", _util.HoursToHMS(lst, "", "", "")));
+						// Calculate current Local Sidereal Time
+						var utcNow = DateTime.UtcNow;
+						var decimalTime = (utcNow.Hour + utcNow.Minute / 60.0) + (utcNow.Second / 3600.0);
+						var jd = JulianDay(utcNow.Day, utcNow.Month, utcNow.Year, decimalTime);
+						var lst = LM_Sidereal_Time(jd, SiteLongitude);
+						var lstS = doubleToHMS(lst, "", "", "");
+
+						Log.WriteLine("Mount: Current LST is {0}. Sending to OAT.", doubleToHMS(lst, "h", "m", "s"));
+						var stringResult = await RunCustomOATCommandAsync(string.Format(":SHL{0}#,n", doubleToHMS(lst, "", "", "")));
 
 						Log.WriteLine("Mount: Getting current OAT position");
 						await UpdateCurrentCoordinates();
@@ -508,10 +502,10 @@ namespace OATControl.ViewModels
 						Log.WriteLine("Mount: Getting current OAT RA steps/degree...");
 						string steps = await RunCustomOATCommandAsync(string.Format(":XGR#,#"));
 						Log.WriteLine("Mount: Current RA steps/degree is {0}. Getting current DEC steps/degree...", steps);
-						_raStepsPerDegree = float.Parse(steps);
+						_raStepsPerDegree = float.Parse(steps, _oatCulture);
 						steps = await RunCustomOATCommandAsync(string.Format(":XGD#,#"));
 						Log.WriteLine("Mount: Current DEC steps/degree is {0}. Getting current Speed factor...", steps);
-						_decStepsPerDegree = float.Parse(steps);
+						_decStepsPerDegree = float.Parse(steps, _oatCulture);
 						OnPropertyChanged("RAStepsPerDegree");
 						OnPropertyChanged("DECStepsPerDegree");
 
@@ -744,6 +738,62 @@ namespace OATControl.ViewModels
 					else { throw new ArgumentException("Invalid DEC component!"); }
 					break;
 			}
+		}
+
+		// Fraction
+		private double Frac(double x)
+		{
+			x = x - Math.Floor(x);
+			if (x < 0) x = x + 1.0;
+			return x;
+		}
+
+		// Get the Julian Day as double
+		private double JulianDay(int dat, int month, int year, double u)
+		{
+			if (month <= 2)
+			{
+				month = month + 12;
+				year = year - 1;
+			}
+			var JD = Math.Floor(365.25 * (year + 4716.0)) + Math.Floor(30.6001 * (month + 1)) + dat - 13.0 - 1524.5 + u/24.0;
+			return JD;
+		}
+
+		// Calculate Local Sidereal Time
+		// Reference https://greenbankobservatory.org/education/great-resources/lst-clock/
+		private double GM_Sidereal_Time(double jd)
+		{
+			double t_eph, ut, MJD0, MJD;
+
+			MJD = jd - 2400000.5;
+			MJD0 = Math.Floor(MJD);
+			ut = (MJD - MJD0) * 24.0;
+			t_eph = (MJD0 - 51544.5) / 36525.0;
+			return 6.697374558 + 1.0027379093 * ut + (8640184.812866 + (0.093104 - 0.0000062 * t_eph) * t_eph) * t_eph / 3600.0;
+		}
+
+		private double LM_Sidereal_Time(double jd, double longitude)
+		{
+			var GMST = GM_Sidereal_Time(jd);
+			var LMST = 24.0 * Frac((GMST + longitude / 15.0) / 24.0);
+			return LMST;
+		}
+
+		// Convert decimal time to HH:MM:SS
+		private string doubleToHMS(double time, string delimiter1, string delimiter2, string delimiter3)
+		{
+			var h = Math.Floor(time);
+			var min = Math.Floor(60.0 * Frac(time));
+			var secs = Math.Floor(60.0 * (60.0 * Frac(time) - min));
+
+			var hs = string.Format(_oatCulture, "{0:00}", h);
+			var ms = string.Format(_oatCulture, "{0:00}", min);
+			var ss = string.Format(_oatCulture, "{0:00}", secs);
+
+			string res = hs + delimiter1 + ms + delimiter2 + ss + delimiter3;
+
+			return res;
 		}
 
 		public ICommand ArrowCommand { get { return _arrowCommand; } }
