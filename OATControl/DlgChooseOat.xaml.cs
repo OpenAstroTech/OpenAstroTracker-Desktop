@@ -5,6 +5,7 @@ using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -60,6 +61,7 @@ namespace OATControl
 		private DispatcherTimer stateTimer;
 		const float MaxWaitForGPS = 30;
 		DateTime _startedGPSWaitAt;
+		CultureInfo _oatCulture = new CultureInfo("en-US");
 
 		public DlgChooseOat(MountVM mountViewModel, Func<string, Task<string>> sendCommand)
 		{
@@ -373,8 +375,8 @@ namespace OATControl
 						// Get the reference angles from the level.
 						string referenceAngles = await _sendCommand(":XLGR#,#");
 						var angles = referenceAngles.Split(",".ToCharArray());
-						float.TryParse(angles[0], out float _pitchReference);
-						float.TryParse(angles[1], out float _rollReference);
+						float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float _pitchReference);
+						float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float _rollReference);
 						ShowLevelDisplay = true;
 					}
 					else if (_mountViewModel.IsAddonSupported("GPS"))
@@ -396,8 +398,8 @@ namespace OATControl
 					if (!currentAngles.Contains("NAN"))
 					{
 						var angles = currentAngles.Split(",".ToCharArray());
-						float.TryParse(angles[0], out float currentPitch);
-						float.TryParse(angles[1], out float currentRoll);
+						float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float currentPitch);
+						float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float currentRoll);
 						
 						// Keep a rolling average of the last 6 values.
 						if (_rollOffsetHistory.Count > 5)
