@@ -10,6 +10,10 @@ There are also some low-level communications libraries that the above mentioned 
 
 Change Log:
 ===========
+**V0.9.9.16 - Updates**
+- Various float CultureInfo conversion fixes
+- Removed ASCOM library dependency to calculate LST
+
 **V0.9.9.15 - Updates**
 - Fix for switching RA/DEC steps to floating point.
 
