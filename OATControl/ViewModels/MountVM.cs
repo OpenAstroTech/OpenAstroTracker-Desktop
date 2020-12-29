@@ -989,7 +989,7 @@ namespace OATControl.ViewModels
 
 		private void OnRAStepsChanged(float oldVal, float newVal)
 		{
-			Task.Run(async () => await RunCustomOATCommandAsync(string.Format(":XSR{0:0.0}#", newVal)));
+			Task.Run(async () => await RunCustomOATCommandAsync(string.Format(_oatCulture, ":XSR{0:0.0}#", newVal)));
 		}
 
 		/// <summary>
@@ -1003,7 +1003,7 @@ namespace OATControl.ViewModels
 
 		private void OnDECStepsChanged(float oldVal, float newVal)
 		{
-			Task.Run(async () => await RunCustomOATCommandAsync(string.Format(":XSD{0:0.0}#", newVal)));
+			Task.Run(async () => await RunCustomOATCommandAsync(string.Format(_oatCulture, ":XSD{0:0.0}#", newVal)));
 		}
 
 		public bool DisplaySlewProgress
