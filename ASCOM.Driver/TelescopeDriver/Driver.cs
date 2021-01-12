@@ -600,8 +600,8 @@ namespace ASCOM.OpenAstroTracker {
                 var dirString = Enum.GetName(typeof(GuideDirections), Direction);
                 var durString = Duration.ToString("0000");
                 LogMessage($"PulseGuide", $"{Direction} {durString}");
-                var dir = dirString.Substring(5, 1);
-                CommandBlind($":MG{dir}{durString}", false);
+                var dir = dirString.Substring(5, 1).ToLower();
+                CommandBlind($":Mg{dir}{durString}", false);
             }
             else {
                 LogMessage("PulseGuide", "Parked");
