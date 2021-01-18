@@ -124,13 +124,13 @@ namespace OATCommTestConsole
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("Choose one of the following options:\r");
 
-                    Console.WriteLine("[ 1 ] Read Timeout");
-                    Console.WriteLine("[ 2 ] Write Timeout");
-                    Console.WriteLine("[ 3 ] Baud Rate");
+                    Console.WriteLine("[ 1 ] Read Timeout ({0})", _readTimeout);
+                    Console.WriteLine("[ 2 ] Write Timeout ({0})", _writeTimeout);
+                    Console.WriteLine("[ 3 ] Baud Rate ({0})", _baudRate);
                     Console.WriteLine("[ 0 ] Return\n");
                     Console.ResetColor();
 
-                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 2);
+                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 3);
 
                 switch (userChoice)
                 {
@@ -186,7 +186,7 @@ namespace OATCommTestConsole
                     Console.WriteLine("[ 0 ] Return\n");
                     Console.ResetColor();
 
-                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 2);
+                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > devices.Count);
 
                 if(userChoice == 0)
                 {
