@@ -37,7 +37,7 @@ namespace OATCommTestConsole
 
                     Console.WriteLine("[ 1 ] Settings");
                     Console.WriteLine("[ 2 ] Command Test");
-                    Console.WriteLine("[ 3 ] Run Test");
+                    Console.WriteLine("[ 3 ] Run Test/Get Info");
                     Console.WriteLine("[ 0 ] Quit application\n");
                     Console.ResetColor();
 
@@ -62,7 +62,6 @@ namespace OATCommTestConsole
                         {
                             await StartTest();
                         }
-                        
                         break;
                     case 0:
                         Environment.Exit(0);
@@ -177,7 +176,7 @@ namespace OATCommTestConsole
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("Select Serial Port:\r");
                     
-                    int cnt = 0;
+                    int cnt = 1;
                     foreach (var dev in devices)
                     {
                         Console.Write("[ {0} ] {1}\n", cnt, dev);
@@ -192,9 +191,9 @@ namespace OATCommTestConsole
                 {
                     return false;
                 }
-                else if(userChoice > 0 && userChoice < 10)
+                else if(userChoice >= 0 && userChoice <= devices.Count )
                 {
-                    var connectResult = await CreateCommHandler(devices[userChoice]);
+                    var connectResult = await CreateCommHandler(devices[userChoice-1]);
                     if(connectResult)
                     {
                         return true;
@@ -214,11 +213,48 @@ namespace OATCommTestConsole
 
         static async Task<bool> StartTest()
         {
-            await SendCommand("GVP#,#");
-            await SendCommand("GVN#,#");
-            await SendCommand("XGM#,#");
+            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
+            keyValuePairs.Add("GVP#,#", "Product name");
+            keyValuePairs.Add("GVN#,#", "Firmare version");
+            keyValuePairs.Add("XGM#,#", "Mount configuration");
+            keyValuePairs.Add("Gt#,#", "Site Latitude");
+            keyValuePairs.Add("Gg#,#", "Site Longitude");
+            keyValuePairs.Add("XGR#,#", "RA Steps");
+            keyValuePairs.Add("XGD#,#", "DEC Steps");
+            keyValuePairs.Add("XGS#,#", "Tracking speed adjustment");
+            keyValuePairs.Add("XGT#,#", "Tracking speed");
+            keyValuePairs.Add("XGH#,#", "HA");
+            keyValuePairs.Add("XGL#,#", "LST");
+            keyValuePairs.Add("XGN#,#", "Network settings");
 
+            List<CommandResponse> replys = new List<CommandResponse>();
+            foreach (var cmd in keyValuePairs)
+            {
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.WriteLine("----- {0} -----\r", cmd.Value);
+                Console.ResetColor();
+                var result = await SendCommand(cmd.Key);
+                if (!result.Success)
+                {
+                    Console.WriteLine("Press any key to return...");
+                    Console.ReadKey();
+                    return false;
+                }
+                replys.Add(result);
+            }
+            
+            // Disconnect
             _commHandler.Disconnect();
+
+            // Print summery
+            int cnt = 0;
+            Console.WriteLine("--------------------------------------- SUMMERY -----------------------------------------------------------\r");
+            foreach (var cmd in keyValuePairs)
+            {
+                Console.WriteLine("| {0} | {1} |\r", cmd.Value.PadLeft(30), replys[cnt].Data.PadRight(70));
+                cnt++;
+            }
+            Console.WriteLine("-----------------------------------------------------------------------------------------------------------\r");
 
             Console.WriteLine("Press any key to return...");
             Console.ReadKey();

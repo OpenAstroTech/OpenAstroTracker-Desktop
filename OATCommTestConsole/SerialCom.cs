@@ -122,6 +122,21 @@ namespace OATCommTestConsole
                 {
                     Console.WriteLine("SERIAL: Port {0} is not open, attempting to open...", _portName);
                     _port.Open();
+
+                    Console.WriteLine("SERIAL: Checking if buffer contains data", _portName);
+                    string preCheck = _port.ReadExisting();
+                    if(!string.IsNullOrEmpty(preCheck))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("SERIAL: Possible problem, data in buffer. {0}", preCheck);
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("SERIAL: No exising serial data in buffer, all good...");
+                        Console.ResetColor();
+                    }
                     await Task.Delay(750); // Arduino resets on connection. Give it time to start up.
                     Console.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
                     _port.Write(":I#");
