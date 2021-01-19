@@ -28,6 +28,9 @@ namespace OATControl
 	/// </summary>
 	public partial class DlgChooseOat : MetroWindow, INotifyPropertyChanged
 	{
+		// Define the minimum firmware version that OATControll will require
+		private readonly static string FIRMWARE_VERSION = "V1.8.60";
+
 		public enum Steps
 		{
 			Idle,
@@ -359,6 +362,20 @@ namespace OATControl
 
 					if (!connectResult)
 					{
+						this.Result = null;
+						this.Close();
+						CurrentStep = Steps.WaitForConnect;
+						return;
+					}
+
+					// Check firmware version and compare with minimum required
+					string firmwareVersion = await _sendCommand(":GVN#,#");
+					var version = int.Parse(firmwareVersion.Substring(1).Replace(".", ""));
+					var expectedVersion = int.Parse(FIRMWARE_VERSION.Substring(1).Replace(".", ""));
+					if (version < expectedVersion)
+					{
+						string message = string.Format("Connected to OpenAstroTracker, but firmware version is older than OATControl requires\n\nExpected minimum version {0}\nCurrent: {1}", FIRMWARE_VERSION, firmwareVersion);
+						MessageBox.Show(message, "Firmware Error", MessageBoxButton.OK, MessageBoxImage.Error);
 						this.Result = null;
 						this.Close();
 						CurrentStep = Steps.WaitForConnect;
