@@ -15,9 +15,10 @@ namespace OATCommTestConsole
 
         public SerialCommunicationHandler(string comPort)
         {
-            Console.WriteLine($"COMMFACTORY: Creating Serial handler on {comPort} at {_baudRate} baud...");
-            Console.WriteLine($"COMMFACTORY: Read Timeout {_readTimeout}");
-            Console.WriteLine($"COMMFACTORY: Write Timeout {_writeTimeout}");
+            
+            ConsoleOutput.Info($"COMMFACTORY: Creating Serial handler on {comPort} at {_baudRate} baud...");
+            ConsoleOutput.Info($"COMMFACTORY: Read Timeout {_readTimeout}");
+            ConsoleOutput.Info($"COMMFACTORY: Write Timeout {_writeTimeout}");
 
             _portName = comPort;
             _port = new SerialPort(comPort);
@@ -53,14 +54,12 @@ namespace OATCommTestConsole
                 requestIndex++;
                 try
                 {
-                    Console.WriteLine("[{0:0000}] SERIAL: [{1}] Sending command", requestIndex, command);
+                    ConsoleOutput.Info(string.Format("[{0:0000}] SERIAL: [{1}] Sending command", requestIndex, command));
                     _port.Write(command);
                 }
                 catch (Exception ex)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to send command. {2}", requestIndex, command, ex.Message);
-                    Console.ResetColor();
+                    ConsoleOutput.Error(string.Format("[{0:0000}] SERIAL: [{1}] Failed to send command. {2}", requestIndex, command, ex.Message));
                     return new CommandResponse(string.Empty, false, $"Unable to write to {_portName}. " + ex.Message);
                 }
 
@@ -70,36 +69,33 @@ namespace OATCommTestConsole
                     {
                         case ResponseType.NoResponse:
                             {
-                                Console.WriteLine("[{0:0000}] SERIAL: [{1}] No response needed for command", requestIndex, command);
+                                ConsoleOutput.Info(string.Format("[{0:0000}] SERIAL: [{1}] No response needed for command", requestIndex, command));
                                 return new CommandResponse(string.Empty, true);
                             }
 
                         case ResponseType.DigitResponse:
                             {
-                                Console.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting single digit response for command, waiting...", requestIndex, command);
+                                ConsoleOutput.Info(string.Format("[{0:0000}] SERIAL: [{1}] Expecting single digit response for command, waiting...", requestIndex, command));
                                 string response = new string((char)_port.ReadChar(), 1);
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine("[{0:0000}] SERIAL: [{1}] Received single digit response '{2}'", requestIndex, command, response);
-                                Console.ResetColor();
+
+                                ConsoleOutput.Success(string.Format("[{0:0000}] SERIAL: [{1}] Received single digit response '{2}'", requestIndex, command, response));
                                 return new CommandResponse(response, true);
                             }
 
                         case ResponseType.FullResponse:
                             {
-                                Console.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting #-delimited response for Command, waiting...", requestIndex, command);
+                                ConsoleOutput.Info(string.Format("[{0:0000}] SERIAL: [{1}] Expecting #-delimited response for Command, waiting...", requestIndex, command));
                                 string response = _port.ReadTo("#");
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine("[{0:0000}] SERIAL: [{1}] Received response '{2}'", requestIndex, command, response);
-                                Console.ResetColor();
+
+                                ConsoleOutput.Success(string.Format("[{0:0000}] SERIAL: [{1}] Received response '{2}'", requestIndex, command, response));
                                 return new CommandResponse(response, true);
                             }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to receive response to command. {2}", requestIndex, command, ex.Message);
-                    Console.ResetColor();
+                    
+                    ConsoleOutput.Error(string.Format("[{0:0000}] SERIAL: [{1}] Failed to receive response to command. {2}", requestIndex, command, ex.Message));
                     return new CommandResponse(string.Empty, false, $"Unable to read response to {command} from {_portName}. {ex.Message}");
                 }
 
@@ -107,9 +103,7 @@ namespace OATCommTestConsole
             }
             else
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("[{0:0000}] SERIAL: Failed to open port {1}", requestIndex, _portName);
-                Console.ResetColor();
+                ConsoleOutput.Error(string.Format("[{0:0000}] SERIAL: Failed to open port {1}", requestIndex, _portName));
                 return new CommandResponse(string.Empty, false, $"Unable to open {_portName}");
             }
         }
@@ -120,33 +114,32 @@ namespace OATCommTestConsole
             {
                 try
                 {
-                    Console.WriteLine("SERIAL: Port {0} is not open, attempting to open...", _portName);
+                    ConsoleOutput.Info(string.Format("SERIAL: Port {0} is not open, attempting to open...", _portName));
                     _port.Open();
 
-                    Console.WriteLine("SERIAL: Checking if buffer contains data", _portName);
+                    ConsoleOutput.Info(string.Format("SERIAL: Checking if buffer contains data", _portName));
                     string preCheck = _port.ReadExisting();
                     if(!string.IsNullOrEmpty(preCheck))
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("SERIAL: Possible problem, data in buffer. {0}", preCheck);
-                        Console.ResetColor();
+                        ConsoleOutput.Error(string.Format("SERIAL: Possible problem, data already in buffer: {0}", preCheck));
+                        ConsoleOutput.Warning("SERIAL: Flushing serial buffers...");
+                        _port.DiscardInBuffer();
+                        _port.DiscardOutBuffer();
                     }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("SERIAL: No exising serial data in buffer, all good...");
-                        Console.ResetColor();
+                        ConsoleOutput.Success("SERIAL: No exising serial data in buffer, all good...");
                     }
                     await Task.Delay(750); // Arduino resets on connection. Give it time to start up.
-                    Console.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
+                    ConsoleOutput.Info("SERIAL: Port is open, sending initial [:I#] command..");
                     _port.Write(":I#");
+
+                    ConsoleOutput.Success("SERIAL: Connected!");
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("SERIAL: Failed to open the port. {0}", ex.Message);
-                    Console.ResetColor();
+                    ConsoleOutput.Error(string.Format("SERIAL: Failed to open the port. {0}", ex.Message));
                     return false;
                 }
             }
@@ -158,12 +151,12 @@ namespace OATCommTestConsole
         {
             if (_port.IsOpen)
             {
-                Console.WriteLine("SERIAL: Port is open, sending shutdown command [:Qq#]");
+                ConsoleOutput.Info("SERIAL: Port is open, sending shutdown command [:Qq#]");
                 _port.Write(":Qq#");
-                Console.WriteLine("SERIAL: Closing port...");
+                ConsoleOutput.Info("SERIAL: Closing port...");
                 _port.Close();
                 _port = null;
-                Console.WriteLine("SERIAL: Disconnected...");
+                ConsoleOutput.Success("SERIAL: Disconnected...");
             }
         }
 

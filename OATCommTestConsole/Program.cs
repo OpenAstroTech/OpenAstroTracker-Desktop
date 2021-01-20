@@ -13,8 +13,6 @@ namespace OATCommTestConsole
         static int _writeTimeout = 250;
         static int _baudRate = 57600;
 
-        static System.ConsoleColor _menuColor = ConsoleColor.DarkYellow;
-
         static void Main(string[] args)
         {
             MainAsync().Wait();
@@ -28,16 +26,17 @@ namespace OATCommTestConsole
                 do
                 {
                     Console.Clear();
-                    Console.ForegroundColor = _menuColor;
+                    ConsoleOutput.Logo();
+                    Console.ForegroundColor = ConsoleOutput.menuColor;
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("  OAT Communication Test\r");
                     Console.WriteLine("        Main Menu\r");
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("Choose one of the following options:\r");
 
-                    Console.WriteLine("[ 1 ] Settings");
-                    Console.WriteLine("[ 2 ] Command Test");
-                    Console.WriteLine("[ 3 ] Run Test/Get Info");
+                    Console.WriteLine("[ 1 ] COM Settings");
+                    Console.WriteLine("[ 2 ] Manual Command Test");
+                    Console.WriteLine("[ 3 ] Run Test/Compile Info");
                     Console.WriteLine("[ 0 ] Quit application\n");
                     Console.ResetColor();
 
@@ -70,42 +69,7 @@ namespace OATCommTestConsole
                         Console.WriteLine("Try again!!");
                         break;
                 }
-            }
-            
-        }
-
-        static async Task CustomCommand()
-        {
-            // Console.Clear();
-            string userChoice = "";
-            Console.ForegroundColor = _menuColor;
-            Console.WriteLine("---------------------------\r");
-            Console.WriteLine("  OAT Communication Test\r");
-            Console.WriteLine("      Custom Command\r");
-            Console.WriteLine("---------------------------\r");
-            Console.WriteLine("[ 0 ] Return to Main Menu\n");
-            Console.WriteLine("Enter MEADE Command, examples: \r");
-            Console.WriteLine(":GX#,#> - for a full reply\r");
-            Console.WriteLine(":SG+01#,n - single digit reply\r");
-            Console.WriteLine(":Qn#, - when no reply\r");
-            Console.ResetColor();
-
-            while (true)
-            {
-                userChoice = Console.ReadLine();
-
-                switch (userChoice)
-                {
-                    case "0":
-                        _commHandler.Disconnect();
-                        return;
-
-                    default:
-                        Console.WriteLine("Sending command: {0}", userChoice);
-                        await SendCommand(userChoice);
-                        break;
-                }
-            }
+            }   
         }
 
         static void Settings()
@@ -116,7 +80,7 @@ namespace OATCommTestConsole
                 do
                 {
                     Console.Clear();
-                    Console.ForegroundColor = _menuColor;
+                    Console.ForegroundColor = ConsoleOutput.menuColor;
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("  OAT Communication Test\r");
                     Console.WriteLine("       Settings\r");
@@ -169,7 +133,8 @@ namespace OATCommTestConsole
                 do
                 {
                     Console.Clear();
-                    Console.ForegroundColor = _menuColor;
+                    ConsoleOutput.PreTestInfo();
+                    Console.ForegroundColor = ConsoleOutput.menuColor;
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("  OAT Communication Test\r");
                     Console.WriteLine("         Connecct\r");
@@ -210,6 +175,39 @@ namespace OATCommTestConsole
             }
         }
 
+        static async Task CustomCommand()
+        {
+            // Console.Clear();
+            string userChoice = "";
+            Console.ForegroundColor = ConsoleOutput.menuColor;
+            Console.WriteLine("---------------------------\r");
+            Console.WriteLine("  OAT Communication Test\r");
+            Console.WriteLine("      Custom Command\r");
+            Console.WriteLine("---------------------------\r");
+            Console.WriteLine("[ 0 ] Return to Main Menu\n");
+            Console.WriteLine("Enter MEADE Command, examples: \r");
+            Console.WriteLine(":GX#,#> - for a full reply\r");
+            Console.WriteLine(":SG+01#,n - single digit reply\r");
+            Console.WriteLine(":Qn#, - when no reply\r");
+            Console.ResetColor();
+
+            while (true)
+            {
+                userChoice = Console.ReadLine();
+
+                switch (userChoice)
+                {
+                    case "0":
+                        _commHandler.Disconnect();
+                        return;
+
+                    default:
+                        Console.WriteLine("Sending command: {0}", userChoice);
+                        await SendCommand(userChoice);
+                        break;
+                }
+            }
+        }
 
         static async Task<bool> StartTest()
         {
@@ -248,15 +246,15 @@ namespace OATCommTestConsole
 
             // Print summery
             int cnt = 0;
-            Console.WriteLine("--------------------------------------- SUMMERY -----------------------------------------------------------\r");
+            ConsoleOutput.Info("--------------------------------------- SUMMERY -----------------------------------------------------------\r");
             foreach (var cmd in keyValuePairs)
             {
-                Console.WriteLine("| {0} | {1} |\r", cmd.Value.PadLeft(30), replys[cnt].Data.PadRight(70));
+                ConsoleOutput.Info(string.Format("| {0} | {1} |\r", cmd.Value.PadLeft(30), replys[cnt].Data.PadRight(70)));
                 cnt++;
             }
-            Console.WriteLine("-----------------------------------------------------------------------------------------------------------\r");
+            ConsoleOutput.Info("-----------------------------------------------------------------------------------------------------------\r");
 
-            Console.WriteLine("Press any key to return...");
+            ConsoleOutput.Info("Press any key to return...");
             Console.ReadKey();
 
             return true;
@@ -264,7 +262,11 @@ namespace OATCommTestConsole
         
         static async Task<bool> CreateCommHandler(string device)
         {
-            _commHandler = ConnectToDevice(device);
+            var tempCon = ConnectToDevice(device);
+            if (tempCon == null)
+                return true;
+            
+            _commHandler = tempCon;
             _commHandler.ReadTimeout = _readTimeout;
             _commHandler.WriteTimeout = _writeTimeout;
             _commHandler.BaudRate = _baudRate;
@@ -276,8 +278,8 @@ namespace OATCommTestConsole
 
         static List<string> DiscoverDevices()
         {
-            Console.WriteLine("COMMFACTORY: Device Discovery initiated.");
-            Console.WriteLine("COMMFACTORY: Checking Serial ports....");
+            ConsoleOutput.Info("COMMFACTORY: Device Discovery initiated.");
+            ConsoleOutput.Info("COMMFACTORY: Checking Serial ports....");
 
             List<string> _available = new List<string>();
             foreach (var port in SerialPort.GetPortNames())
@@ -290,7 +292,13 @@ namespace OATCommTestConsole
 
         static SerialCommunicationHandler ConnectToDevice(string device)
         {
-            Console.WriteLine($"COMMFACTORY: Attempting to connect to device {device}...");
+            if(_commHandler != null && _commHandler.Connected)
+            {
+                ConsoleOutput.Warning($"COMMFACTORY: Already connected to {device}...");
+                return null;
+            }
+
+            ConsoleOutput.Info($"COMMFACTORY: Attempting to connect to device {device}...");
             if (device.StartsWith("Serial : "))
             {
                 string comPort = device.Substring("Serial : ".Length);
@@ -336,5 +344,8 @@ namespace OATCommTestConsole
             }
         }
         */
+
+        
+
     }
 }

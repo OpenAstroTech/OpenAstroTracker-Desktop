@@ -12,8 +12,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OATCommunications", "..\OAT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OATCommunications.WPF", "..\OATCommunications.WPF\OATCommunications.WPF.csproj", "{33D73B16-4C06-4FB0-95EF-350929570F03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OATCommTestConsole", "..\OATCommTestConsole\OATCommTestConsole.csproj", "{FCF5114D-980D-4EED-B177-5F258E4481B7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,10 +30,6 @@ Global
 		{33D73B16-4C06-4FB0-95EF-350929570F03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33D73B16-4C06-4FB0-95EF-350929570F03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33D73B16-4C06-4FB0-95EF-350929570F03}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FCF5114D-980D-4EED-B177-5F258E4481B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FCF5114D-980D-4EED-B177-5F258E4481B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FCF5114D-980D-4EED-B177-5F258E4481B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FCF5114D-980D-4EED-B177-5F258E4481B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
