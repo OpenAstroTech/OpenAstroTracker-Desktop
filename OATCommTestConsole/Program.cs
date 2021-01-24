@@ -199,6 +199,7 @@ namespace OATCommTestConsole
                 {
                     case "0":
                         _commHandler.Disconnect();
+                        _commHandler = null;
                         return;
 
                     default:
@@ -243,6 +244,7 @@ namespace OATCommTestConsole
             
             // Disconnect
             _commHandler.Disconnect();
+            _commHandler = null;
 
             // Print summery
             int cnt = 0;
