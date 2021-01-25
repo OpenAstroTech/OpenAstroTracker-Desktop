@@ -9,7 +9,7 @@ namespace OATCommTestConsole
         private string _portName;
         private SerialPort _port;
 
-        private int _readTimeout = 250;
+        private int _readTimeout = 1000;
         private int _writeTimeout = 250;
         private int _baudRate = 57600;
 
@@ -51,6 +51,9 @@ namespace OATCommTestConsole
         {
             if (await EnsurePortIsOpen())
             {
+                _port.DiscardInBuffer();
+                _port.DiscardOutBuffer();
+
                 requestIndex++;
                 try
                 {
@@ -77,7 +80,6 @@ namespace OATCommTestConsole
                             {
                                 ConsoleOutput.Info(string.Format("[{0:0000}] SERIAL: [{1}] Expecting single digit response for command, waiting...", requestIndex, command));
                                 string response = new string((char)_port.ReadChar(), 1);
-
                                 ConsoleOutput.Success(string.Format("[{0:0000}] SERIAL: [{1}] Received single digit response '{2}'", requestIndex, command, response));
                                 return new CommandResponse(response, true);
                             }
@@ -86,7 +88,6 @@ namespace OATCommTestConsole
                             {
                                 ConsoleOutput.Info(string.Format("[{0:0000}] SERIAL: [{1}] Expecting #-delimited response for Command, waiting...", requestIndex, command));
                                 string response = _port.ReadTo("#");
-
                                 ConsoleOutput.Success(string.Format("[{0:0000}] SERIAL: [{1}] Received response '{2}'", requestIndex, command, response));
                                 return new CommandResponse(response, true);
                             }
@@ -143,6 +144,11 @@ namespace OATCommTestConsole
                     return false;
                 }
             }
+
+
+            ConsoleOutput.Warning("SERIAL: Flushing serial buffers...");
+            _port.DiscardInBuffer();
+            _port.DiscardOutBuffer();
             Console.WriteLine("SERIAL: Port {0} is open, continuing...", _portName);
             return true;
         }

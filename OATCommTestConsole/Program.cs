@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading.Tasks;
 using System.Management;
+using System.Globalization;
 
 namespace OATCommTestConsole
 {
     class Program
     {
         private static SerialCommunicationHandler _commHandler;
-        static int _readTimeout = 250;
+        static int _readTimeout = 450;
         static int _writeTimeout = 250;
         static int _baudRate = 57600;
+
+        static CultureInfo _oatCulture = new CultureInfo("en-US");
 
         static void Main(string[] args)
         {
@@ -252,33 +255,48 @@ namespace OATCommTestConsole
         }
 
         static async Task<bool> TestGPS()
-        {
+        {   
+            Console.Clear();
+            Console.WriteLine("********* GPS TEST ***************\r");
+            Console.WriteLine("* Battery can need to be charged *\r");
+            Console.WriteLine("* first time GPS is used ~30min  *\r");
+            Console.WriteLine("* 0 = No satelites found         *\r");
+            Console.WriteLine("* 1 = Satelites found            *\r");
+            Console.WriteLine("**********************************\r");
             Console.WriteLine("Press ESC to stop");
             do
             {
                 while (!Console.KeyAvailable)
                 {
-                    Console.Clear();
-                    Console.WriteLine("********* GPS TEST ***************\r");
-                    Console.WriteLine("* Battery can need to be charged *\r");
-                    Console.WriteLine("* first time GPS is used ~30min  *\r");
-                    Console.WriteLine("* 0 = No satelites found         *\r");
-                    Console.WriteLine("* 1 = Satelites found            *\r");
-                    Console.WriteLine("**********************************\r");
                     var result = await SendCommand(":gT100#,n");
                     if (result.Data == "1")
                     {
-                        Console.WriteLine("Found GPS satelites!\n");
-                        Console.WriteLine("TODO: Write Lat/Lon position\n");
+                        _commHandler.ReadTimeout = 550;
+                        result = await SendCommand(":Gt#,#");
+                        var latitudeArray = result.Data.Split('*');
+                        float latitude = float.Parse(latitudeArray[0], _oatCulture) + (float.Parse(latitudeArray[1], _oatCulture) / 60.0f);
+                        await Task.Delay(250);
+                        result = await SendCommand(":Gg#,#");
+                        var longitudeArray = result.Data.Split('*');
+                        float longitude = float.Parse(longitudeArray[0], _oatCulture) + (float.Parse(longitudeArray[1], _oatCulture) / 60.0f);
+                        if (longitude > 180) longitude -= 360;
+                        await Task.Delay(250);
+
+                        ConsoleOutput.Error(string.Format("Lat: {0}", latitude));
+                        ConsoleOutput.Error(string.Format("Lon: {0}", longitude));
+                        _commHandler.ReadTimeout = 250;
                     }
+                    
                     Console.WriteLine("ESC - Exit\n");
-                    await Task.Delay(500);
+                    await Task.Delay(1000);
                 }
             } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+
 
             _commHandler.Disconnect();
             _commHandler = null;
 
+            Console.ReadKey();
             return true;
         }
 
