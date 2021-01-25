@@ -28,6 +28,12 @@ namespace OATCommunications.WPF.CommunicationHandlers
 
 		public bool Connected => _port.IsOpen;
 
+		public int ReadTimeout
+		{
+			get => _port.ReadTimeout;
+			set => _port.ReadTimeout = value;
+		}
+
 		public async Task<CommandResponse> SendBlind(string command)
 		{
 			return await SendCommand(command, ResponseType.NoResponse);

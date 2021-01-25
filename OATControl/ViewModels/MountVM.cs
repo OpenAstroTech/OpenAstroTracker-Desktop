@@ -1349,6 +1349,11 @@ namespace OATControl.ViewModels
 		}
 
 		public Version Version { get; private set; }
+
+		public void SetCOMReadTimeout(int timeout)
+		{
+			_commHandler.ReadTimeout = timeout;
+		}
 	}
 }
 

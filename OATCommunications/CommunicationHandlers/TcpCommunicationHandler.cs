@@ -49,6 +49,12 @@ namespace OATCommunications.CommunicationHandlers
 			_client = new TcpClient();
 		}
 
+		public int ReadTimeout
+		{
+			get => _client.ReceiveTimeout;
+			set => _client.ReceiveTimeout = value;
+		}
+
 		public async Task<CommandResponse> SendBlind(string command)
 		{
 			return await SendCommand(command, ResponseType.NoResponse);

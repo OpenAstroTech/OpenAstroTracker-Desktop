@@ -19,5 +19,8 @@ namespace OATCommunications
         bool Connected { get; }
 
         void Disconnect();
+
+        // Enable dynamic Read Timeout for communication
+        int ReadTimeout { get; set; }
     }
 }
