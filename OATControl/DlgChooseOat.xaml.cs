@@ -437,10 +437,10 @@ namespace OATControl
 					{
 						GPSStatus = "Sync'd! Retrieving current location...";
 						result = await _sendCommand(":Gt#,#");
-						float latitude = float.Parse(result.Substring(0, 3)) + (float.Parse(result.Substring(4)) / 60.0f);
+						float latitude = float.Parse(result.Substring(0, 3), _oatCulture) + (float.Parse(result.Substring(4), _oatCulture) / 60.0f);
 						await Task.Delay(250);
 						result = await _sendCommand(":Gg#,#");
-						float longitude = float.Parse(result.Substring(0, 3)) + (float.Parse(result.Substring(4)) / 60.0f);
+						float longitude = float.Parse(result.Substring(0, 3), _oatCulture) + (float.Parse(result.Substring(4), _oatCulture) / 60.0f);
 						if (longitude > 180) longitude -= 360;
 						await Task.Delay(250);
 

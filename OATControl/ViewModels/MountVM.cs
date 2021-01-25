@@ -632,7 +632,7 @@ namespace OATControl.ViewModels
 			ScopeName = $"{result.Data} {resultNr.Data}";
 
 			var hardware = await _oatMount.SendCommand("XGM#,#");
-			Log.WriteLine("Mount: Hardware is {0}", hardware);
+			Log.WriteLine("Mount: Hardware is {0}", hardware.Data);
 			var hwParts = hardware.Data.Split(',');
 			var raParts = hwParts[1].Split('|');
 			var decParts = hwParts[2].Split('|');
