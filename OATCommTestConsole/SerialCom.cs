@@ -178,5 +178,6 @@ namespace OATCommTestConsole
             set { _baudRate = value; }
         }
 
+        
     }
 }

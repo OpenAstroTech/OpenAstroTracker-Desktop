@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Ports;
-using System.Management;
 using System.Threading.Tasks;
+using System.Management;
 
 namespace OATCommTestConsole
 {
@@ -36,11 +36,13 @@ namespace OATCommTestConsole
 
                     Console.WriteLine("[ 1 ] COM Settings");
                     Console.WriteLine("[ 2 ] Manual Command Test");
-                    Console.WriteLine("[ 3 ] Run Test/Compile Info");
+                    Console.WriteLine("[ 3 ] Test Gyro");
+                    Console.WriteLine("[ 4 ] Test GPS");
+                    Console.WriteLine("[ 5 ] Run Test/Compile Info");
                     Console.WriteLine("[ 0 ] Quit application\n");
                     Console.ResetColor();
 
-                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 3);
+                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 5);
 
                 Console.Clear();
                 switch (userChoice)
@@ -56,6 +58,20 @@ namespace OATCommTestConsole
                         }
                         break;
                     case 3:
+                        result = await Connect();
+                        if (result)
+                        {
+                            await TestGyro();
+                        }
+                        break;
+                    case 4:
+                        result = await Connect();
+                        if (result)
+                        {
+                            await TestGPS();
+                        }
+                        break;
+                    case 5:
                         result = await Connect();
                         if (result)
                         {
@@ -133,6 +149,7 @@ namespace OATCommTestConsole
                 do
                 {
                     Console.Clear();
+                    // ListComDetails();
                     ConsoleOutput.PreTestInfo();
                     Console.ForegroundColor = ConsoleOutput.menuColor;
                     Console.WriteLine("---------------------------\r");
@@ -208,6 +225,61 @@ namespace OATCommTestConsole
                         break;
                 }
             }
+        }
+
+        static async Task<bool> TestGyro()
+        {
+            Console.WriteLine("Press ESC to stop");
+            do
+            {
+                var result = await SendCommand(":XL1#,#");
+
+                while (!Console.KeyAvailable)
+                {
+                    Console.Clear();
+                    Console.WriteLine("********* GYRO TEST **************\r");
+                    await SendCommand(":XLGC#,#");
+                    Console.WriteLine("ESC - Exit\n");
+                    await Task.Delay(250);
+                }
+            } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+
+            await SendCommand(":XL0#,#");
+            _commHandler.Disconnect();
+            _commHandler = null;
+
+            return true;
+        }
+
+        static async Task<bool> TestGPS()
+        {
+            Console.WriteLine("Press ESC to stop");
+            do
+            {
+                while (!Console.KeyAvailable)
+                {
+                    Console.Clear();
+                    Console.WriteLine("********* GPS TEST ***************\r");
+                    Console.WriteLine("* Battery can need to be charged *\r");
+                    Console.WriteLine("* first time GPS is used ~30min  *\r");
+                    Console.WriteLine("* 0 = No satelites found         *\r");
+                    Console.WriteLine("* 1 = Satelites found            *\r");
+                    Console.WriteLine("**********************************\r");
+                    var result = await SendCommand(":gT100#,n");
+                    if (result.Data == "1")
+                    {
+                        Console.WriteLine("Found GPS satelites!\n");
+                        Console.WriteLine("TODO: Write Lat/Lon position\n");
+                    }
+                    Console.WriteLine("ESC - Exit\n");
+                    await Task.Delay(500);
+                }
+            } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+
+            _commHandler.Disconnect();
+            _commHandler = null;
+
+            return true;
         }
 
         static async Task<bool> StartTest()
@@ -332,22 +404,40 @@ namespace OATCommTestConsole
             return await _commHandler.SendBlind(cmd);
         }
 
-        /*
-        static void PortInfo()
+        private static void ListComDetails()
         {
-            ManagementObjectCollection mbsList = null;
-            ManagementObjectSearcher mbs = new ManagementObjectSearcher("Select * From Win32_SerialPort");
-            mbsList = mbs.Get();
-
-            foreach (ManagementObject mo in mbsList)
+            using (ManagementClass i_Entity = new ManagementClass("Win32_PnPEntity"))
             {
-                Console.WriteLine("Description:{0}", mo["Description"].ToString());
+                foreach (ManagementObject i_Inst in i_Entity.GetInstances())
+                {
+                    Object o_Guid = i_Inst.GetPropertyValue("ClassGuid");
+                    if (o_Guid == null || o_Guid.ToString().ToUpper() != "{4D36E978-E325-11CE-BFC1-08002BE10318}")
+                        continue; // Skip all devices except device class "PORTS"
 
+                    String s_Caption = i_Inst.GetPropertyValue("Caption").ToString();
+                    String s_Manufact = i_Inst.GetPropertyValue("Manufacturer").ToString();
+                    String s_DeviceID = i_Inst.GetPropertyValue("PnpDeviceID").ToString();
+                    String s_RegPath = "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Enum\\" + s_DeviceID + "\\Device Parameters";
+                    String s_PortName = Microsoft.Win32.Registry.GetValue(s_RegPath, "PortName", "").ToString();
+
+                    int s32_Pos = s_Caption.IndexOf(" (COM");
+                    if (s32_Pos > 0) // remove COM port from description
+                        s_Caption = s_Caption.Substring(0, s32_Pos);
+
+                    ConsoleOutput.Success("Port Name:    " + s_PortName);
+                    ConsoleOutput.Success("Description:  " + s_Caption);
+                    ConsoleOutput.Success("Manufacturer: " + s_Manufact);
+                    ConsoleOutput.Success("Device ID:    " + s_DeviceID);
+                    ConsoleOutput.Success("-----------------------------------");
+                }
             }
         }
-        */
 
-        
+        private static void CheckHardware(string hardware)
+        {
+
+        }
 
     }
+
 }
