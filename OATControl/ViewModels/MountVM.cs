@@ -541,12 +541,14 @@ namespace OATControl.ViewModels
 			{
 				Log.WriteLine("Mount: New FW: Current UTC is {0}. Sending to OAT.", utcNow);
 				_oatMount.SendCommand(string.Format(":SL{0,2:00}:{1,2:00}:{2,2:00}#,n", now.Hour, now.Minute, now.Second), (a) => { });
-				_oatMount.SendCommand(string.Format(":SC{0,2:00}/{1,2:00}/{2,2:00}#,n", now.Month, now.Day, now.Year - 2000), (a) => { });
-				var utcOffset = Math.Round((now - utcNow).TotalHours);
-				char sign = (utcOffset < 0) ? '-' : '+';
-				_oatMount.SendCommand(string.Format(":SG{0}{1,2:00}#,#", sign, Math.Abs(utcOffset)), (a) => { });
+				_oatMount.SendCommand(string.Format(":SC{0,2:00}/{1,2:00}/{2,2:00}#,#", now.Month, now.Day, now.Year - 2000), (a) => { });
+
 				// Send a Rate command and read to next hash. Rate command does not return any data, but the command above returns two hashes.
 				_oatMount.SendCommand(":RS#,#", (a) => { });
+
+				var utcOffset = Math.Round((now - utcNow).TotalHours);
+				char sign = (utcOffset < 0) ? '-' : '+';
+				_oatMount.SendCommand(string.Format(":SG{0}{1,2:00}#,n", sign, Math.Abs(utcOffset)), (a) => { });
 			}
 			else
 			{
