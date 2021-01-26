@@ -1,4 +1,4 @@
-﻿using OATCommunications.CommunicationHandlers;
+using OATCommunications.CommunicationHandlers;
 using OATCommunications.Utilities;
 using System;
 using System.Collections.Generic;
@@ -55,6 +55,10 @@ namespace OATCommunications.WPF.CommunicationHandlers
 		{
 			if (await EnsurePortIsOpen())
 			{
+				// Flush old data before proceeding
+				_port.DiscardInBuffer();
+				_port.DiscardOutBuffer();
+
 				requestIndex++;
 				try
 				{

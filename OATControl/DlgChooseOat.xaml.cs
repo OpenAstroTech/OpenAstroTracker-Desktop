@@ -435,17 +435,26 @@ namespace OATControl
 					var result = await _sendCommand(":gT100#,n");
 					if (result == "1")
 					{
+						result = null;
 						GPSStatus = "Sync'd! Retrieving current location...";
-						_mountViewModel.SetCOMReadTimeout(550); // Fix for longer read time from GPS
+
+						// Longer read time from GPS, store current as Serial and TCP are different
+						var readTimeout = _mountViewModel.COMReadTimeout();
+						_mountViewModel.SetCOMReadTimeout(550); 
+						
 						result = await _sendCommand(":Gt#,#");
 						var replySplit = result.Split('*');
 						float latitude = float.Parse(replySplit[0], _oatCulture) + (float.Parse(replySplit[1], _oatCulture) / 60.0f);
 						await Task.Delay(250);
+						
+						result = await _sendCommand(":Gg#,#");
 						replySplit = result.Split('*');
 						float longitude = float.Parse(replySplit[0], _oatCulture) + (float.Parse(replySplit[1], _oatCulture) / 60.0f);
 						if (longitude > 180) longitude -= 360;
 						await Task.Delay(250);
-						_mountViewModel.SetCOMReadTimeout(250); // Fix for longer read time from GPS
+
+						// Reset ReadTimeout
+						_mountViewModel.SetCOMReadTimeout(readTimeout);
 
 						GPSStatus = "Sync'd! Setting OAT location...";
 						await _mountViewModel.SetSiteLatitude(latitude);

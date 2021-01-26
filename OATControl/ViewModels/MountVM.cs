@@ -1354,6 +1354,10 @@ namespace OATControl.ViewModels
 		{
 			_commHandler.ReadTimeout = timeout;
 		}
+		public int COMReadTimeout()
+        {
+			return _commHandler.ReadTimeout;
+		}
 	}
 }
 
