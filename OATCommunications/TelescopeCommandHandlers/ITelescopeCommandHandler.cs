@@ -11,7 +11,7 @@ namespace OATCommunications.TelescopeCommandHandlers {
         Task<bool> Sync(TelescopePosition position);
         Task<bool> GoHome();
         Task<bool> SetTracking(bool enabled);
-        Task<bool> SetLocation(double lat, double lon, double altitudeInMeters, double lstInHours);
+        Task<bool> SetLocation(double lat, double lon, double altitudeInMeters);
         Task<bool> StartMoving(string dir);
         Task<bool> StopMoving(string dir);
         MountState MountState { get; }

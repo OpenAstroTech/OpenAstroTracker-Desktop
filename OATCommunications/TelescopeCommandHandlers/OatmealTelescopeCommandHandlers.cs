@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 using OATCommunications.CommunicationHandlers;
@@ -26,21 +27,24 @@ namespace OATCommunications
 
 		public async Task<bool> RefreshMountState()
 		{
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
 			var _slewingStates = new[] { "SlewToTarget", "FreeSlew", "ManualSlew" };
-
-			var status = await SendCommand(":GX#,#");
-			if (!status.Success)
+			bool success = false;
+			SendCommand(":GX#,#", (status) =>
 			{
-				return false;
-			}
+				if (status.Success)
+				{
+					var parts = status.Data.Split(',');
+					MountState.IsTracking = parts[1][2] == 'T';
+					MountState.IsSlewing = _slewingStates.Contains(parts[0]);
+					MountState.RightAscension = GetCompactRA(parts[5]);
+					MountState.Declination = GetCompactDec(parts[6]);
+					success = true;
+				}
+			});
 
-			var parts = status.Data.Split(',');
-			MountState.IsTracking = parts[1][2] == 'T';
-			MountState.IsSlewing = _slewingStates.Contains(parts[0]);
-			MountState.RightAscension = GetCompactRA(parts[5]);
-			MountState.Declination = GetCompactDec(parts[6]);
-
-			return status.Success;
+			await doneEvent.WaitAsync();
+			return success;
 
 		}
 
@@ -64,78 +68,116 @@ namespace OATCommunications
 
 		public async Task<TelescopePosition> GetPosition()
 		{
-			var ra = await SendCommand(":GR#,#");
-			var dec = await SendCommand(":GD#,#");
-
-			if (ra.Success && dec.Success &&
-			   TryParseRA(ra.Data, out double dRa) &&
-			   TryParseDec(dec.Data, out double dDec))
+			AsyncAutoResetEvent doneBoth = new AsyncAutoResetEvent();
+			bool error = false;
+			SendCommand(":GR#,#", (ra) =>
 			{
+				if (ra.Success && TryParseRA(ra.Data, out double dRa))
+				{
+					MountState.RightAscension = dRa;
+				}
+				else
+				{
+					error = true;
+				}
+			});
 
-				MountState.RightAscension = dRa;
-				MountState.Declination = dDec;
-				return new TelescopePosition(dRa, dDec, Epoch.JNOW);
-			}
+			SendCommand(":GD#,#", (dec) =>
+			{
+				if (dec.Success && TryParseDec(dec.Data, out double dDec))
+				{
+					MountState.Declination = dDec;
+				}
+				else
+				{
+					error = true;
+				}
+				doneBoth.Set();
+			});
 
-			MountState.RightAscension = 0;
-			MountState.Declination = 0;
-			return TelescopePosition.Invalid;
+			await doneBoth.WaitAsync();
+
+			return error ? TelescopePosition.Invalid : new TelescopePosition(MountState.RightAscension, MountState.Declination, Epoch.JNOW);
 		}
 
 		public async Task<float> GetSiteLatitude()
 		{
-			var lat = await SendCommand(":Gt#,#");
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			double latitude = 0;
+			bool success = false;
 
-			if (lat.Success && TryParseDec(lat.Data, out double dec))
+			SendCommand(":Gt#,#", (lat) =>
 			{
-				return (float)dec;
-			}
+				if (lat.Success && TryParseDec(lat.Data, out latitude))
+				{
+					success = true;
+				}
+				doneEvent.Set();
+			});
 
-			return 0;
+			await doneEvent.WaitAsync();
+
+			return success ? (float)latitude : 0;
 		}
 
 		public async Task<float> GetSiteLongitude()
 		{
-			var lon = await SendCommand(":Gg#,#");
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			double longitude = 0;
+			bool success = false;
 
-			if (lon.Success && TryParseDec(lon.Data, out double dec))
+			SendCommand(":Gg#,#", (lat) =>
 			{
-				if (dec > 180)
+				if (lat.Success && TryParseDec(lat.Data, out longitude))
 				{
-					dec -= 360;
+					success = true;
+					if (longitude > 180)
+					{
+						longitude -= 360;
+					}
 				}
-				return (float)dec;
-			}
+				doneEvent.Set();
+			});
 
-			return 0;
+			await doneEvent.WaitAsync();
+
+			return success ? (float)longitude : 0;
 		}
 
 		public async Task<string> SetSiteLatitude(float latitude)
 		{
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			bool success = false;
 			char sgn = latitude < 0 ? '-' : '+';
 			int latInt = (int)Math.Abs(latitude);
 			int latMin = (int)((Math.Abs(latitude) - latInt) * 60.0f);
-			var lat = await SendCommand($":St{sgn}{latInt:00}*{latMin:00}#,n");
-			if (lat.Success)
+			SendCommand($":St{sgn}{latInt:00}*{latMin:00}#,n", (result) =>
 			{
-				return lat.Data;
-			}
+				success = result.Success;
+				doneEvent.Set();
+			});
 
-			return "0";
+			await doneEvent.WaitAsync();
+			return success ? "1" : "0";
 		}
 
+		// Input is -180 (W) to +180 (E)
+		// This needs to be mapped to 360..0
 		public async Task<string> SetSiteLongitude(float longitude)
 		{
-			longitude = longitude < 0 ? longitude + 360 : longitude;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			bool success = false;
+			longitude = 180 - longitude;
 			int lonInt = (int)longitude;
 			int lonMin = (int)((longitude - lonInt) * 60.0f);
-			var lon = await SendCommand($":Sg{lonInt:000}*{lonMin:00}#,n");
-			if (lon.Success)
+			SendCommand($":Sg{lonInt:000}*{lonMin:00}#,n", (result) =>
 			{
-				return lon.Data;
-			}
+				success = result.Success;
+				doneEvent.Set();
+			});
 
-			return "0";
+			await doneEvent.WaitAsync();
+			return success ? "1" : "0";
 		}
 
 		private void FloatToHMS(double val, out int h, out int m, out int s)
@@ -162,98 +204,162 @@ namespace OATCommunications
 			{
 				dDec += int.Parse(parts[2]) / 3600.0;
 			}
-			
+
 			return true;
 		}
 
 		public async Task<bool> StartMoving(string dir)
 		{
-			var status = await SendCommand($":M{dir}#");
-			MountState.IsSlewing = true;
-			++_moveState;
-			return status.Success;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			bool success = false;
+			SendCommand($":M{dir}#", (a) =>
+			{
+				MountState.IsSlewing = true;
+				++_moveState;
+				success = a.Success;
+				doneEvent.Set();
+			});
+
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
 		public async Task<bool> StopMoving(string dir)
 		{
-			var status = await SendCommand($":Q{dir}#");
-			--_moveState;
-			if (_moveState <= 0)
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			bool success = false;
+			SendCommand($":Q{dir}#", (a) =>
 			{
-				_moveState = 0;
-				MountState.IsSlewing = false;
-			}
-			return status.Success;
+				--_moveState;
+				if (_moveState <= 0)
+				{
+					_moveState = 0;
+					MountState.IsSlewing = false;
+				}
+				success = a.Success;
+				doneEvent.Set();
+			});
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
 		public async Task<bool> Slew(TelescopePosition position)
 		{
 			int deg, hour, min, sec;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			bool success = false;
 
 			FloatToHMS(Math.Abs(position.Declination), out deg, out min, out sec);
 			string sign = position.Declination < 0 ? "-" : "+";
-			var result = await SendCommand(string.Format(":Sd{0}{1:00}*{2:00}:{3:00}#,n", sign, deg, min, sec));
-			if (!result.Success || result.Data != "1") return false;
+			SendCommand(string.Format(":Sd{0}{1:00}*{2:00}:{3:00}#,n", sign, deg, min, sec), (decResult) =>
+			{
+				success = decResult.Success && decResult.Data == "1";
+			});
+
 			FloatToHMS(Math.Abs(position.RightAscension), out hour, out min, out sec);
-			result = await SendCommand(string.Format(":Sr{0:00}:{1:00}:{2:00}#,n", hour, min, sec));
-			if (!result.Success || result.Data != "1") return false;
-			result = await SendCommand($":MS#,n");
-			return result.Success;
+			SendCommand(string.Format(":Sr{0:00}:{1:00}:{2:00}#,n", hour, min, sec), (raResult) =>
+			{
+				success = success && raResult.Success && raResult.Data == "1";
+			});
+
+			SendCommand($":MS#,n", (moveResult) =>
+			{
+				success = success && moveResult.Success && moveResult.Data == "1";
+			});
+
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
 		public async Task<bool> Sync(TelescopePosition position)
 		{
 			int deg, hour, min, sec;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+			bool success = false;
 
 			FloatToHMS(Math.Abs(position.Declination), out deg, out min, out sec);
 			string sign = position.Declination < 0 ? "-" : "+";
-			var result = await SendCommand(string.Format(":Sd{0}{1:00}*{2:00}:{3:00}#,n", sign, deg, min, sec));
-			if (!result.Success || result.Data != "1") return false;
+			SendCommand(string.Format(":Sd{0}{1:00}*{2:00}:{3:00}#,n", sign, deg, min, sec), (decResult) =>
+			{
+				success = decResult.Success && decResult.Data == "1";
+			});
+
 			FloatToHMS(Math.Abs(position.RightAscension), out hour, out min, out sec);
-			result = await SendCommand(string.Format(":Sr{0:00}:{1:00}:{2:00}#,n", hour, min, sec));
-			if (!result.Success || result.Data != "1") return false;
-			result = await SendCommand($":CM#,#");
-			return result.Success;
+			SendCommand(string.Format(":Sr{0:00}:{1:00}:{2:00}#,n", hour, min, sec), (raResult) =>
+			{
+				success = success && raResult.Success && raResult.Data == "1";
+			});
+
+			SendCommand($":CM#,#", (syncResult) =>
+			{
+				success = success && syncResult.Success && syncResult.Data == "1";
+				doneEvent.Set();
+			});
+
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
 		public async Task<bool> GoHome()
 		{
-			var status = await SendCommand(":hP#");
-			return status.Success;
+			bool success = false;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+
+			SendCommand($":hP#", (moveResult) =>
+			{
+				success = moveResult.Success;
+				doneEvent.Set();
+			});
+
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
 		public async Task<bool> SetHome()
 		{
-			var status = await SendCommand(":hP#");
-			return status.Success;
+			bool success = false;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
+
+			SendCommand($":hP#", (moveResult) =>
+			{
+				success = moveResult.Success;
+				doneEvent.Set();
+			});
+
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
 		public async Task<bool> SetTracking(bool enabled)
 		{
+			bool success = false;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
 			var b = enabled ? 1 : 0;
-			var status = await SendCommand($":MT{b}#,n");
-			if (status.Success)
+			SendCommand($":MT{b}#,n", (setResult) =>
 			{
-				MountState.IsTracking = enabled;
-			}
-			return status.Success;
+				if (setResult.Success)
+				{
+					MountState.IsTracking = enabled;
+				}
+				doneEvent.Set();
+			});
+
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
-		public async Task<bool> SetLocation(double lat, double lon, double altitudeInMeters, double lstInHours)
+		public async Task<bool> SetLocation(double lat, double lon, double altitudeInMeters)
 		{
+			bool success = false;
+			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
 
 			// Longitude
+			lon = 180 - lon;
 
-			if (lon < 0)
-			{
-				lon = 360 + lon;
-			}
 			int lonFront = (int)lon;
 			int lonBack = (int)((lon - lonFront) * 60);
 			var lonCmd = $":Sg{lonFront:000}*{lonBack:00}#,n";
-			var status = await SendCommand(lonCmd);
-			if (!status.Success) return false;
-
+			SendCommand(lonCmd, (status) => success = status.Success);
 
 			// Latitude
 			var latSign = lat > 0 ? '+' : '-';
@@ -261,26 +367,23 @@ namespace OATCommunications
 			int latFront = (int)absLat;
 			int latBack = (int)((absLat - latFront) * 60.0);
 			var latCmd = $":St{latSign}{latFront:00}*{latBack:00}#,n";
-			status = await SendCommand(latCmd);
-			if (!status.Success) return false;
-
+			SendCommand(latCmd, (status) => success = success && status.Success);
 
 			// GMT Offset
 			var offsetSign = DateTimeOffset.Now.Offset.TotalHours > 0 ? "+" : "-";
 			var offset = Math.Abs(DateTimeOffset.Now.Offset.TotalHours);
-			status = await SendCommand($":SG{offsetSign}{offset:00}#,n");
-			if (!status.Success) return false;
-
+			SendCommand($":SG{offsetSign}{offset:00}#,n", (status) => success = success && status.Success);
 
 			// Local Time and Date
 			var n = DateTime.Now;
-			status = await SendCommand($":SL{n:HH:mm:ss}#,n");
-			if (!status.Success) return false;
-			status = await SendCommand($":SC{n:MM/dd/yy}#,#");
-			return status.Success;
+			SendCommand($":SL{n:HH:mm:ss}#,n", (status) => success = success && status.Success);
+			SendCommand($":SC{n:MM/dd/yy}#,#", (status) => { success = success && status.Success; doneEvent.Set(); });
+
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
-		public async Task<CommandResponse> SendCommand(string cmd)
+		public void SendCommand(string cmd, Action<CommandResponse> onFulFilled)
 		{
 			if (!cmd.StartsWith(":"))
 			{
@@ -289,18 +392,20 @@ namespace OATCommunications
 
 			if (cmd.EndsWith("#,#"))
 			{
-				return await _commHandler.SendCommand(cmd.Substring(0, cmd.Length - 2));
+				_commHandler.SendCommand(cmd.Substring(0, cmd.Length - 2), onFulFilled);
 			}
 			else if (cmd.EndsWith("#,n"))
 			{
-				return await _commHandler.SendCommandConfirm(cmd.Substring(0, cmd.Length - 2));
+				_commHandler.SendCommandConfirm(cmd.Substring(0, cmd.Length - 2), onFulFilled);
 			}
-
-			if (!cmd.EndsWith("#"))
+			else
 			{
-				cmd += "#";
+				if (!cmd.EndsWith("#"))
+				{
+					cmd += "#";
+				}
+				_commHandler.SendBlind(cmd, onFulFilled);
 			}
-			return await _commHandler.SendBlind(cmd);
 		}
 	}
 }

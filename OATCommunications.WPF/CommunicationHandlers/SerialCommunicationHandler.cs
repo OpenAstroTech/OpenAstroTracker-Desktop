@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace OATCommunications.WPF.CommunicationHandlers
 {
-	public class SerialCommunicationHandler : ICommunicationHandler
+	public class SerialCommunicationHandler : CommunicationHandler
 	{
 		private string _portName;
 		private SerialPort _port;
@@ -22,88 +22,81 @@ namespace OATCommunications.WPF.CommunicationHandlers
 			_port = new SerialPort(comPort);
 			_port.BaudRate = 57600;
 			_port.DtrEnable = false;
-			_port.ReadTimeout = 250;
-			_port.WriteTimeout = 250;
+			_port.ReadTimeout = 1000;
+			_port.WriteTimeout = 1000;
+
+			StartJobsProcessor();
 		}
 
-		public bool Connected => _port.IsOpen;
-
-		public async Task<CommandResponse> SendBlind(string command)
-		{
-			return await SendCommand(command, ResponseType.NoResponse);
-		}
-
-		public async Task<CommandResponse> SendCommand(string command)
-		{
-			return await SendCommand(command, ResponseType.FullResponse);
-		}
-
-		public async Task<CommandResponse> SendCommandConfirm(string command)
-		{
-			return await SendCommand(command, ResponseType.DigitResponse);
-		}
+		public override bool Connected { get { return _port.IsOpen; } }
 
 		long requestIndex = 1;
 
-		private async Task<CommandResponse> SendCommand(string command, ResponseType needsResponse)
+		protected override void RunJob(Job job)
 		{
-			if (await EnsurePortIsOpen())
+			CommandResponse response = null;
+
+			if (EnsurePortIsOpen())
 			{
 				requestIndex++;
 				try
 				{
-					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Sending command", requestIndex, command);
-					_port.Write(command);
+					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Sending command", requestIndex, job.Command);
+					_port.Write(job.Command);
 				}
 				catch (Exception ex)
 				{
-					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to send command. {2}", requestIndex, command, ex.Message);
-					return new CommandResponse(string.Empty, false, $"Unable to write to {_portName}. " + ex.Message);
+					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to send command. {2}", requestIndex, job.Command, ex.Message);
+					job.OnFulFilled(new CommandResponse(string.Empty, false, $"Unable to write to {_portName}. " + ex.Message));
+					return;
 				}
 
 				try
 				{
-					switch (needsResponse)
+					switch (job.ResponseType)
 					{
 						case ResponseType.NoResponse:
 							{
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] No response needed for command", requestIndex, command);
-								return new CommandResponse(string.Empty, true);
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] No response needed for command", requestIndex, job.Command);
+								response = new CommandResponse(string.Empty, true);
 							}
+							break;
 
 						case ResponseType.DigitResponse:
 							{
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting single digit response for command, waiting...", requestIndex, command);
-								string response = new string((char)_port.ReadChar(), 1);
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received single digit response '{2}' for command", requestIndex, command, response);
-								return new CommandResponse(response, true);
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting single digit response for command, waiting...", requestIndex, job.Command);
+								string responseStr = new string((char)_port.ReadChar(), 1);
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received single digit response '{2}' for command", requestIndex, job.Command, responseStr);
+								response = new CommandResponse(responseStr, true);
 							}
+							break;
 
 						case ResponseType.FullResponse:
 							{
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting #-delimited response for Command, waiting...", requestIndex, command);
-								string response = _port.ReadTo("#");
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received response '{2}' for command", requestIndex, command, response);
-								return new CommandResponse(response, true);
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting #-delimited response for Command, waiting...", requestIndex, job.Command);
+								string responseStr = _port.ReadTo("#");
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received response '{2}' for command", requestIndex, job.Command, responseStr);
+								response = new CommandResponse(responseStr, true);
 							}
+							break;
 					}
 				}
 				catch (Exception ex)
 				{
-					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to receive response to command. {2}", requestIndex, command, ex.Message);
-					return new CommandResponse(string.Empty, false, $"Unable to read response to {command} from {_portName}. {ex.Message}");
+					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to receive response to command. {2}", requestIndex, job.Command, ex.Message);
+					response = new CommandResponse(string.Empty, false, $"Unable to read response to {job.Command} from {_portName}. {ex.Message}");
 				}
-
-				return new CommandResponse(string.Empty, false, "Something weird going on...");
 			}
 			else
 			{
 				Log.WriteLine("[{0:0000}] SERIAL: Failed to open port {1}", requestIndex, _portName);
-				return new CommandResponse(string.Empty, false, $"Unable to open {_portName}");
+				response = new CommandResponse(string.Empty, false, $"Unable to open {_portName}");
 			}
+
+			job.OnFulFilled(response);
 		}
 
-		private async Task<bool> EnsurePortIsOpen()
+		private bool EnsurePortIsOpen()
 		{
 			if (!_port.IsOpen)
 			{
@@ -111,7 +104,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				{
 					Log.WriteLine("SERIAL: Port {0} is not open, attempting to open...", _portName);
 					_port.Open();
-					await Task.Delay(750); // Arduino resets on connection. Give it time to start up.
+					Thread.Sleep(750); // Arduino resets on connection. Give it time to start up.
 					Log.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
 					_port.Write(":I#");
 					return true;
@@ -125,10 +118,12 @@ namespace OATCommunications.WPF.CommunicationHandlers
 			return true;
 		}
 
-		public void Disconnect()
+		public override void Disconnect()
 		{
 			if (_port.IsOpen)
 			{
+				Log.WriteLine("SERIAL: Stopping Jobs processor.");
+				StopJobsProcessor();
 				Log.WriteLine("SERIAL: Port is open, sending shutdown command [:Qq#]");
 				_port.Write(":Qq#");
 				Log.WriteLine("SERIAL: Closing port...");

@@ -1,4 +1,6 @@
 ﻿using MahApps.Metro.Controls;
+using OATCommunications.CommunicationHandlers;
+using OATCommunications.Model;
 using OATCommunications.WPF.CommunicationHandlers;
 using OATControl.Properties;
 using OATControl.ViewModels;
@@ -7,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,9 +30,9 @@ namespace OATControl
 		private DelegateCommand _okCommand;
 		private DelegateCommand _closeCommand;
 		private int _state;
-		private Func<string, Task<string>> _sendCommand;
+		private Action<string, Action<CommandResponse>> _sendCommand;
 
-		public DlgRunPolarAlignment(Func<string, Task<string>> sendCommand)
+		public DlgRunPolarAlignment(Action<string, Action<CommandResponse>> sendCommand)
 		{
 			_sendCommand = sendCommand;
 			_closeCommand = new DelegateCommand(() =>
@@ -44,29 +47,29 @@ namespace OATControl
 				if (_state == 2)
 				{
 					// Move RA to Polaris
-					await _sendCommand($":Sr02:58:51#,n");
+					await SendCommandAsync($":Sr02:58:51#,n");
 
 					// Move DEC to twice Polaris Dec
 					if (Settings.Default.SiteLatitude > 0) // Northern hemisphere
 					{
-						await _sendCommand($":Sd+88*42:12#,n");
+						await SendCommandAsync($":Sd+88*42:12#,n");
 					}
 					else
 					{
-						await _sendCommand($":Sd-88*42:12#,n");
+						await SendCommandAsync($":Sd-88*42:12#,n");
 					}
-					await _sendCommand($":MS#,n");
+					await SendCommandAsync($":MS#,n");
 				}
 				else if (_state == 3)
 				{
 					// Sync the mount to Polaris coordinates
 					if (Settings.Default.SiteLatitude > 0) // Northern hemisphere
 					{
-						await _sendCommand($":SY+89*21:06.02:58:51#,n");
+						await SendCommandAsync($":SY+89*21:06.02:58:51#,n");
 					}
 					else
 					{
-						await _sendCommand($":SY-89*21:06.02:58:51#,n");
+						await SendCommandAsync($":SY-89*21:06.02:58:51#,n");
 					}
 				}
 			});
@@ -74,6 +77,19 @@ namespace OATControl
 			this.DataContext = this;
 			InitializeComponent();
 			State = 1;
+		}
+
+		private async Task<bool> SendCommandAsync(string command)
+		{
+			var doneEvent = new AsyncAutoResetEvent();
+			var success = false;
+			_sendCommand(command, (e) =>
+			{
+				success = e.Success;
+				doneEvent.Set();
+			});
+			await doneEvent.WaitAsync();
+			return success;
 		}
 
 		public ICommand OKCommand { get { return _okCommand; } }

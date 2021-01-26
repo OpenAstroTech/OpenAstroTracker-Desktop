@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using OATCommunications.Model;
 using OATCommunications.WPF.CommunicationHandlers;
 using OATControl.Properties;
 using OATControl.ViewModels;
@@ -9,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
@@ -20,6 +22,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 
 namespace OATControl
 {
@@ -57,13 +60,13 @@ namespace OATControl
 		private MountVM _mountViewModel;
 		private Steps _currentStep = Steps.Idle;
 		private string _gpsStatus = string.Empty;
-		private Func<string, Task<string>> _sendCommand;
+		private Action<string, Action<CommandResponse>> _sendCommand;
 		private DispatcherTimer stateTimer;
 		const float MaxWaitForGPS = 30;
 		DateTime _startedGPSWaitAt;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
 
-		public DlgChooseOat(MountVM mountViewModel, Func<string, Task<string>> sendCommand)
+		public DlgChooseOat(MountVM mountViewModel, Action<string, Action<CommandResponse>> sendCommand)
 		{
 			stateTimer = new DispatcherTimer();
 			stateTimer.Tick += new EventHandler(ProcessStateMachine);
@@ -77,7 +80,7 @@ namespace OATControl
 			_longitude = Settings.Default.SiteLongitude;
 
 			CurrentStep = Steps.Idle;
-			_rescanCommand = new DelegateCommand(() => { CommunicationHandlerFactory.DiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForConnect) );
+			_rescanCommand = new DelegateCommand(() => { CommunicationHandlerFactory.DiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForConnect));
 			_connectAndNextCommand = new DelegateCommand((o) => AdvanceStateMachine(), () => IsNextEnabled);
 
 			this.DataContext = this;
@@ -104,12 +107,12 @@ namespace OATControl
 				if (value != _device)
 				{
 					_device = value;
-					if (CurrentStep== Steps.Idle)
+					if (CurrentStep == Steps.Idle)
 					{
 						AdvanceStateMachine();
 					}
 					OnPropertyChanged("SelectedDevice");
-					
+
 				}
 			}
 		}
@@ -281,7 +284,6 @@ namespace OATControl
 
 		public bool? Result { get; set; }
 
-
 		private void AdvanceStateMachine()
 		{
 			switch (CurrentStep)
@@ -303,7 +305,9 @@ namespace OATControl
 
 				case Steps.WaitForLevel:
 					// Turn off the Level
-					Task.Run(() => _sendCommand(":XL0#,#")).Wait();
+					var doneEvent = new AutoResetEvent(false);
+					_sendCommand(":XL0#,#", (a) => { doneEvent.Set(); });
+					doneEvent.WaitOne();
 
 					if (_mountViewModel.IsAddonSupported("GPS"))
 					{
@@ -352,108 +356,137 @@ namespace OATControl
 					break;
 
 				case Steps.CheckHardware:
-					var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice);
-
-					ShowGPSStatus = false;
-					GPSStatus = string.Empty;
-
-					if (!connectResult)
 					{
-						this.Result = null;
-						this.Close();
-						CurrentStep = Steps.WaitForConnect;
-						return;
-					}
+						var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice);
 
-					if (_mountViewModel.IsAddonSupported("GYRO"))
-					{
-						CurrentStep = Steps.WaitForLevel;
+						ShowGPSStatus = false;
+						GPSStatus = string.Empty;
 
-						// Turn on the Digital Level
-						await _sendCommand(":XL1#,#");
+						if (!connectResult)
+						{
+							this.Result = null;
+							this.Close();
+							CurrentStep = Steps.WaitForConnect;
+							return;
+						}
 
-						// Get the reference angles from the level.
-						string referenceAngles = await _sendCommand(":XLGR#,#");
-						var angles = referenceAngles.Split(",".ToCharArray());
-						float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float _pitchReference);
-						float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float _rollReference);
-						ShowLevelDisplay = true;
-					}
-					else if (_mountViewModel.IsAddonSupported("GPS"))
-					{
-						CurrentStep = Steps.WaitForGPS;
-						ShowGPSStatus = true;
-						_startedGPSWaitAt = DateTime.UtcNow;
-					}
-					else
-					{
-						ShowManualLocation = true;
-						CurrentStep = Steps.ConfirmLocation;
+						if (_mountViewModel.IsAddonSupported("GYRO"))
+						{
+							CurrentStep = Steps.WaitForLevel;
+
+							// Turn on the Digital Level
+							var doneEvent = new AutoResetEvent(false);
+							_sendCommand(":XL1#,#", (a) => { doneEvent.Set(); });
+							doneEvent.WaitOne();
+
+							doneEvent.Reset();
+							// Get the reference angles from the level.
+							_sendCommand(":XLGR#,#", (a) =>
+							{
+								string referenceAngles = a.Data;
+								var angles = referenceAngles.Split(",".ToCharArray());
+								float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float _pitchReference);
+								float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float _rollReference);
+								doneEvent.Set();
+							});
+							doneEvent.WaitOne();
+							ShowLevelDisplay = true;
+						}
+						else if (_mountViewModel.IsAddonSupported("GPS"))
+						{
+							CurrentStep = Steps.WaitForGPS;
+							ShowGPSStatus = true;
+							_startedGPSWaitAt = DateTime.UtcNow;
+						}
+						else
+						{
+							ShowManualLocation = true;
+							CurrentStep = Steps.ConfirmLocation;
+						}
 					}
 					break;
 
 				case Steps.WaitForLevel:
-					// Get the current digital level angles.
-					string currentAngles = await _sendCommand(":XLGC#,#");
-					if (!currentAngles.Contains("NAN"))
 					{
-						var angles = currentAngles.Split(",".ToCharArray());
-						float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float currentPitch);
-						float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float currentRoll);
-						
-						// Keep a rolling average of the last 6 values.
-						if (_rollOffsetHistory.Count > 5)
+						var doneEvent = new AsyncAutoResetEvent();
+						// Get the current digital level angles.
+						_sendCommand(":XLGC#,#", (a) =>
 						{
-							_rollOffsetHistory.RemoveAt(0);
-						}
-						if (_pitchOffsetHistory.Count > 5)
-						{
-							_pitchOffsetHistory.RemoveAt(0);
-						}
+							string currentAngles = a.Data;
+							if (!currentAngles.Contains("NAN"))
+							{
+								var angles = currentAngles.Split(",".ToCharArray());
+								float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float currentPitch);
+								float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float currentRoll);
 
-						_rollOffsetHistory.Add(currentRoll - _rollReference);
+								// Keep a rolling average of the last 3 values.
+								if (_rollOffsetHistory.Count > 2)
+								{
+									_rollOffsetHistory.RemoveAt(0);
+								}
+								if (_pitchOffsetHistory.Count > 2)
+								{
+									_pitchOffsetHistory.RemoveAt(0);
+								}
+
+								_rollOffsetHistory.Add(currentRoll - _rollReference);
+								_pitchOffsetHistory.Add(currentPitch - _pitchReference);
+							}
+							doneEvent.Set();
+						});
+						await doneEvent.WaitAsync();
 						RollOffset = _rollOffsetHistory.Average();
-						_pitchOffsetHistory.Add(currentPitch- _pitchReference);
 						PitchOffset = _pitchOffsetHistory.Average();
 					}
 					break;
 
 				case Steps.WaitForGPS:
-					TimeSpan elapsed;
-					elapsed = DateTime.UtcNow - _startedGPSWaitAt;
-					if (elapsed.TotalSeconds >= MaxWaitForGPS)
 					{
-						GPSStatus = string.Format("GPS could not get a location lock. Please enter location manually:");
-						ShowManualLocation = true;
-						CurrentStep = Steps.ConfirmLocation;
-						break;
-					}
+						TimeSpan elapsed;
+						elapsed = DateTime.UtcNow - _startedGPSWaitAt;
+						if (elapsed.TotalSeconds >= MaxWaitForGPS)
+						{
+							GPSStatus = string.Format("GPS could not get a location lock. Please enter location manually:");
+							ShowManualLocation = true;
+							CurrentStep = Steps.ConfirmLocation;
+							break;
+						}
 
-					GPSStatus = string.Format("Waiting {0:0}s for GPS to find satellites and sync...", MaxWaitForGPS - elapsed.TotalSeconds);
-					await Task.Delay(150);
+						GPSStatus = string.Format("Waiting {0:0}s for GPS to find satellites and sync...", MaxWaitForGPS - elapsed.TotalSeconds);
+						await Task.Delay(150);
 
-					var result = await _sendCommand(":gT100#,n");
-					if (result == "1")
-					{
-						GPSStatus = "Sync'd! Retrieving current location...";
-						result = await _sendCommand(":Gt#,#");
-						float latitude = float.Parse(result.Substring(0, 3)) + (float.Parse(result.Substring(4)) / 60.0f);
-						await Task.Delay(250);
-						result = await _sendCommand(":Gg#,#");
-						float longitude = float.Parse(result.Substring(0, 3)) + (float.Parse(result.Substring(4)) / 60.0f);
-						if (longitude > 180) longitude -= 360;
-						await Task.Delay(250);
+						var doneEvent = new AutoResetEvent(false);
+						_sendCommand(":gT100#,n", async (result) =>
+						{
+							if (result.Data == "1")
+							{
+								GPSStatus = "Sync'd! Retrieving current location...";
+								float latitude = 0;
+								float longitude = 0;
+								var doneEventLatLong = new AutoResetEvent(false);
+								_sendCommand(":Gt#,#", (lat) => { latitude = float.Parse(result.Data.Substring(0, 3)) + (float.Parse(result.Data.Substring(4)) / 60.0f); });
+								_sendCommand(":Gg#,#", (lng) => { longitude = float.Parse(result.Data.Substring(0, 3)) + (float.Parse(result.Data.Substring(4)) / 60.0f); doneEventLatLong.Set(); });
+								doneEventLatLong.WaitOne();
+								if (longitude > 180) longitude -= 360;
 
-						GPSStatus = "Sync'd! Setting OAT location...";
-						await _mountViewModel.SetSiteLatitude(latitude);
-						await _mountViewModel.SetSiteLongitude(longitude);
-						await Task.Delay(250);
+								GPSStatus = "Sync'd! Setting OAT location...";
+								await _mountViewModel.SetSiteLatitude(latitude);
+								await _mountViewModel.SetSiteLongitude(longitude);
+								await Task.Delay(400);
 
-						Settings.Default.SiteLatitude = latitude;
-						Settings.Default.SiteLongitude = longitude;
-						Settings.Default.Save();
+								Settings.Default.SiteLatitude = latitude;
+								Settings.Default.SiteLongitude = longitude;
+								Settings.Default.Save();
 
-						CurrentStep = Steps.Completed;
+								CurrentStep = Steps.Completed;
+							}
+							else
+							{
+								await Task.Delay(500);
+							}
+							doneEvent.Set();
+						});
+						doneEvent.WaitOne(2500);
 					}
 					break;
 

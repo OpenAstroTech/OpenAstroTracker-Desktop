@@ -8,16 +8,18 @@ namespace OATCommunications
 {
     public interface ICommunicationHandler {
         // Send a command, no response expected
-        Task<CommandResponse> SendBlind(string command);
+        void SendBlind(string command, Action<CommandResponse> onFullFilledAction);
 
         // Send a command, expect a '#' terminated response
-        Task<CommandResponse> SendCommand(string command);
+        void SendCommand(string command, Action<CommandResponse> onFullFilledAction);
 
         // Send a command, expect a single digit response
-        Task<CommandResponse> SendCommandConfirm(string command);
+        void SendCommandConfirm(string command, Action<CommandResponse> onFullFilledAction);
 
         bool Connected { get; }
 
         void Disconnect();
+
+        
     }
 }

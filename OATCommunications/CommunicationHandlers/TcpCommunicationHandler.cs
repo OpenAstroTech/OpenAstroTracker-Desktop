@@ -1,14 +1,12 @@
 ﻿using OATCommunications.Utilities;
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OATCommunications.CommunicationHandlers
-{
-	public class TcpCommunicationHandler : ICommunicationHandler
+{	
+	public class TcpCommunicationHandler : CommunicationHandler
 	{
 		private IPAddress _ip;
 		private int _port;
@@ -34,6 +32,7 @@ namespace OATCommunications.CommunicationHandlers
 					_ip = IPAddress.Parse(ip);
 					_port = int.Parse(port);
 					_client = new TcpClient();
+					StartJobsProcessor();
 				}
 				catch (Exception ex)
 				{
@@ -47,33 +46,21 @@ namespace OATCommunications.CommunicationHandlers
 			_ip = ip;
 			_port = port;
 			_client = new TcpClient();
+			StartJobsProcessor();
 		}
 
-		public async Task<CommandResponse> SendBlind(string command)
-		{
-			return await SendCommand(command, ResponseType.NoResponse);
-		}
-
-		public async Task<CommandResponse> SendCommand(string command)
-		{
-			return await SendCommand(command, ResponseType.FullResponse);
-		}
-
-		public async Task<CommandResponse> SendCommandConfirm(string command)
-		{
-			return await SendCommand(command, ResponseType.DigitResponse);
-		}
-
-		private async Task<CommandResponse> SendCommand(string command, ResponseType needsResponse)
-		{
+		protected override void RunJob(Job job)
+		{ 
 			if (_client == null)
 			{
 				Log.WriteLine($"TCP: Configuration error, IP [{_ip}] or port [{_port}] is invalid.");
-				return new CommandResponse(string.Empty, false, $"Configuration error, IP [{_ip}] or port [{_port}] is invalid.");
+				job.OnFulFilled(new CommandResponse(string.Empty, false, $"Configuration error, IP [{_ip}] or port [{_port}] is invalid."));
+				return;
 			}
 
 			int attempt = 1;
 			var respString = String.Empty;
+			string command = job.Command;
 
 			while ((attempt < 4) && (_client != null))
 			{
@@ -88,12 +75,13 @@ namespace OATCommunications.CommunicationHandlers
 					catch (Exception e)
 					{
 						Log.WriteLine("TCP: [{0}] Failed To connect or create client for command: {1}", command, e.Message);
-						return new CommandResponse("", false, $"Failed To Connect to Client: {e.Message}");
+						job.OnFulFilled(new CommandResponse("", false, $"Failed To Connect to Client: {e.Message}"));
+						return;
 					}
 				}
 
-				_client.ReceiveTimeout = 500;
-				_client.SendTimeout = 500;
+				_client.ReceiveTimeout = 1000;
+				_client.SendTimeout = 1000;
 
 				string error = String.Empty;
 
@@ -101,18 +89,19 @@ namespace OATCommunications.CommunicationHandlers
 				var bytes = Encoding.ASCII.GetBytes(command);
 				try
 				{
-					await stream.WriteAsync(bytes, 0, bytes.Length);
+					stream.Write(bytes, 0, bytes.Length);
 					Log.WriteLine("TCP: [{0}] Sent command!", command);
 				}
 				catch (Exception e)
 				{
 					Log.WriteLine("TCP: [{0}] Unable to write command to stream: {1}", command, e.Message);
-					return new CommandResponse("", false, $"Failed to send message: {e.Message}");
+					job.OnFulFilled(new CommandResponse("", false, $"Failed to send message: {e.Message}"));
+					return;
 				}
 
 				try
 				{
-					switch (needsResponse)
+					switch (job.ResponseType)
 					{
 						case ResponseType.NoResponse:
 							attempt = 10;
@@ -124,7 +113,7 @@ namespace OATCommunications.CommunicationHandlers
 							{
 								Log.WriteLine("TCP: [{0}] Expecting a reply needed to command, waiting...", command);
 								var response = new byte[256];
-								var respCount = await stream.ReadAsync(response, 0, response.Length);
+								var respCount = stream.Read(response, 0, response.Length);
 								respString = Encoding.ASCII.GetString(response, 0, respCount).TrimEnd("#".ToCharArray());
 								Log.WriteLine("TCP: [{0}] Received reply to command -> [{1}]", command, respString);
 								attempt = 10;
@@ -135,7 +124,7 @@ namespace OATCommunications.CommunicationHandlers
 				catch (Exception e)
 				{
 					Log.WriteLine("TCP: [{0}] Failed to read reply to command. {1} thrown", command, e.GetType().Name);
-					if (needsResponse != ResponseType.NoResponse)
+					if (job.ResponseType != ResponseType.NoResponse)
 					{
 						respString = "0#";
 					}
@@ -145,10 +134,10 @@ namespace OATCommunications.CommunicationHandlers
 				attempt++;
 			}
 
-			return new CommandResponse(respString);
+			job.OnFulFilled(new CommandResponse(respString));
 		}
 
-		public bool Connected
+		public override bool Connected
 		{
 			get
 			{
@@ -156,7 +145,7 @@ namespace OATCommunications.CommunicationHandlers
 			}
 		}
 
-		public void Disconnect()
+		public override void Disconnect()
 		{
 			if (_client != null && _client.Connected)
 			{

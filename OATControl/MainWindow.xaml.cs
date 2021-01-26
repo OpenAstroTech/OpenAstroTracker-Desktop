@@ -2,6 +2,7 @@
 using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,12 @@ namespace OATControl
 			mountVm = new MountVM();
 			InitializeComponent();
 			this.DataContext = mountVm;
+		}
+
+		protected override void OnClosing(CancelEventArgs e)
+		{
+			mountVm.Disconnect();
+			base.OnClosing(e);
 		}
 
 		private void TextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
