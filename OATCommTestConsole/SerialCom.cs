@@ -10,7 +10,7 @@ namespace OATCommTestConsole
         private SerialPort _port;
 
         private int _readTimeout = 1000;
-        private int _writeTimeout = 250;
+        private int _writeTimeout = 1000;
         private int _baudRate = 57600;
 
         public SerialCommunicationHandler(string comPort)
