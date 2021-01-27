@@ -32,7 +32,7 @@ Choose one of the following options:
 ```
 
 ```bash
---------------------------------------- SUMMERY -----------------------------------------------------------
+--------------------------------------- SUMMARY -----------------------------------------------------------
 |                   Product name | OpenAstroTracker                                                       |
 |                Firmare version | V1.8.65                                                                |
 |            Mount configuration | Mega,NEMA|16|400,NEMA|16|400,NO_GPS,NO_AZ_ALT,NO_GYRO,NO_LCD,          |

@@ -9,10 +9,12 @@ namespace OATCommTestConsole
 {
     class Program
     {
-        private static SerialCommunicationHandler _commHandler;
-        static int _readTimeout = 450;
-        static int _writeTimeout = 250;
-        static int _baudRate = 57600;
+        public static SerialCommunicationHandler _commHandler;
+        static public int _readTimeout = 1000;
+        static public int _writeTimeout = 1000;
+        static public int _baudRate = 57600;
+        static public string _comPort;
+        static public string _oatFwVersion="";
 
         static CultureInfo _oatCulture = new CultureInfo("en-US");
 
@@ -47,11 +49,10 @@ namespace OATCommTestConsole
 
                 } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 5);
 
-                Console.Clear();
                 switch (userChoice)
                 {
                     case 1:
-                        Settings();
+                        await Settings();
                         break;
                     case 2:
                         var result = await Connect();
@@ -91,7 +92,7 @@ namespace OATCommTestConsole
             }   
         }
 
-        static void Settings()
+        static async Task Settings()
         {
             while (true)
             {
@@ -99,6 +100,7 @@ namespace OATCommTestConsole
                 do
                 {
                     Console.Clear();
+                    ConsoleOutput.Logo();
                     Console.ForegroundColor = ConsoleOutput.menuColor;
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("  OAT Communication Test\r");
@@ -106,30 +108,34 @@ namespace OATCommTestConsole
                     Console.WriteLine("---------------------------\r");
                     Console.WriteLine("Choose one of the following options:\r");
 
-                    Console.WriteLine("[ 1 ] Read Timeout ({0})", _readTimeout);
-                    Console.WriteLine("[ 2 ] Write Timeout ({0})", _writeTimeout);
-                    Console.WriteLine("[ 3 ] Baud Rate ({0})", _baudRate);
+                    Console.WriteLine("[ 1 ] Device Port ({0})", _comPort);
+                    Console.WriteLine("[ 2 ] Baud Rate ({0})", _baudRate);
+                    Console.WriteLine("[ 3 ] Read Timeout ({0})", _readTimeout);
+                    Console.WriteLine("[ 4 ] Write Timeout ({0})", _writeTimeout);
                     Console.WriteLine("[ 0 ] Return\n");
                     Console.ResetColor();
 
-                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 3);
+                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > 4);
 
                 switch (userChoice)
                 {
                     case 1:
-                        Console.WriteLine("Set Read Timeout({0}ms):", _readTimeout);
-                        var newVal = Convert.ToInt32(Console.ReadLine());
-                        _readTimeout = newVal;
+                        await Connect();
                         break;
                     case 2:
+                        Console.WriteLine("Set BaudRate({0}):", _baudRate);
+                        int newVal = Convert.ToInt32(Console.ReadLine());
+                        _baudRate = newVal;
+                        break;
+                    case 3:
+                        Console.WriteLine("Set Read Timeout({0}ms):", _readTimeout);
+                        newVal = Convert.ToInt32(Console.ReadLine());
+                        _readTimeout = newVal;
+                        break;
+                    case 4:
                         Console.WriteLine("Set Write Timeout({0}ms):", _writeTimeout);
                         newVal = Convert.ToInt32(Console.ReadLine());
                         _writeTimeout = newVal;
-                        break;
-                    case 3:
-                        Console.WriteLine("Set BaudRate({0}):", _baudRate);
-                        newVal = Convert.ToInt32(Console.ReadLine());
-                        _baudRate = newVal;
                         break;
                     case 0:
                         return;
@@ -147,39 +153,51 @@ namespace OATCommTestConsole
             {
                 // List available COM devices
                 var devices = DiscoverDevices();
-
-                int userChoice;
-                do
+                if (!devices.Contains(_comPort))
                 {
-                    Console.Clear();
-                    // ListComDetails();
-                    ConsoleOutput.PreTestInfo();
-                    Console.ForegroundColor = ConsoleOutput.menuColor;
-                    Console.WriteLine("---------------------------\r");
-                    Console.WriteLine("  OAT Communication Test\r");
-                    Console.WriteLine("         Connecct\r");
-                    Console.WriteLine("---------------------------\r");
-                    Console.WriteLine("Select Serial Port:\r");
-                    
-                    int cnt = 1;
-                    foreach (var dev in devices)
+                    int userChoice;
+                    do
                     {
-                        Console.Write("[ {0} ] {1}\n", cnt, dev);
-                        cnt++;
+                        Console.Clear();
+                        ConsoleOutput.Logo();
+                        // ListComDetails();
+                        ConsoleOutput.PreTestInfo();
+                        Console.ForegroundColor = ConsoleOutput.menuColor;
+                        Console.WriteLine("---------------------------\r");
+                        Console.WriteLine("  OAT Communication Test\r");
+                        Console.WriteLine("         Connect\r");
+                        Console.WriteLine("---------------------------\r");
+                        Console.WriteLine("Select Serial Port:\r");
+
+                        int cnt = 1;
+                        foreach (var dev in devices)
+                        {
+                            Console.Write("[ {0} ] {1}\n", cnt, dev);
+                            cnt++;
+                        }
+                        Console.WriteLine("[ 0 ] Return\n");
+                        Console.ResetColor();
+
+                    } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > devices.Count);
+
+                    if (userChoice == 0)
+                    {
+                        return false;
                     }
-                    Console.WriteLine("[ 0 ] Return\n");
-                    Console.ResetColor();
-
-                } while (!int.TryParse(Console.ReadLine(), out userChoice) || userChoice < 0 || userChoice > devices.Count);
-
-                if(userChoice == 0)
-                {
-                    return false;
+                    else if (userChoice >= 0 && userChoice <= devices.Count)
+                    {
+                        _comPort = devices[userChoice - 1];
+                    }
+                    else
+                    {
+                        Console.WriteLine("Try again!!");
+                    }
                 }
-                else if(userChoice >= 0 && userChoice <= devices.Count )
+
+                if (!string.IsNullOrEmpty(_comPort))
                 {
-                    var connectResult = await CreateCommHandler(devices[userChoice-1]);
-                    if(connectResult)
+                    var connectResult = await CreateCommHandler(_comPort);
+                    if (connectResult)
                     {
                         return true;
                     }
@@ -187,10 +205,6 @@ namespace OATCommTestConsole
                     {
                         return false;
                     }
-                }
-                else
-                {
-                    Console.WriteLine("Try again!!");
                 }
             }
         }
@@ -232,17 +246,22 @@ namespace OATCommTestConsole
 
         static async Task<bool> TestGyro()
         {
+            Console.Clear();
+            ConsoleOutput.Logo();
             Console.WriteLine("Press ESC to stop");
+            int outputStart = Console.CursorTop+1;
             do
             {
                 var result = await SendCommand(":XL1#,#");
 
                 while (!Console.KeyAvailable)
                 {
-                    Console.Clear();
-                    Console.WriteLine("********* GYRO TEST **************\r");
+                    Console.CursorTop = outputStart;
+                    Console.CursorLeft = 0;
+                    Console.WriteLine("********* GYRO TEST **************");
+                    ConsoleOutput.ClearRestOfScreen();
+                    Console.CursorTop = outputStart;
                     await SendCommand(":XLGC#,#");
-                    Console.WriteLine("ESC - Exit\n");
                     await Task.Delay(250);
                 }
             } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
@@ -250,6 +269,7 @@ namespace OATCommTestConsole
             await SendCommand(":XL0#,#");
             _commHandler.Disconnect();
             _commHandler = null;
+            await Task.Delay(250);
 
             return true;
         }
@@ -257,21 +277,25 @@ namespace OATCommTestConsole
         static async Task<bool> TestGPS()
         {   
             Console.Clear();
+            ConsoleOutput.Logo();
             Console.WriteLine("********* GPS TEST ***************\r");
-            Console.WriteLine("* Battery can need to be charged *\r");
+            Console.WriteLine("* Battery may need to be charged *\r");
             Console.WriteLine("* first time GPS is used ~30min  *\r");
             Console.WriteLine("* 0 = No satelites found         *\r");
             Console.WriteLine("* 1 = Satelites found            *\r");
             Console.WriteLine("**********************************\r");
             Console.WriteLine("Press ESC to stop");
+            int outputStart = Console.CursorTop + 1;
             do
             {
                 while (!Console.KeyAvailable)
                 {
+                    Console.CursorTop = outputStart;
+                    Console.CursorLeft = 0;
+                    ConsoleOutput.ClearRestOfScreen();
                     var result = await SendCommand(":gT100#,n");
                     if (result.Data == "1")
                     {
-                        _commHandler.ReadTimeout = 550;
                         result = await SendCommand(":Gt#,#");
                         var latitudeArray = result.Data.Split('*');
                         float latitude = float.Parse(latitudeArray[0], _oatCulture) + (float.Parse(latitudeArray[1], _oatCulture) / 60.0f);
@@ -284,10 +308,9 @@ namespace OATCommTestConsole
 
                         ConsoleOutput.Error(string.Format("Lat: {0}", latitude));
                         ConsoleOutput.Error(string.Format("Lon: {0}", longitude));
-                        _commHandler.ReadTimeout = 250;
                     }
                     
-                    Console.WriteLine("ESC - Exit\n");
+                    //Console.WriteLine("ESC - Exit\n");
                     await Task.Delay(1000);
                 }
             } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
@@ -314,6 +337,9 @@ namespace OATCommTestConsole
             keyValuePairs.Add("XGT#,#", "Tracking speed");
             keyValuePairs.Add("XGH#,#", "HA");
             keyValuePairs.Add("XGL#,#", "LST");
+            keyValuePairs.Add("GC#,#", "Local date");
+            keyValuePairs.Add("GL#,#", "Local time");
+            keyValuePairs.Add("GG#,#", "UTC Offset");
             keyValuePairs.Add("XGN#,#", "Network settings");
 
             List<CommandResponse> replys = new List<CommandResponse>();
@@ -338,7 +364,7 @@ namespace OATCommTestConsole
 
             // Print summery
             int cnt = 0;
-            ConsoleOutput.Info("--------------------------------------- SUMMERY -----------------------------------------------------------\r");
+            ConsoleOutput.Info("--------------------------------------- SUMMARY -----------------------------------------------------------\r");
             foreach (var cmd in keyValuePairs)
             {
                 ConsoleOutput.Info(string.Format("| {0} | {1} |\r", cmd.Value.PadLeft(30), replys[cnt].Data.PadRight(70)));
@@ -364,6 +390,7 @@ namespace OATCommTestConsole
             _commHandler.BaudRate = _baudRate;
 
             await SendCommand(":I#,");
+            _oatFwVersion = (await SendCommand(":GVN#,#")).Data;
 
             return true;
         }
@@ -379,6 +406,7 @@ namespace OATCommTestConsole
                 Console.WriteLine("COMMFACTORY: Found Serial port [{0}]", port);
                 _available.Add("Serial : " + port);
             }
+
             return _available;
         }
 
