@@ -49,4 +49,6 @@ Choose one of the following options:
 ```
 
 ## Change Log:
-- Still Work In Progress
+# V0.1.2
+- GPS & Gyro continues testing
+- Added Local Date, Local Time, UTC Offset to info output
