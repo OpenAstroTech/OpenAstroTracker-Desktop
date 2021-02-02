@@ -394,24 +394,29 @@ namespace OATCommTestConsole
 			_commHandler.BaudRate = _baudRate;
 
 			await SendCommand(":I#,");
-			_oatFwVersion = (await SendCommand(":GVN#,#")).Data;
-			var versionNumbers = _oatFwVersion.Substring(1).Split(".".ToCharArray());
-			if (versionNumbers.Length != 3)
+			var versionResponse = await SendCommand(":GVN#,#");
+			_firmwareVersion = 1000;
+			if (versionResponse.Success)
 			{
-				ConsoleOutput.Error(string.Format("Unrecognizable firmware version '{0}'", _oatFwVersion));
-			}
-			else
-			{
-				try
-				{
-					_firmwareVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
-				}
-				catch
-				{
-					ConsoleOutput.Error(string.Format("Unparseable firmware version '{0}'", _oatFwVersion));
-				}
-			}
+				_oatFwVersion = versionResponse.Data;
 
+				var versionNumbers = _oatFwVersion.Substring(1).Split(".".ToCharArray());
+				if (versionNumbers.Length != 3)
+				{
+					ConsoleOutput.Error(string.Format("Unrecognizable firmware version '{0}'", _oatFwVersion));
+				}
+				else
+				{
+					try
+					{
+						_firmwareVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
+					}
+					catch
+					{
+						ConsoleOutput.Error(string.Format("Unparseable firmware version '{0}'", _oatFwVersion));
+					}
+				}
+			}
 
 			return true;
 		}
