@@ -504,16 +504,43 @@ namespace OATControl.ViewModels
 
 				if (network == "0,")
 				{
-					ScopeNetworkState = "N/A";
+					ScopeNetworkState = "Disabled";
 					ScopeNetworkIPAddress = "N/A";
 					ScopeNetworkSSID = "N/A";
 				}
 				else
 				{
 					var parts = network.Split(',');
-					ScopeNetworkState = parts[1];
-					ScopeNetworkIPAddress = parts[3];
-					ScopeNetworkSSID = parts[4];
+					if (_firmwareVersion < 10873)
+					{
+						if (parts.Length > 4)
+						{
+							ScopeNetworkState = parts[1];
+							ScopeNetworkIPAddress = parts[3];
+							ScopeNetworkSSID = parts[4];
+						}
+						else
+						{
+							ScopeNetworkState = "-";
+							ScopeNetworkIPAddress = "-";
+							ScopeNetworkSSID = "-";
+						}
+					}
+					else
+					{
+						if (parts.Length > 5)
+						{
+							ScopeNetworkState = parts[1] + ", " + parts[2];
+							ScopeNetworkIPAddress = parts[4];
+							ScopeNetworkSSID = parts[5];
+						}
+						else
+						{
+							ScopeNetworkState = "-";
+							ScopeNetworkIPAddress = "-";
+							ScopeNetworkSSID = "-";
+						}
+					}
 				}
 			}
 		}

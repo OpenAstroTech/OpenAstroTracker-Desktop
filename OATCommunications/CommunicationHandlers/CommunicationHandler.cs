@@ -24,6 +24,7 @@ namespace OATCommunications.CommunicationHandlers
 		private Queue<Job> _jobs;
 		private Object _jobsQueue = new object();
 		private ManualResetEvent _jobsAvailable = new ManualResetEvent(false);
+		private ManualResetEvent _jobsProcessorStopped = new ManualResetEvent(false);
 		private Thread _jobProcessingThread;
 		private bool _processJobs;
 
@@ -32,6 +33,7 @@ namespace OATCommunications.CommunicationHandlers
 			Log.WriteLine("COMMS: Start Jobs processor");
 			_jobs = new Queue<Job>();
 			_processJobs = true;
+			_jobsProcessorStopped.Reset();
 			_jobProcessingThread = new Thread(ProcessJobQueue);
 			_jobProcessingThread.Start();
 		}
@@ -41,6 +43,8 @@ namespace OATCommunications.CommunicationHandlers
 			Log.WriteLine("COMMS: Stop Jobs processor");
 			_processJobs = false;
 			_jobsAvailable.Set();
+			_jobsProcessorStopped.WaitOne();
+			_jobsProcessorStopped.Reset();
 		}
 
 		public void SendBlind(string command, Action<CommandResponse> onFullFilledAction)
@@ -101,6 +105,7 @@ namespace OATCommunications.CommunicationHandlers
 			}
 			while (_processJobs);
 			Log.WriteLine("JOBPROC: End Jobs thread");
+			_jobsProcessorStopped.Set();
 		}
 
 		protected abstract void RunJob(Job job);
