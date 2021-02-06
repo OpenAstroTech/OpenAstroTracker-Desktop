@@ -11,6 +11,10 @@ There are also some low-level communications libraries that the above mentioned 
 
 Change Log:
 ===========
+**V0.9.9.22 - Updates**
+- Hardened network display in Settings dialog against bad data.
+- Added synchronization to wait for jobs processor to quit before closing port.
+
 **V0.9.9.21 - Updates**
 - Fixed a parsing bug for float values.
 - Seperated the network info in the Settings Dialog.
