@@ -11,6 +11,26 @@ There are also some low-level communications libraries that the above mentioned 
 
 Change Log:
 ===========
+**V0.9.9.20 - Updates**
+- Moved some calibration info to a seperate Settings dialog that also has a lot of additional info.
+- Arrows on Target RA and DEC coordinates now auto-repeat and accelerate.
+- Added a Factory Reset command (it's in the Settings dialog).
+- If no GPS fix is attained, the LatLong is retrieved from OAT and used as the default.
+- LatLong is displayed with two decimal places.
+- Fixed some LatLong handling in the communications layer.
+- Prevented from identical ports showing up in the list of available devices (Windows listed my COM5 port twice).
+- Cleared the Receive Buffer before sending a new command to OAT.
+- Detect that firmware is compiled with DEBUG_LEVEL and let user know.
+
+**V0.9.9.18 - Updates**
+- Fixed order of startup commands to correctly set target RA after date upload.
+
+**V0.9.9.17 - Updates**
+- Complete refactor of OAT communication handling to use multi-threaded, job queue system.
+- Increased serial timeout to 1000ms.
+- Corrected longitude handling and now sends time, date and location to OAT.
+- Warning: may not work with GPS add on (yet).
+
 **V0.9.9.16 - Updates**
 - Various float CultureInfo conversion fixes
 - Removed ASCOM library dependency to calculate LST
