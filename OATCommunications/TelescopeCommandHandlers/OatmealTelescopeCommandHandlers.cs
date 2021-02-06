@@ -131,10 +131,7 @@ namespace OATCommunications
 				if (lat.Success && TryParseDec(lat.Data, out longitude))
 				{
 					success = true;
-					if (longitude > 180)
-					{
-						longitude -= 360;
-					}
+					longitude = 180 - longitude;
 				}
 				doneEvent.Set();
 			});

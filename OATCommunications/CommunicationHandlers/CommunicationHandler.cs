@@ -84,9 +84,9 @@ namespace OATCommunications.CommunicationHandlers
 					break;
 				}
 
-				Log.WriteLine("JOBPROC: Job available, getting Job");
 				lock (_jobsQueue)
 				{
+					Log.WriteLine("JOBPROC: {0} Jobs available, getting Job", _jobs.Count);
 					job = _jobs.Dequeue();
 					if (!_jobs.Any())
 					{

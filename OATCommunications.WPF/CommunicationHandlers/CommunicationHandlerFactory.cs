@@ -24,7 +24,10 @@ namespace OATCommunications.WPF.CommunicationHandlers
 			foreach (var port in SerialPort.GetPortNames())
 			{
 				Log.WriteLine("COMMFACTORY: Found Serial port [{0}]", port);
-				_available.Add("Serial : " + port);
+				if (!_available.Contains("Serial : " + port))
+				{
+					_available.Add("Serial : " + port);
+				}
 			}
 
 			Log.WriteLine("COMMFACTORY: Starting Wifi search by Broadcastign OAT on port 4031");

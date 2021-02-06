@@ -16,6 +16,8 @@ using OATCommunications.Model;
 using OATCommunications.WPF.CommunicationHandlers;
 using OATCommunications.Utilities;
 using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
+using ControlzEx.Standard;
+using OATControl.Properties;
 
 namespace OATControl.ViewModels
 {
@@ -36,8 +38,10 @@ namespace OATControl.ViewModels
 		int _raStepper = 0;
 		int _decStepper = 0;
 		int _trkStepper = 0;
-		float _raStepsPerDegree = 0;
-		float _decStepsPerDegree = 0;
+		float _raStepsPerDegree = 1;
+		float _raStepsPerDegreeEdit = 1;
+		float _decStepsPerDegree = 1;
+		float _decStepsPerDegreeEdit = 1;
 		bool _connected = false;
 		bool _slewInProgress = false;
 		bool _isTracking = false;
@@ -54,8 +58,24 @@ namespace OATControl.ViewModels
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
+		long _speedEdit = 0;
 		string _scopeName = string.Empty;
+		string _scopeVersion = string.Empty;
 		string _scopeHardware = string.Empty;
+		string _scopeRAStepper = string.Empty;
+		string _scopeDecStepper = string.Empty;
+		string _scopeBoard = string.Empty;
+		string _scopeDisplay = string.Empty;
+		string _scopeFeatures = string.Empty;
+		string _scopeLatitude = string.Empty;
+		string _scopeLongitude = string.Empty;
+		string _scopeTemperature = string.Empty;
+		string _scopeDate = string.Empty;
+		string _scopeTime = string.Empty;
+		string _scopePolarisHourAngle = string.Empty;
+		string _scopeSiderealTime = string.Empty;
+		string _scopeNetwork = string.Empty;
+
 		string _mountStatus = string.Empty;
 		string _currentHA = string.Empty;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
@@ -76,6 +96,10 @@ namespace OATControl.ViewModels
 		DelegateCommand _driftAlignCommand;
 		DelegateCommand _polarAlignCommand;
 		DelegateCommand _showLogFolderCommand;
+		DelegateCommand _showSettingsCommand;
+		DelegateCommand _factoryResetCommand;
+		DelegateCommand _startChangingCommand;
+
 
 		DispatcherTimer _timerStatus;
 		DispatcherTimer _timerFineSlew;
@@ -98,12 +122,14 @@ namespace OATControl.ViewModels
 		private int _slewStartDEC;
 		private int _slewTargetRA;
 		private int _slewTargetDEC;
-
-		// private float _trackingSpeed;
+		private float _trackingSpeed;
+		private DispatcherTimer _timer;
+		private float _incrementalDelay = 150;
+		private int _incrDirection;
+		private string _incrVar;
 
 		public float RASpeed { get; private set; }
 		public float DECSpeed { get; private set; }
-
 		public MountVM()
 		{
 			Log.WriteLine("Mount: Initialization starting...");
@@ -126,6 +152,9 @@ namespace OATControl.ViewModels
 			_driftAlignCommand = new DelegateCommand(async dur => await OnRunDriftAlignment(int.Parse(dur.ToString())), () => MountConnected);
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
+			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
+			_factoryResetCommand = new DelegateCommand(() => OnPerformFactoryReset(), () => MountConnected);
+			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 
 			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
 			Log.WriteLine("Mount: Attempting to read Point of Interest from {0}...", poiFile);
@@ -146,6 +175,83 @@ namespace OATControl.ViewModels
 
 			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
 			Log.WriteLine("Mount: Initialization of OATControl {0} complete...", this.Version);
+		}
+
+		private void OnStartChangingParameter(object p)
+		{
+			if (_timer == null)
+			{
+				_timer = new DispatcherTimer(TimeSpan.FromMilliseconds(_incrementalDelay), DispatcherPriority.Render, OnIncrementVariable, Dispatcher.CurrentDispatcher);
+			}
+
+			string par = p as string;
+			if (par[0] == '+')
+			{
+				_timer.Interval = TimeSpan.FromMilliseconds(_incrementalDelay);
+				_timer.Start();
+			}
+			else if (par[0] == '-')
+			{
+				_timer.Stop();
+				_incrementalDelay = 150;
+				RAStepsPerDegree = RAStepsPerDegreeEdit;
+				DECStepsPerDegree = DECStepsPerDegreeEdit;
+				SpeedCalibrationFactor = 1.0 + SpeedCalibrationFactorEdit / 10000.0f; ;
+			}
+
+			_incrDirection = par[3] == '+' ? 1 : -1;
+			_incrVar = string.Format("{0}{1}", par[1], par[2]);
+			if (par[0] == '+')
+			{
+				switch (_incrVar)
+				{
+					case "SR": RAStepsPerDegreeEdit += 0.1f * _incrDirection; break;
+					case "SD": DECStepsPerDegreeEdit += 0.1f * _incrDirection; break;
+					case "SS": SpeedCalibrationFactorEdit += _incrDirection; break;
+					default: OnAdjustTarget(_incrVar + (_incrDirection == 1 ? "+" : "-")); break;
+				}
+			}
+		}
+
+		private void OnIncrementVariable(object sender, EventArgs e)
+		{
+			_timer.Stop();
+			_incrementalDelay = (float)Math.Max(2, 0.9 * _incrementalDelay);
+			switch (_incrVar)
+			{
+				case "SR": RAStepsPerDegreeEdit += 0.2f * _incrDirection; break;
+				case "SD": DECStepsPerDegreeEdit += 0.2f * _incrDirection; break;
+				case "SS": SpeedCalibrationFactorEdit += _incrDirection; break;
+				default: OnAdjustTarget(_incrVar + (_incrDirection == 1 ? "+" : "-")); break;
+			}
+			_timer.Interval = TimeSpan.FromMilliseconds(_incrementalDelay);
+			_timer.Start();
+		}
+
+		private async Task OnPerformFactoryReset()
+		{
+			if (MessageBox.Show("Are you sure you want to erase all stored settings on the OAT?", "Confirm Factory Reset", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes)
+			{
+				var doneEvent = new ManualResetEvent(false);
+				_oatMount.SendCommand(":XFR#,n", (a) => { doneEvent.Set(); });
+				doneEvent.WaitOne();
+				await UpdateInitialScopeValues();
+				RAStepsPerDegreeEdit = RAStepsPerDegree;
+				DECStepsPerDegreeEdit = DECStepsPerDegree;
+				SpeedCalibrationFactorEdit = (long)Math.Round((SpeedCalibrationFactor - 1.0) * 10000);
+				var message = "OAT has been reset.";
+				if (_firmwareVersion < 10872)
+				{
+					message += " Please disconnect, reset OAT and reconnect.";
+				}
+				MessageBox.Show(message, "Factory Reset complete", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
+
+		private void OnShowSettingsDialog()
+		{
+			SettingsDialog dlg = new SettingsDialog(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
+			dlg.ShowDialog();
 		}
 
 		private void OnShowLogFolder()
@@ -303,12 +409,115 @@ namespace OATControl.ViewModels
 
 		public async Task<string> SetSiteLatitude(float latitude)
 		{
-			return await _oatMount.SetSiteLatitude(latitude);
+			string result = await _oatMount.SetSiteLatitude(latitude);
+			UpdateLocation();
+			return result;
 		}
 
 		public async Task<string> SetSiteLongitude(float longitude)
 		{
-			return await _oatMount.SetSiteLongitude(longitude);
+			string result = await _oatMount.SetSiteLongitude(longitude);
+			UpdateLocation();
+			return result;
+		}
+
+		public void UpdateRealtimeParameters(bool editable)
+		{
+			string ha = string.Empty;
+			string utcOffset = string.Empty;
+			string localTime = string.Empty;
+			string localDate = string.Empty;
+			string siderealTime = string.Empty;
+			string temperature = string.Empty;
+			string speed = string.Empty;
+			string network = string.Empty;
+
+			if (_oatMount != null)
+			{
+				ManualResetEvent allDone = new ManualResetEvent(false);
+				_oatMount.SendCommand(":GG#,#", (a) => { utcOffset = a.Data; });
+				_oatMount.SendCommand(":GL#,#", (a) => { localTime = a.Data; });
+				_oatMount.SendCommand(":GC#,#", (a) => { localDate = a.Data; });
+				_oatMount.SendCommand(":XGH#,#", (a) => { ha = a.Data; });
+				_oatMount.SendCommand(":XGL#,#", (a) => { siderealTime = a.Data; });
+				_oatMount.SendCommand(":XGN#,#", (a) => { network = a.Data; });
+				if (editable)
+				{
+					_oatMount.SendCommand(":XGT#,#", (a) => { speed = a.Data; });
+				}
+				_oatMount.SendCommand(":XLGT#,#", (a) => { temperature = a.Data; allDone.Set(); });
+				allDone.WaitOne();
+
+				if (localTime.Length == 8)
+				{
+					ScopeTime = localTime;
+					if (utcOffset.Length != 0)
+					{
+						ScopeTime += " T" + utcOffset + ":00";
+					}
+				}
+				else
+				{
+					ScopeTime = "-";
+				}
+
+				if (localDate.Length == 8)
+				{
+					ScopeDate = localDate;
+				}
+				else
+				{
+					ScopeDate = "-";
+				}
+
+				if (siderealTime.Length == 6)
+				{
+					ScopeSiderealTime = string.Format("{0}:{1}:{2}", siderealTime.Substring(0, 2), siderealTime.Substring(2, 2), siderealTime.Substring(4));
+				}
+				else
+				{
+					ScopeSiderealTime = "-";
+				}
+
+				if (ha.Length == 6)
+				{
+					ScopePolarisHourAngle = string.Format("{0}:{1}:{2}", ha.Substring(0, 2), ha.Substring(2, 2), ha.Substring(4));
+				}
+
+				if (speed.Length > 0)
+				{
+					TrackingSpeed = float.Parse(speed);
+				}
+
+				if (temperature != "0")
+				{
+					float temp = float.Parse(temperature);
+					int fahrenheit = (int)Math.Round(32.0 + (9.0 * temp / 5.0));
+					ScopeTemperature = string.Format("{0:0.0}°C ({1:0}°F)", temp, fahrenheit);
+				}
+				else
+				{
+					ScopeTemperature = "-";
+				}
+
+				if (network == "0,")
+				{
+					ScopeNetwork = "N/A";
+				}
+				else
+				{
+					ScopeNetwork = network;
+				}
+			}
+		}
+
+		public void UpdateLocation()
+		{
+			float latitude = Settings.Default.SiteLatitude;
+			float longitude = Settings.Default.SiteLongitude;
+
+			ScopeLatitude = string.Format("{0:0.00}{1}", Math.Abs(latitude), latitude < 0 ? "S" : "N");
+			ScopeLongitude = string.Format("{0:0.00}{1}", Math.Abs(longitude), longitude < 0 ? "W" : "E");
 		}
 
 		private async Task OnHome()
@@ -444,6 +653,87 @@ namespace OATControl.ViewModels
 			RequeryCommands();
 		}
 
+		public async Task UpdateInitialScopeValues()
+		{
+			try
+			{
+				var doneEvent = new AsyncAutoResetEvent();
+
+				// Calculate current Local Sidereal Time
+				await SetMountTimeData();
+
+				Log.WriteLine("Mount: Getting current OAT position");
+				await UpdateCurrentCoordinates();
+				TargetDECDegree = CurrentDECDegree;
+				TargetDECMinute = CurrentDECMinute;
+				TargetDECSecond = CurrentDECSecond;
+
+				TargetRAHour = CurrentRAHour;
+				TargetRAMinute = CurrentRAMinute;
+				TargetRASecond = CurrentRASecond;
+				Log.WriteLine("Mount: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3:000}*{4:00}'{5:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
+
+				Log.WriteLine("Mount: Getting current OAT RA steps/degree...");
+				_oatMount.SendCommand(string.Format(":XGR#,#"), (steps) =>
+				{
+					Log.WriteLine("Mount: Current RA steps/degree is {0}.", steps.Data);
+					_raStepsPerDegree = Math.Max(1, float.Parse(steps.Data, _oatCulture));
+					OnPropertyChanged("RAStepsPerDegree");
+				});
+
+				Log.WriteLine("Mount: Getting current OAT DEC steps/degree...");
+				_oatMount.SendCommand(string.Format(":XGD#,#"), (steps) =>
+				{
+					Log.WriteLine("Mount: Current DEC steps/degree is {0}. ", steps.Data);
+					_decStepsPerDegree = Math.Max(1, float.Parse(steps.Data, _oatCulture));
+					OnPropertyChanged("DECStepsPerDegree");
+				});
+
+				// We want this command to execute before we wait for the last one, since commands are executed sequentially.
+				Log.WriteLine("Mount: Reading Current OAT HA...");
+				ReadHA();
+
+				Log.WriteLine("Mount: Getting current OAT speed factor...");
+				_oatMount.SendCommand(string.Format(":XGS#,#"), (speed) =>
+				{
+					Log.WriteLine("Mount: Current Speed factor is {0}...", speed.Data);
+					SpeedCalibrationFactor = float.Parse(speed.Data, _oatCulture);
+					OnPropertyChanged("SpeedCalibrationFactor");
+					OnPropertyChanged("SpeedCalibrationFactorDisplay");
+					doneEvent.Set();
+				});
+
+				// Wait for RA Steps to be set before getting Tracking speed (it's used in remaining time calculation)
+				await doneEvent.WaitAsync();
+				Log.WriteLine("Mount: Getting current OAT tracking speed ...");
+				_oatMount.SendCommand(string.Format(":XGT#,#"), (speed) =>
+				{
+					Log.WriteLine("Mount: Current Tracking Speed is {0}...", speed.Data);
+					TrackingSpeed = float.Parse(speed.Data, _oatCulture);
+					OnPropertyChanged("TrackingSpeed");
+					doneEvent.Set();
+				});
+
+				await doneEvent.WaitAsync();
+				MountConnected = true;
+				Log.WriteLine("Mount: Successfully connected and configured!");
+			}
+			catch (FormatException fex)
+			{
+				ScopeName = string.Empty;
+				ScopeHardware = string.Empty;
+				Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", fex.Message);
+				MessageBox.Show("Connected to OpenAstroTracker, but protocol could not be established.\n\nIs the firmware compiled with DEBUG_LEVEL set to DEBUG_NONE?", "Protocol Error", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+			catch (Exception ex)
+			{
+				ScopeName = string.Empty;
+				ScopeHardware = string.Empty;
+				Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", ex.Message);
+				MessageBox.Show("Error trying to connect to OpenAstroTracker.\n\n" + ex.Message, "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
+
 		private async void OnConnectToTelescope()
 		{
 			if (MountConnected)
@@ -456,79 +746,9 @@ namespace OATControl.ViewModels
 
 				Log.WriteLine("Mount: Connect to OAT requested");
 
-				var doneEvent = new AsyncAutoResetEvent();
-
 				if (this.ChooseTelescope())
 				{
-					try
-					{
-						// Calculate current Local Sidereal Time
-						await SetMountTimeData();
-
-						Log.WriteLine("Mount: Getting current OAT position");
-						await UpdateCurrentCoordinates();
-						TargetDECDegree = CurrentDECDegree;
-						TargetDECMinute = CurrentDECMinute;
-						TargetDECSecond = CurrentDECSecond;
-
-						TargetRAHour = CurrentRAHour;
-						TargetRAMinute = CurrentRAMinute;
-						TargetRASecond = CurrentRASecond;
-						Log.WriteLine("Mount: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3:000}*{4:00}'{5:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
-
-						Log.WriteLine("Mount: Getting current OAT RA steps/degree...");
-						_oatMount.SendCommand(string.Format(":XGR#,#"), (steps) =>
-						{
-							Log.WriteLine("Mount: Current RA steps/degree is {0}. Getting current DEC steps/degree...", steps.Data);
-							_raStepsPerDegree = float.Parse(steps.Data, _oatCulture);
-							OnPropertyChanged("RAStepsPerDegree");
-						});
-
-						_oatMount.SendCommand(string.Format(":XGD#,#"), (steps) =>
-						{
-							Log.WriteLine("Mount: Current DEC steps/degree is {0}. Getting current Speed factor...", steps.Data);
-							_decStepsPerDegree = float.Parse(steps.Data, _oatCulture);
-							OnPropertyChanged("DECStepsPerDegree");
-						});
-
-
-						// We want this command to execute before we wait for the last one, since commands are executed sequentially.
-						Log.WriteLine("Mount: Reading Current OAT HA...");
-						ReadHA();
-
-						_oatMount.SendCommand(string.Format(":XGS#,#"), (speed) =>
-						{
-							Log.WriteLine("Mount: Current Speed factor is {0}...", speed.Data);
-							SpeedCalibrationFactor = float.Parse(speed.Data, _oatCulture);
-							doneEvent.Set();
-						});
-
-						//Log.WriteLine("Mount: Get OAT Tracking speed...");
-						//TrackingSpeed = await GetTrackingSpeed();
-						//Log.WriteLine("Mount: Tracking speed is {0:0.0000}.", TrackingSpeed);
-
-						await doneEvent.WaitAsync();
-						MountConnected = true;
-						Log.WriteLine("Mount: Successfully connected and configured!");
-					}
-					catch (FormatException fex)
-					{
-						ScopeName = string.Empty;
-						ScopeHardware = string.Empty;
-						Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", fex.Message);
-						MessageBox.Show("Connected to OpenAstroTracker, but protocol could not be established.\n\nIs the firmware compiled with DEBUG_LEVEL set to DEBUG_NONE?", "Protocol Error", MessageBoxButton.OK, MessageBoxImage.Error);
-					}
-					catch (Exception ex)
-					{
-						ScopeName = string.Empty;
-						ScopeHardware = string.Empty;
-						Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", ex.Message);
-						MessageBox.Show("Error trying to connect to OpenAstroTracker.\n\n" + ex.Message, "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
-					}
-					finally
-					{
-						//exclusiveAccess.Release();
-					}
+					await UpdateInitialScopeValues();
 				}
 			}
 		}
@@ -637,12 +857,14 @@ namespace OATControl.ViewModels
 			_driftAlignCommand.Requery();
 			_polarAlignCommand.Requery();
 			_showLogFolderCommand.Requery();
+			_showSettingsCommand.Requery();
 
 			OnPropertyChanged("ConnectCommandString");
 		}
 
-		public async Task<bool> ConnectToOat(string device)
+		public async Task<Tuple<bool, string>> ConnectToOat(string device)
 		{
+			string message = string.Empty;
 			_commHandler = CommunicationHandlerFactory.ConnectToDevice(device);
 			_oatMount = new OatmealTelescopeCommandHandlers(_commHandler);
 
@@ -656,7 +878,8 @@ namespace OATControl.ViewModels
 			{
 				if (!result.Success)
 				{
-					Log.WriteLine("Mount: Unable to communicate with OAT. {0}", result.StatusMessage);
+					message = string.Format("Unable to communicate with OAT.");
+					Log.WriteLine("Mount: {0} ({1})", message, result.StatusMessage);
 					failed = true;
 				}
 				else
@@ -669,31 +892,52 @@ namespace OATControl.ViewModels
 			await doneEvent.WaitAsync();
 			if (failed)
 			{
-				return false;
+				return Tuple.Create(false, message);
 			}
 
 			Log.WriteLine("Mount: Connected to OAT. Requesting firmware version..");
 			_oatMount.SendCommand("GVN#,#", (resultNr) =>
 			{
-				ScopeName = $"{resultName} {resultNr.Data}";
-				var versionNumbers = resultNr.Data.Substring(1).Split(".".ToCharArray());
-				if (versionNumbers.Length != 3)
+				if (resultNr.Data.StartsWith("["))
 				{
-					Log.WriteLine("Mount: Unrecognizable firmware version '{0}'", resultNr.Data);
+					message = string.Format("OAT likely has debug logging enabled. Check firmware.");
+					Log.WriteLine("Mount: {0} {1}", message, resultNr.Data);
 					failed = true;
 				}
 				else
 				{
-					try
+					ScopeVersion = resultNr.Data;
+					ScopeName = $"{resultName} {resultNr.Data}";
+					var versionNumbers = resultNr.Data.Substring(1).Split(".".ToCharArray());
+					if (versionNumbers.Length != 3)
 					{
-						_firmwareVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
-					}
-					catch 
-					{
+						message = string.Format("Unrecognizable firmware version '{0}'", resultNr.Data);
+						Log.WriteLine("Mount: {0}", message);
 						failed = true;
 					}
+					else
+					{
+						try
+						{
+							_firmwareVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
+						}
+						catch
+						{
+							message = string.Format("Unable to parse firmware version '{0}'", resultNr.Data);
+							Log.WriteLine("Mount: {0}", message);
+							failed = true;
+						}
+					}
 				}
+
+				doneEvent.Set();
 			});
+
+			await doneEvent.WaitAsync();
+			if (failed)
+			{
+				return Tuple.Create(false, message);
+			}
 
 			var doneEvent2 = new AsyncAutoResetEvent();
 			string hwData = string.Empty;
@@ -704,23 +948,60 @@ namespace OATControl.ViewModels
 				doneEvent2.Set();
 			});
 			await doneEvent2.WaitAsync();
-			if (failed)
-			{
-				return false;
-			}
 
 			var hwParts = hwData.Split(',');
 			var raParts = hwParts[1].Split('|');
 			var decParts = hwParts[2].Split('|');
 			ScopeHardware = $"{hwParts[0]} board    RA {raParts[0]}, {raParts[1]}T    DEC {decParts[0]}, {decParts[1]}T";
+			ScopeBoard = hwParts[0];
+			ScopeRAStepper = $"{raParts[0]}, {raParts[1]}T";
+			ScopeDECStepper = $"{decParts[0]}, {decParts[1]}T";
+			ScopeFeatures = "";
+			ScopeDisplay = "None";
 			_raIsNEMA = raParts[0] == "NEMA";
 			_decIsNEMA = decParts[0] == "NEMA";
 			for (int i = 3; i < hwParts.Length; i++)
 			{
 				_oatAddonStates.Add(hwParts[i]);
+				if (hwParts[i] == "GPS")
+				{
+					ScopeFeatures += "GPS, ";
+				}
+				else if (hwParts[i] == "AUTO_AZ_ALT")
+				{
+					ScopeFeatures += "AutoPA, ";
+				}
+				else if (hwParts[i] == "GYRO")
+				{
+					ScopeFeatures += "Digital Level, ";
+				}
+				else if (hwParts[i] == "LCD_KEYPAD")
+				{
+					ScopeDisplay = "16x2 LCD (w/ buttons) ";
+				}
+				else if (hwParts[i] == "LCD_I2C_MCP23008")
+				{
+					ScopeDisplay = "LCD (I2C MCP23008) ";
+				}
+				else if (hwParts[i] == "LCD_I2C_MCP23017")
+				{
+					ScopeDisplay = "LCD (I2C MCP23017)";
+				}
+				else if (hwParts[i] == "LCD_JOY_I2C_SSD1306")
+				{
+					ScopeDisplay = "Pixel OLED (SSD1306)";
+				}
+			}
+			if (string.IsNullOrEmpty(ScopeFeatures))
+			{
+				ScopeFeatures = "No addons";
+			}
+			else
+			{
+				ScopeFeatures = ScopeFeatures.Substring(0, ScopeFeatures.Length - 2);
 			}
 
-			return true;
+			return Tuple.Create(true, string.Empty);
 		}
 
 		public bool IsAddonSupported(string addon)
@@ -745,6 +1026,7 @@ namespace OATControl.ViewModels
 
 			if (dlg.Result == true)
 			{
+				UpdateLocation();
 				Log.WriteLine("OAT Connected!");
 				return true;
 			}
@@ -891,6 +1173,9 @@ namespace OATControl.ViewModels
 		public ICommand DriftAlignCommand { get { return _driftAlignCommand; } }
 		public ICommand PolarAlignCommand { get { return _polarAlignCommand; } }
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
+		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
+		public ICommand FactoryResetCommand { get { return _factoryResetCommand; } }
+		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 
 		/// <summary>
 		/// Gets or sets the RAHour
@@ -1049,11 +1334,35 @@ namespace OATControl.ViewModels
 			_oatMount.SendCommand(string.Format(_oatCulture, ":XSS{0:0.0000}#", newVal), (a) => { });
 		}
 
+		public long SpeedCalibrationFactorEdit
+		{
+			get { return _speedEdit; }
+			set
+			{
+				if (_speedEdit != value)
+				{
+					_speedEdit = value;
+					OnPropertyChanged("SpeedCalibrationFactorDisplay");
+				}
+			}
+		}
+
+		public string SpeedCalibrationFactorDisplay
+		{
+			get { return string.Format("{0:0.0000}", 1.0 + (_speedEdit / 10000.0)); }
+		}
+
 		//private async Task<float> GetTrackingSpeed()
 		//{
 		//	string trackingSpeed = await RunCustomOATCommandAsync(string.Format(_oatCulture, ":XGT#,#"));
 		//	return float.Parse(trackingSpeed);
 		//}
+
+		public float RAStepsPerDegreeEdit
+		{
+			get { return _raStepsPerDegreeEdit; }
+			set { SetPropertyValue(ref _raStepsPerDegreeEdit, value); }
+		}
 
 		/// <summary>
 		/// Gets or sets the RA steps per degree
@@ -1067,6 +1376,12 @@ namespace OATControl.ViewModels
 		private void OnRAStepsChanged(float oldVal, float newVal)
 		{
 			_oatMount.SendCommand(string.Format(_oatCulture, ":XSR{0:0.0}#", newVal), (a) => { });
+		}
+
+		public float DECStepsPerDegreeEdit
+		{
+			get { return _decStepsPerDegreeEdit; }
+			set { SetPropertyValue(ref _decStepsPerDegreeEdit, value); }
 		}
 
 		/// <summary>
@@ -1132,13 +1447,146 @@ namespace OATControl.ViewModels
 		}
 
 		/// <summary>
-		/// Gets or sets the name of the scope
+		/// Gets or sets the version of the scope firmware
+		/// </summary>
+		public string ScopeVersion
+		{
+			get { return _scopeVersion; }
+			set { SetPropertyValue(ref _scopeVersion, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the hardware config of the scope
 		/// </summary>
 		public string ScopeHardware
 		{
 			get { return _scopeHardware; }
 			set { SetPropertyValue(ref _scopeHardware, value); }
 		}
+
+		/// <summary>
+		/// Gets or sets the type of RA stepper of the scope 
+		/// </summary>
+		public string ScopeRAStepper
+		{
+			get
+			{
+				return _scopeRAStepper;
+			}
+			set
+			{
+				SetPropertyValue(ref _scopeRAStepper, value);
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the type of DEC stepper of the scope 
+		/// </summary>
+		public string ScopeDECStepper
+		{
+			get
+			{
+				return _scopeDecStepper;
+			}
+			set
+			{
+				SetPropertyValue(ref _scopeDecStepper, value);
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the board of the scope 
+		/// </summary>
+		public string ScopeBoard
+		{
+			get
+			{
+				return _scopeBoard;
+			}
+			set
+			{
+				SetPropertyValue(ref _scopeBoard, value);
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the display of the scope 
+		/// </summary>
+		public string ScopeDisplay
+		{
+			get
+			{
+				return _scopeDisplay;
+			}
+			set
+			{
+				SetPropertyValue(ref _scopeDisplay, value);
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the features of the scope 
+		/// </summary>
+		public string ScopeFeatures
+		{
+			get
+			{
+				return _scopeFeatures;
+			}
+			set
+			{
+				SetPropertyValue(ref _scopeFeatures, value);
+			}
+		}
+
+		public string ScopeLatitude
+		{
+			get { return _scopeLatitude; }
+			set { SetPropertyValue(ref _scopeLatitude, value); }
+		}
+
+		public string ScopeLongitude
+		{
+			get { return _scopeLongitude; }
+			set { SetPropertyValue(ref _scopeLongitude, value); }
+		}
+
+		public string ScopeTemperature
+		{
+			get { return _scopeTemperature; }
+			set { SetPropertyValue(ref _scopeTemperature, value); }
+		}
+
+		public string ScopeDate
+		{
+			get { return _scopeDate; }
+			set { SetPropertyValue(ref _scopeDate, value); }
+		}
+
+		public string ScopeTime
+		{
+			get { return _scopeTime; }
+			set { SetPropertyValue(ref _scopeTime, value); }
+		}
+
+		public string ScopePolarisHourAngle
+		{
+			get { return _scopePolarisHourAngle; }
+			set { SetPropertyValue(ref _scopePolarisHourAngle, value); }
+		}
+
+		public string ScopeSiderealTime
+		{
+			get { return _scopeSiderealTime; }
+			set { SetPropertyValue(ref _scopeSiderealTime, value); }
+		}
+
+		public string ScopeNetwork
+		{
+			get { return _scopeNetwork; }
+			set { SetPropertyValue(ref _scopeNetwork, value); }
+		}
+
 
 		/// <summary>
 		/// Gets or sets the status of the scope
@@ -1281,11 +1729,11 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _driftPhase, value); }
 		}
 
-		//public float TrackingSpeed
-		//{
-		//	get { return _trackingSpeed; }
-		//	set { SetPropertyValue(ref _trackingSpeed, value, OnRAPosChangedFloat); }
-		//}
+		public float TrackingSpeed
+		{
+			get { return _trackingSpeed; }
+			set { SetPropertyValue(ref _trackingSpeed, value, OnRAPosChangedFloat); }
+		}
 
 		private void OnRAPosChangedFloat(float arg1, float arg2)
 		{

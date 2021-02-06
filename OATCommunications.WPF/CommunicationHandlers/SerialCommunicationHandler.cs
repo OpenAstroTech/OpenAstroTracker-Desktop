@@ -38,6 +38,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 
 			if (EnsurePortIsOpen())
 			{
+				_port.DiscardInBuffer();
 				requestIndex++;
 				try
 				{

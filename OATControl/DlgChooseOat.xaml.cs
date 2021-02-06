@@ -282,6 +282,13 @@ namespace OATControl
 			base.OnClosed(e);
 		}
 
+		protected bool TryParseLatLong(string latlong, ref float fLatLong)
+		{
+			var parts = latlong.Split('*', '\'');
+			fLatLong = 1.0f * int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0f;
+			return true;
+		}
+
 		public bool? Result { get; set; }
 
 		private void AdvanceStateMachine()
@@ -323,9 +330,21 @@ namespace OATControl
 					break;
 
 				case Steps.WaitForGPS:
+					// We have a GPS, but the user is too impatient. We'll assume the location that OAT has stored is accurate and use that.
 					ShowManualLocation = true;
 					CurrentStep = Steps.ConfirmLocation;
 					GPSStatus = "GPS acquisition cancelled, please enter location:";
+					var locDoneEvent = new AutoResetEvent(false);
+					bool gotLoc = false;
+					float lat = 0, lng = 0;
+					_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref lat); });
+					_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref lng); locDoneEvent.Set(); });
+					locDoneEvent.WaitOne();
+					if (gotLoc)
+					{
+						Latitude = lat;
+						Longitude = 180.0f - lng;
+					}
 					break;
 
 				case Steps.ConfirmLocation:
@@ -362,10 +381,10 @@ namespace OATControl
 						ShowGPSStatus = false;
 						GPSStatus = string.Empty;
 
-						if (!connectResult)
+						if (!connectResult.Item1)
 						{
-							this.Result = null;
-							this.Close();
+							ShowGPSStatus = true;
+							GPSStatus = connectResult.Item2;
 							CurrentStep = Steps.WaitForConnect;
 							return;
 						}
@@ -455,30 +474,13 @@ namespace OATControl
 						GPSStatus = string.Format("Waiting {0:0}s for GPS to find satellites and sync...", MaxWaitForGPS - elapsed.TotalSeconds);
 						await Task.Delay(150);
 
+						bool gpsIsSyncd = false;
 						var doneEvent = new AutoResetEvent(false);
 						_sendCommand(":gT100#,n", async (result) =>
 						{
 							if (result.Data == "1")
 							{
-								GPSStatus = "Sync'd! Retrieving current location...";
-								float latitude = 0;
-								float longitude = 0;
-								var doneEventLatLong = new AutoResetEvent(false);
-								_sendCommand(":Gt#,#", (lat) => { latitude = float.Parse(result.Data.Substring(0, 3)) + (float.Parse(result.Data.Substring(4)) / 60.0f); });
-								_sendCommand(":Gg#,#", (lng) => { longitude = float.Parse(result.Data.Substring(0, 3)) + (float.Parse(result.Data.Substring(4)) / 60.0f); doneEventLatLong.Set(); });
-								doneEventLatLong.WaitOne();
-								if (longitude > 180) longitude -= 360;
-
-								GPSStatus = "Sync'd! Setting OAT location...";
-								await _mountViewModel.SetSiteLatitude(latitude);
-								await _mountViewModel.SetSiteLongitude(longitude);
-								await Task.Delay(400);
-
-								Settings.Default.SiteLatitude = latitude;
-								Settings.Default.SiteLongitude = longitude;
-								Settings.Default.Save();
-
-								CurrentStep = Steps.Completed;
+								gpsIsSyncd = true;
 							}
 							else
 							{
@@ -487,6 +489,32 @@ namespace OATControl
 							doneEvent.Set();
 						});
 						doneEvent.WaitOne(2500);
+
+						if (gpsIsSyncd)
+						{
+							GPSStatus = "Sync'd! Retrieving current location...";
+							float latitude = 0;
+							float longitude = 0;
+							bool gotLoc = false;
+							var doneEventLatLong = new AutoResetEvent(false);
+							_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref latitude); });
+							_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref longitude); doneEventLatLong.Set(); });
+							doneEventLatLong.WaitOne();
+							if (gotLoc)
+							{
+								longitude = 180 - longitude;
+
+								GPSStatus = "Sync'd! Setting OAT location...";
+								await _mountViewModel.SetSiteLatitude(latitude);
+								await _mountViewModel.SetSiteLongitude(longitude);
+								await Task.Delay(400);
+							}
+
+							Settings.Default.SiteLatitude = latitude;
+							Settings.Default.SiteLongitude = longitude;
+							Settings.Default.Save();
+							CurrentStep = Steps.Completed;
+						}
 					}
 					break;
 

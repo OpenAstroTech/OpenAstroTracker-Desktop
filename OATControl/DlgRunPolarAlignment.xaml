@@ -6,11 +6,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Polar Alignment" Height="220" Width="480" ResizeMode="NoResize" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold" >
+        Title="Polar Alignment" Height="220" Width="570.879" ResizeMode="NoResize" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold" >
 	<Controls:MetroWindow.Resources>
 		<Style x:Key="StateText" TargetType="TextBlock">
 			<Setter Property="Margin" Value="10,0" />
-			<Setter Property="Foreground" Value="#FF301010"  />
+			<Setter Property="Foreground" Value="#FFFF1010"  />
 			<Setter Property="TextWrapping" Value="Wrap"  />
 			<Setter Property="VerticalAlignment" Value="Center"  />
 			<Setter Property="HorizontalAlignment" Value="Left" />
@@ -58,7 +58,7 @@
 				/>
 
 		<TextBlock Grid.Row="2" Grid.Column="0" 
-				   Text="Move the mount such that Polaris is in the center of your cameras viewfinder." 
+				   Text="Wait for slewing to stop, then move the mount such that Polaris is in the center of your cameras viewfinder." 
 				   Style="{StaticResource StateText}" 
 	 			   IsEnabled="{Binding State, Converter={StaticResource State2Enabled}}"
 				   Visibility="{Binding State, Converter={StaticResource State2Visible}}"
