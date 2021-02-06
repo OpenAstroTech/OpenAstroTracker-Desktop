@@ -11,6 +11,10 @@ There are also some low-level communications libraries that the above mentioned 
 
 Change Log:
 ===========
+**V0.9.9.21 - Updates**
+- Fixed a parsing bug for float values.
+- Seperated the network info in the Settings Dialog.
+
 **V0.9.9.20 - Updates**
 - Moved some calibration info to a seperate Settings dialog that also has a lot of additional info.
 - Arrows on Target RA and DEC coordinates now auto-repeat and accelerate.
