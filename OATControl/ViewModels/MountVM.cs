@@ -74,7 +74,9 @@ namespace OATControl.ViewModels
 		string _scopeTime = string.Empty;
 		string _scopePolarisHourAngle = string.Empty;
 		string _scopeSiderealTime = string.Empty;
-		string _scopeNetwork = string.Empty;
+		string _scopeNetworkState = string.Empty;
+		string _scopeNetworkIPAddress = string.Empty;
+		string _scopeNetworkSSID = string.Empty;
 
 		string _mountStatus = string.Empty;
 		string _currentHA = string.Empty;
@@ -486,12 +488,12 @@ namespace OATControl.ViewModels
 
 				if (speed.Length > 0)
 				{
-					TrackingSpeed = float.Parse(speed);
+					TrackingSpeed = float.Parse(speed, _oatCulture);
 				}
 
 				if (temperature != "0")
 				{
-					float temp = float.Parse(temperature);
+					float temp = float.Parse(temperature, _oatCulture);
 					int fahrenheit = (int)Math.Round(32.0 + (9.0 * temp / 5.0));
 					ScopeTemperature = string.Format("{0:0.0}°C ({1:0}°F)", temp, fahrenheit);
 				}
@@ -502,11 +504,16 @@ namespace OATControl.ViewModels
 
 				if (network == "0,")
 				{
-					ScopeNetwork = "N/A";
+					ScopeNetworkState = "N/A";
+					ScopeNetworkIPAddress = "N/A";
+					ScopeNetworkSSID = "N/A";
 				}
 				else
 				{
-					ScopeNetwork = network;
+					var parts = network.Split(',');
+					ScopeNetworkState = parts[1];
+					ScopeNetworkIPAddress = parts[3];
+					ScopeNetworkSSID = parts[4];
 				}
 			}
 		}
@@ -1352,12 +1359,6 @@ namespace OATControl.ViewModels
 			get { return string.Format("{0:0.0000}", 1.0 + (_speedEdit / 10000.0)); }
 		}
 
-		//private async Task<float> GetTrackingSpeed()
-		//{
-		//	string trackingSpeed = await RunCustomOATCommandAsync(string.Format(_oatCulture, ":XGT#,#"));
-		//	return float.Parse(trackingSpeed);
-		//}
-
 		public float RAStepsPerDegreeEdit
 		{
 			get { return _raStepsPerDegreeEdit; }
@@ -1581,12 +1582,23 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _scopeSiderealTime, value); }
 		}
 
-		public string ScopeNetwork
+		public string ScopeNetworkState
 		{
-			get { return _scopeNetwork; }
-			set { SetPropertyValue(ref _scopeNetwork, value); }
+			get { return _scopeNetworkState; }
+			set { SetPropertyValue(ref _scopeNetworkState, value); }
 		}
 
+		public string ScopeNetworkIPAddress
+		{
+			get { return _scopeNetworkIPAddress; }
+			set { SetPropertyValue(ref _scopeNetworkIPAddress, value); }
+		}
+
+		public string ScopeNetworkSSID
+		{
+			get { return _scopeNetworkSSID; }
+			set { SetPropertyValue(ref _scopeNetworkSSID, value); }
+		}
 
 		/// <summary>
 		/// Gets or sets the status of the scope

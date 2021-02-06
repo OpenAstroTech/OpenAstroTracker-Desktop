@@ -7,7 +7,7 @@
 		xmlns:controls="clr-namespace:OATControl.Controls" 
         xmlns:local="clr-namespace:OATControl"
         mc:Ignorable="d"
-        Title="Settings" Height="560" Width="500">
+        Title="Settings" MinHeight="610" Width="500" Height="610">
 	<Window.Resources>
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
@@ -37,6 +37,8 @@
 	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -154,11 +156,16 @@
 		<TextBlock Grid.Row="13" Grid.Column="0" Text="Temperature:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
 		<TextBlock Grid.Row="13" Grid.Column="1" Text="{Binding ScopeTemperature}"  Style="{StaticResource TextBlockLabelValue}"/>
 
-		<TextBlock Grid.Row="14" Grid.Column="0" Text="Network settings:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="14" Grid.Column="1" Text="{Binding ScopeNetwork}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="14" Grid.Column="0" Text="Network:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
+		<TextBlock Grid.Row="14" Grid.Column="1" Text="{Binding ScopeNetworkState}"  Style="{StaticResource TextBlockLabelValue}"/>
 
+		<TextBlock Grid.Row="15" Grid.Column="0" Text="IP:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
+		<TextBlock Grid.Row="15" Grid.Column="1" Text="{Binding ScopeNetworkIPAddress}"  Style="{StaticResource TextBlockLabelValue}"/>
 
-		<StackPanel Grid.Row="16" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal">
+		<TextBlock Grid.Row="16" Grid.Column="0" Text="SSID:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
+		<TextBlock Grid.Row="16" Grid.Column="1" Text="{Binding ScopeNetworkSSID}"  Style="{StaticResource TextBlockLabelValue}"/>
+
+		<StackPanel Grid.Row="18" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal">
 			<Button Margin="16,8,8,8" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding FactoryResetCommand}"/>
 			<Button Margin="16,8" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 			<Button Margin="16,8" Padding="20,0" Content="Close" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" IsCancel="True"/>
