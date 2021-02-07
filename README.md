@@ -11,6 +11,9 @@ There are also some low-level communications libraries that the above mentioned 
 
 Change Log:
 ===========
+**V0.9.9.23 - Updates**
+- Removed dummy call to consume second reply from :SC# command, since receive buffer is now cleared before each command
+
 **V0.9.9.22 - Updates**
 - Hardened network display in Settings dialog against bad data.
 - Added synchronization to wait for jobs processor to quit before closing port.
