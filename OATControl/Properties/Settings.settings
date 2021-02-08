@@ -11,5 +11,8 @@
     <Setting Name="SiteLongitude" Type="System.Single" Scope="User">
       <Value Profile="(Default)">-75</Value>
     </Setting>
+    <Setting Name="SiteAltitude" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
