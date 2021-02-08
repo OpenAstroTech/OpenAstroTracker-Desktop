@@ -78,6 +78,7 @@ namespace OATControl
 			_pitchOffsetHistory = new List<double>(5);
 			_latitude = Settings.Default.SiteLatitude;
 			_longitude = Settings.Default.SiteLongitude;
+			_altitude = Settings.Default.SiteAltitude;
 
 			CurrentStep = Steps.Idle;
 			_rescanCommand = new DelegateCommand(() => { CommunicationHandlerFactory.DiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForConnect));
