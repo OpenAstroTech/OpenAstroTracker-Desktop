@@ -354,6 +354,7 @@ namespace OATControl
 					Task.Run(() => _mountViewModel.SetSiteLongitude(Longitude)).Wait();
 					Settings.Default.SiteLatitude = Latitude;
 					Settings.Default.SiteLongitude = Longitude;
+					Settings.Default.SiteAltitude = Altitude;
 					Settings.Default.Save();
 					CurrentStep = Steps.Completed;
 					break;
@@ -403,10 +404,13 @@ namespace OATControl
 							// Get the reference angles from the level.
 							_sendCommand(":XLGR#,#", (a) =>
 							{
-								string referenceAngles = a.Data;
-								var angles = referenceAngles.Split(",".ToCharArray());
-								float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float _pitchReference);
-								float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float _rollReference);
+								if (a.Success)
+								{
+									string referenceAngles = a.Data;
+									var angles = referenceAngles.Split(",".ToCharArray());
+									float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float _pitchReference);
+									float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float _rollReference);
+								}
 								doneEvent.Set();
 							});
 							doneEvent.WaitOne();
@@ -433,7 +437,7 @@ namespace OATControl
 						_sendCommand(":XLGC#,#", (a) =>
 						{
 							string currentAngles = a.Data;
-							if (!currentAngles.Contains("NAN"))
+							if (a.Success && !currentAngles.Contains("NAN"))
 							{
 								var angles = currentAngles.Split(",".ToCharArray());
 								float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float currentPitch);
@@ -455,8 +459,14 @@ namespace OATControl
 							doneEvent.Set();
 						});
 						await doneEvent.WaitAsync();
-						RollOffset = _rollOffsetHistory.Average();
-						PitchOffset = _pitchOffsetHistory.Average();
+						if (_rollOffsetHistory.Any())
+						{
+							RollOffset = _rollOffsetHistory.Average();
+						}
+						if (_pitchOffsetHistory.Any())
+						{
+							PitchOffset = _pitchOffsetHistory.Average();
+						}
 					}
 					break;
 

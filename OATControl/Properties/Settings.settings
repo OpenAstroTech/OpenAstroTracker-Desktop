@@ -11,6 +11,12 @@
     <Setting Name="SiteLongitude" Type="System.Single" Scope="User">
       <Value Profile="(Default)">-75</Value>
     </Setting>
+    <Setting Name="MiniControllerPos" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">-1, -1</Value>
+    </Setting>
+    <Setting Name="WindowPos" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">-1, -1</Value>
+    </Setting>
     <Setting Name="SiteAltitude" Type="System.Single" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>

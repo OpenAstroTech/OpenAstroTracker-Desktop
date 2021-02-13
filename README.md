@@ -11,6 +11,14 @@ There are also some low-level communications libraries that the above mentioned 
 
 Change Log:
 ===========
+**V0.9.9.24 - Updates**
+- Added a mini controller that shows RA/DEC and allows manual slewing, homing and park, with keyboard support.
+- Site altitude is now persisted across sessions.
+- Connections are attempted multiple times if they fail.
+- Prevented crashes when the firmware said GPS or Digital Level was attached, but weren't actually connected.
+- Window positions are persisted across sessions.
+- Moved Settings button down to above Connect button.
+
 **V0.9.9.23 - Updates**
 - Removed dummy call to consume second reply from :SC# command, since receive buffer is now cleared before each command
 

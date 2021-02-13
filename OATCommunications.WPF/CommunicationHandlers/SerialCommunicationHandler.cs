@@ -101,20 +101,26 @@ namespace OATCommunications.WPF.CommunicationHandlers
 		{
 			if (!_port.IsOpen)
 			{
-				try
+				int attempts = 0;
+				do
 				{
-					Log.WriteLine("SERIAL: Port {0} is not open, attempting to open...", _portName);
-					_port.Open();
-					Thread.Sleep(750); // Arduino resets on connection. Give it time to start up.
-					Log.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
-					_port.Write(":I#");
-					return true;
+					attempts++;
+					try
+					{
+						Log.WriteLine("SERIAL: Port {0} is not open, attempt {1} to open...", _portName, attempts);
+						_port.Open();
+						Thread.Sleep(750); // Arduino resets on connection. Give it time to start up.
+						Log.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
+						_port.Write(":I#");
+						return true;
+					}
+					catch (Exception ex)
+					{
+						Log.WriteLine("SERIAL: Failed to open the port on attempt {1}. {0}", ex.Message, attempts);
+						Thread.Sleep(250); // Wait a little before trying again.
+					}
 				}
-				catch (Exception ex)
-				{
-					Log.WriteLine("SERIAL: Failed to open the port. {0}", ex.Message);
-					return false;
-				}
+				while (attempts < 10);
 			}
 			return true;
 		}

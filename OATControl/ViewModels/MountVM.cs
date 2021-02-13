@@ -18,6 +18,7 @@ using OATCommunications.Utilities;
 using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using ControlzEx.Standard;
 using OATControl.Properties;
+using System.Configuration;
 
 namespace OATControl.ViewModels
 {
@@ -99,10 +100,11 @@ namespace OATControl.ViewModels
 		DelegateCommand _polarAlignCommand;
 		DelegateCommand _showLogFolderCommand;
 		DelegateCommand _showSettingsCommand;
+		DelegateCommand _showMiniControllerCommand;
 		DelegateCommand _factoryResetCommand;
 		DelegateCommand _startChangingCommand;
 
-
+		MiniController _miniController;
 		DispatcherTimer _timerStatus;
 		DispatcherTimer _timerFineSlew;
 
@@ -155,6 +157,7 @@ namespace OATControl.ViewModels
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
+			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
 			_factoryResetCommand = new DelegateCommand(() => OnPerformFactoryReset(), () => MountConnected);
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 
@@ -247,6 +250,27 @@ namespace OATControl.ViewModels
 					message += " Please disconnect, reset OAT and reconnect.";
 				}
 				MessageBox.Show(message, "Factory Reset complete", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
+
+		private void OnShowMiniController()
+		{
+			if (_miniController == null)
+			{
+				_miniController = new MiniController(this);
+				if (Settings.Default.MiniControllerPos.X != -1)
+				{
+					_miniController.Left = Settings.Default.MiniControllerPos.X;
+					_miniController.Top = Settings.Default.MiniControllerPos.Y;
+				}
+			}
+			if (_miniController.IsVisible)
+			{
+				_miniController.Hide();
+			}
+			else
+			{
+				_miniController.Show();
 			}
 		}
 
@@ -601,14 +625,14 @@ namespace OATControl.ViewModels
 		private async Task OnStopSlewing(char dir)
 		{
 			var doneEvent = new AsyncAutoResetEvent();
-			_oatMount.SendCommand(string.Format(":Q{0}#", dir), (a) => { doneEvent.Set(); });
+			_oatMount?.SendCommand(string.Format(":Q{0}#", dir), (a) => { doneEvent.Set(); });
 			await doneEvent.WaitAsync();
 		}
 
 		private async Task OnStartSlewing(char dir)
 		{
 			var doneEvent = new AsyncAutoResetEvent();
-			_oatMount.SendCommand(string.Format(":M{0}#", dir), (a) => { doneEvent.Set(); });
+			_oatMount?.SendCommand(string.Format(":M{0}#", dir), (a) => { doneEvent.Set(); });
 			await doneEvent.WaitAsync();
 		}
 
@@ -672,15 +696,25 @@ namespace OATControl.ViewModels
 
 		public void Disconnect()
 		{
+			if (_miniController != null)
+			{
+				Settings.Default.MiniControllerPos = new System.Drawing.Point((int)_miniController.Left, (int)_miniController.Top);
+				Settings.Default.Save();
+				_miniController.Close();
+				_miniController = null;
+			}
+
 			if (MountConnected)
 			{
 				MountConnected = false;
 			}
+
 			if (_commHandler != null)
 			{
 				_commHandler.Disconnect();
 				_commHandler = null;
 			}
+
 			ScopeName = string.Empty;
 			ScopeHardware = string.Empty;
 			_oatMount = null;
@@ -889,6 +923,7 @@ namespace OATControl.ViewModels
 			_polarAlignCommand.Requery();
 			_showLogFolderCommand.Requery();
 			_showSettingsCommand.Requery();
+			_showMiniControllerCommand.Requery();
 
 			OnPropertyChanged("ConnectCommandString");
 		}
@@ -1205,6 +1240,7 @@ namespace OATControl.ViewModels
 		public ICommand PolarAlignCommand { get { return _polarAlignCommand; } }
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
+		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
 		public ICommand FactoryResetCommand { get { return _factoryResetCommand; } }
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 
@@ -1268,7 +1304,13 @@ namespace OATControl.ViewModels
 		public int CurrentRAHour
 		{
 			get { return _curRAHour; }
-			set { SetPropertyValue(ref _curRAHour, value); }
+			set { SetPropertyValue(ref _curRAHour, value); OnRaOrDecChanged(); }
+		}
+
+		private void OnRaOrDecChanged()
+		{
+			OnPropertyChanged("CurrentRAString");
+			OnPropertyChanged("CurrentDECString");
 		}
 
 		/// <summary>
@@ -1277,7 +1319,7 @@ namespace OATControl.ViewModels
 		public int CurrentRAMinute
 		{
 			get { return _curRAMinute; }
-			set { SetPropertyValue(ref _curRAMinute, value); }
+			set { SetPropertyValue(ref _curRAMinute, value); OnRaOrDecChanged(); }
 		}
 
 		/// <summary>
@@ -1286,7 +1328,17 @@ namespace OATControl.ViewModels
 		public int CurrentRASecond
 		{
 			get { return _curRASecond; }
-			set { SetPropertyValue(ref _curRASecond, value); }
+			set { SetPropertyValue(ref _curRASecond, value); OnRaOrDecChanged(); }
+		}
+
+		public string CurrentRAString
+		{
+			get { return string.Format("{0:00}°{1:00}'{2:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond); }
+		}
+
+		public string CurrentDECString
+		{
+			get { return string.Format("{3}{0:00}°{1:00}'{2:00}", CurrentDECDegree, CurrentDECMinute, CurrentDECSecond, CurrentDECDegree < 0 ? "" : "+"); }
 		}
 
 		/// <summary>
@@ -1295,7 +1347,7 @@ namespace OATControl.ViewModels
 		public int CurrentDECDegree
 		{
 			get { return _curDECDegree; }
-			set { SetPropertyValue(ref _curDECDegree, value); }
+			set { SetPropertyValue(ref _curDECDegree, value); OnRaOrDecChanged(); }
 		}
 
 		/// <summary>
@@ -1304,7 +1356,7 @@ namespace OATControl.ViewModels
 		public int CurrentDECMinute
 		{
 			get { return _curDECMinute; }
-			set { SetPropertyValue(ref _curDECMinute, value); }
+			set { SetPropertyValue(ref _curDECMinute, value); OnRaOrDecChanged(); }
 		}
 
 		/// <summary>
@@ -1313,7 +1365,7 @@ namespace OATControl.ViewModels
 		public int CurrentDECSecond
 		{
 			get { return _curDECSecond; }
-			set { SetPropertyValue(ref _curDECSecond, value); }
+			set { SetPropertyValue(ref _curDECSecond, value); OnRaOrDecChanged(); }
 		}
 
 		/// <summary>

@@ -61,6 +61,30 @@ namespace OATControl.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1, -1")]
+        public global::System.Drawing.Point MiniControllerPos {
+            get {
+                return ((global::System.Drawing.Point)(this["MiniControllerPos"]));
+            }
+            set {
+                this["MiniControllerPos"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1, -1")]
+        public global::System.Drawing.Point WindowPos {
+            get {
+                return ((global::System.Drawing.Point)(this["WindowPos"]));
+            }
+            set {
+                this["WindowPos"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public float SiteAltitude {
             get {
