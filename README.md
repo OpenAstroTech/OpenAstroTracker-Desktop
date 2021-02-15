@@ -9,6 +9,11 @@ This repository holds the high-level software for the OAT. Currently the main co
 
 There are also some low-level communications libraries that the above mentioned projects use.
 
+To install any of these, click on the latest release under Releases to the right and above this text. Then download the latest version of the package you're after. 
+- **OATControl** can simply be unzipped in a folder and the executable started.
+- **OATCommTester** also can simply be unzipped in a folder and the executable started.
+- **ASCOM Driver** is an installer and can be run after download. It will uninstall older versions, if needed.
+
 Change Log:
 ===========
 **V0.9.9.24 - Updates**
