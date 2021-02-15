@@ -16,6 +16,9 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V0.9.9.25 - Updates**
+- Added Slewrate controls to Mini controller, bound to 1, 2, 3, and 4 keys.
+
 **V0.9.9.24 - Updates**
 - Added a mini controller that shows RA/DEC and allows manual slewing, homing and park, with keyboard support.
 - Site altitude is now persisted across sessions.
