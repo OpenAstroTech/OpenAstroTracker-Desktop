@@ -4,8 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Controls"
+		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Mini OAT Control" Height="75" MinHeight="75" MaxHeight="75" Width="330" MaxWidth="330" MinWidth="330" WindowStyle="None" >
+        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="350" MaxWidth="350" MinWidth="350" WindowStyle="None" >
 	<Window.Resources>
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
@@ -31,6 +32,51 @@
 			<Setter Property="TextAlignment" Value="Center" />
 			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
 		</Style>
+		<Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
+			<Setter Property="Width" Value="16" />
+			<Setter Property="Height" Value="15" />
+			<Setter Property="Margin" Value="2,0.5,0,0.5" />
+			<Setter Property="BorderBrush" Value="{StaticResource AccentBaseColorBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush3}" />
+			<Setter Property="Foreground" Value="#FF201010" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ToggleButton">
+						<Border Name="border" 
+                            BorderThickness="1"
+                            BorderBrush="{StaticResource AccentBaseColorBrush}" 
+                            CornerRadius="0" 
+                            Background="{TemplateBinding Background}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush2}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush4}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
+							</Trigger>
+							<Trigger Property="IsChecked" Value="True">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentSelectedColorBrush}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush2}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
+							</Trigger>
+							<Trigger Property="IsEnabled" Value="False">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush3}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentBaseColorBrush}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<converters:IntToBoolConverter x:Key="Int1ToBool" TrueValue="1" Operator="==" />
+		<converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
+		<converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
+		<converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
 	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
@@ -40,6 +86,7 @@
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="95"/>
+			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
@@ -56,8 +103,27 @@
 		<TextBlock Grid.Row="1" Grid.Column="0" Text="DEC:" Style="{StaticResource TextBlockLabelSmall}" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove" Cursor="SizeAll" />
 		<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentDECString}" Style="{StaticResource TextBlockLabelValue}" />
 
-		<Button Grid.Row="0" Grid.Column="5" Margin="8,2" Padding="10,0" Content="Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}"/>
-		<Button Grid.Row="1" Grid.Column="5" Margin="8,2" Padding="10,0" Content="{Binding ParkCommandString}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}"/>
+		<StackPanel Grid.RowSpan="2" Grid.Column="5" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}">
+			<ToggleButton 
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int1ToBool}}"
+						Content="1"/>
+			<ToggleButton 
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int2ToBool}}"
+						Content="2"/>
+			<ToggleButton 
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int3ToBool}}"
+						Content="3"/>
+			<ToggleButton 
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int4ToBool}}"
+						Content="4"/>
+		</StackPanel>
+
+		<Button Grid.Row="0" Grid.Column="6" Margin="8,2" Padding="10,0" Content="Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}"/>
+		<Button Grid.Row="1" Grid.Column="6" Margin="8,2" Padding="10,0" Content="{Binding ParkCommandString}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}"/>
 
 	</Grid>
 </Window>
