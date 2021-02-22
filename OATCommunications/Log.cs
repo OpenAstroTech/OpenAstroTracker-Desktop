@@ -19,6 +19,8 @@ namespace OATCommunications.Utilities
 		private static List<string> lstBuffer = new List<string>();
 		private static DateTime dtLastUpdate = DateTime.Now.AddSeconds(5.0);
 		private static int maxBuffered = 0;
+		private static bool logging = true;
+
 
 		public static string Filename
 		{
@@ -82,34 +84,43 @@ namespace OATCommunications.Utilities
 			return sb.ToString();
 		}
 
-		public static void WriteLine(string message, params object[] args)
+		protected static void Flush()
 		{
-			if ((DateTime.UtcNow - Log.dtLastUpdate).TotalMilliseconds > 1000.0)
-			{
-				lock (Log.oLock)
-				{
-					var lines = string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n";
-					File.AppendAllText(Log.sPath, lines);
-					Log.lstBuffer.Clear();
-				}
-				Log.dtLastUpdate = DateTime.UtcNow;
-			}
-
-			string sLine = FormatMessage(message, args);
-
 			lock (Log.oLock)
 			{
-				Log.lstBuffer.Add(sLine);
-				Debug.WriteLine(sLine);
-				if (Log.lstBuffer.Count > Log.maxBuffered)
+				var lines = string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n";
+				File.AppendAllText(Log.sPath, lines);
+				Log.lstBuffer.Clear();
+			}
+		}
+
+		public static void WriteLine(string message, params object[] args)
+		{
+			if (logging)
+			{
+				if ((DateTime.UtcNow - Log.dtLastUpdate).TotalMilliseconds > 1000.0)
 				{
-					Log.maxBuffered = Log.lstBuffer.Count;
+					Log.Flush();
+					Log.dtLastUpdate = DateTime.UtcNow;
+				}
+
+				string sLine = FormatMessage(message, args);
+
+				lock (Log.oLock)
+				{
+					Log.lstBuffer.Add(sLine);
+					Debug.WriteLine(sLine);
+					if (Log.lstBuffer.Count > Log.maxBuffered)
+					{
+						Log.maxBuffered = Log.lstBuffer.Count;
+					}
 				}
 			}
 		}
 
 		public static void Quit()
 		{
+			logging = false;
 			if (Log.lstBuffer.Any())
 			{
 				lock (Log.oLock)

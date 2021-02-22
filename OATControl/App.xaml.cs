@@ -7,6 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using OATCommunications.Utilities;
+using System.Threading;
+using System.Windows.Threading;
+
 namespace OATControl
 {
 	/// <summary>
@@ -15,6 +18,17 @@ namespace OATControl
 
 	public partial class App : Application
 	{
+		public App()
+		{
+			Log.Init("OatControl");
+
+			// Add the event handler for handling non-UI thread exceptions to the event. 
+			AppDomain.CurrentDomain.UnhandledException += App.UnhandledException;
+
+			this.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(App.AppDispatcherUnhandledException);
+
+
+		}
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			ThemeManager.AddAccent("RedAccent", new Uri("pack://application:,,,/OATControl;component/Resources/RedAccent.xaml"));
@@ -30,7 +44,7 @@ namespace OATControl
 										ThemeManager.GetAccent("RedAccent"),
 										ThemeManager.GetAppTheme("RedTheme"));
 
-			Log.Init("OatControl");
+
 			base.OnStartup(e);
 		}
 
@@ -40,5 +54,44 @@ namespace OATControl
 
 			base.OnExit(e);
 		}
-	}
+
+		private static int exceptionReentrancy = 0;
+
+		/// <summary>
+		/// Delegate's instance to react to unhandled exception event happened on not UI thread.
+		/// </summary>
+		/// <param name="sender">the object where event happened.</param>
+		/// <param name="e">The exception related information.</param>
+		private static void UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		{
+			if (Interlocked.CompareExchange(ref App.exceptionReentrancy, 1, 0) == 0)
+			{
+				Log.WriteLine("EXCPTN: Entered UnhandledException handler.\nException:\n{0}", (e.ExceptionObject != null) ? e.ExceptionObject.ToString() : "No exception!");
+			}
+
+            Log.Quit();
+            Environment.Exit(-1);
+		}
+
+
+        //-------------------------------------------------------------------------------------------------------------
+        /// <summary>
+        /// The application's unhandled exception handler.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="DispatcherUnhandledExceptionEventArgs"/> instance containing the event data.</param>
+        static void AppDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            if (Interlocked.CompareExchange(ref App.exceptionReentrancy, 1, 0) == 0)
+            {
+                Log.WriteLine("EXCPTN: Entered AppDispatcherUnhandledException handler.\nException:\n{0}\nStacktrace:\n{1}", (e.Exception != null) ? e.Exception.ToString() : "No Exception!", (e.Exception != null) ? e.Exception.StackTrace : "No Stacktrace!");
+
+                // Prevent default unhandled exception processing
+                e.Handled = true;
+            }
+
+            Log.Quit();
+        }
+
+    }
 }
