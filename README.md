@@ -16,6 +16,17 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V0.9.9.27 - Updates**
+- TCP connections did not correctly shutdown the communications thread on disconnect. This could leave zombie OATcontrol processes on the machine.
+- With no GPS, the lat long was not retrieved from OAT as the default for manual entry. It is now.
+- Detected the incorrect RA/DEC steps in the Settings and pop up a message box suggesting factory reset.
+- Fixed label width at bottom of main UI.
+
+**V0.9.9.26 - Updates**
+- Added label to slew rate boxes.
+- Added log folder link to main UI.
+- Added log file flushing in case of crash.
+
 **V0.9.9.25 - Updates**
 - Added Slewrate controls to Mini controller, bound to 1, 2, 3, and 4 keys.
 

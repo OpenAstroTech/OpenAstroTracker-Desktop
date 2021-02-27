@@ -3,9 +3,10 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace OATCommunications.CommunicationHandlers
-{	
+{
 	public class TcpCommunicationHandler : CommunicationHandler
 	{
 		private IPAddress _ip;
@@ -50,7 +51,7 @@ namespace OATCommunications.CommunicationHandlers
 		}
 
 		protected override void RunJob(Job job)
-		{ 
+		{
 			if (_client == null)
 			{
 				Log.WriteLine($"TCP: Configuration error, IP [{_ip}] or port [{_port}] is invalid.");
@@ -147,11 +148,21 @@ namespace OATCommunications.CommunicationHandlers
 
 		public override void Disconnect()
 		{
-			if (_client != null && _client.Connected)
+			if (_client != null)
 			{
+				Log.WriteLine("TCP: Stopping Jobs processor.");
+				StopJobsProcessor();
+
+				Log.WriteLine("TCP: Port is open, sending shutdown command [:Qq#]");
+				ManualResetEvent waitQuit = new ManualResetEvent(false);
+				var quitJob = new Job(":Qq#", ResponseType.NoResponse, (s) => { waitQuit.Set(); });
+				RunJob(quitJob);
+				waitQuit.WaitOne();
+
 				Log.WriteLine("TCP: Closing port.");
 				_client.Close();
 				_client = null;
+				Log.WriteLine("TCP: Disconnected...");
 			}
 		}
 	}
