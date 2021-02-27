@@ -426,6 +426,19 @@ namespace OATControl
 						{
 							ShowManualLocation = true;
 							CurrentStep = Steps.ConfirmLocation;
+							// Let's get teh coordinate stored on the OAT
+							var locDoneEvent = new AutoResetEvent(false);
+							bool gotLoc = false;
+							float lat = 0, lng = 0;
+							_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref lat); });
+							_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref lng); locDoneEvent.Set(); });
+							locDoneEvent.WaitOne();
+							if (gotLoc)
+							{
+								Latitude = lat;
+								Longitude = 180.0f - lng;
+							}
+							break;
 						}
 					}
 					break;

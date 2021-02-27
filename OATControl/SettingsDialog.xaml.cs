@@ -29,6 +29,16 @@ namespace OATControl
 			dispatchTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(333), DispatcherPriority.Normal, OnTimer, Dispatcher.CurrentDispatcher);
 			_mount = mount;
 			this.DataContext = _mount;
+			if ((_mount.RAStepsPerDegree < 10) || (_mount.DECStepsPerDegree < 10))
+			{
+				MessageBox.Show(
+					"It seems that the steps for RA and DEC have been incorrectly configured. It is strongly suggested to do a Factory Reset on the next screen.",
+					"Invalid EEPROM Data",
+					MessageBoxButton.OK,
+					MessageBoxImage.Exclamation
+				);
+			}
+
 			_mount.RAStepsPerDegreeEdit = _mount.RAStepsPerDegree;
 			_mount.DECStepsPerDegreeEdit = _mount.DECStepsPerDegree;
 			InitializeComponent();
