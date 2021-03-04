@@ -56,6 +56,7 @@ namespace OATControl.ViewModels
 		SemaphoreSlim exclusiveAccess = new SemaphoreSlim(1, 1);
 		string _driftAlignStatus = "Drift Alignment";
 		float _driftPhase = 0;
+		DateTime _connectedAt = DateTime.UtcNow;
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
@@ -320,10 +321,11 @@ namespace OATControl.ViewModels
 		{
 			var doneEvent = new AsyncAutoResetEvent();
 			Log.WriteLine("UpdateStatus: Start. running command is {0}", _runningOATCommand);
-
+			
 			if (_runningOATCommand == 0)
 			{
 				Log.WriteLine("UpdateStatus: Start. running command is {0}", _runningOATCommand);
+				OnPropertyChanged("ConnectedTime");
 				if (MountConnected)
 				{
 					_oatMount.SendCommand(":GX#,#", (result) =>
@@ -783,6 +785,7 @@ namespace OATControl.ViewModels
 				});
 
 				await doneEvent.WaitAsync();
+				_connectedAt = DateTime.UtcNow;
 				MountConnected = true;
 				Log.WriteLine("Mount: Successfully connected and configured!");
 			}
@@ -1433,6 +1436,25 @@ namespace OATControl.ViewModels
 		public string SpeedCalibrationFactorDisplay
 		{
 			get { return string.Format("{0:0.0000}", 1.0 + (_speedEdit / 10000.0)); }
+		}
+
+		public string ConnectedTime
+		{
+			get
+			{
+				TimeSpan connected = DateTime.UtcNow - _connectedAt;
+				if (connected.TotalMinutes < 1)
+				{
+					return string.Format("{0}s", connected.Seconds);
+				}
+
+				if (connected.TotalMinutes < 60)
+				{
+					return string.Format("{0:00}m {1:00}s", connected.Minutes, connected.Seconds);
+				}
+
+				return string.Format("{0}h {1:00}m {2:00}s", connected.Days * 24 + connected.Hours, connected.Minutes, connected.Seconds);
+			}
 		}
 
 		public float RAStepsPerDegreeEdit

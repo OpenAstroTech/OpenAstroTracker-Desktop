@@ -53,6 +53,7 @@
 				 HorizontalAlignment="Stretch" 
 				 MinWidth="20" 
 				 Background="Transparent" 
+				 MouseDoubleClick="Device_MouseDoubleClick"
 				 Margin="0,12,100,0">
 			<ListBox.ItemTemplate>
 				<DataTemplate DataType="string">

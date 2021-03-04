@@ -7,6 +7,7 @@ using Microsoft.Win32.SafeHandles;
 using OATCommunications.CommunicationHandlers;
 using OATCommunications.Model;
 using OATCommunications.TelescopeCommandHandlers;
+using OATCommunications.Utilities;
 
 namespace OATCommunications
 {
@@ -188,21 +189,39 @@ namespace OATCommunications
 
 		private bool TryParseRA(string ra, out double dRa)
 		{
-			var parts = ra.Split(':');
-			dRa = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0 + int.Parse(parts[2]) / 3600.0;
-			return true;
+			try
+			{
+				var parts = ra.Split(':');
+				dRa = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0 + int.Parse(parts[2]) / 3600.0;
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Log.WriteLine("OAT: Can't parse RA from {0}", ra);
+			}
+			dRa = 0;
+			return false;
 		}
 
 		private bool TryParseDec(string dec, out double dDec)
 		{
-			var parts = dec.Split('*', '\'');
-			dDec = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0;
-			if (parts.Length > 2)
+			try
 			{
-				dDec += int.Parse(parts[2]) / 3600.0;
-			}
+				var parts = dec.Split('*', '\'');
+				dDec = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0;
+				if (parts.Length > 2)
+				{
+					dDec += int.Parse(parts[2]) / 3600.0;
+				}
 
-			return true;
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Log.WriteLine("OAT: Can't parse DEC from {0}", dec);
+			}
+			dDec = 0;
+			return false;
 		}
 
 		public async Task<bool> StartMoving(string dir)
