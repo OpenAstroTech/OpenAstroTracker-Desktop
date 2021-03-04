@@ -589,5 +589,10 @@ namespace OATControl
 			}
 		}
 
+		private void Device_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			CurrentStep = Steps.WaitForConnect;
+			AdvanceStateMachine();
+		}
 	}
 }

@@ -16,6 +16,12 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V0.9.9.28 - Updates**
+- Sometimes reconnects would fail and crash OATControl. Now they don't crash it.
+- Added a connection time display.
+- Serial communciation would report successful connection even though it wasn't.
+- Made double-click on device proceed to next step in connection dialog.
+
 **V0.9.9.27 - Updates**
 - TCP connections did not correctly shutdown the communications thread on disconnect. This could leave zombie OATcontrol processes on the machine.
 - With no GPS, the lat long was not retrieved from OAT as the default for manual entry. It is now.

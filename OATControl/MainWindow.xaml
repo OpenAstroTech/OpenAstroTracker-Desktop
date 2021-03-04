@@ -529,6 +529,15 @@
 
 			<TextBlock Grid.Column="0" Grid.Row="1" Text="Tracking" Margin="0,5,0,1"  Style="{StaticResource TextBlockHeading}" />
 			<Controls:ToggleSwitchButton  Grid.Column="1" Grid.Row="1"  Margin="0,6,0,0" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}" IsChecked="{Binding IsTracking}"/>
+			<Grid Grid.Row="1" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Column="0" Text="Connected" Style="{StaticResource TextBlockLabelSmall}"/>
+				<TextBlock Grid.Column="1" MinWidth="64" Text="{Binding ConnectedTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
+
+			</Grid>
 
 			<Grid Grid.Row="2" Grid.Column="1" >
 				<Grid.ColumnDefinitions>

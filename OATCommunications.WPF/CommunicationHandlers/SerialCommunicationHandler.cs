@@ -121,6 +121,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 					}
 				}
 				while (attempts < 10);
+				return false;
 			}
 			return true;
 		}
