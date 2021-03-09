@@ -109,14 +109,21 @@ namespace OATCommunications.CommunicationHandlers
 							Log.WriteLine("TCP: [{0}] No reply needed to command", command);
 							break;
 
+						case ResponseType.DoubleFullResponse:
 						case ResponseType.DigitResponse:
 						case ResponseType.FullResponse:
 							{
-								Log.WriteLine("TCP: [{0}] Expecting a reply needed to command, waiting...", command);
+								Log.WriteLine("TCP: [{0}] Expecting a {1} reply to command, waiting...", command, job.ResponseType.ToString());
 								var response = new byte[256];
 								var respCount = stream.Read(response, 0, response.Length);
-								respString = Encoding.ASCII.GetString(response, 0, respCount).TrimEnd("#".ToCharArray());
-								Log.WriteLine("TCP: [{0}] Received reply to command -> [{1}]", command, respString);
+								respString = Encoding.ASCII.GetString(response, 0, respCount);
+								Log.WriteLine("TCP: [{0}] Received reply to command -> [{1}], trimming", command, respString);
+								int hashPos = respString.IndexOf('#');
+								if (hashPos > 0)
+								{
+									respString = respString.Substring(0, hashPos);
+								}
+								Log.WriteLine("TCP: [{0}] Returning reply to command -> [{1}]", command, respString);
 								attempt = 10;
 							}
 							break;

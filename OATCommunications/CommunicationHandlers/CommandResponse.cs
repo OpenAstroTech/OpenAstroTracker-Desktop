@@ -1,6 +1,6 @@
 ﻿namespace OATCommunications.CommunicationHandlers
 {
-    public enum ResponseType { NoResponse, DigitResponse, FullResponse };
+    public enum ResponseType { NoResponse, DigitResponse, FullResponse, DoubleFullResponse };
     public class CommandResponse {
         public string Data { get; }
         public bool Success { get; }
