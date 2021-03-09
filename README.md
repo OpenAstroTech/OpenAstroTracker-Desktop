@@ -16,6 +16,10 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V0.9.9.29 - Updates**
+- Improved communications layer to handle Meade idiosyncracy in SC command
+- Added some more points of interest.
+- 
 **V0.9.9.28 - Updates**
 - Sometimes reconnects would fail and crash OATControl. Now they don't crash it.
 - Added a connection time display.
