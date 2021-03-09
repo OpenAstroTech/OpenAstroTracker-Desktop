@@ -62,6 +62,11 @@ namespace OATCommunications.CommunicationHandlers
 			SendCommand(command, ResponseType.DigitResponse, onFullFilledAction);
 		}
 
+		public void SendCommandDoubleResponse(string command, Action<CommandResponse> onFullFilledAction)
+		{
+			SendCommand(command, ResponseType.DoubleFullResponse, onFullFilledAction);
+		}
+
 		private void SendCommand(string command, ResponseType needsResponse, Action<CommandResponse> onFullFilledAction)
 		{
 			lock (_jobsQueue)

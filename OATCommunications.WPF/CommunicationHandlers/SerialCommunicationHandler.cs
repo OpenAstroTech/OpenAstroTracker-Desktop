@@ -80,6 +80,16 @@ namespace OATCommunications.WPF.CommunicationHandlers
 								response = new CommandResponse(responseStr, true);
 							}
 							break;
+						case ResponseType.DoubleFullResponse:
+							{
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting two #-delimited responses for Command, waiting for first...", requestIndex, job.Command);
+								string responseStr = _port.ReadTo("#");
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received first response '{2}' for command", requestIndex, job.Command, responseStr);
+								response = new CommandResponse(responseStr, true);
+								responseStr = _port.ReadTo("#");
+								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received second response '{2}' for command, ignoring", requestIndex, job.Command, responseStr);
+							}
+							break;
 					}
 				}
 				catch (Exception ex)

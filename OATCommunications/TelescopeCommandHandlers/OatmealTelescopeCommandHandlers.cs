@@ -406,7 +406,11 @@ namespace OATCommunications
 				cmd = $":{cmd}";
 			}
 
-			if (cmd.EndsWith("#,#"))
+			if (cmd.EndsWith("#,##"))
+			{
+				_commHandler.SendCommandDoubleResponse(cmd.Substring(0, cmd.Length - 3), onFulFilled);
+			}
+			else if (cmd.EndsWith("#,#"))
 			{
 				_commHandler.SendCommand(cmd.Substring(0, cmd.Length - 2), onFulFilled);
 			}
