@@ -5,10 +5,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:controls="clr-namespace:OATControl.Controls" 
-        xmlns:local="clr-namespace:OATControl"
-        mc:Ignorable="d"
-        Title="Settings" MinHeight="610" Width="500" Height="610">
+        xmlns:local="clr-namespace:OATControl" xmlns:converters="clr-namespace:OATControl.Converters"
+		mc:Ignorable="d"
+        Title="Settings" MinHeight="610" Width="500" Height="690">
 	<Window.Resources>
+		<converters:IntToVisibilityConverter x:Key="V1_8_76OrLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
+		<Style x:Key="SmallTextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="Margin" Value="0,0" />
+			<Setter Property="Padding" Value="0,0" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
 			<Setter Property="FontWeight" Value="Bold" />
@@ -32,11 +42,13 @@
 			<Setter Property="HorizontalAlignment" Value="Stretch" />
 			<Setter Property="TextAlignment" Value="Center" />
 			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
-			
+
 		</Style>
 	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -64,27 +76,65 @@
 			<ColumnDefinition Width="*"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
-		<TextBlock Grid.Row="0" Grid.Column="0" Text="Firmware:" HorizontalAlignment="Right" Margin="0,10,0,0" Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ScopeVersion}" Margin="0,10,0,0"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="0" Grid.Column="0" Text="Firmware:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
+		<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ScopeVersion}" Margin="0,12,0,2"  Style="{StaticResource TextBlockLabelValue}"/>
 
-		<TextBlock Grid.Row="1" Grid.Column="0" Text="Controller Board:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeBoard}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="1" Grid.Column="0" Text="Controller Board:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
+		<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeBoard}"  Style="{StaticResource TextBlockLabelValue}" />
 
-		<TextBlock Grid.Row="2" Grid.Column="0" Text="Display:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ScopeDisplay}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="2" Grid.Column="0" Text="Display:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" />
+		<TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ScopeDisplay}"  Style="{StaticResource TextBlockLabelValue}" />
 
-		<TextBlock Grid.Row="3" Grid.Column="0" Text="Additional Features:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ScopeFeatures}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="3" Grid.Column="0" Text="Additional Features:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" />
+		<TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ScopeFeatures}"  Style="{StaticResource TextBlockLabelValue}" />
 
-		<TextBlock Grid.Row="4" Grid.Column="0" Text="RA Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ScopeRAStepper}"  Style="{StaticResource TextBlockLabelValue}"/>
-		
-		<TextBlock Grid.Row="5" Grid.Column="0" Text="DEC Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ScopeDECStepper}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="4" Grid.Column="0" Text="RA Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
+		<TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ScopeRAStepper}"  Style="{StaticResource TextBlockLabelValue}" />
 
-		<TextBlock Grid.Row="6" Grid.Column="0" Text="RA steps:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
+		<TextBlock Grid.Row="5" Grid.Column="0" Text="RA Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}"/>
+		<Grid Grid.Row="5" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" >
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+			<TextBlock Grid.Row="0" Grid.Column="0" Text="Type"  Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Grid.Row="0" Grid.Column="1" Text="Slew"  Style="{StaticResource SmallTextBlockLabel}" Margin="4,0"/>
+			<TextBlock Grid.Row="0" Grid.Column="2" Text="Track"  Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding ScopeRADriver}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,0"/>
+			<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeRASlewMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="4,0"/>
+			<TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ScopeRATrackMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,0"/>
+		</Grid>
 
-		<Grid Grid.Row="6" Grid.Column="1" HorizontalAlignment="Stretch">
+		<TextBlock Grid.Row="6" Grid.Column="0" Text="DEC Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"  />
+		<TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding ScopeDECStepper}"  Style="{StaticResource TextBlockLabelValue}"  />
+
+		<TextBlock Grid.Row="7" Grid.Column="0" Text="DEC Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" />
+		<Grid Grid.Row="7" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" >
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+			<TextBlock Grid.Row="0" Grid.Column="0" Text="Type"  Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Grid.Row="0" Grid.Column="1" Text="Slew"  Style="{StaticResource SmallTextBlockLabel}" Margin="4,0"/>
+			<TextBlock Grid.Row="0" Grid.Column="2" Text="Track"  Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding ScopeDECDriver}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,0"/>
+			<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeDECSlewMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="4,0"/>
+			<TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ScopeDECGuideMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,0"/>
+		</Grid>
+
+		<TextBlock Grid.Row="8" Grid.Column="0" Text="RA steps:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" />
+
+		<Grid Grid.Row="8" Grid.Column="1" HorizontalAlignment="Stretch"  >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
 				<ColumnDefinition Width="*" />
@@ -95,8 +145,8 @@
 			<controls:PushButton Grid.Column="2" Width="20" Height="20" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="SR-" />
 		</Grid>
 
-		<TextBlock Grid.Row="7" Grid.Column="0" Text="DEC steps:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<Grid Grid.Row="7" Grid.Column="1" HorizontalAlignment="Stretch">
+		<TextBlock Grid.Row="9" Grid.Column="0" Text="DEC steps:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" />
+		<Grid Grid.Row="9" Grid.Column="1" HorizontalAlignment="Stretch" >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
 				<ColumnDefinition Width="*" />
@@ -107,8 +157,8 @@
 			<controls:PushButton Grid.Column="2" Width="20" Height="20" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="SD-" />
 		</Grid>
 
-		<TextBlock Grid.Row="8" Grid.Column="0" Text="Speed:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"/>
-		<Grid Grid.Row="8" Grid.Column="1" >
+		<TextBlock Grid.Row="10" Grid.Column="0" Text="Speed:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
+		<Grid Grid.Row="10" Grid.Column="1"  >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="2*" />
 				<ColumnDefinition Width="2*" />
@@ -127,8 +177,8 @@
 			</Grid>
 		</Grid>
 
-		<TextBlock Grid.Row="9" Grid.Column="0" Text="Location:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"/>
-		<Grid Grid.Row="9" Grid.Column="1" >
+		<TextBlock Grid.Row="11" Grid.Column="0" Text="Location:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
+		<Grid Grid.Row="11" Grid.Column="1"  >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="2*" />
 				<ColumnDefinition Width="2*" />
@@ -137,8 +187,8 @@
 			<TextBlock Grid.Column="1" Text="{Binding ScopeLongitude}"  Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch"/>
 		</Grid>
 
-		<TextBlock Grid.Row="10" Grid.Column="0" Text="Time &amp; Date:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"/>
-		<Grid Grid.Row="10" Grid.Column="1" >
+		<TextBlock Grid.Row="12" Grid.Column="0" Text="Time &amp; Date:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
+		<Grid Grid.Row="12" Grid.Column="1"  >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*" />
 				<ColumnDefinition Width="Auto" />
@@ -147,25 +197,25 @@
 			<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ScopeDate}"  Style="{StaticResource TextBlockLabelValue}" />
 		</Grid>
 
-		<TextBlock Grid.Row="11" Grid.Column="0" Text="Local Sidereal Time:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="11" Grid.Column="1" Text="{Binding ScopeSiderealTime}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="13" Grid.Column="0" Text="Local Sidereal Time:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,2.62"/>
+		<TextBlock Grid.Row="13" Grid.Column="1" Text="{Binding ScopeSiderealTime}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,4.62"/>
 
-		<TextBlock Grid.Row="12" Grid.Column="0" Text="Polaris HA:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="12" Grid.Column="1" Text="{Binding ScopePolarisHourAngle}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="14" Grid.Column="0" Text="Polaris HA:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,1,2.62"/>
+		<TextBlock Grid.Row="14" Grid.Column="1" Text="{Binding ScopePolarisHourAngle}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,4.62"/>
 
-		<TextBlock Grid.Row="13" Grid.Column="0" Text="Temperature:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="13" Grid.Column="1" Text="{Binding ScopeTemperature}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="15" Grid.Column="0" Text="Temperature:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,2.62"/>
+		<TextBlock Grid.Row="15" Grid.Column="1" Text="{Binding ScopeTemperature}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,4.62"/>
 
-		<TextBlock Grid.Row="14" Grid.Column="0" Text="Network:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="14" Grid.Column="1" Text="{Binding ScopeNetworkState}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="16" Grid.Column="0" Text="Network:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,1,1.62"/>
+		<TextBlock Grid.Row="16" Grid.Column="1" Text="{Binding ScopeNetworkState}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62"/>
 
-		<TextBlock Grid.Row="15" Grid.Column="0" Text="IP:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="15" Grid.Column="1" Text="{Binding ScopeNetworkIPAddress}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="17" Grid.Column="0" Text="IP:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,1.62"/>
+		<TextBlock Grid.Row="17" Grid.Column="1" Text="{Binding ScopeNetworkIPAddress}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62"/>
 
-		<TextBlock Grid.Row="16" Grid.Column="0" Text="SSID:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}"/>
-		<TextBlock Grid.Row="16" Grid.Column="1" Text="{Binding ScopeNetworkSSID}"  Style="{StaticResource TextBlockLabelValue}"/>
+		<TextBlock Grid.Row="18" Grid.Column="0" Text="SSID:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,2.38,1,1.62"/>
+		<TextBlock Grid.Row="18" Grid.Column="1" Text="{Binding ScopeNetworkSSID}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,4.38,0,3.62"/>
 
-		<StackPanel Grid.Row="18" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal">
+		<StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
 			<Button Margin="16,8,8,8" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding FactoryResetCommand}"/>
 			<Button Margin="16,8" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 			<Button Margin="16,8" Padding="20,0" Content="Close" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" IsCancel="True"/>

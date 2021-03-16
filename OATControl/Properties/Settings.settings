@@ -20,5 +20,11 @@
     <Setting Name="SiteAltitude" Type="System.Single" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>
+    <Setting Name="TargetChooserPos" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">-1, -1</Value>
+    </Setting>
+    <Setting Name="TargetChooserSize" Type="System.Drawing.Size" Scope="User">
+      <Value Profile="(Default)">670, 910</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
