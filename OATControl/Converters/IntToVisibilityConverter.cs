@@ -16,6 +16,7 @@ namespace OATControl.Converters
         /// Gets or sets the integer value to return on the given boolean value.
         /// </summary>
         public int VisibleValue { get; set; }
+        public bool UseCollapse { get; set; }
         public string Operator { get; set; }
 
         /// <summary>
@@ -30,31 +31,34 @@ namespace OATControl.Converters
         /// </returns>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            long val = (long)value;
+            Visibility visualState = UseCollapse ? Visibility.Collapsed : Visibility.Hidden;
             if (Operator.Equals(">"))
             {
-                return ((int)value > this.VisibleValue) ? Visibility.Visible : Visibility.Hidden;
+                if (val > this.VisibleValue) visualState = Visibility.Visible;
             }
             if (Operator.Equals(">="))
             {
-                return ((int)value >= this.VisibleValue) ? Visibility.Visible : Visibility.Hidden;
+                if (val >= this.VisibleValue) visualState = Visibility.Visible;
             }
             if (Operator.Equals("<"))
             {
-                return ((int)value < this.VisibleValue) ? Visibility.Visible : Visibility.Hidden;
+                if (val < this.VisibleValue) visualState = Visibility.Visible;
             }
             if (Operator.Equals("<="))
             {
-                return ((int)value <= this.VisibleValue) ? Visibility.Visible : Visibility.Hidden;
+                if (val <= this.VisibleValue) visualState = Visibility.Visible;
             }
             if (Operator.Equals("=="))
             {
-                return ((int)value == this.VisibleValue) ? Visibility.Visible : Visibility.Hidden;
+                if (val == this.VisibleValue) visualState = Visibility.Visible;
             }
             if (Operator.Equals("!="))
             {
-                return ((int)value != this.VisibleValue) ? Visibility.Visible : Visibility.Hidden;
+                if (val != this.VisibleValue) visualState = Visibility.Visible;
             }
-            return Visibility.Hidden;
+
+            return visualState;
         }
 
         /// <summary>

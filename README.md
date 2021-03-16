@@ -16,6 +16,13 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V0.9.9.30 - Updates**
+- Revamped target choice into it's own modeless dialog. Targets are sorted by distance from current target. Double-click to transfer coordinates to target.
+- Improved connectivity failure detection. Attempt a few retries.
+- Added display of driver and microstepping settings (V1.8.76 or later required)
+- Fixed display of remaining time to be correct regardless of microstep settings (V1.8.76 or later required)
+- Fixed the bug that caused steps to be reverted to 1 when changing target coordinates (*facepalm*)
+
 **V0.9.9.28 - Updates**
 - Sometimes reconnects would fail and crash OATControl. Now they don't crash it.
 - Added a connection time display.

@@ -23,7 +23,7 @@ namespace OATControl.ViewModels
 
 		protected void SetPropertyValue<T>(ref T variable, T newValue, [CallerMemberName] string memberName = "")
 		{
-			if (!variable.Equals(newValue))
+			if (!newValue.Equals(variable))
 			{
 				variable = newValue;
 				OnPropertyChanged(memberName);
@@ -32,7 +32,7 @@ namespace OATControl.ViewModels
 
 		protected void SetPropertyValue<T>(ref T variable, T newValue, Action<T, T> onChangedcallBack, [CallerMemberName] string memberName = "")
 		{
-			if (!variable.Equals(newValue))
+			if (!newValue.Equals(variable))
 			{
 				var oldValue = variable;
 				variable = newValue;

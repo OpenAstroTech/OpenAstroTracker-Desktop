@@ -96,6 +96,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				{
 					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to receive response to command. {2}", requestIndex, job.Command, ex.Message);
 					response = new CommandResponse(string.Empty, false, $"Unable to read response to {job.Command} from {_portName}. {ex.Message}");
+					_port.Close();
 				}
 			}
 			else
@@ -120,9 +121,14 @@ namespace OATCommunications.WPF.CommunicationHandlers
 						Log.WriteLine("SERIAL: Port {0} is not open, attempt {1} to open...", _portName, attempts);
 						_port.Open();
 						Thread.Sleep(750); // Arduino resets on connection. Give it time to start up.
-						Log.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
-						_port.Write(":I#");
-						return true;
+						if (_port.IsOpen)
+						{
+							Log.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
+							_port.Write(":I#");
+							return true;
+						}
+						Log.WriteLine("SERIAL: Port did not open, sleeping and trying again..");
+						Thread.Sleep(750);
 					}
 					catch (Exception ex)
 					{
@@ -130,7 +136,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 						Thread.Sleep(250); // Wait a little before trying again.
 					}
 				}
-				while (attempts < 10);
+				while (attempts < 3);
 				return false;
 			}
 			return true;
@@ -138,7 +144,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 
 		public override void Disconnect()
 		{
-			if (_port.IsOpen)
+			if (_port != null && _port.IsOpen)
 			{
 				Log.WriteLine("SERIAL: Stopping Jobs processor.");
 				StopJobsProcessor();

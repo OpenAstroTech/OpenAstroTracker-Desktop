@@ -94,5 +94,29 @@ namespace OATControl.Properties {
                 this["SiteAltitude"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1, -1")]
+        public global::System.Drawing.Point TargetChooserPos {
+            get {
+                return ((global::System.Drawing.Point)(this["TargetChooserPos"]));
+            }
+            set {
+                this["TargetChooserPos"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("670, 910")]
+        public global::System.Drawing.Size TargetChooserSize {
+            get {
+                return ((global::System.Drawing.Size)(this["TargetChooserSize"]));
+            }
+            set {
+                this["TargetChooserSize"] = value;
+            }
+        }
     }
 }

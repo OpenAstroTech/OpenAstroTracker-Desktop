@@ -31,8 +31,9 @@
   <Object Name="Eagle Nebula"              RA="18:20:01" DEC="-13:47:52" />
   <Object Name="Little Dumbbell Nebula"    RA="01:43:42" DEC="51:41:00" />
   <Object Name="Croc's Eye Galaxy"         RA="12:52:53" DEC="41:00:12" />
-  <Object Name="Ring Nebula"               RA="18:54:23" DEC="33:03:23" />
-  <Object Name="Seagull Nebula"            RA="07:05:26" DEC="-10:29:16" />
+	<Object Name="Ring Nebula"               RA="18:54:23" DEC="33:03:23" />
+	<Object Name="M104 - Sombrero Galaxy"    RA="12:41:06" DEC="-11:44:28" />
+	<Object Name="Seagull Nebula"            RA="07:05:26" DEC="-10:29:16" />
   <Object Name="Dolphin Nebula"            RA="01:31:57" DEC="58:31:29" />
   <Object Name="Cave Nebula"               RA="22:58:08" DEC="62:35:27" />
   <Object Name="Wizard Nebula"             RA="22:48:12" DEC="58:14:44" />

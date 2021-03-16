@@ -81,6 +81,7 @@
     <Compile Include="Converters\BoolToIntConverter.cs" />
     <Compile Include="Converters\BoolToStringConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Converters\DoubleToHMSConverter.cs" />
     <Compile Include="Converters\DoubleDividerConverter.cs" />
     <Compile Include="Converters\IntToVisibilityConverter.cs" />
     <Compile Include="Converters\IntToBoolConverter.cs" />
@@ -100,9 +101,13 @@
     <Compile Include="SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TargetChooser.xaml.cs">
+      <DependentUpon>TargetChooser.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\DelegateCommand.cs" />
     <Compile Include="ViewModels\MountVM.cs" />
     <Compile Include="ViewModels\PointOfInterest.cs" />
+    <Compile Include="ViewModels\PointsOfInterest.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Converters\WpfBitmapConverter.cs" />
     <Page Include="Controls\PushButton.xaml">
@@ -158,6 +163,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SettingsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TargetChooser.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
