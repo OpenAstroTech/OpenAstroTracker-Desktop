@@ -23,6 +23,10 @@ Change Log:
 - Fixed display of remaining time to be correct regardless of microstep settings (V1.8.76 or later required)
 - Fixed the bug that caused steps to be reverted to 1 when changing target coordinates (*facepalm*)
 
+**V0.9.9.29 - Updates**
+- Improved communications layer to handle Meade idiosyncracy in SC command
+- Added some more points of interest.
+
 **V0.9.9.28 - Updates**
 - Sometimes reconnects would fail and crash OATControl. Now they don't crash it.
 - Added a connection time display.
