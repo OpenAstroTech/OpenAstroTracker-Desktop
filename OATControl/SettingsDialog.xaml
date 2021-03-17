@@ -126,7 +126,7 @@
 			</Grid.RowDefinitions>
 			<TextBlock Grid.Row="0" Grid.Column="0" Text="Type"  Style="{StaticResource SmallTextBlockLabel}" />
 			<TextBlock Grid.Row="0" Grid.Column="1" Text="Slew"  Style="{StaticResource SmallTextBlockLabel}" Margin="4,0"/>
-			<TextBlock Grid.Row="0" Grid.Column="2" Text="Track"  Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Grid.Row="0" Grid.Column="2" Text="Guide"  Style="{StaticResource SmallTextBlockLabel}" />
 			<TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding ScopeDECDriver}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,0"/>
 			<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeDECSlewMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="4,0"/>
 			<TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ScopeDECGuideMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,0"/>
