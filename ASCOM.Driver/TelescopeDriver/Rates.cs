@@ -97,18 +97,18 @@ namespace ASCOM.OpenAstroTracker
                 case TelescopeAxes.axisPrimary:
                     // Example: m_Rates = new Rate[] { new Rate(10.5, 30.2), new Rate(54.0, 43.6) }
                     rates = new Rate[] {
-                        new Rate(10d, 10d),
-                        new Rate(20d, 20d),
-                        new Rate(30d, 30d),
-                        new Rate(40d, 40d)
-                    };
+                        new Rate(0.05d, 0.3d),  // 0.18 degrees/sec  // Measured on my OAT with NEMA17 and TMC2009 UART
+                        new Rate(0.3d, 0.9d),   // 0.7
+                        new Rate(0.9d, 1.9d),    // 1.6
+                        new Rate(1.9d, 2.5d)     // 2.5
+                      };
                     break;
                 case TelescopeAxes.axisSecondary:
                     rates = new Rate[] {
-                        new Rate(10d, 10d),
-                        new Rate(20d, 20d),
-                        new Rate(30d, 30d),
-                        new Rate(40d, 40d)
+                        new Rate(0.05d, 0.3d),   // 0.2
+                        new Rate(0.3d, 0.9d),    // 0.8
+                        new Rate(1.9d, 1.9d),     // 1.8
+                        new Rate(1.9d, 2.5d)      // 2.3
                     };
                     break;
                 case TelescopeAxes.axisTertiary:

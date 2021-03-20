@@ -59,7 +59,8 @@ Filename: "{app}\OpenAstroTracker\ASCOM.OpenAstroTracker.exe"; Parameters: "/reg
 
 ; Only for .NET local-server drivers
 Filename: "{app}\OpenAstroTracker\ASCOM.OpenAstroTracker.exe"; Parameters: "/unregister"
-
+Filename: "{app}\OpenAstroTracker\ASCOM.OpenAstroTracker.Telescope.dll"; 
+Filename: "{app}\OpenAstroTracker\ReadMe.txt"; 
 
 
 [Code]
