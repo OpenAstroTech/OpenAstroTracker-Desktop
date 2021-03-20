@@ -137,6 +137,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\OATAscom.png" />
+    <None Include="Resources\favicon.png" />
     <None Include="app.config" />
     <None Include="ASCOM.png" />
     <None Include="ASCOMDriverTemplate.snk" />
@@ -146,6 +148,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="OAT.png" />
     <Content Include="ASCOM.ico" />
     <Content Include="ReadMe.htm" />
     <None Include="Resources\ASCOM.bmp" />
