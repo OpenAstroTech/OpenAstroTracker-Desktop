@@ -119,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ASCOM.png" />
+    <None Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
