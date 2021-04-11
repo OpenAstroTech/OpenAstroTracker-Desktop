@@ -32,6 +32,7 @@ namespace ASCOM.OpenAstroTracker
 		private AstroUtils _astroUtilities = new AstroUtils();
 		private TraceLogger _tl;
 		private Transform _transform = new Transform();
+		private Transform _azAltTransform = new Transform();
 
 		private bool _isParked;
 		private bool _isTracking = true;
@@ -61,6 +62,11 @@ namespace ASCOM.OpenAstroTracker
 			_transform.SiteLatitude = SiteLatitude;
 			_transform.SiteLongitude = SiteLongitude;
 			PolarisRAJNow = _transform.RATopocentric;
+
+			_azAltTransform.SiteElevation = SiteElevation;
+			_azAltTransform.SiteLatitude = SiteLatitude;
+			_azAltTransform.SiteLongitude = SiteLongitude;
+
 			LogMessage("Telescope", "Completed initialization");
 		}
 
@@ -116,8 +122,8 @@ namespace ASCOM.OpenAstroTracker
 				{
 					case "Telescope:getFirmwareVer":
 						{
-							retVal = CommandString(":GVP"); // Get firmware name
-							retVal = retVal + " " + CommandString(":GVN"); // Get firmware version number
+							retVal = CommandString(":GVP#,#"); // Get firmware name
+							retVal = retVal + " " + CommandString(":GVN#,#"); // Get firmware version number
 							break;
 						}
 
@@ -145,14 +151,17 @@ namespace ASCOM.OpenAstroTracker
 				throw new ActionNotImplementedException("Action " + ActionName + " is not supported by this driver");
 		}
 
+		/// <summary>
+		/// Required Interface functions of ITelescopeV3 
+		/// </summary>
 		public void CommandBlind(string Command, bool Raw = false)
 		{
 			_mutexCommand.WaitOne();
 
 			try
 			{
-				SharedResources.SendMessageBlind(Command);
-				LogMessage("CommandBlind", "Transmitted " + Command);
+				LogMessage("CommandBlind", "Transmitting - " + Command);
+				SharedResources.SendMessage(Command);
 			}
 			catch (Exception ex)
 			{
@@ -164,19 +173,26 @@ namespace ASCOM.OpenAstroTracker
 			}
 		}
 
+		/// <summary>
+		/// Required Interface functions of ITelescopeV3 
+		/// </summary>
 		public bool CommandBool(string Command, bool Raw = false)
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public string CommandString(string Command, bool Raw = false)
+		/// <summary>
+		/// Required Interface functions of ITelescopeV3 
+		/// </summary>
+		public string CommandString(string Command, bool raw = false)
 		{
 			_mutexCommand.WaitOne();
 
 			try
 			{
-				var response = SharedResources.SendMessageString(Command);
-				LogMessage("CommandString", "Received " + response);
+				LogMessage("CommandString", "Transmitting - " + Command);
+				var response = SharedResources.SendMessage(Command);
+				LogMessage("CommandString", "Received       " + response);
 				return response;
 			}
 			catch (Exception ex)
@@ -264,7 +280,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (!AtPark)
 			{
-				CommandString(":Q");
+				CommandBlind(":Q");
 				LogMessage("AbortSlew", ":Q# Sent");
 			}
 			else
@@ -277,8 +293,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage("AlignmentMode Get", "1");
 				return
-					AlignmentModes
-						.algPolar; // 1 is "Polar (equatorial) mount other than German equatorial." from AlignmentModes Enumeration
+					AlignmentModes.algPolar; // 1 is "Polar (equatorial) mount other than German equatorial." from AlignmentModes Enumeration
 			}
 		}
 
@@ -286,8 +301,9 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("Altitude", "Not implemented");
-				throw new ASCOM.PropertyNotImplementedException("Altitude", false);
+				_azAltTransform.SetApparent(RightAscension, Declination);
+				LogMessage("Altitude Get", $"Alt: {_azAltTransform.ElevationTopocentric:0.00}");
+				return _azAltTransform.ElevationTopocentric;
 			}
 		}
 
@@ -339,8 +355,9 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("Azimuth Get", "Not implemented");
-				throw new ASCOM.PropertyNotImplementedException("Azimuth", false);
+				_azAltTransform.SetApparent(RightAscension, Declination);
+				LogMessage("Azimuth Get", $"Az: {_azAltTransform.AzimuthTopocentric:0.00}");
+				return _azAltTransform.AzimuthTopocentric;
 			}
 		}
 
@@ -511,7 +528,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				double declination__1 = 0.0;
-				string scopeDec = CommandString(":GD");
+				string scopeDec = CommandString(":GD#,#");
 				LogMessage("Declination", "Get - " + scopeDec);
 				declination__1 = _utilities.DMSToDegrees(scopeDec);
 				return declination__1;
@@ -611,7 +628,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				bool retVal = Convert.ToBoolean(System.Convert.ToInt32(CommandString(":GIG")));
+				bool retVal = Convert.ToBoolean(System.Convert.ToInt32(CommandString(":GIG#,#")));
 				LogMessage("isPulseGuiding Get", retVal.ToString());
 				return retVal;
 			}
@@ -673,7 +690,6 @@ namespace ASCOM.OpenAstroTracker
 						LogMessage("MoveAxis", $"{sAxis} Rate found. Using mode {cmd}");
 						break;
 					}
-					LogMessage("MoveAxis", $"{sAxis} Rate {index} outside of bounds.");
 					index++;
 				}
 
@@ -715,8 +731,8 @@ namespace ASCOM.OpenAstroTracker
 				// LogMessage("Park", "Err : Mount already parked")
 				// Throw New ASCOM.ParkedException("Already Parked")
 				// Else
-				CommandString(":hP", false);
-				PollUntilZero(":GIS");
+				CommandBlind(":hP");
+				PollUntilZero(":GIS#,#");
 				_isParked = true;
 				LogMessage("Park", "Parked mount");
 			}
@@ -730,7 +746,7 @@ namespace ASCOM.OpenAstroTracker
 				var durString = Duration.ToString("0000");
 				LogMessage($"PulseGuide", $"{Direction} {durString}");
 				var dir = dirString.Substring(5, 1).ToLower();
-				CommandBlind($":Mg{dir}{durString}", false);
+				CommandBlind($":Mg{dir}{durString}");
 			}
 			else
 			{
@@ -744,7 +760,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				double rightAscension__1 = 0.0;
-				rightAscension__1 = _utilities.HMSToHours(CommandString(":GR"));
+				rightAscension__1 = _utilities.HMSToHours(CommandString(":GR#,#"));
 				LogMessage("RightAscension", rightAscension__1.ToString());
 				return rightAscension__1;
 			}
@@ -910,10 +926,10 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage(caller, "RA " + ra.ToString() + ", Dec " + dec.ToString());
 				SetTargetCoordinates(ra, dec);
-				CommandString(":MS");
+				CommandString(":MS#,n");
 				if (wait)
 				{
-					PollUntilZero(":GIS");
+					PollUntilZero(":GIS#,#");
 				}
 			}
 			else
@@ -925,10 +941,13 @@ namespace ASCOM.OpenAstroTracker
 
 		private bool SetTargetCoordinates(double rightAscension, double declination)
 		{
-			var strRAcmd = ":Sr" + _utilities.HoursToHMS(rightAscension, ":", ":");
-			var strDeccmd = $":Sd" + DegreesToDmsWithSign(declination, "*", ":", "");
+			var strRAcmd = $":Sr{_utilities.HoursToHMS(rightAscension, ":", ":")}#,n";
+			var strDeccmd = $":Sd{DegreesToDmsWithSign(declination, "*", ":", "")}#,n";
 			LogMessage("SetTargetCoordinates", strRAcmd);
 			LogMessage("SetTargetCoordinates", strDeccmd);
+
+			TargetRightAscension = rightAscension;
+			TargetDeclination = declination;
 
 			return CommandString(strRAcmd) == "1" && CommandString(strDeccmd) == "1";
 		}
@@ -966,7 +985,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				bool retVal = Convert.ToBoolean(System.Convert.ToInt32(CommandString(":GIS")));
+				bool retVal = Convert.ToBoolean(System.Convert.ToInt32(CommandString(":GIS#,#")));
 				LogMessage("Slewing Get", retVal.ToString());
 				return retVal;
 			}
@@ -990,7 +1009,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage("SyncToCoordinates", "RA " + RightAscension.ToString() + ", Dec " + Declination.ToString());
 				SetTargetCoordinates(RightAscension, Declination);
-				CommandBlind(":CM");
+				CommandString(":CM#,#");
 			}
 			else
 			{
@@ -1080,7 +1099,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				if (CommandString(":GIT", false) == "0")
+				if (CommandString(":GIT#,#") == "0")
 				{
 					_isTracking = false;
 					LogMessage("Tracking", "Get - " + false.ToString());
@@ -1095,7 +1114,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 			set
 			{
-				if (CommandString(":MT" + Convert.ToInt32(value).ToString(), false) == "1")
+				if (CommandString($":MT{Convert.ToInt32(value)}#,n") == "1")
 				{
 					_isTracking = value;
 					LogMessage("Tracking Set", value.ToString());
@@ -1119,6 +1138,11 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage("TrackingRate Set", "Ignoring value " + value.ToString() + ". Only sidereal supported.");
 				driveRate = DriveRates.driveSidereal;
+				if (value != DriveRates.driveSidereal)
+				{
+					LogMessage("TrackingRate Set", "Throwing error for invalid rate " + value.ToString() + ".");
+					throw new ASCOM.InvalidValueException("Only Sidereal tracking rate supported.");
+				}
 			}
 		}
 
@@ -1155,7 +1179,7 @@ namespace ASCOM.OpenAstroTracker
 				// LogMessage("Unpark", "Err : Mount not parked")
 				// Throw New ASCOM.DriverException("Mount not parked")
 				// Else
-				string unprkRet = CommandString(":hU", false);
+				string unprkRet = CommandString(":hU#,n");
 				if (unprkRet == "1")
 					LogMessage("Unpark", "Unparked mount");
 				_isParked = false;
