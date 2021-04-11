@@ -45,6 +45,8 @@ namespace ASCOM.OpenAstroTracker
 			this.pictureBox2 = new System.Windows.Forms.PictureBox();
 			this.comboBoxBaudRate = new System.Windows.Forms.ComboBox();
 			this.label6 = new System.Windows.Forms.Label();
+			this.label7 = new System.Windows.Forms.Label();
+			this.label8 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox1)).BeginInit();
 			this.TableLayoutPanel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -53,7 +55,7 @@ namespace ASCOM.OpenAstroTracker
 			// Label5
 			// 
 			this.Label5.AutoSize = true;
-			this.Label5.Location = new System.Drawing.Point(55, 138);
+			this.Label5.Location = new System.Drawing.Point(55, 184);
 			this.Label5.Name = "Label5";
 			this.Label5.Size = new System.Drawing.Size(72, 13);
 			this.Label5.TabIndex = 28;
@@ -61,7 +63,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// txtElevation
 			// 
-			this.txtElevation.Location = new System.Drawing.Point(135, 135);
+			this.txtElevation.Location = new System.Drawing.Point(135, 181);
 			this.txtElevation.Name = "txtElevation";
 			this.txtElevation.Size = new System.Drawing.Size(84, 20);
 			this.txtElevation.TabIndex = 27;
@@ -69,7 +71,7 @@ namespace ASCOM.OpenAstroTracker
 			// Label4
 			// 
 			this.Label4.AutoSize = true;
-			this.Label4.Location = new System.Drawing.Point(61, 86);
+			this.Label4.Location = new System.Drawing.Point(61, 132);
 			this.Label4.Name = "Label4";
 			this.Label4.Size = new System.Drawing.Size(66, 13);
 			this.Label4.TabIndex = 26;
@@ -78,7 +80,7 @@ namespace ASCOM.OpenAstroTracker
 			// Label3
 			// 
 			this.Label3.AutoSize = true;
-			this.Label3.Location = new System.Drawing.Point(52, 112);
+			this.Label3.Location = new System.Drawing.Point(52, 158);
 			this.Label3.Name = "Label3";
 			this.Label3.Size = new System.Drawing.Size(75, 13);
 			this.Label3.TabIndex = 25;
@@ -86,14 +88,14 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// txtLong
 			// 
-			this.txtLong.Location = new System.Drawing.Point(135, 109);
+			this.txtLong.Location = new System.Drawing.Point(135, 155);
 			this.txtLong.Name = "txtLong";
 			this.txtLong.Size = new System.Drawing.Size(84, 20);
 			this.txtLong.TabIndex = 24;
 			// 
 			// txtLat
 			// 
-			this.txtLat.Location = new System.Drawing.Point(135, 83);
+			this.txtLat.Location = new System.Drawing.Point(135, 129);
 			this.txtLat.Name = "txtLat";
 			this.txtLat.Size = new System.Drawing.Size(84, 20);
 			this.txtLat.TabIndex = 23;
@@ -101,7 +103,7 @@ namespace ASCOM.OpenAstroTracker
 			// Label2
 			// 
 			this.Label2.AutoSize = true;
-			this.Label2.Location = new System.Drawing.Point(10, 60);
+			this.Label2.Location = new System.Drawing.Point(10, 106);
 			this.Label2.Name = "Label2";
 			this.Label2.Size = new System.Drawing.Size(117, 13);
 			this.Label2.TabIndex = 22;
@@ -118,7 +120,7 @@ namespace ASCOM.OpenAstroTracker
 			// chkTrace
 			// 
 			this.chkTrace.AutoSize = true;
-			this.chkTrace.Location = new System.Drawing.Point(135, 61);
+			this.chkTrace.Location = new System.Drawing.Point(135, 107);
 			this.chkTrace.Name = "chkTrace";
 			this.chkTrace.Size = new System.Drawing.Size(15, 14);
 			this.chkTrace.TabIndex = 20;
@@ -129,7 +131,7 @@ namespace ASCOM.OpenAstroTracker
 			this.PictureBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.PictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.PictureBox1.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.ASCOM;
-			this.PictureBox1.Location = new System.Drawing.Point(262, 6);
+			this.PictureBox1.Location = new System.Drawing.Point(256, 6);
 			this.PictureBox1.Name = "PictureBox1";
 			this.PictureBox1.Size = new System.Drawing.Size(48, 56);
 			this.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -154,7 +156,7 @@ namespace ASCOM.OpenAstroTracker
 			this.TableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
 			this.TableLayoutPanel1.Controls.Add(this.OK_Button, 0, 0);
 			this.TableLayoutPanel1.Controls.Add(this.Cancel_Button, 1, 0);
-			this.TableLayoutPanel1.Location = new System.Drawing.Point(164, 173);
+			this.TableLayoutPanel1.Location = new System.Drawing.Point(158, 227);
 			this.TableLayoutPanel1.Name = "TableLayoutPanel1";
 			this.TableLayoutPanel1.RowCount = 1;
 			this.TableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -187,7 +189,7 @@ namespace ASCOM.OpenAstroTracker
 			this.pictureBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.pictureBox2.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.pictureBox2.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.OATAscom;
-			this.pictureBox2.Location = new System.Drawing.Point(237, 84);
+			this.pictureBox2.Location = new System.Drawing.Point(231, 130);
 			this.pictureBox2.Name = "pictureBox2";
 			this.pictureBox2.Size = new System.Drawing.Size(87, 71);
 			this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -212,12 +214,32 @@ namespace ASCOM.OpenAstroTracker
 			this.label6.TabIndex = 30;
 			this.label6.Text = "Baud Rate";
 			// 
+			// label7
+			// 
+			this.label7.Location = new System.Drawing.Point(47, 60);
+			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(185, 40);
+			this.label7.TabIndex = 32;
+			this.label7.Text = "Firmware V1.9.03 and earlier used 57600, while later version use 28800.";
+			// 
+			// label8
+			// 
+			this.label8.AutoSize = true;
+			this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label8.Location = new System.Drawing.Point(10, 60);
+			this.label8.Name = "label8";
+			this.label8.Size = new System.Drawing.Size(38, 13);
+			this.label8.TabIndex = 33;
+			this.label8.Text = "Note:";
+			// 
 			// SetupDialogForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.Control;
-			this.ClientSize = new System.Drawing.Size(322, 214);
+			this.ClientSize = new System.Drawing.Size(316, 268);
+			this.Controls.Add(this.label8);
+			this.Controls.Add(this.label7);
 			this.Controls.Add(this.comboBoxBaudRate);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.pictureBox2);
@@ -268,5 +290,7 @@ namespace ASCOM.OpenAstroTracker
 		internal System.Windows.Forms.PictureBox pictureBox2;
 		internal System.Windows.Forms.ComboBox comboBoxBaudRate;
 		internal System.Windows.Forms.Label label6;
+		internal System.Windows.Forms.Label label7;
+		internal System.Windows.Forms.Label label8;
 	}
 }
