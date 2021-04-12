@@ -91,7 +91,21 @@ namespace ASCOM.OpenAstroTracker
 			// Set the list of com ports to those that are currently available using System.IO because it's static
 			ComboBoxComPort.Items.Clear();
 			ComboBoxComPort.Items.AddRange(System.IO.Ports.SerialPort.GetPortNames());
-			comboBoxBaudRate.Items.AddRange(new string[] { "57600", "28800", "14400", "9600", "2400", "1200", "300"});
+			comboBoxBaudRate.Items.AddRange(new string[]
+				{
+					"230400",
+					"115200",
+					"57600",
+					"38400",
+					"28800",
+					"19200",
+					"14400",
+					"9600",
+					"4800",
+					"2400",
+					"1200",
+					"300",
+				});
 
 			// Select the current port and baudrate if possible...
 			if (ComboBoxComPort.Items.Contains(_profile.ComPort))
