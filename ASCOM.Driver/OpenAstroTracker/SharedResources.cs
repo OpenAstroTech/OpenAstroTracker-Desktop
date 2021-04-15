@@ -46,7 +46,7 @@ namespace ASCOM.OpenAstroTracker
 		private static string elevationProfileName = "Elevation";
 
 		private static string comPortDefault = "COM5";
-		private static string baudRateDefault = "28800";
+		private static string baudRateDefault = "19200";
 		private static string traceStateDefault = "True";
 		private static double latitudeDefault = 30;
 		private static double longitudeDefault = -97;
