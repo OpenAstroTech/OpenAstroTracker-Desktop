@@ -34,13 +34,16 @@ namespace OATControl
 		public enum Steps
 		{
 			Idle,
-			WaitForConnect,
+			WaitForDeviceConfirm,
+			WaitForBaudrate,
+			WaitForConnection,
 			CheckHardware,
 			WaitForLevel,
 			WaitForGPS,
 			ConfirmLocation,
 			Completed
 		};
+
 		private DelegateCommand _rescanCommand;
 		private DelegateCommand _connectAndNextCommand;
 		private float _latitude = 15;
@@ -49,6 +52,7 @@ namespace OATControl
 		private string _device;
 		private bool _showGPSStatus = false;
 		private bool _showManualLocation = false;
+		private bool _showBaudRate = false;
 		private bool _showNextButton = false;
 		private bool _showLevelDisplay = false;
 		private double _rollOffset;
@@ -81,7 +85,7 @@ namespace OATControl
 			_altitude = Settings.Default.SiteAltitude;
 
 			CurrentStep = Steps.Idle;
-			_rescanCommand = new DelegateCommand(() => { CommunicationHandlerFactory.DiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForConnect));
+			_rescanCommand = new DelegateCommand(() => { CommunicationHandlerFactory.DiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForBaudrate));
 			_connectAndNextCommand = new DelegateCommand((o) => AdvanceStateMachine(), () => IsNextEnabled);
 
 			this.DataContext = this;
@@ -140,6 +144,19 @@ namespace OATControl
 				{
 					_showNextButton = value;
 					OnPropertyChanged("ShowNextButton");
+				}
+			}
+		}
+
+		public bool ShowBaudRate
+		{
+			get { return _showBaudRate; }
+			set
+			{
+				if (value != _showBaudRate)
+				{
+					_showBaudRate = value;
+					OnPropertyChanged("ShowBaudRate");
 				}
 			}
 		}
@@ -296,13 +313,20 @@ namespace OATControl
 		{
 			switch (CurrentStep)
 			{
-				case Steps.Idle:
-					CurrentStep = Steps.WaitForConnect;
+				case Steps.Idle: // Clicked on device
+					CurrentStep = Steps.WaitForDeviceConfirm;
 					ShowNextButton = true;
 					break;
 
-				case Steps.WaitForConnect:
-					GPSStatus = string.Format("Connecting to OAT on {0}", SelectedDevice);
+				case Steps.WaitForDeviceConfirm: // Clicked on Next
+					CurrentStep = SelectedDevice.StartsWith("Serial") ? Steps.WaitForBaudrate : Steps.WaitForConnection;
+					ShowBaudRate = CurrentStep == Steps.WaitForBaudrate;
+					ShowNextButton = !string.IsNullOrEmpty(SelectedBaudRate);
+					break;
+
+				case Steps.WaitForBaudrate:
+				case Steps.WaitForConnection:
+					GPSStatus = string.Format("Connecting to OAT on {0}{1}", SelectedDevice, SelectedDevice.StartsWith("Serial") ? " at " + SelectedBaudRate + " baud" : "");
 					ShowGPSStatus = true;
 					CurrentStep = Steps.CheckHardware;
 					break;
@@ -373,12 +397,15 @@ namespace OATControl
 			stateTimer.Stop();
 			switch (CurrentStep)
 			{
-				case Steps.WaitForConnect:
+				case Steps.WaitForBaudrate:
+					break;
+
+				case Steps.WaitForConnection:
 					break;
 
 				case Steps.CheckHardware:
 					{
-						var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice);
+						var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice + "@" + SelectedBaudRate);
 
 						ShowGPSStatus = false;
 						GPSStatus = string.Empty;
@@ -387,7 +414,7 @@ namespace OATControl
 						{
 							ShowGPSStatus = true;
 							GPSStatus = connectResult.Item2;
-							CurrentStep = Steps.WaitForConnect;
+							CurrentStep = Steps.WaitForConnection;
 							return;
 						}
 
@@ -565,7 +592,11 @@ namespace OATControl
 					case Steps.Idle:
 						return false;
 
-					case Steps.WaitForConnect:
+					case Steps.WaitForBaudrate:
+						return !string.IsNullOrEmpty(SelectedBaudRate);
+
+					case Steps.WaitForDeviceConfirm:
+					case Steps.WaitForConnection:
 						return !string.IsNullOrEmpty(SelectedDevice);
 
 					case Steps.CheckHardware:
@@ -591,8 +622,23 @@ namespace OATControl
 
 		private void Device_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
-			CurrentStep = Steps.WaitForConnect;
-			AdvanceStateMachine();
+			if (SelectedDevice != null)
+			{
+				CurrentStep = SelectedDevice.StartsWith("Serial") ? Steps.WaitForDeviceConfirm : Steps.WaitForConnection;
+				AdvanceStateMachine();
+			}
 		}
+
+		public String SelectedBaudRate
+		{
+			get { return _mountViewModel.SelectedBaudRate; }
+			set { _mountViewModel.SelectedBaudRate = value; }
+		}
+
+		public IEnumerable<String> AvailableBaudRates
+		{
+			get { return _mountViewModel.AvailableBaudRates; }
+		}
+
 	}
 }

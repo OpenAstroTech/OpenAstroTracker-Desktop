@@ -47,7 +47,7 @@ namespace OATControl
 				if (_state == 2)
 				{
 					// Move RA to Polaris
-					await SendCommandAsync($":Sr02:58:51#,n");
+					await SendCommandAsync($":Sr02:59:09#,n");
 
 					// Move DEC to twice Polaris Dec
 					if (Settings.Default.SiteLatitude > 0) // Northern hemisphere
@@ -65,18 +65,18 @@ namespace OATControl
 					// Sync the mount to Polaris coordinates
 					if (Settings.Default.SiteLatitude > 0) // Northern hemisphere
 					{
-						await SendCommandAsync($":SY+89*21:06.02:58:51#,n");
+						await SendCommandAsync($":SY+89*21:06.02:59:09#,n");
 					}
 					else
 					{
-						await SendCommandAsync($":SY-89*21:06.02:58:51#,n");
+						await SendCommandAsync($":SY-89*21:06.02:59:09#,n");
 					}
 				}
 			});
 
 			this.DataContext = this;
-			InitializeComponent();
 			State = 1;
+			InitializeComponent();
 		}
 
 		private async Task<bool> SendCommandAsync(string command)

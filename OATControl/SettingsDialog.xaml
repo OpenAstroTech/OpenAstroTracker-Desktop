@@ -10,6 +10,7 @@
         Title="Settings" MinHeight="610" Width="500" Height="690">
 	<Window.Resources>
 		<converters:IntToVisibilityConverter x:Key="V1_8_76OrLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
+		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Collapsed" />
 		<Style x:Key="SmallTextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
 			<Setter Property="FontWeight" Value="Bold" />
@@ -206,14 +207,14 @@
 		<TextBlock Grid.Row="15" Grid.Column="0" Text="Temperature:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,2.62"/>
 		<TextBlock Grid.Row="15" Grid.Column="1" Text="{Binding ScopeTemperature}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,4.62"/>
 
-		<TextBlock Grid.Row="16" Grid.Column="0" Text="Network:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,1,1.62"/>
-		<TextBlock Grid.Row="16" Grid.Column="1" Text="{Binding ScopeNetworkState}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62"/>
+		<TextBlock Grid.Row="16" Grid.Column="0" Text="Network:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,1,1.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
+		<TextBlock Grid.Row="16" Grid.Column="1" Text="{Binding ScopeNetworkState}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
 
-		<TextBlock Grid.Row="17" Grid.Column="0" Text="IP:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,1.62"/>
-		<TextBlock Grid.Row="17" Grid.Column="1" Text="{Binding ScopeNetworkIPAddress}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62"/>
+		<TextBlock Grid.Row="17" Grid.Column="0" Text="IP:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,1.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
+		<TextBlock Grid.Row="17" Grid.Column="1" Text="{Binding ScopeNetworkIPAddress}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
 
-		<TextBlock Grid.Row="18" Grid.Column="0" Text="SSID:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,2.38,1,1.62"/>
-		<TextBlock Grid.Row="18" Grid.Column="1" Text="{Binding ScopeNetworkSSID}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,4.38,0,3.62"/>
+		<TextBlock Grid.Row="18" Grid.Column="0" Text="SSID:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,2.38,1,1.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
+		<TextBlock Grid.Row="18" Grid.Column="1" Text="{Binding ScopeNetworkSSID}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,4.38,0,3.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
 
 		<StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
 			<Button Margin="16,8,8,8" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding FactoryResetCommand}"/>

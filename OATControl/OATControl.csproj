@@ -74,6 +74,9 @@
     <Compile Include="Controls\Joystick.xaml.cs">
       <DependentUpon>Joystick.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\RangeSlider.xaml.cs">
+      <DependentUpon>RangeSlider.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ScopeCircles.cs" />
     <Compile Include="Controls\Arrow.cs" />
     <Compile Include="Controls\ScopePointer.cs" />
@@ -83,9 +86,11 @@
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\DoubleToHMSConverter.cs" />
     <Compile Include="Converters\DoubleDividerConverter.cs" />
-    <Compile Include="Converters\IntToVisibilityConverter.cs" />
     <Compile Include="Converters\IntToBoolConverter.cs" />
+    <Compile Include="Converters\IntToVisibilityConverter.cs" />
+    <Compile Include="Converters\OrientationToVisibilityConverter.cs" />
     <Compile Include="Converters\StretchModeConverter.cs" />
+    <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="DlgRunPolarAlignment.xaml.cs">
       <DependentUpon>DlgRunPolarAlignment.xaml</DependentUpon>
     </Compile>
@@ -115,6 +120,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Joystick.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\RangeSlider.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

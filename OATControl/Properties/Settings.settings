@@ -26,5 +26,17 @@
     <Setting Name="TargetChooserSize" Type="System.Drawing.Size" Scope="User">
       <Value Profile="(Default)">670, 910</Value>
     </Setting>
+    <Setting Name="ShowDecLimits" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="LowerDecLimit" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">-90</Value>
+    </Setting>
+    <Setting Name="UpperDecLimit" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">180</Value>
+    </Setting>
+    <Setting Name="BaudRate" Type="System.String" Scope="User">
+      <Value Profile="(Default)">19200</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
