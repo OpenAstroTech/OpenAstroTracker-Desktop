@@ -1,23 +1,24 @@
-﻿<Window x:Class="OATControl.TargetChooser"
+﻿<mah:MetroWindow x:Class="OATControl.TargetChooser"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:OATControl"
         xmlns:converters="clr-namespace:OATControl.Converters"
         mc:Ignorable="d"
-        Title="Target Chooser" Height="950" Width="800">
+        Title="Target Chooser" Height="774" MinHeight="280" Width="466" MinWidth="210" MaxWidth="466">
 	<Window.Resources>
 		<converters:DoubleToHMSConverter x:Key="RAConverter" />
 		<converters:DoubleToHMSConverter x:Key="DECConverter" Formatter = "[0:+00;-00]° [1:00]&quot; [2:00]'"/>
 		<converters:DoubleToHMSConverter x:Key="DECNoSignConverter" Formatter = "[0:00]° [1:00]&quot; [2:00]'"/>
 
-		<converters:DoubleToGridLengthDividerConverter x:Key="RADiffConverter" Divisor= "6"/>
-		<converters:DoubleToGridLengthDividerConverter x:Key="RADiffInvertConverter" Divisor= "6" Inverter="6"/>
-		<converters:DoubleToGridLengthDividerConverter x:Key="DECDiffConverter" Divisor= "180"/>
-		<converters:DoubleToGridLengthDividerConverter x:Key="DECDiffInvertConverter" Divisor= "180" Inverter="180"/>
-		<converters:DoubleToGridLengthDividerConverter x:Key="DistDiffConverter" Divisor= "8.4853"/>
-		<converters:DoubleToGridLengthDividerConverter x:Key="DistDiffInvertConverter" Divisor= "8.4853" Inverter="8.4853"/>
+		<converters:DoubleToGridLengthDividerConverter x:Key="RADiffConverter" Divisor= "1"/>
+		<converters:DoubleToGridLengthDividerConverter x:Key="RADiffInvertConverter" Divisor= "1" Inverter="100"/>
+		<converters:DoubleToGridLengthDividerConverter x:Key="DECDiffConverter" Divisor= "1"/>
+		<converters:DoubleToGridLengthDividerConverter x:Key="DECDiffInvertConverter" Divisor= "1" Inverter="100"/>
+		<converters:DoubleToGridLengthDividerConverter x:Key="DistDiffConverter" Divisor= "1"/>
+		<converters:DoubleToGridLengthDividerConverter x:Key="DistDiffInvertConverter" Divisor= "1" Inverter="100"/>
 
 		<Style x:Key="HeaderStyle" TargetType="TextBlock" >
 			<Setter Property="FontSize" Value="16" />
@@ -111,8 +112,8 @@
 			<Grid>
 				<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{Binding RADistance, Converter={StaticResource RADiffConverter}}" />
-						<ColumnDefinition Width="{Binding RADistance, Converter={StaticResource RADiffInvertConverter}}" />
+						<ColumnDefinition Width="{Binding RAStepDistance, Converter={StaticResource RADiffConverter}}" />
+						<ColumnDefinition Width="{Binding RAStepDistance, Converter={StaticResource RADiffInvertConverter}}" />
 					</Grid.ColumnDefinitions>
 
 					<Border Grid.Column="0"  >
@@ -142,8 +143,8 @@
 			<Grid>
 				<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{Binding DECDistance, Converter={StaticResource DECDiffConverter}}" />
-						<ColumnDefinition Width="{Binding DECDistance, Converter={StaticResource DECDiffInvertConverter}}" />
+						<ColumnDefinition Width="{Binding DECStepDistance, Converter={StaticResource DECDiffConverter}}" />
+						<ColumnDefinition Width="{Binding DECStepDistance, Converter={StaticResource DECDiffInvertConverter}}" />
 					</Grid.ColumnDefinitions>
 
 					<Border Grid.Column="0"  >
@@ -161,12 +162,32 @@
 			</Grid>
 		</DataTemplate>
 
+		<DataTemplate x:Key="DecPosCellTemplate">
+			<Grid>
+				<TextBlock Foreground="#000" Padding="10,0" HorizontalAlignment="Stretch" >
+					<TextBlock.Text>
+						<Binding Path="DECPosition" />
+					</TextBlock.Text>
+				</TextBlock>
+			</Grid>
+		</DataTemplate>
+
+		<DataTemplate x:Key="RaPosCellTemplate">
+			<Grid>
+				<TextBlock Foreground="#000" Padding="10,0" HorizontalAlignment="Stretch" >
+					<TextBlock.Text>
+						<Binding Path="RAPosition" />
+					</TextBlock.Text>
+				</TextBlock>
+			</Grid>
+		</DataTemplate>
+
 		<DataTemplate x:Key="DistCellTemplate">
 			<Grid>
 				<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="{Binding Distance, Converter={StaticResource DistDiffConverter}}" />
-						<ColumnDefinition Width="{Binding Distance, Converter={StaticResource DistDiffInvertConverter}}" />
+						<ColumnDefinition Width="{Binding DistanceNormalized, Converter={StaticResource DistDiffConverter}}" />
+						<ColumnDefinition Width="{Binding DistanceNormalized, Converter={StaticResource DistDiffInvertConverter}}" />
 					</Grid.ColumnDefinitions>
 
 					<Border Grid.Column="0"  >
@@ -178,12 +199,12 @@
 				</Grid>
 				<TextBlock Foreground="#000" Padding="10,0" HorizontalAlignment="Center" FontWeight="Bold">
 					<TextBlock.Text>
-						<Binding Path="Distance" StringFormat="{}{0:0.000}"/>
+						<Binding Path="DistanceNormalized" StringFormat="{}{0:0}"/>
 					</TextBlock.Text>
 				</TextBlock>
 			</Grid>
 		</DataTemplate>
-		
+
 		<!--<Style x:Key="ListHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
 			<Setter Property="BorderBrush" Value="#CC0"/>
 			<Setter Property="Background" Value="#9C0"/>
@@ -224,15 +245,27 @@
 					<Setter Property="BorderBrush" Value="#A00" />
 					<Setter Property="BorderThickness" Value="1" />
 				</Trigger>
+				<DataTrigger Binding="{Binding IsReachable}" Value="false">
+					<Setter Property="Background" Value="#400" />
+					<Setter Property="BorderBrush" Value="#500000" />
+					<Setter Property="Foreground" Value="#A00"/>
+				</DataTrigger>
+				<MultiDataTrigger >
+					<MultiDataTrigger.Conditions>
+						<Condition Binding="{Binding ElementName=ShowReachable, Path=IsChecked}" Value="True" />
+						<Condition Binding="{Binding IsReachable}" Value="False" />
+					</MultiDataTrigger.Conditions>
+					<Setter Property="Visibility" Value="Collapsed" />
+				</MultiDataTrigger>
 			</Style.Triggers>
 		</Style>
-		
+
 		<Style x:Key="GridViewColumnHeaderStyle1" TargetType="{x:Type GridViewColumnHeader}">
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
 						<Border BorderThickness="0,0,0,1" BorderBrush="#C00" Background="Transparent">
-							<TextBlock x:Name="ContentHeader" Text="{TemplateBinding Content}" Padding="5,5,5,0" Width="{TemplateBinding Width}" TextAlignment="Center" MouseLeftButtonUp="TextBlock_MouseUp" />
+							<TextBlock x:Name="ContentHeader" Text="{TemplateBinding Content}" Padding="5,5,5,0" Width="{TemplateBinding Width}" TextAlignment="Center" />
 						</Border>
 					</ControlTemplate>
 				</Setter.Value>
@@ -248,15 +281,37 @@
 
 	</Window.Resources>
 
-	<Grid ScrollViewer.VerticalScrollBarVisibility="Auto">
-		<ListView ItemsSource="{Binding AvailablePointsOfInterest}" HorizontalAlignment="Center" >
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+		<mah:ToggleSwitch 
+			x:Name="ShowReachable" 
+			Grid.Row="0" 
+			Header="" 
+			OnLabel="Hiding Unreachable Targets" 
+			OffLabel="Showing Unreachable Targets" 
+			Margin="0,0" 
+			Padding="0" 
+			Foreground="#F00"
+			mah:ControlsHelper.HeaderFontSize="15" 
+			HorizontalAlignment="Center" 
+			ContentPadding="51,0,0,0" 
+			mah:ControlsHelper.HeaderMargin="0,0,0,3"
+			ThumbIndicatorBrush="#D00"
+			/>
+		<ListView Grid.Row="1" ItemsSource="{Binding AvailablePointsOfInterest}" HorizontalAlignment="Center" >
 			<ListView.View>
 				<GridView  ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeaderStyle1}" >
 					<GridViewColumn Header="Name" CellTemplate="{StaticResource NameCellTemplate}" HeaderTemplate="{StaticResource myHeaderTemplate}"/>
 					<GridViewColumn Header="RA" CellTemplate="{StaticResource RaCellTemplate}"/>
-					<GridViewColumn Header="RA Dist" CellTemplate="{StaticResource RaDistCellTemplate}"/>
+					<!--<GridViewColumn Header="RA Pos" CellTemplate="{StaticResource RaPosCellTemplate}"/>-->
+					<!--<GridViewColumn Header="RA Dist" CellTemplate="{StaticResource RaDistCellTemplate}"/>-->
 					<GridViewColumn Header="DEC"  CellTemplate="{StaticResource DecCellTemplate}"/>
-					<GridViewColumn Header="DEC Dist"  CellTemplate="{StaticResource DecDistCellTemplate}"/>
+					<!--<GridViewColumn Header="DEC Pos"  CellTemplate="{StaticResource DecPosCellTemplate}"/>-->
+					<!--<GridViewColumn Header="DEC Dist"  CellTemplate="{StaticResource DecDistCellTemplate}"/>-->
 					<GridViewColumn Header="Distance" Width="90" CellTemplate="{StaticResource DistCellTemplate}" />
 				</GridView>
 			</ListView.View>
@@ -363,4 +418,4 @@
 		</ListView>
 	</Grid>
 		-->
-</Window>
+</mah:MetroWindow>

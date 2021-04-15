@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OATCommunications.Utilities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -11,14 +12,30 @@ namespace OATControl.ViewModels
 {
 	public class PointOfInterest : INotifyPropertyChanged
 	{
+		private long targetRAPos;
+		private long targetDECPos;
+		private bool positionsCalculated;
 		private double raDistance;
 		private double decDistance;
+		private double decStepDistance;
+		private double raStepDistance;
 		private double distance;
+		private double distanceNormalized;
+		private bool _reachable;
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		public PointOfInterest(string name)
+		{
+			Name = name;
+			RA = 0;
+			DEC = 90;
+			positionsCalculated = false;
+		}
+
 		public PointOfInterest(XElement e)
 		{
+			positionsCalculated = false;
 			float h, m, s;
 			Name = e.Attribute("Name").Value;
 			var ra = e.Attribute("RA").Value.Split(":".ToCharArray());
@@ -33,7 +50,7 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		internal void CalcDistancesFrom(double ra, double dec)
+		internal void CalcDistancesFrom(double ra, double dec, long raPos, long decPos)
 		{
 			RADistance = Math.Abs((RA % 12) - (ra % 12));
 			if (RADistance > 6)
@@ -41,15 +58,22 @@ namespace OATControl.ViewModels
 				RADistance = 12 - RADistance;
 			}
 			DECDistance = Math.Abs(DEC - dec);
-			var DECDistanceCalc = Math.Abs(((DEC - dec) / 180) * 6);
-			Distance = Math.Sqrt(RADistance * RADistance + DECDistanceCalc * DECDistanceCalc);
-		}
-
-		public PointOfInterest(string name)
-		{
-			Name = name;
-			RA = 0;
-			DEC = 90;
+			if (IsPositionCalculated)
+			{
+				double raLen = Math.Abs(raPos - targetRAPos);
+				double decLen = Math.Abs(decPos - targetDECPos);
+				distance = Math.Sqrt(raLen * raLen + decLen * decLen);
+				raStepDistance = (long)Math.Abs(raPos - targetRAPos);
+				decStepDistance = (long)Math.Abs(decPos - targetDECPos);
+			}
+			else
+			{
+				var DECDistanceCalc = Math.Abs(((DEC - dec) / 180) * 6);
+				distance = 10 * Math.Sqrt(RADistance * RADistance + DECDistanceCalc * DECDistanceCalc);
+				raStepDistance = (long)Math.Abs(RADistance);//stepps per deged
+				decStepDistance = (long)Math.Abs(decPos - targetDECPos);
+			}
+			// Log.WriteLine("POINT: {0} is at {1:0.00}, {2:0.00} (Stepper: {3}, {4}). From {5:0.00}, {6:0.00} ({7}, {8}) it is {9:0.000} away.", this.Name, this.RA, this.DEC, this.RAPosition, this.DECPosition, ra, dec, raPos, decPos, this.Distance);
 		}
 
 		void OnPropertyChanged([CallerMemberName] string prop = "")
@@ -61,6 +85,33 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		public void Normalize(double maxRaPos, double maxDecPos, double maxDist)
+		{
+			if (positionsCalculated)
+			{
+				decStepDistance = 100.0 * DECStepDistance / maxDecPos;
+				raStepDistance = 100.0 * RAStepDistance / maxRaPos;
+				distanceNormalized = 100.0 * Distance / maxDist;
+			}
+			else
+			{
+				distanceNormalized = 0;
+			}
+			OnPropertyChanged("DECStepDistance");
+			OnPropertyChanged("RAStepDistance");
+			OnPropertyChanged("DistanceNormalized");
+		}
+
+		public bool IsPositionCalculated { get { return positionsCalculated; } }
+		public void SetPositions(long ra, long dec)
+		{
+			targetRAPos = ra;
+			targetDECPos = dec;
+			positionsCalculated = true;
+		}
+
+		public long RAPosition => targetRAPos;
+		public long DECPosition => targetDECPos;
 		public string Name { get; }
 		public double RA { get; }
 		public double RADistance
@@ -89,6 +140,47 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		public double DECStepDistance
+		{
+			get { return decStepDistance; }
+			set
+			{
+				if (decStepDistance != value)
+				{
+					decStepDistance = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public double RAStepDistance
+		{
+			get { return raStepDistance; }
+			set
+			{
+				if (raStepDistance != value)
+				{
+					raStepDistance = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		
+
+		public double DistanceNormalized
+		{
+			get { return distanceNormalized; }
+			set
+			{
+				if (distanceNormalized != value)
+				{
+					distanceNormalized = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
 		public double Distance
 		{
 			get { return distance; }
@@ -97,6 +189,19 @@ namespace OATControl.ViewModels
 				if (distance != value)
 				{
 					distance = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool IsReachable
+		{
+			get { return _reachable; }
+			set
+			{
+				if (_reachable != value)
+				{
+					_reachable = value;
 					OnPropertyChanged();
 				}
 			}

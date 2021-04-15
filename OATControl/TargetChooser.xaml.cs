@@ -1,6 +1,9 @@
-﻿using OATControl.ViewModels;
+﻿using MahApps.Metro.Controls;
+using OATControl.Properties;
+using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +21,7 @@ namespace OATControl
 	/// <summary>
 	/// Interaction logic for TargetChooser.xaml
 	/// </summary>
-	public partial class TargetChooser : Window
+	public partial class TargetChooser : MetroWindow
 	{
 		public TargetChooser(MountVM mount)
 		{
@@ -26,6 +29,19 @@ namespace OATControl
 			InitializeComponent();
 		}
 
+		protected override void OnClosing(CancelEventArgs e)
+		{
+			Settings.Default.TargetChooserPos = new System.Drawing.Point((int)this.Left, (int)this.Top);
+			Settings.Default.TargetChooserSize = new System.Drawing.Size((int)this.Width, (int)this.Height);
+			base.OnClosing(e);
+		}
+		
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+			(this.DataContext as MountVM).TargetChooserClosed();
+		}
+		
 		protected void HandleDoubleClick(object sender, MouseButtonEventArgs args)
 		{
 			var point = (args.Source as ListViewItem).Content as PointOfInterest;
@@ -33,12 +49,6 @@ namespace OATControl
 			{
 				(this.DataContext as MountVM).SelectedPointOfInterest = point;
 			}
-		}
-
-		private void TextBlock_MouseUp(object sender, MouseButtonEventArgs e)
-		{
-			TextBlock source = sender as TextBlock;
-			//source.Text
 		}
 	}
 }

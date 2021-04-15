@@ -45,15 +45,19 @@ namespace OATControl.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            double len = 1;
             if (value is double)
             {
                 if (Inverter != 0)
 				{
-                    return new GridLength((Inverter-(double)value) / Divisor, GridUnitType.Star);
+                    len=(Inverter-(double)value) / Divisor;
                 }
-                return new GridLength((double)value / Divisor, GridUnitType.Star);
+				else
+				{
+                    len = (double)value / Divisor;
+                }
             }
-            return new GridLength(10);
+            return new GridLength(len, GridUnitType.Star);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -16,6 +16,20 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V1.0.0.2 - Updates**
+- Improved Target Chooser display. Fewer columns, better readability, DEC limits filtering.
+- Added axis displays for RA and DEC that show current and target position, as well as limits on DEC (if set). Also added a button to set the lower limit from the current position.
+- Added Baudrate selection step in connection dialog (Firmware V1.9.04 and later use 19200, earlier versions use 57600)
+- Increased the time needed to start changing Target coodinates with mouse before they auto-incremented or decremented.
+- Slew progress now uses actual stepper positions instead of stellar coordinates.
+- Users now get asked to confirm if the want to slew to a location that is outside of the set DEC limits.
+- Updated Polaris coordinates for Polar Alignment function 
+- Hid the network settings the Settings dialog if no Wifi is enabled.
+- Fixed a crash caused by trying to send a command to a disconnected device.
+- Fixed a crash caused by reading temperature without the addon hardware present.
+- Fixed a sporadic crash in connection dialog.
+- Fixed a sporadic inability to shutdown properly after more than one connection session.
+
 **V0.9.9.30 - Updates**
 - Revamped target choice into it's own modeless dialog. Targets are sorted by distance from current target. Double-click to transfer coordinates to target.
 - Improved connectivity failure detection. Attempt a few retries.

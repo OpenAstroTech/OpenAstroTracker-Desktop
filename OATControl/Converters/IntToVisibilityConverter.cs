@@ -31,7 +31,7 @@ namespace OATControl.Converters
         /// </returns>
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            long val = (long)value;
+            long val = value is long ? (long)value : (long)(int)value;
             Visibility visualState = UseCollapse ? Visibility.Collapsed : Visibility.Hidden;
             if (Operator.Equals(">"))
             {

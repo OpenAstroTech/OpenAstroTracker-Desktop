@@ -48,7 +48,12 @@ namespace OATCommunications.WPF.CommunicationHandlers
 
 		public static ICommunicationHandler ConnectToDevice(string device)
 		{
-			Log.WriteLine($"COMMFACTORY: Attempting to connect to device {device}...");
+			if (string.IsNullOrEmpty(device))
+			{
+				return null;
+			}
+
+			Log.WriteLine($"COMMFACTORY: Attempting to connect to device {device}...");//
 			if (device.StartsWith("Serial : "))
 			{
 				string comPort = device.Substring("Serial : ".Length);

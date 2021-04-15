@@ -9,9 +9,11 @@ namespace OATControl.ViewModels
 {
 	public class PointsOfInterest : List<PointOfInterest>
 	{
+		private long _decLowLimit = -99999999;
+		private long _decHighLimit = 99999999;
+
 		public PointsOfInterest()
 		{
-
 		}
 
 		public PointsOfInterest(IEnumerable<PointOfInterest> i)
@@ -38,11 +40,19 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		public void CalcDistancesFrom(double ra, double dec)
+		public void CalcDistancesFrom(double ra, double dec, long raPos, long decPos)
 		{
 			foreach (var point in this)
 			{
-				point.CalcDistancesFrom(ra, dec);
+				point.CalcDistancesFrom(ra, dec, raPos, decPos);
+			}
+
+			double maxDecPos = this.Max(p => Math.Abs(p.DECPosition - decPos));
+			double maxRaPos = this.Max(p => Math.Abs(p.RAPosition - raPos));
+			double maxDist = this.Max(p => p.Distance);
+			foreach (var point in this)
+			{
+				point.Normalize(maxRaPos, maxDecPos, maxDist);
 			}
 		}
 
@@ -55,6 +65,26 @@ namespace OATControl.ViewModels
 			if (field == "Distance")
 			{
 				this.Sort((p1, p2) => { return p1.Distance.CompareTo(p2.Distance); });
+			}
+		}
+
+		internal void SetDecLowStepLimit(long decStepper)
+		{
+			_decLowLimit = decStepper;
+			CheckPointReachability();
+		}
+
+		internal void SetDecHighStepLimit(long decStepper)
+		{
+			_decHighLimit = decStepper;
+			CheckPointReachability();
+		}
+
+		void CheckPointReachability()
+		{
+			foreach (var point in this)
+			{
+				point.IsReachable = (point.DECPosition >= _decLowLimit) && (point.DECPosition <= _decHighLimit);
 			}
 		}
 	}

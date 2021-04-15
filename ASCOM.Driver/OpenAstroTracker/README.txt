@@ -2,11 +2,11 @@
 OpenAstroTracker ASCOM Driver 
 =============================
 
-Version 6.5.4.0, published 11 April 2021
+Version 6.5.4.0, published 14 April 2021
 ----------------------------------------
 
 * History
-	* 6.5.4.0	2021-04-11		:		CHANGE : Changed available and default baud rate(s).
+	* 6.5.4.0	2021-04-14		:		CHANGE : Changed available and default baud rate(s).
 	* 6.5.3.0	2021-04-10		:		CHANGE : Fixed Sync command. Added choosable baudrate. Lots of bug fixes.
 	* 0.3.1.0	2021-03-20		:		CHANGE : Added Rates support and fixed a bug causing an error in MoveAxis.
 	* 0.3.0.0	2020-11-30		:		CHANGE : Added move with slewrate support, stable release

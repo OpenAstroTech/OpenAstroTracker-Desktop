@@ -16,16 +16,23 @@ namespace OATCommunications.WPF.CommunicationHandlers
 
 		public SerialCommunicationHandler(string comPort)
 		{
-			Log.WriteLine($"COMMFACTORY: Creating Serial handler on {comPort} at 57600 baud...");
-
-			_portName = comPort;
-			_port = new SerialPort(comPort);
-			_port.BaudRate = 57600;
-			_port.DtrEnable = false;
-			_port.ReadTimeout = 1000;
-			_port.WriteTimeout = 1000;
-
-			StartJobsProcessor();
+			Log.WriteLine($"COMMFACTORY: Creating Serial handler on {comPort} ...");
+			var parts = comPort.Split('@');
+			if (parts.Length > 0)
+			{
+				_portName = parts[0];
+				_port = new SerialPort(_portName);
+				int rate = 19200;
+				if (parts.Length > 1)
+				{
+					int.TryParse(parts[1], out rate);
+				}
+				_port.BaudRate = rate;
+				_port.DtrEnable = false;
+				_port.ReadTimeout = 1000;
+				_port.WriteTimeout = 1000;
+				StartJobsProcessor();
+			}
 		}
 
 		public override bool Connected { get { return _port.IsOpen; } }
@@ -42,7 +49,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				requestIndex++;
 				try
 				{
-					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Sending command", requestIndex, job.Command);
+					if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Sending command", requestIndex, job.Command);
 					_port.Write(job.Command);
 				}
 				catch (Exception ex)
@@ -58,36 +65,36 @@ namespace OATCommunications.WPF.CommunicationHandlers
 					{
 						case ResponseType.NoResponse:
 							{
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] No response needed for command", requestIndex, job.Command);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] No response needed for command", requestIndex, job.Command);
 								response = new CommandResponse(string.Empty, true);
 							}
 							break;
 
 						case ResponseType.DigitResponse:
 							{
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting single digit response for command, waiting...", requestIndex, job.Command);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting single digit response for command, waiting...", requestIndex, job.Command);
 								string responseStr = new string((char)_port.ReadChar(), 1);
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received single digit response '{2}' for command", requestIndex, job.Command, responseStr);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received single digit response '{2}' for command", requestIndex, job.Command, responseStr);
 								response = new CommandResponse(responseStr, true);
 							}
 							break;
 
 						case ResponseType.FullResponse:
 							{
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting #-delimited response for Command, waiting...", requestIndex, job.Command);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting #-delimited response for Command, waiting...", requestIndex, job.Command);
 								string responseStr = _port.ReadTo("#");
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received response '{2}' for command", requestIndex, job.Command, responseStr);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received response '{2}' for command", requestIndex, job.Command, responseStr);
 								response = new CommandResponse(responseStr, true);
 							}
 							break;
 						case ResponseType.DoubleFullResponse:
 							{
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting two #-delimited responses for Command, waiting for first...", requestIndex, job.Command);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Expecting two #-delimited responses for Command, waiting for first...", requestIndex, job.Command);
 								string responseStr = _port.ReadTo("#");
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received first response '{2}' for command", requestIndex, job.Command, responseStr);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received first response '{2}' for command", requestIndex, job.Command, responseStr);
 								response = new CommandResponse(responseStr, true);
 								responseStr = _port.ReadTo("#");
-								Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received second response '{2}' for command, ignoring", requestIndex, job.Command, responseStr);
+								if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Received second response '{2}' for command, ignoring", requestIndex, job.Command, responseStr);
 							}
 							break;
 					}
@@ -149,9 +156,12 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				Log.WriteLine("SERIAL: Stopping Jobs processor.");
 				StopJobsProcessor();
 				Log.WriteLine("SERIAL: Port is open, sending shutdown command [:Qq#]");
-				_port.Write(":Qq#");
-				Log.WriteLine("SERIAL: Closing port...");
-				_port.Close();
+				if (_port.IsOpen)
+				{
+					_port.Write(":Qq#");
+					Log.WriteLine("SERIAL: Closing port...");
+					_port.Close();
+				}
 				_port = null;
 				Log.WriteLine("SERIAL: Disconnected...");
 			}

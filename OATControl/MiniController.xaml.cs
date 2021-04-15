@@ -1,6 +1,8 @@
-﻿using OATControl.ViewModels;
+﻿using OATControl.Properties;
+using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,6 +53,11 @@ namespace OATControl
 			base.OnKeyDown(e);
 		}
 
+		protected override void OnClosing(CancelEventArgs e)
+		{
+			Settings.Default.MiniControllerPos = new System.Drawing.Point((int)this.Left, (int)this.Top);
+			base.OnClosing(e);
+		}
 		protected override void OnKeyUp(KeyEventArgs e)
 		{
 			string cmdParam = string.Empty;
