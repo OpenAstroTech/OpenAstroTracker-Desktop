@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Controls"
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="350" MaxWidth="350" MinWidth="350" WindowStyle="None" >
+        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="394" MaxWidth="394" MinWidth="350" WindowStyle="None" >
 	<Window.Resources>
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
@@ -77,6 +77,7 @@
 		<converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
+		<converters:BoolToVisibilityConverter x:Key="CollapseIfFalse" Collapse="True" IsReversed="False" />
 	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
@@ -91,6 +92,7 @@
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="80"/>
+			<ColumnDefinition Width="40"/>
 		</Grid.ColumnDefinitions>
 		<TextBlock Grid.Row="0" Grid.Column="0" Text="RA:" Style="{StaticResource TextBlockLabelSmall}" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove"  Cursor="SizeAll" />
 		<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentRAString}" Style="{StaticResource TextBlockLabelValue}" />
@@ -124,6 +126,21 @@
 
 		<Button Grid.Row="0" Grid.Column="6" Margin="8,2" Padding="10,0" Content="Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}"/>
 		<Button Grid.Row="1" Grid.Column="6" Margin="8,2" Padding="10,0" Content="{Binding ParkCommandString}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}"/>
+
+		<controls:PushButton Grid.Row="0" Grid.Column="7" Width="36" Height="36" Direction="N" 
+							 Padding="0,0,4,0" 
+							 Margin="0,0,4,0"
+							 IsEnabled="{Binding MountConnected}" 
+							 Command="{Binding StartSlewingCommand}" 
+							 CommandParameter="A" 
+							 Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}"/>
+		<controls:PushButton Grid.Row="1" Grid.Column="7" Width="36" Height="36" Direction="S" 
+							 Padding="0,0,4,0" 
+							 Margin="0,0,4,0"
+							 IsEnabled="{Binding MountConnected}" 
+							 Command="{Binding StartSlewingCommand}" 
+							 CommandParameter="Z" 
+							 Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}"/>
 
 	</Grid>
 </Window>

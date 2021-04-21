@@ -89,7 +89,8 @@ namespace OATControl.ViewModels
 		string _scopeRATrackMS = "-";
 		string _scopeDECSlewMS = "-";
 		string _scopeDECGuideMS = "-";
-
+		bool _scopeHasAZ = false;
+		bool _scopeHasALT = false;
 		string _scopeBoard = string.Empty;
 		string _scopeDisplay = string.Empty;
 		string _scopeFeatures = string.Empty;
@@ -750,15 +751,28 @@ namespace OATControl.ViewModels
 
 		private async Task OnStopSlewing(char dir)
 		{
-			var doneEvent = new AsyncAutoResetEvent();
-			_oatMount?.SendCommand(string.Format(":Q{0}#", dir), (a) => { doneEvent.Set(); });
-			await doneEvent.WaitAsync();
+			if ((dir != 'a') && (dir != 'z'))
+			{
+				var doneEvent = new AsyncAutoResetEvent();
+				_oatMount?.SendCommand(string.Format(":Q{0}#", dir), (a) => { doneEvent.Set(); });
+				await doneEvent.WaitAsync();
+			}
 		}
 
 		private async Task OnStartSlewing(char dir)
 		{
+			float[] rateDistance = { 0, 0.25f, 2.0f, 7.5f, 30.0f };
 			var doneEvent = new AsyncAutoResetEvent();
-			_oatMount?.SendCommand(string.Format(":M{0}#", dir), (a) => { doneEvent.Set(); });
+			float distance = rateDistance[SlewRate];
+			char sign = (dir == 'a') ? '+' : '-';
+			if ((dir == 'a') || (dir == 'z'))
+			{
+				_oatMount?.SendCommand(string.Format(":MAL{0}{1:0.0}#", sign, distance), (a) => { doneEvent.Set(); });
+			}
+			else
+			{
+				_oatMount?.SendCommand(string.Format(":M{0}#", dir), (a) => { doneEvent.Set(); });
+			}
 			await doneEvent.WaitAsync();
 		}
 
@@ -1264,8 +1278,8 @@ namespace OATControl.ViewModels
 				ScopeDECGuideMS = decStepper[2];
 			}
 
-
-
+			ScopeHasALT = false;
+			ScopeHasAZ = false;
 			ScopeFeatures = "";
 			ScopeDisplay = "None";
 			_raIsNEMA = raParts[0] == "NEMA";
@@ -1280,6 +1294,18 @@ namespace OATControl.ViewModels
 				else if (hwParts[i] == "AUTO_AZ_ALT")
 				{
 					ScopeFeatures += "AutoPA, ";
+					ScopeHasALT = true;
+					ScopeHasAZ = true;
+				}
+				else if (hwParts[i] == "AUTO_ALT")
+				{
+					ScopeFeatures += "MotorALT, ";
+					ScopeHasALT = true;
+				}
+				else if (hwParts[i] == "AUTO_AZ")
+				{
+					ScopeFeatures += "MotorAZ, ";
+					ScopeHasAZ = true;
 				}
 				else if (hwParts[i] == "GYRO")
 				{
@@ -2057,6 +2083,18 @@ namespace OATControl.ViewModels
 		{
 			get { return _scopeFeatures; }
 			set { SetPropertyValue(ref _scopeFeatures, value); }
+		}
+
+		public bool ScopeHasALT
+		{
+			get { return _scopeHasALT; }
+			set { SetPropertyValue(ref _scopeHasALT, value); }
+		}
+
+		public bool ScopeHasAZ
+		{
+			get { return _scopeHasAZ; }
+			set { SetPropertyValue(ref _scopeHasAZ, value); }
 		}
 
 		public string ScopeLatitude
