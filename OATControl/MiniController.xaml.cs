@@ -42,6 +42,8 @@ namespace OATControl
 				case Key.Down: cmdParam = "+S"; break;
 				case Key.Left: cmdParam = "+W"; break;
 				case Key.Right: cmdParam = "+E"; break;
+				case Key.W: cmdParam = "+A"; break;
+				case Key.S: cmdParam = "+Z"; break;
 			}
 
 			if (!String.IsNullOrEmpty(cmdParam))
@@ -69,12 +71,13 @@ namespace OATControl
 				case Key.Down: cmdParam = "-S"; break;
 				case Key.Left: cmdParam = "-W"; break;
 				case Key.Right: cmdParam = "-E"; break;
+				case Key.W: cmdParam = "-A"; break;
+				case Key.S: cmdParam = "-Z"; break;
 				case Key.D1: _mount.SlewRate = 1; break;
 				case Key.D2: _mount.SlewRate = 2; break;
 				case Key.D3: _mount.SlewRate = 3; break;
 				case Key.D4: _mount.SlewRate = 4; break;
 				case Key.Escape: this.Hide(); break;
-
 			}
 
 			if (!String.IsNullOrEmpty(cmdParam))
