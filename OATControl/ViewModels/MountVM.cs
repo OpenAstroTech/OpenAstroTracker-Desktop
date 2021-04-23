@@ -375,7 +375,7 @@ namespace OATControl.ViewModels
 				{
 					if (!point.IsPositionCalculated || force)
 					{
-						_oatMount.SendCommand(string.Format(":XGC{0:0.000}*{1:0.000}#,#", point.RA, point.DEC), (res) =>
+						_oatMount.SendCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", point.RA, point.DEC), (res) =>
 						{
 							if (res.Success)
 							{
@@ -474,7 +474,7 @@ namespace OATControl.ViewModels
 									_slewTargetValid = false;
 									if (_firmwareVersion > 10900)
 									{
-										_oatMount.SendCommand(string.Format(":XGC{0:0.000}*{1:0.000}#,#", TargetRATotalHours, TargetDECTotalHours), (posRes) =>
+										_oatMount.SendCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", TargetRATotalHours, TargetDECTotalHours), (posRes) =>
 										{
 											if (posRes.Success)
 											{
@@ -767,11 +767,11 @@ namespace OATControl.ViewModels
 			char sign = (dir == 'a') ? '+' : '-';
 			if ((dir == 'a') || (dir == 'z'))
 			{
-				_oatMount?.SendCommand(string.Format(":MAL{0}{1:0.0}#", sign, distance), (a) => { doneEvent.Set(); });
+				_oatMount?.SendCommand(string.Format(_oatCulture, ":MAL{0}{1:0.0}#", sign, distance), (a) => { doneEvent.Set(); });
 			}
 			else
 			{
-				_oatMount?.SendCommand(string.Format(":M{0}#", dir), (a) => { doneEvent.Set(); });
+				_oatMount?.SendCommand(string.Format(_oatCulture, ":M{0}#", dir), (a) => { doneEvent.Set(); });
 			}
 			await doneEvent.WaitAsync();
 		}
@@ -793,7 +793,7 @@ namespace OATControl.ViewModels
 		private async Task OnSlewToTarget()
 		{
 			var waitFor = new AsyncAutoResetEvent();
-			_oatMount.SendCommand(string.Format(":XGC{0:0.000}*{1:0.000}#,#", this.TargetRATotalHours, this.TargetDECTotalHours), (res) =>
+			_oatMount.SendCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", this.TargetRATotalHours, this.TargetDECTotalHours), (res) =>
 			{
 				if (res.Success)
 				{
@@ -930,7 +930,7 @@ namespace OATControl.ViewModels
 				Log.WriteLine("Mount: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3:000}*{4:00}'{5:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
 
 				Log.WriteLine("Mount: Getting current OAT RA steps/degree...");
-				_oatMount.SendCommand(string.Format(":XGR#,#"), (steps) =>
+				_oatMount.SendCommand(":XGR#,#", (steps) =>
 				{
 					Log.WriteLine("Mount: Current RA steps/degree is {0}.", steps.Data);
 					RAStepsPerDegree = Math.Max(1, float.Parse(steps.Data, _oatCulture));
@@ -938,7 +938,7 @@ namespace OATControl.ViewModels
 				});
 
 				Log.WriteLine("Mount: Getting current OAT DEC steps/degree...");
-				_oatMount.SendCommand(string.Format(":XGD#,#"), (steps) =>
+				_oatMount.SendCommand(":XGD#,#", (steps) =>
 				{
 					Log.WriteLine("Mount: Current DEC steps/degree is {0}. ", steps.Data);
 					SetDECStepsPerDegree(Math.Max(1, float.Parse(steps.Data, _oatCulture)));
@@ -950,7 +950,7 @@ namespace OATControl.ViewModels
 				await ReadHA();
 
 				Log.WriteLine("Mount: Getting current OAT speed factor...");
-				_oatMount.SendCommand(string.Format(":XGS#,#"), (speed) =>
+				_oatMount.SendCommand(":XGS#,#", (speed) =>
 				{
 					Log.WriteLine("Mount: Current Speed factor is {0}...", speed.Data);
 					SpeedCalibrationFactor = float.Parse(speed.Data, _oatCulture);
@@ -962,7 +962,7 @@ namespace OATControl.ViewModels
 				// Wait for RA Steps to be set before getting Tracking speed (it's used in remaining time calculation)
 				await doneEvent.WaitAsync();
 				Log.WriteLine("Mount: Getting current OAT tracking speed ...");
-				_oatMount.SendCommand(string.Format(":XGT#,#"), (speed) =>
+				_oatMount.SendCommand(":XGT#,#", (speed) =>
 				{
 					Log.WriteLine("Mount: Current Tracking Speed is {0}...", speed.Data);
 					TrackingSpeed = float.Parse(speed.Data, _oatCulture);
@@ -1023,12 +1023,12 @@ namespace OATControl.ViewModels
 			if (_firmwareVersion >= 10864)
 			{
 				Log.WriteLine("Mount: New FW: Current UTC is {0}. Sending to OAT.", utcNow);
-				_oatMount.SendCommand(string.Format(":SL{0,2:00}:{1,2:00}:{2,2:00}#,n", now.Hour, now.Minute, now.Second), (a) => { });
-				_oatMount.SendCommand(string.Format(":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", now.Month, now.Day, now.Year - 2000), (a) => { });
+				_oatMount.SendCommand(string.Format(_oatCulture, ":SL{0,2:00}:{1,2:00}:{2,2:00}#,n", now.Hour, now.Minute, now.Second), (a) => { });
+				_oatMount.SendCommand(string.Format(_oatCulture, ":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", now.Month, now.Day, now.Year - 2000), (a) => { });
 
 				var utcOffset = Math.Round((now - utcNow).TotalHours);
 				char sign = (utcOffset < 0) ? '-' : '+';
-				_oatMount.SendCommand(string.Format(":SG{0}{1,2:00}#,n", sign, Math.Abs(utcOffset)), (a) => { });
+				_oatMount.SendCommand(string.Format(_oatCulture, ":SG{0}{1,2:00}#,n", sign, Math.Abs(utcOffset)), (a) => { });
 			}
 			else
 			{
@@ -1073,7 +1073,7 @@ namespace OATControl.ViewModels
 			try
 			{
 				var doneEvent = new AsyncAutoResetEvent();
-				_oatMount.SendCommand(string.Format(":XD{0:000}#", driftDuration), (a) =>
+				_oatMount.SendCommand(string.Format(_oatCulture, ":XD{0:000}#", driftDuration), (a) =>
 				{
 					IsDriftAligning = true;
 					doneEvent.Set();
@@ -1146,7 +1146,7 @@ namespace OATControl.ViewModels
 					{
 						if (!result.Success)
 						{
-							message = string.Format("Unable to communicate with OAT.");
+							message = "Unable to communicate with OAT.";
 							Log.WriteLine("Mount: {0} ({1})", message, result.StatusMessage);
 							failed = true;
 						}
@@ -1184,7 +1184,7 @@ namespace OATControl.ViewModels
 			{
 				if (resultNr.Data.StartsWith("["))
 				{
-					message = string.Format("OAT likely has debug logging enabled. Check firmware.");
+					message = "OAT likely has debug logging enabled. Check firmware.";
 					Log.WriteLine("Mount: {0} {1}", message, resultNr.Data);
 					failed = true;
 				}
@@ -1571,7 +1571,7 @@ namespace OATControl.ViewModels
 		{
 			OnPropertyChanged("TargetDECTotalHours");
 			OnPropertyChanged("TargetRATotalHours");
-			_oatMount.SendCommand(string.Format(":XGC{0:0.000}*{1:0.000}#,#", TargetRATotalHours, TargetDECTotalHours), (res) =>
+			_oatMount.SendCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", TargetRATotalHours, TargetDECTotalHours), (res) =>
 			{
 				if (res.Success)
 				{

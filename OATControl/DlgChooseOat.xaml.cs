@@ -516,7 +516,7 @@ namespace OATControl
 						elapsed = DateTime.UtcNow - _startedGPSWaitAt;
 						if (elapsed.TotalSeconds >= MaxWaitForGPS)
 						{
-							GPSStatus = string.Format("GPS could not get a location lock. Please enter location manually:");
+							GPSStatus = "GPS could not get a location lock. Please enter location manually:";
 							ShowManualLocation = true;
 							CurrentStep = Steps.ConfirmLocation;
 							break;
