@@ -349,3 +349,4 @@ healthchecksdb
 MigrationBackup/
 SetupOutputTemp
 OATControl/OATControl Setup.exe
+ASCOM.Driver/OpenAstroTracker Setup.exe
