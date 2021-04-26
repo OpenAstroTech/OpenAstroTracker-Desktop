@@ -127,6 +127,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _showLogFolderCommand;
 		DelegateCommand _showSettingsCommand;
 		DelegateCommand _showMiniControllerCommand;
+		DelegateCommand _showVisualizationCommand;
 		DelegateCommand _factoryResetCommand;
 		DelegateCommand _startChangingCommand;
 		DelegateCommand _chooseTargetCommand;
@@ -134,6 +135,8 @@ namespace OATControl.ViewModels
 
 		MiniController _miniController;
 		TargetChooser _targetChooser;
+		VisualizationWindow _visualizationWindow;
+		VisualizationVM _visualizationVM;
 
 		DispatcherTimer _timerStatus;
 		DispatcherTimer _timerFineSlew;
@@ -191,6 +194,7 @@ namespace OATControl.ViewModels
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
+			_showVisualizationCommand = new DelegateCommand(() => OnShowVisualization(), () => true);
 			_factoryResetCommand = new DelegateCommand(() => OnPerformFactoryReset(), () => MountConnected);
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 			_chooseTargetCommand = new DelegateCommand((p) => OnShowTargetChooser(), () => MountConnected);
@@ -218,6 +222,8 @@ namespace OATControl.ViewModels
 
 			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
 			Log.WriteLine("Mount: Initialization of OATControl {0} complete...", this.Version);
+
+			
 		}
 
 		private void OnStartChangingParameter(object p)
@@ -341,6 +347,29 @@ namespace OATControl.ViewModels
 			else
 			{
 				_miniController.Show();
+			}
+		}
+
+		private void OnShowVisualization()
+		{
+			if (_visualizationWindow == null)
+			{
+				_visualizationVM = new VisualizationVM();
+				_visualizationWindow = new VisualizationWindow(_visualizationVM);
+				if (Settings.Default.VisualizationPos.X != -1)
+				{
+					_visualizationWindow.Left = Settings.Default.VisualizationPos.X;
+					_visualizationWindow.Top = Settings.Default.VisualizationPos.Y;
+				}
+			}
+			if (_visualizationWindow.IsVisible)
+			{
+				_visualizationWindow.Hide();
+			}
+			else
+			{
+				_visualizationWindow.Owner = Application.Current.MainWindow;
+				_visualizationWindow.Show();
 			}
 		}
 
@@ -885,6 +914,12 @@ namespace OATControl.ViewModels
 				_targetChooser = null;
 			}
 
+			if (_visualizationWindow != null)
+			{
+				_visualizationWindow.Close();
+				_visualizationWindow = null;
+			}
+
 			Settings.Default.ShowDecLimits = ShowDECLimits;
 			Settings.Default.LowerDecLimit = DECStepperLowerLimit;
 			Settings.Default.UpperDecLimit = DECStepperUpperLimit;
@@ -1119,6 +1154,7 @@ namespace OATControl.ViewModels
 			_showLogFolderCommand.Requery();
 			_showSettingsCommand.Requery();
 			_showMiniControllerCommand.Requery();
+			_showVisualizationCommand.Requery();
 			_chooseTargetCommand.Requery();
 			_setDecLowerLimitCommand.Requery();
 
@@ -1513,6 +1549,7 @@ namespace OATControl.ViewModels
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
 		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
+		public ICommand ShowVisualizationCommand { get { return _showVisualizationCommand; } }
 		public ICommand FactoryResetCommand { get { return _factoryResetCommand; } }
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 		public ICommand ChooseTargetCommand { get { return _chooseTargetCommand; } }

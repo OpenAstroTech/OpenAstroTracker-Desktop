@@ -38,5 +38,8 @@
     <Setting Name="BaudRate" Type="System.String" Scope="User">
       <Value Profile="(Default)">19200</Value>
     </Setting>
+    <Setting Name="VisualizationPos" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">-1, -1</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
