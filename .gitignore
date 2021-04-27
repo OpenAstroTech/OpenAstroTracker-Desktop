@@ -350,3 +350,9 @@ MigrationBackup/
 SetupOutputTemp
 OATControl/OATControl Setup.exe
 ASCOM.Driver/OpenAstroTracker Setup.exe
+
+#OAT Visualization
+!OAT_Base.obj
+!OAT_Compass.obj
+!OAT_DEC.obj
+!OAT_RA.obj
