@@ -1,4 +1,4 @@
-﻿using OATControl.Properties;
+using OATControl.Properties;
 using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -24,12 +24,12 @@ namespace OATControl
     /// </summary>
     public partial class VisualizationWindow : Window
     {
-        //VisualizationVM _visualizationVM; 
+        VisualizationVM _visualizationVM; 
 
         public VisualizationWindow(VisualizationVM vizVM)
         {
             InitializeComponent();
-
+            _visualizationVM = vizVM;
             MainLayoutGrid.DataContext = vizVM;
         }
         #region Overrides

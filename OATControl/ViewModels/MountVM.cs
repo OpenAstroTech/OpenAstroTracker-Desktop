@@ -368,7 +368,7 @@ namespace OATControl.ViewModels
 			}
 			else
 			{
-				_visualizationWindow.Owner = Application.Current.MainWindow;
+				//_visualizationWindow.Owner = Application.Current.MainWindow;
 				_visualizationWindow.Show();
 			}
 		}
@@ -571,6 +571,18 @@ namespace OATControl.ViewModels
 								CurrentDECDegree = int.Parse(parts[6].Substring(0, 3));
 								CurrentDECMinute = int.Parse(parts[6].Substring(3, 2));
 								CurrentDECSecond = int.Parse(parts[6].Substring(5, 2));
+
+								if(_visualizationWindow.IsVisible)
+                                {
+									Application.Current.Dispatcher.Invoke(() =>
+									{
+										double raDeg = (RAStepper / -RAStepsPerDegree) + (TrkStepper / -RAStepsPerDegree);
+										double decDeg = DECStepper / -DECStepsPerDegree;
+
+										_visualizationVM.RAAngle = raDeg;
+										_visualizationVM.DECAngle = decDeg;
+									});
+								}
 							}
 							catch (Exception ex)
 							{

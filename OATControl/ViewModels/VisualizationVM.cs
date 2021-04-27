@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HelixToolkit.Wpf;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using System.Windows.Threading;
 
 namespace OATControl.ViewModels
 {
@@ -23,6 +24,13 @@ namespace OATControl.ViewModels
 
         double _angleRA;
         double _angleDEC;
+
+        double _targetRA;
+        double _targetDEC;
+        double _stepIncrement;
+
+        private DispatcherTimer _animationTimer;
+
         #endregion
 
         #region Properties
@@ -36,8 +44,8 @@ namespace OATControl.ViewModels
         {
             get { return _angleRA; }
             set {
-                OnMoveRA(value);
-                SetPropertyValue(ref _angleRA, value);
+                //OnMoveRA(value);
+                SetPropertyValue(ref _targetRA, value);
             }
         }
 
@@ -46,8 +54,8 @@ namespace OATControl.ViewModels
             get { return _angleDEC; }
             set
             {
-                OnMoveDEC(value);
-                SetPropertyValue(ref _angleDEC, value);
+                //OnMoveDEC(value);
+                SetPropertyValue(ref _targetDEC, value);
             }
         }
 
@@ -56,6 +64,11 @@ namespace OATControl.ViewModels
         public VisualizationVM()
         {
             LoadModels();
+
+            _stepIncrement = 0.05;
+            _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
+            _animationTimer.Tick += AnimationUpdate;
+            _animationTimer.Start();
 
             // Not working, probably DP
             // LoadModelsAsync();
@@ -75,8 +88,8 @@ namespace OATControl.ViewModels
             _oatRA = new ObjReader().Read(@"Visualization/OBJs/OAT_RA.obj");
             _oatDEC = new ObjReader().Read(@"Visualization/OBJs/OAT_DEC.obj");
 
-            RAAngle = 0.0;
-            DECAngle = 0.0;
+            OnMoveRA(0.0);
+            OnMoveDEC(0.0);
 
             //add them to the group
             _oatGroup.Children.Add(_oatCompass);
@@ -125,6 +138,33 @@ namespace OATControl.ViewModels
 
             _oatDEC.Transform = decTransform3DGroup;
         }
+
+        private void AnimationUpdate(object sender, EventArgs e)
+        {
+            // TODO: Calculate the degrees per second to reach exact target
+            if(_angleRA < _targetRA)
+            {
+                _angleRA += _stepIncrement;
+                OnMoveRA(_angleRA);
+            }
+            else if (_angleRA > _targetRA)
+            {
+                _angleRA -= _stepIncrement;
+                OnMoveRA(_angleRA);
+            }
+
+            if (_angleDEC < _targetDEC)
+            {
+                _angleDEC += _stepIncrement;
+                OnMoveDEC(_angleDEC);
+            }
+            else if (_angleDEC > _targetDEC)
+            {
+                _angleDEC -= _stepIncrement;
+                OnMoveDEC(_angleDEC);
+            }
+        }
+
         #endregion
     }
 }
