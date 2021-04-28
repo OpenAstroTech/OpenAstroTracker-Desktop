@@ -24,13 +24,13 @@ namespace OATControl
     /// </summary>
     public partial class VisualizationWindow : Window
     {
-        VisualizationVM _visualizationVM; 
+        public VisualizationVM visualizationVM; 
 
-        public VisualizationWindow(VisualizationVM vizVM)
+        public VisualizationWindow()
         {
             InitializeComponent();
-            _visualizationVM = vizVM;
-            MainLayoutGrid.DataContext = vizVM;
+            visualizationVM = new VisualizationVM();
+            MainLayoutGrid.DataContext = visualizationVM;
         }
         #region Overrides
         protected override void OnClosing(CancelEventArgs e)
@@ -40,16 +40,7 @@ namespace OATControl
         }
         #endregion
 
-        /*
-        public static readonly DependencyProperty OATModelProperty =
-        DependencyProperty.Register("OATModel", typeof(Model3D),
-                        typeof(Model3D));
-        public Model3D OATModel
-        {
-            get { return (Model3D)GetValue(OATModelProperty); }
-            set { SetValue(OATModelProperty, value); }
-        }
-        */
+        
     }
 
 }

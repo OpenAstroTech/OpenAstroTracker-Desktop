@@ -136,8 +136,7 @@ namespace OATControl.ViewModels
 		MiniController _miniController;
 		TargetChooser _targetChooser;
 		VisualizationWindow _visualizationWindow;
-		VisualizationVM _visualizationVM;
-
+		
 		DispatcherTimer _timerStatus;
 		DispatcherTimer _timerFineSlew;
 
@@ -354,8 +353,7 @@ namespace OATControl.ViewModels
 		{
 			if (_visualizationWindow == null)
 			{
-				_visualizationVM = new VisualizationVM();
-				_visualizationWindow = new VisualizationWindow(_visualizationVM);
+				_visualizationWindow = new VisualizationWindow();
 				if (Settings.Default.VisualizationPos.X != -1)
 				{
 					_visualizationWindow.Left = Settings.Default.VisualizationPos.X;
@@ -368,7 +366,7 @@ namespace OATControl.ViewModels
 			}
 			else
 			{
-				//_visualizationWindow.Owner = Application.Current.MainWindow;
+				_visualizationWindow.Owner = Application.Current.MainWindow;
 				_visualizationWindow.Show();
 			}
 		}
@@ -579,8 +577,8 @@ namespace OATControl.ViewModels
 										double raDeg = (RAStepper / -RAStepsPerDegree) + (TrkStepper / -RAStepsPerDegree);
 										double decDeg = DECStepper / -DECStepsPerDegree;
 
-										_visualizationVM.RAAngle = raDeg;
-										_visualizationVM.DECAngle = decDeg;
+										_visualizationWindow.visualizationVM.RAAngle = raDeg;
+										_visualizationWindow.visualizationVM.DECAngle = decDeg;
 									});
 								}
 							}

@@ -8,6 +8,7 @@ using HelixToolkit.Wpf;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace OATControl.ViewModels
 {
@@ -30,6 +31,9 @@ namespace OATControl.ViewModels
         double _stepIncrement;
 
         private DispatcherTimer _animationTimer;
+        private Dispatcher dispatcher;
+
+        bool _isInitialized;
 
         #endregion
 
@@ -44,7 +48,6 @@ namespace OATControl.ViewModels
         {
             get { return _angleRA; }
             set {
-                //OnMoveRA(value);
                 SetPropertyValue(ref _targetRA, value);
             }
         }
@@ -54,8 +57,16 @@ namespace OATControl.ViewModels
             get { return _angleDEC; }
             set
             {
-                //OnMoveDEC(value);
                 SetPropertyValue(ref _targetDEC, value);
+            }
+        }
+
+        public bool IsInitialized
+        {
+            get { return _isInitialized; }
+            set
+            {
+                SetPropertyValue(ref _isInitialized, value);
             }
         }
 
@@ -63,15 +74,8 @@ namespace OATControl.ViewModels
 
         public VisualizationVM()
         {
+            IsInitialized = false;
             LoadModels();
-
-            _stepIncrement = 0.05;
-            _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
-            _animationTimer.Tick += AnimationUpdate;
-            _animationTimer.Start();
-
-            // Not working, probably DP
-            // LoadModelsAsync();
         }
 
         #region Methods
@@ -80,16 +84,35 @@ namespace OATControl.ViewModels
             await Task.Run(() => LoadModels());
         }
 
-        public void LoadModels()
+        private async Task<Model3DGroup> LoadAsync(string model3DPath, bool freeze)
+        {
+            return await Task.Factory.StartNew(() =>
+            {
+                var mi = new ModelImporter();
+
+                if (freeze)
+                {
+                    // Alt 1. - freeze the model 
+                    return mi.Load(model3DPath, null, true);
+                }
+
+                // Alt. 2 - create the model on the UI dispatcher
+                return mi.Load(model3DPath, this.dispatcher);
+            });
+        }
+
+        public async void LoadModels()
         {
             _oatGroup = new Model3DGroup();
-            _oatCompass = new ObjReader().Read(@"Visualization/OBJs/OAT_Compass.obj");
-            _oatBase = new ObjReader().Read(@"Visualization/OBJs/OAT_Base.obj");
-            _oatRA = new ObjReader().Read(@"Visualization/OBJs/OAT_RA.obj");
-            _oatDEC = new ObjReader().Read(@"Visualization/OBJs/OAT_DEC.obj");
+            //_oatCompass = new ObjReader().Read(@"Visualization/OBJs/OAT_Compass.obj");
+            _oatCompass = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_Compass.obj", true).Result);
+            _oatBase = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_Base.obj", true).Result);
+            var _oatRAF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_RA.obj", true).Result);
+            var _oatDECF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_DEC.obj", true).Result);
 
-            OnMoveRA(0.0);
-            OnMoveDEC(0.0);
+            // Get around frozen state
+            _oatRA = _oatRAF.Clone();
+            _oatDEC = _oatDECF.Clone();
 
             //add them to the group
             _oatGroup.Children.Add(_oatCompass);
@@ -106,10 +129,27 @@ namespace OATControl.ViewModels
 
             // Assign final group
             OATModel = _oatGroup;
+
+            _stepIncrement = 0.05;
+            _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
+            _animationTimer.Tick += AnimationUpdate;
+            _animationTimer.Start();
+
+            // Not working, probably DP
+            // LoadModelsAsync();
+
+            IsInitialized = true;
+
+            OnMoveRA(0.0);
+            OnMoveDEC(0.0);
+
         }
 
         void OnMoveRA(double angle)
         {
+            if (!IsInitialized)
+                return;
+
             Transform3DGroup raTransform3DGroup = new Transform3DGroup();
 
             RotateTransform3D _raRX = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), -49.954));
@@ -128,6 +168,9 @@ namespace OATControl.ViewModels
 
         void OnMoveDEC(double angle)
         {
+            if (!IsInitialized)
+                return;
+
             Transform3DGroup decTransform3DGroup = new Transform3DGroup();
 
             TranslateTransform3D decTranslate = new TranslateTransform3D(0, 0, 20.0);
@@ -141,8 +184,11 @@ namespace OATControl.ViewModels
 
         private void AnimationUpdate(object sender, EventArgs e)
         {
+            if (!IsInitialized)
+                return;
+
             // TODO: Calculate the degrees per second to reach exact target
-            if(_angleRA < _targetRA)
+            if (_angleRA < _targetRA)
             {
                 _angleRA += _stepIncrement;
                 OnMoveRA(_angleRA);

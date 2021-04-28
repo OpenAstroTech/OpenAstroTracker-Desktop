@@ -147,8 +147,8 @@
 
     <Grid x:Name="MainLayoutGrid">
         <HelixToolkit:HelixViewport3D ZoomExtentsWhenLoaded="False" Name="_helixViewport" ShowViewCube="False">
-            <HelixToolkit:GridLinesVisual3D Width="10" Length="10" MinorDistance="0.5" MajorDistance="1" Thickness="0.01"/>
-            <HelixToolkit:CoordinateSystemVisual3D />
+            <!--<HelixToolkit:GridLinesVisual3D Width="100" Length="100" MinorDistance="1" MajorDistance="10" Thickness="0.01"/>-->
+            <HelixToolkit:CoordinateSystemVisual3D  />
 
             <!-- Remember to add light to the scene -->
             <HelixToolkit:SunLight>
@@ -171,9 +171,10 @@
                 <RowDefinition Height="30*"/>
 
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="1" Text="RA Angle" Grid.Column="1" Margin="16,9.667,80.333,8.333" Grid.ColumnSpan="2"/>
+            <TextBlock Grid.Row="1" Text="Loading OAT..." Grid.Column="0" Margin="16,9.667,13,5.333" Foreground="White" FontSize="14" Visibility="{Binding IsInitialized, Converter={StaticResource TrueBoolToHidden}}"/>
+            <TextBlock Grid.Row="1" Text="RA Angle" Grid.Column="1" Margin="16,9.667,0.333,8.333" Foreground="#FFD0D0D0"/>
             <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RAAngle}" TextAlignment="Center" Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" Margin="10.667,5.667,10.333,5.333" Height="23"/>
-            <TextBlock Grid.Row="2" Text="DEC Angle" Grid.Column="1" Margin="9,6.667,80.333,6.667" Grid.ColumnSpan="2"/>
+            <TextBlock Grid.Row="2" Text="DEC Angle" Grid.Column="1" Margin="9,6.667,0.333,6.667" Foreground="#FFC7C7C7"/>
             <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding DECAngle}" TextAlignment="Center" Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" Margin="10.667,5.667,10.333,5.667" Height="22"/>
             <!-- TESTING SLIDERS -->
             <!--
