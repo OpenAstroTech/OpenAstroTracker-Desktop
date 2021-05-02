@@ -1,4 +1,5 @@
-﻿using OATControl.Properties;
+﻿using OATCommunications.Utilities;
+using OATControl.Properties;
 using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -44,10 +45,13 @@ namespace OATControl
 				case Key.Right: cmdParam = "+E"; break;
 				case Key.W: cmdParam = "+A"; break;
 				case Key.S: cmdParam = "+Z"; break;
+				case Key.X: cmdParam = "+F"; break;
+				case Key.C: cmdParam = "+G"; break;
 			}
 
 			if (!String.IsNullOrEmpty(cmdParam))
 			{
+				Log.WriteLine("MiniCtrl: Send command "+cmdParam);
 				_mount.StartSlewingCommand.Execute(cmdParam);
 				e.Handled = true;
 			}
@@ -73,6 +77,8 @@ namespace OATControl
 				case Key.Right: cmdParam = "-E"; break;
 				case Key.W: cmdParam = "-A"; break;
 				case Key.S: cmdParam = "-Z"; break;
+				case Key.X: cmdParam = "-F"; break;
+				case Key.C: cmdParam = "-G"; break;
 				case Key.D1: _mount.SlewRate = 1; break;
 				case Key.D2: _mount.SlewRate = 2; break;
 				case Key.D3: _mount.SlewRate = 3; break;

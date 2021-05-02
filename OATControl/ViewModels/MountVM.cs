@@ -74,6 +74,7 @@ namespace OATControl.ViewModels
 		string _driftAlignStatus = "Drift Alignment";
 		float _driftPhase = 0;
 		DateTime _connectedAt = DateTime.UtcNow;
+		string _lastDirection = string.Empty;
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
@@ -91,6 +92,7 @@ namespace OATControl.ViewModels
 		string _scopeDECGuideMS = "-";
 		bool _scopeHasAZ = false;
 		bool _scopeHasALT = false;
+		bool _scopeHasFOC = false;
 		string _scopeBoard = string.Empty;
 		string _scopeDisplay = string.Empty;
 		string _scopeFeatures = string.Empty;
@@ -202,20 +204,11 @@ namespace OATControl.ViewModels
 			{
 				_pointsOfInterest = new PointsOfInterest();
 				_pointsOfInterest.ReadFromXml(poiFile);
-				XDocument doc = XDocument.Load(poiFile);
-				//_pointsOfInterest = doc.Element("PointsOfInterest").Elements("Object").Select(e => new PointOfInterest(e)).ToList();
-				//_pointsOfInterest.Sort((p1, p2) =>
-				//{
-				//	if (p1.Name.StartsWith("Polaris")) return -1;
-				//	if (p2.Name.StartsWith("Polaris")) return 1;
-				//	return p1.Name.CompareTo(p2.Name);
-				//});
-				//_pointsOfInterest.Insert(0, new PointOfInterest("--- Select Target Object ---"));
 				_selectedPointOfInterest = null;
 				_pointsOfInterest.CalcDistancesFrom(CurrentRATotalHours, CurrentDECTotalHours, 0, 0);
 				Log.WriteLine("Mount: Successfully read {0} Points of Interest.", _pointsOfInterest.Count - 1);
 			}
-
+			
 			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
 			Log.WriteLine("Mount: Initialization of OATControl {0} complete...", this.Version);
 		}
@@ -754,7 +747,21 @@ namespace OATControl.ViewModels
 			if ((dir != 'a') && (dir != 'z'))
 			{
 				var doneEvent = new AsyncAutoResetEvent();
-				_oatMount?.SendCommand(string.Format(":Q{0}#", dir), (a) => { doneEvent.Set(); });
+				if ((dir == 'f') || (dir == 'g'))
+				{
+					if (ScopeHasFOC)
+					{
+						_oatMount?.SendCommand(":FQ#", (a) => { doneEvent.Set(); });
+					}
+					else
+					{
+						doneEvent.Set();
+					}
+				}
+				else
+				{
+					_oatMount?.SendCommand(string.Format(":Q{0}#", dir), (a) => { doneEvent.Set(); });
+				}
 				await doneEvent.WaitAsync();
 			}
 		}
@@ -764,10 +771,21 @@ namespace OATControl.ViewModels
 			float[] rateDistance = { 0, 0.25f, 2.0f, 7.5f, 30.0f };
 			var doneEvent = new AsyncAutoResetEvent();
 			float distance = rateDistance[SlewRate];
-			char sign = (dir == 'a') ? '+' : '-';
+			char sign = (dir == 'a') || (dir == 'f') ? '+' : '-';
 			if ((dir == 'a') || (dir == 'z'))
 			{
 				_oatMount?.SendCommand(string.Format(_oatCulture, ":MAL{0}{1:0.0}#", sign, distance), (a) => { doneEvent.Set(); });
+			}
+			else if ((dir == 'f') || (dir == 'g'))
+			{
+				if (ScopeHasFOC)
+				{
+					_oatMount?.SendCommand(string.Format(_oatCulture, ":F{0}#", sign), (a) => { doneEvent.Set(); });
+				}
+				else
+				{
+					doneEvent.Set();
+				}
 			}
 			else
 			{
@@ -778,15 +796,19 @@ namespace OATControl.ViewModels
 
 		private async Task OnStartSlewing(string direction)
 		{
-			bool turnOn = direction[0] == '+';
-			char dir = char.ToLower(direction[1]);
-			if (turnOn)
+			if (direction != _lastDirection)
 			{
-				await OnStartSlewing(dir);
-			}
-			else
-			{
-				await OnStopSlewing(dir);
+				bool turnOn = direction[0] == '+';
+				char dir = char.ToLower(direction[1]);
+				if (turnOn)
+				{
+					await OnStartSlewing(dir);
+				}
+				else
+				{
+					await OnStopSlewing(dir);
+				}
+				_lastDirection = direction;
 			}
 		}
 
@@ -1280,6 +1302,7 @@ namespace OATControl.ViewModels
 
 			ScopeHasALT = false;
 			ScopeHasAZ = false;
+			ScopeHasFOC = false;
 			ScopeFeatures = "";
 			ScopeDisplay = "None";
 			_raIsNEMA = raParts[0] == "NEMA";
@@ -1326,6 +1349,11 @@ namespace OATControl.ViewModels
 				else if (hwParts[i] == "LCD_JOY_I2C_SSD1306")
 				{
 					ScopeDisplay = "Pixel OLED (SSD1306)";
+				}
+				else if (hwParts[i] == "FOC")
+				{
+					ScopeHasFOC = true;
+					ScopeFeatures += "Focuser, ";
 				}
 			}
 			if (string.IsNullOrEmpty(ScopeFeatures))
@@ -2095,6 +2123,12 @@ namespace OATControl.ViewModels
 		{
 			get { return _scopeHasAZ; }
 			set { SetPropertyValue(ref _scopeHasAZ, value); }
+		}
+
+		public bool ScopeHasFOC
+		{
+			get { return _scopeHasFOC; }
+			set { SetPropertyValue(ref _scopeHasFOC, value); }
 		}
 
 		public string ScopeLatitude
