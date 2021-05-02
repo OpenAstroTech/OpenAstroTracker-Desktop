@@ -780,6 +780,7 @@ namespace OATControl.ViewModels
 			{
 				if (ScopeHasFOC)
 				{
+					_oatMount?.SendCommand(string.Format(_oatCulture, ":F{0}#", SlewRate), (a) => { });
 					_oatMount?.SendCommand(string.Format(_oatCulture, ":F{0}#", sign), (a) => { doneEvent.Set(); });
 				}
 				else
