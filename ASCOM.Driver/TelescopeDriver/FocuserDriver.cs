@@ -273,8 +273,8 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("Focuser:Absolute Get", false.ToString());
-				return false; // This is an absolute focuser
+				_tl.LogMessage("Focuser:Absolute Get", true.ToString());
+				return true; // This is an absolute focuser
 			}
 		}
 
@@ -327,19 +327,20 @@ namespace ASCOM.OpenAstroTracker
 			}
 		}
 
-		public void Move(int steps)
+		public void Move(int newPosition)
 		{
-			_tl.LogMessage("Focuser:Move", steps.ToString());
-			CommandBlind($":FM{steps}#", false);
+			_tl.LogMessage("Focuser:MoveAbs To", newPosition.ToString());
+			int currentPosition = Convert.ToInt32(CommandString($":Fp#,#", false));
+			int moveBy = newPosition - currentPosition;
+			CommandBlind($":FM{moveBy}#", false);
 		}
 
 		public int Position
 		{
 			get
 			{
-				throw new ASCOM.PropertyNotImplementedException("Position", false);
-				//var response = CommandString(":Fp#,#", false);
-				//return Convert.ToInt32(response); // Return the focuser position
+				var response = CommandString(":Fp#,#", false);
+				return Convert.ToInt32(response); // Return the focuser position
 			}
 		}
 
