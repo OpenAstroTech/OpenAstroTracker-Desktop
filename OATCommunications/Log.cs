@@ -19,8 +19,17 @@ namespace OATCommunications.Utilities
 		private static List<string> lstBuffer = new List<string>();
 		private static DateTime dtLastUpdate = DateTime.Now.AddSeconds(5.0);
 		private static int maxBuffered = 0;
+#if DEBUG
 		private static bool logging = true;
+#else
+		private static bool logging = false;
+#endif
 
+
+		public static void EnableLogging()
+		{
+			logging = true;
+		}
 
 		public static string Filename
 		{

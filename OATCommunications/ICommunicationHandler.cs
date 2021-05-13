@@ -7,6 +7,16 @@ using OATCommunications.CommunicationHandlers;
 namespace OATCommunications
 {
     public interface ICommunicationHandler {
+        
+        // Connect the device (for devices that keep an open connection.
+        bool Connect();
+
+        // Disconnect from the device
+        void Disconnect();
+
+        // Are we connected
+        bool Connected { get; }
+
         // Send a command, no response expected
         void SendBlind(string command, Action<CommandResponse> onFullFilledAction);
 
@@ -19,9 +29,5 @@ namespace OATCommunications
 
         // Send a command, expect a single digit response
         void SendCommandConfirm(string command, Action<CommandResponse> onFullFilledAction);
-
-        bool Connected { get; }
-
-        void Disconnect();
     }
 }

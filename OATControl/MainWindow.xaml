@@ -310,10 +310,10 @@
 					<ColumnDefinition Width="50"/>
 				</Grid.ColumnDefinitions>
 
-				<controls:PushButton Grid.Column="1" Grid.Row="1" Width="90" Height="90" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="W" />
-				<controls:PushButton Grid.Column="2" Grid.Row="0" Width="90" Height="90" Direction="N" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="N" />
-				<controls:PushButton Grid.Column="3" Grid.Row="1" Width="90" Height="90" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="E" />
-				<controls:PushButton Grid.Column="2" Grid.Row="3" Width="90" Height="90" Direction="S" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="S" />
+				<controls:PushButton Grid.Column="1" Grid.Row="1" Width="90" Height="90" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="W" />
+				<controls:PushButton Grid.Column="2" Grid.Row="0" Width="90" Height="90" Direction="N" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="N" />
+				<controls:PushButton Grid.Column="3" Grid.Row="1" Width="90" Height="90" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="E" />
+				<controls:PushButton Grid.Column="2" Grid.Row="3" Width="90" Height="90" Direction="S" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="S" />
 
 				<StackPanel Grid.Column="2" Grid.Row="1" Orientation="Vertical">
 					<Button Margin="2,0,2,2" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding StopSlewingCommand}" >Stop</Button>
@@ -494,8 +494,8 @@
 					<RowDefinition Height="Auto" />
 				</Grid.RowDefinitions>
 				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="Auto" />
 				</Grid.ColumnDefinitions>
 
@@ -516,7 +516,7 @@
 						<RowDefinition Height="Auto" />
 					</Grid.RowDefinitions>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="Auto" />
 						<ColumnDefinition Width="Auto" />
 						<ColumnDefinition Width="Auto" />
 						<ColumnDefinition Width="Auto" />
@@ -539,7 +539,7 @@
 						<TextBlock Text="S" Style="{StaticResource TextBlockStatus}"  />
 					</DockPanel>
 
-					<DockPanel Grid.Row="1" Grid.Column="0" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsTracking}">
+					<DockPanel Grid.Row="1" Grid.Column="0" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsTracking}" Margin="10,0">
 						<TextBlock Text="T" Style="{StaticResource TextBlockStatus}" />
 					</DockPanel>
 				</Grid>
@@ -563,8 +563,17 @@
 				</Grid.ColumnDefinitions>
 				<TextBlock Grid.Column="0" Text="Connected" Style="{StaticResource TextBlockLabelSmall}"/>
 				<TextBlock Grid.Column="1" MinWidth="64" Text="{Binding ConnectedTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
-
 			</Grid>
+
+			<Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Column="0" Text="LST" Style="{StaticResource TextBlockLabelSmall}"/>
+				<TextBlock Grid.Column="1" MinWidth="64" Text="{Binding ScopeSiderealTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
+			</Grid>
+
 
 			<Grid Grid.Row="2" Grid.Column="1" >
 				<Grid.ColumnDefinitions>
