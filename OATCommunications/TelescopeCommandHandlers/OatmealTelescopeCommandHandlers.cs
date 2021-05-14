@@ -267,13 +267,13 @@ namespace OATCommunications
 
 			FloatToHMS(Math.Abs(position.Declination), out deg, out min, out sec);
 			string sign = position.Declination < 0 ? "-" : "+";
-			SendCommand(string.Format(":Sd{0}{1:00}*{2:00}:{3:00}#,n", sign, deg, min, sec), (decResult) =>
+			SendCommand($":Sd{sign}{deg:00}*{min:00}:{sec:00}#,n", (decResult) =>
 			{
 				success = decResult.Success && decResult.Data == "1";
 			});
 
 			FloatToHMS(Math.Abs(position.RightAscension), out hour, out min, out sec);
-			SendCommand(string.Format(":Sr{0:00}:{1:00}:{2:00}#,n", hour, min, sec), (raResult) =>
+			SendCommand($":Sr{hour:00}:{min:00}:{sec:00}#,n", (raResult) =>
 			{
 				success = success && raResult.Success && raResult.Data == "1";
 			});
@@ -295,13 +295,13 @@ namespace OATCommunications
 
 			FloatToHMS(Math.Abs(position.Declination), out deg, out min, out sec);
 			string sign = position.Declination < 0 ? "-" : "+";
-			SendCommand(string.Format(":Sd{0}{1:00}*{2:00}:{3:00}#,n", sign, deg, min, sec), (decResult) =>
+			SendCommand($":Sd{sign}{deg:00}*{min:00}:{sec:00}#,n", (decResult) =>
 			{
 				success = decResult.Success && decResult.Data == "1";
 			});
 
 			FloatToHMS(Math.Abs(position.RightAscension), out hour, out min, out sec);
-			SendCommand(string.Format(":Sr{0:00}:{1:00}:{2:00}#,n", hour, min, sec), (raResult) =>
+			SendCommand($":Sr{hour:00}:{min:00}:{sec:00}#,n", (raResult) =>
 			{
 				success = success && raResult.Success && raResult.Data == "1";
 			});

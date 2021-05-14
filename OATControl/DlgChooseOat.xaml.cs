@@ -326,7 +326,7 @@ namespace OATControl
 
 				case Steps.WaitForBaudrate:
 				case Steps.WaitForConnection:
-					GPSStatus = string.Format("Connecting to OAT on {0}{1}", SelectedDevice, SelectedDevice.StartsWith("Serial") ? " at " + SelectedBaudRate + " baud" : "");
+					GPSStatus = $"Connecting to OAT on {SelectedDevice}{(SelectedDevice.StartsWith("Serial") ? " at " + SelectedBaudRate + " baud" : "")}";
 					ShowGPSStatus = true;
 					CurrentStep = Steps.CheckHardware;
 					break;
@@ -522,7 +522,7 @@ namespace OATControl
 							break;
 						}
 
-						GPSStatus = string.Format("Waiting {0:0}s for GPS to find satellites and sync...", MaxWaitForGPS - elapsed.TotalSeconds);
+						GPSStatus = $"Waiting {MaxWaitForGPS - elapsed.TotalSeconds:0}s for GPS to find satellites and sync...";
 						await Task.Delay(150);
 
 						bool gpsIsSyncd = false;

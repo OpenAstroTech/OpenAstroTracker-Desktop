@@ -27,11 +27,15 @@ namespace OATCommunications.CommunicationHandlers
 		private ManualResetEvent _jobsProcessorStopped = new ManualResetEvent(false);
 		private Thread _jobProcessingThread;
 		private bool _processJobs;
+#if DEBUG
 		protected bool _logJobs = true;
+#else
+		protected bool _logJobs = false;
+#endif
 
 		protected void StartJobsProcessor()
 		{
-			Log.WriteLine("COMMS: Start Jobs processor");
+			if (_logJobs) Log.WriteLine("COMMS: Start Jobs processor");
 			_jobs = new Queue<Job>();
 			_processJobs = true;
 			_jobsProcessorStopped.Reset();
@@ -41,12 +45,24 @@ namespace OATCommunications.CommunicationHandlers
 
 		protected void StopJobsProcessor()
 		{
-			Log.WriteLine("COMMS: Stop Jobs processor");
-			_processJobs = false;
-			_jobsAvailable.Set();
-			_jobsProcessorStopped.WaitOne();
-			_jobsProcessorStopped.Reset();
-			_jobProcessingThread.Join();
+			if (_logJobs) Log.WriteLine("COMMS: Stop Jobs processor");
+			if (_jobProcessingThread != null)
+			{
+				if (_logJobs) Log.WriteLine("COMMS: Stop Jobs processor, setting jobsAvailable event");
+				_processJobs = false;
+				_jobsAvailable.Set();
+				if (_logJobs) Log.WriteLine("COMMS: Waiting for Jobs processor stop event");
+				_jobsProcessorStopped.WaitOne();
+				_jobsProcessorStopped.Reset();
+				if (_logJobs) Log.WriteLine("COMMS: Waiting for Jobs processor thread end");
+				_jobProcessingThread.Join();
+				_jobProcessingThread = null;
+				if (_logJobs) Log.WriteLine("COMMS: Done stopping Jobs processor");
+			}
+			else
+			{
+				if (_logJobs) Log.WriteLine("COMMS: Jobs processor is not running!");
+			}
 		}
 
 		public void SendBlind(string command, Action<CommandResponse> onFullFilledAction)
@@ -81,7 +97,7 @@ namespace OATCommunications.CommunicationHandlers
 
 		protected void ProcessJobQueue(object obj)
 		{
-			Log.WriteLine("JOBPROC: Start Jobs thread");
+			if (_logJobs) Log.WriteLine("JOBPROC: Start Jobs thread");
 
 			do
 			{
@@ -111,14 +127,14 @@ namespace OATCommunications.CommunicationHandlers
 				if (_logJobs) Log.WriteLine("JOBPROC: Completed job [{0}]", job.Command);
 			}
 			while (_processJobs);
-			Log.WriteLine("JOBPROC: End Jobs thread");
+			if (_logJobs) Log.WriteLine("JOBPROC: End Jobs thread");
 			_jobsProcessorStopped.Set();
 		}
 
 		protected abstract void RunJob(Job job);
 
 		public abstract bool Connected { get; }
-
 		public abstract void Disconnect();
+		public abstract bool Connect();
 	}
 }

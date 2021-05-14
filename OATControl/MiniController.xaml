@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Controls"
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="394" MaxWidth="394" MinWidth="350" WindowStyle="None" >
+        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="510" MaxWidth="510" MinWidth="350" WindowStyle="None" >
 	<Window.Resources>
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
@@ -31,6 +31,12 @@
 			<Setter Property="HorizontalAlignment" Value="Stretch" />
 			<Setter Property="TextAlignment" Value="Center" />
 			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
+		</Style>
+		<Style x:Key="TextBlockLabelTiny" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+			<Setter Property="FontSize" Value="10" />
+		</Style>
+		<Style x:Key="TextBlockLabelTinyLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelTiny}">
+			<Setter Property="Foreground" Value="#C20" />
 		</Style>
 		<Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
 			<Setter Property="Width" Value="16" />
@@ -92,17 +98,23 @@
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="80"/>
-			<ColumnDefinition Width="40"/>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
-		<TextBlock Grid.Row="0" Grid.Column="0" Text="RA:" Style="{StaticResource TextBlockLabelSmall}" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove"  Cursor="SizeAll" />
+		<TextBlock Grid.Row="0" Grid.Column="0" Text="RA:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove"  Cursor="SizeAll" />
 		<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentRAString}" Style="{StaticResource TextBlockLabelValue}" />
 
-		<controls:PushButton Grid.RowSpan="2" Grid.Column="2" Width="36" Height="32" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="W" />
-		<controls:PushButton Grid.Row="0" Grid.Column="3" Width="36" Height="36" Direction="N" Padding="0,0,0,4" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="N" />
-		<controls:PushButton Grid.Row="1" Grid.Column="3" Width="36" Height="36" Direction="S" Padding="0,0,0,4" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="S" />
-		<controls:PushButton Grid.RowSpan="2" Grid.Column="4" Width="36" Height="32" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding StartSlewingCommand}" CommandParameter="E" />
+		<controls:PushButton Grid.RowSpan="2" Grid.Column="2" Width="36" Height="32" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="W" />
+		<controls:PushButton Grid.Row="0" Grid.Column="3" Width="36" Height="36" Direction="N" Padding="0,0,0,4" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="N" />
+		<controls:PushButton Grid.Row="1" Grid.Column="3" Width="36" Height="36" Direction="S" Padding="0,0,0,4" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="S" />
+		<controls:PushButton Grid.RowSpan="2" Grid.Column="4" Width="36" Height="32" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="E" />
 
-		<TextBlock Grid.Row="1" Grid.Column="0" Text="DEC:" Style="{StaticResource TextBlockLabelSmall}" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove" Cursor="SizeAll" />
+	
+		<TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" Grid.RowSpan="2" IsHitTestVisible="False" Text="RA/DEC" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,0,0,3" Style="{StaticResource TextBlockLabelTinyLabel}"/>
+
+		<TextBlock Grid.Row="1" Grid.Column="0" Text="DEC:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove" Cursor="SizeAll" />
 		<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentDECString}" Style="{StaticResource TextBlockLabelValue}" />
 
 		<StackPanel Grid.RowSpan="2" Grid.Column="5" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}">
@@ -127,20 +139,53 @@
 		<Button Grid.Row="0" Grid.Column="6" Margin="8,2" Padding="10,0" Content="Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}"/>
 		<Button Grid.Row="1" Grid.Column="6" Margin="8,2" Padding="10,0" Content="{Binding ParkCommandString}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}"/>
 
-		<controls:PushButton Grid.Row="0" Grid.Column="7" Width="36" Height="36" Direction="N" 
-							 Padding="0,0,4,0" 
-							 Margin="0,0,4,0"
+		<!--  AZ/ALT Controls -->
+		<controls:PushButton Grid.RowSpan="2" Grid.Column="7" Width="36" Height="32" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="L" Visibility="{Binding ScopeHasAZ, Converter={StaticResource CollapseIfFalse}}"/>
+		<TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="7" IsHitTestVisible="False" Text="A" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="6,0,0,1" Style="{StaticResource TextBlockLabelTiny}" Visibility="{Binding ScopeHasAZ, Converter={StaticResource CollapseIfFalse}}"/>
+
+		<TextBlock Grid.Row="0" Grid.Column="8" IsHitTestVisible="False" Text="W" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,3,0,0" Style="{StaticResource TextBlockLabelTiny}" Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}"/>
+		<TextBlock Grid.Row="1" Grid.Column="8" IsHitTestVisible="False" Text="S" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,0,0,12" Style="{StaticResource TextBlockLabelTiny}" Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}"/>
+
+		<TextBlock Grid.Row="0" Grid.Column="8" Grid.RowSpan="2" IsHitTestVisible="False" Text="AZ/ALT" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,0,0,3" Style="{StaticResource TextBlockLabelTinyLabel}" Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}"/>
+
+		<controls:PushButton Grid.Row="0" Grid.Column="8" Width="36" Height="36" Direction="N" 
+							 Padding="0,0,0,4" 
+							 Margin="0,0,0,0"
 							 IsEnabled="{Binding MountConnected}" 
-							 Command="{Binding StartSlewingCommand}" 
+							 Command="{Binding ChangeSlewingStateCommand}" 
 							 CommandParameter="A" 
 							 Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}"/>
-		<controls:PushButton Grid.Row="1" Grid.Column="7" Width="36" Height="36" Direction="S" 
-							 Padding="0,0,4,0" 
-							 Margin="0,0,4,0"
+		<controls:PushButton Grid.Row="1" Grid.Column="8" Width="36" Height="36" Direction="S" 
+							 Padding="0,0,0,4" 
+							 Margin="0,0,0,0"
 							 IsEnabled="{Binding MountConnected}" 
-							 Command="{Binding StartSlewingCommand}" 
+							 Command="{Binding ChangeSlewingStateCommand}" 
 							 CommandParameter="Z" 
 							 Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}"/>
+
+		<controls:PushButton Grid.RowSpan="2" Grid.Column="9" Width="36" Height="32" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="R" Visibility="{Binding ScopeHasAZ, Converter={StaticResource CollapseIfFalse}}"/>
+		<TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="9" IsHitTestVisible="False" Text="D" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,0,6,1" Style="{StaticResource TextBlockLabelTiny}" Visibility="{Binding ScopeHasAZ, Converter={StaticResource CollapseIfFalse}}"/>
+
+		<!--  Focuser Controls -->
+		<TextBlock Grid.Row="0" Grid.Column="10" IsHitTestVisible="False" Text="X" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,3,0,0" Style="{StaticResource TextBlockLabelTiny}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
+		<TextBlock Grid.Row="1" Grid.Column="10" IsHitTestVisible="False" Text="C" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,0,0,12" Style="{StaticResource TextBlockLabelTiny}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
+
+		<TextBlock Grid.Row="0" Grid.Column="10" Grid.RowSpan="2" IsHitTestVisible="False" Text="FOCUS" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,0,0,3" Style="{StaticResource TextBlockLabelTinyLabel}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
+
+		<controls:PushButton Grid.Row="0" Grid.Column="10" Width="36" Height="36" Direction="N" 
+							 Padding="0,0,0,4" 
+							 Margin="0,0,0,0"
+							 IsEnabled="{Binding MountConnected}" 
+							 Command="{Binding ChangeSlewingStateCommand}" 
+							 CommandParameter="F" 
+							 Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
+		<controls:PushButton Grid.Row="1" Grid.Column="10" Width="36" Height="36" Direction="S" 
+							 Padding="0,0,0,4" 
+							 Margin="0,0,0,0"
+							 IsEnabled="{Binding MountConnected}" 
+							 Command="{Binding ChangeSlewingStateCommand}" 
+							 CommandParameter="G" 
+							 Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
 
 	</Grid>
 </Window>

@@ -31,7 +31,7 @@ namespace OATControl.Controls
 			"Direction",
 			typeof(char),
 			typeof(PushButton),
-			new PropertyMetadata('A', PushButton.DirectionPropertyChanged));
+			new PropertyMetadata('*', PushButton.DirectionPropertyChanged));
 
 		public static readonly DependencyProperty IsPressedProperty = DependencyProperty.Register(
 			"IsPressed",

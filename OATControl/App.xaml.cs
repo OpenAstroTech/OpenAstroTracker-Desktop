@@ -1,14 +1,9 @@
 ﻿using MahApps.Metro;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
-using OATCommunications.Utilities;
 using System.Threading;
 using System.Windows.Threading;
+using OATCommunications.Utilities;
 
 namespace OATControl
 {
@@ -20,17 +15,27 @@ namespace OATControl
 	{
 		public App()
 		{
-			Log.Init("OatControl");
-
 			// Add the event handler for handling non-UI thread exceptions to the event. 
 			AppDomain.CurrentDomain.UnhandledException += App.UnhandledException;
 
 			this.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(App.AppDispatcherUnhandledException);
-
-
 		}
+
 		protected override void OnStartup(StartupEventArgs e)
 		{
+#if DEBUG
+			Log.Init("OatControl");
+#else
+			if (e.Args.Length > 0)
+			{
+				if (e.Args[0].ToLower() == "-log")
+				{
+					Log.Init("OatControl");
+					Log.EnableLogging();
+				}
+			}
+#endif
+
 			ThemeManager.AddAccent("RedAccent", new Uri("pack://application:,,,/OATControl;component/Resources/RedAccent.xaml"));
 			ThemeManager.AddAppTheme("RedTheme", new Uri("pack://application:,,,/OATControl;component/Resources/RedTheme.xaml"));
 			ThemeManager.AddAccent("RedControls", new Uri("pack://application:,,,/OATControl;component/Resources/RedControls.xaml"));
@@ -42,7 +47,7 @@ namespace OATControl
 			// now set the Green accent and dark theme
 			ThemeManager.ChangeAppStyle(Application.Current,
 										ThemeManager.GetAccent("RedAccent"),
-										ThemeManager.GetAppTheme("RedTheme"));
+											ThemeManager.GetAppTheme("RedTheme"));
 
 
 			base.OnStartup(e);
@@ -69,29 +74,29 @@ namespace OATControl
 				Log.WriteLine("EXCPTN: Entered UnhandledException handler.\nException:\n{0}", (e.ExceptionObject != null) ? e.ExceptionObject.ToString() : "No exception!");
 			}
 
-            Log.Quit();
-            Environment.Exit(-1);
+			Log.Quit();
+			Environment.Exit(-1);
 		}
 
 
-        //-------------------------------------------------------------------------------------------------------------
-        /// <summary>
-        /// The application's unhandled exception handler.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="DispatcherUnhandledExceptionEventArgs"/> instance containing the event data.</param>
-        static void AppDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-        {
-            if (Interlocked.CompareExchange(ref App.exceptionReentrancy, 1, 0) == 0)
-            {
-                Log.WriteLine("EXCPTN: Entered AppDispatcherUnhandledException handler.\nException:\n{0}\nStacktrace:\n{1}", (e.Exception != null) ? e.Exception.ToString() : "No Exception!", (e.Exception != null) ? e.Exception.StackTrace : "No Stacktrace!");
+		//-------------------------------------------------------------------------------------------------------------
+		/// <summary>
+		/// The application's unhandled exception handler.
+		/// </summary>
+		/// <param name="sender">The sender.</param>
+		/// <param name="e">The <see cref="DispatcherUnhandledExceptionEventArgs"/> instance containing the event data.</param>
+		static void AppDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+		{
+			if (Interlocked.CompareExchange(ref App.exceptionReentrancy, 1, 0) == 0)
+			{
+				Log.WriteLine("EXCPTN: Entered AppDispatcherUnhandledException handler.\nException:\n{0}\nStacktrace:\n{1}", (e.Exception != null) ? e.Exception.ToString() : "No Exception!", (e.Exception != null) ? e.Exception.StackTrace : "No Stacktrace!");
 
-                // Prevent default unhandled exception processing
-                e.Handled = true;
-            }
+				// Prevent default unhandled exception processing
+				e.Handled = true;
+			}
 
-            Log.Quit();
-        }
+			Log.Quit();
+		}
 
-    }
+	}
 }

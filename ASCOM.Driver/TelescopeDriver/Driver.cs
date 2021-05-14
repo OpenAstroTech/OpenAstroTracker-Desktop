@@ -40,7 +40,6 @@ namespace ASCOM.OpenAstroTracker
 		private double _targetDec;
 		private bool _targetRaSet;
 		private bool _targetDecSet;
-		private readonly Mutex _mutexCommand = new Mutex(false, "CommMutex");
 		private bool _isConnected = false;
 
 		private ProfileData Profile => SharedResources.ReadProfile();
@@ -156,7 +155,7 @@ namespace ASCOM.OpenAstroTracker
 		/// </summary>
 		public void CommandBlind(string Command, bool Raw = false)
 		{
-			_mutexCommand.WaitOne();
+			SharedResources.OATCommandMutex.WaitOne();
 
 			try
 			{
@@ -169,7 +168,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 			finally
 			{
-				_mutexCommand.ReleaseMutex();
+				SharedResources.OATCommandMutex.ReleaseMutex();
 			}
 		}
 
@@ -186,7 +185,7 @@ namespace ASCOM.OpenAstroTracker
 		/// </summary>
 		public string CommandString(string Command, bool raw = false)
 		{
-			_mutexCommand.WaitOne();
+			SharedResources.OATCommandMutex.WaitOne();
 
 			try
 			{
@@ -202,7 +201,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 			finally
 			{
-				_mutexCommand.ReleaseMutex();
+				SharedResources.OATCommandMutex.ReleaseMutex();
 			}
 		}
 
@@ -223,10 +222,8 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				// this pattern seems to be needed to allow a public property to return a private field
-				string d = driverDescription;
-				LogMessage("Description Get", d);
-				return d;
+				LogMessage("Description Get", driverDescription);
+				return driverDescription;
 			}
 		}
 
@@ -234,8 +231,6 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				// Dim m_version As Version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version
-				// Dim s_driverInfo As String = "OpenAstroTracker ASCOM driver version: " + m_version.Major.ToString() + "." + m_version.Minor.ToString() + "." + m_version.Build.ToString()
 				string s_driverInfo = "OpenAstroTracker ASCOM driver version: " + Version;
 				LogMessage("DriverInfo Get", s_driverInfo);
 				return s_driverInfo;

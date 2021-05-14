@@ -15,7 +15,7 @@ namespace OATCommunications.CommunicationHandlers
 
 		public TcpCommunicationHandler(string spec)
 		{
-			Log.WriteLine($"COMMFACTORY: Creating Wifi handler at {spec} ...");
+			Log.WriteLine($"COMMFACTORY: Reading Wifi data from {spec} ...");
 
 			string ip = string.Empty;
 			string port = string.Empty;
@@ -27,27 +27,21 @@ namespace OATCommunications.CommunicationHandlers
 				{
 					ip = spec.Substring(0, colon);
 					port = spec.Substring(colon + 1);
-
-					Log.WriteLine($"COMMFACTORY: Wifi handler will monitor at {ip}:{port} ...");
-
 					_ip = IPAddress.Parse(ip);
 					_port = int.Parse(port);
-					_client = new TcpClient();
-					StartJobsProcessor();
 				}
 				catch (Exception ex)
 				{
-					Log.WriteLine($"COMMFACTORY: Failed to create TCP client. {ex.Message}");
+					Log.WriteLine($"COMMFACTORY: Failed to parse IP address and port. {ex.Message}");
 				}
 			}
 		}
 
 		public TcpCommunicationHandler(IPAddress ip, int port)
 		{
+			Log.WriteLine($"COMMFACTORY: Reading Wifi data from {ip.ToString()}:{port} ...");
 			_ip = ip;
 			_port = port;
-			_client = new TcpClient();
-			StartJobsProcessor();
 		}
 
 		protected override void RunJob(Job job)
@@ -151,6 +145,22 @@ namespace OATCommunications.CommunicationHandlers
 			{
 				return _client != null && _client.Connected;
 			}
+		}
+
+		public override bool Connect()
+		{
+			try
+			{
+				Log.WriteLine($"COMMFACTORY: Creating Wifi handler to monitor {_ip}:{_port} ...");
+				_client = new TcpClient();
+				Log.WriteLine("COMMFACTORY: Created TCP client, starting Jobs Processor ");
+				StartJobsProcessor();
+			}
+			catch (Exception ex)
+			{
+				Log.WriteLine($"COMMFACTORY: Failed to create TCP client. {ex.Message}");
+			}
+			return true;
 		}
 
 		public override void Disconnect()

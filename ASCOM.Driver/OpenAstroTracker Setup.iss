@@ -6,8 +6,8 @@
 
 [Setup]
 AppID={{2c1013c0-1014-47fa-ba24-80bdc1b77bc5}
-AppName=ASCOM OpenAstroTracker Telescope Driver
-AppVerName=ASCOM OpenAstroTracker Telescope Driver {#ApplicationVersion}
+AppName=ASCOM OpenAstroTracker Drivers
+AppVerName=ASCOM OpenAstroTracker Drivers {#ApplicationVersion}
 AppVersion={#ApplicationVersion}
 AppPublisher=writer <writer@writer.com>
 AppPublisherURL=mailto:writer@writer.com

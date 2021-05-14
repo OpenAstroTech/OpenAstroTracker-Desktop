@@ -1,4 +1,5 @@
-﻿using OATControl.Properties;
+﻿using OATCommunications.Utilities;
+using OATControl.Properties;
 using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -42,13 +43,18 @@ namespace OATControl
 				case Key.Down: cmdParam = "+S"; break;
 				case Key.Left: cmdParam = "+W"; break;
 				case Key.Right: cmdParam = "+E"; break;
-				case Key.W: cmdParam = "+A"; break;
-				case Key.S: cmdParam = "+Z"; break;
+				case Key.W: cmdParam = _mount.ScopeHasALT ? "+A" : ""; break;
+				case Key.S: cmdParam = _mount.ScopeHasALT ? "+Z" : ""; break;
+				case Key.A: cmdParam = _mount.ScopeHasAZ ? "+L" : ""; break;
+				case Key.D: cmdParam = _mount.ScopeHasAZ ? "+R" : ""; break;
+				case Key.X: cmdParam = _mount.ScopeHasFOC ? "+F" : ""; break;
+				case Key.C: cmdParam = _mount.ScopeHasFOC ? "+G" : ""; break;
 			}
 
 			if (!String.IsNullOrEmpty(cmdParam))
 			{
-				_mount.StartSlewingCommand.Execute(cmdParam);
+				Log.WriteLine("MiniCtrl: Send command "+cmdParam);
+				_mount.ChangeSlewingStateCommand.Execute(cmdParam);
 				e.Handled = true;
 			}
 
@@ -71,8 +77,12 @@ namespace OATControl
 				case Key.Down: cmdParam = "-S"; break;
 				case Key.Left: cmdParam = "-W"; break;
 				case Key.Right: cmdParam = "-E"; break;
-				case Key.W: cmdParam = "-A"; break;
-				case Key.S: cmdParam = "-Z"; break;
+				case Key.W: cmdParam = _mount.ScopeHasALT ? "-A" : ""; break;
+				case Key.S: cmdParam = _mount.ScopeHasALT ? "-Z" : ""; break;
+				case Key.A: cmdParam = _mount.ScopeHasAZ ? "-L" : ""; break;
+				case Key.D: cmdParam = _mount.ScopeHasAZ ? "-R" : ""; break;
+				case Key.X: cmdParam = _mount.ScopeHasFOC ? "-F" : ""; break;
+				case Key.C: cmdParam = _mount.ScopeHasFOC ? "-G" : ""; break;
 				case Key.D1: _mount.SlewRate = 1; break;
 				case Key.D2: _mount.SlewRate = 2; break;
 				case Key.D3: _mount.SlewRate = 3; break;
@@ -82,7 +92,7 @@ namespace OATControl
 
 			if (!String.IsNullOrEmpty(cmdParam))
 			{
-				_mount.StartSlewingCommand.Execute(cmdParam);
+				_mount.ChangeSlewingStateCommand.Execute(cmdParam);
 				e.Handled = true;
 			}
 

@@ -51,10 +51,22 @@ namespace ASCOM.OpenAstroTracker
 		private static double latitudeDefault = 30;
 		private static double longitudeDefault = -97;
 		private static double elevationDefault = 1;
+		private static Mutex _commandMutex;
 
 		//
 		// Public access to shared resources
 		//
+		public static Mutex OATCommandMutex
+		{
+			get
+			{
+				if (_commandMutex == null)
+				{
+					_commandMutex = new Mutex(false, "CommMutex");
+				}
+				return _commandMutex;
+			}
+		}
 
 		public static TraceLogger tl
 		{

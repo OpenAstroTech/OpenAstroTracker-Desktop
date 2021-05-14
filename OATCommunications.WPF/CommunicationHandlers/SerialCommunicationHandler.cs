@@ -31,7 +31,6 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				_port.DtrEnable = false;
 				_port.ReadTimeout = 1000;
 				_port.WriteTimeout = 1000;
-				StartJobsProcessor();
 			}
 		}
 
@@ -43,8 +42,10 @@ namespace OATCommunications.WPF.CommunicationHandlers
 		{
 			CommandResponse response = null;
 
-			if (EnsurePortIsOpen())
+			if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Processing Job", requestIndex, job.Command);
+			if (Connected)
 			{
+				if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: [{1}] Connected! Discarding any bytes in input buffer", requestIndex, job.Command);
 				_port.DiscardInBuffer();
 				requestIndex++;
 				try
@@ -103,62 +104,56 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				{
 					Log.WriteLine("[{0:0000}] SERIAL: [{1}] Failed to receive response to command. {2}", requestIndex, job.Command, ex.Message);
 					response = new CommandResponse(string.Empty, false, $"Unable to read response to {job.Command} from {_portName}. {ex.Message}");
-					_port.Close();
 				}
 			}
 			else
 			{
-				Log.WriteLine("[{0:0000}] SERIAL: Failed to open port {1}", requestIndex, _portName);
+				Log.WriteLine("[{0:0000}] SERIAL: Port {1} is not open", requestIndex, _portName);
 				response = new CommandResponse(string.Empty, false, $"Unable to open {_portName}");
 			}
 
+			if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: Calling OnFulFilled lambda", requestIndex);
 			job.OnFulFilled(response);
+			if (_logJobs) Log.WriteLine("[{0:0000}] SERIAL: Job completed", requestIndex);
 		}
 
-		private bool EnsurePortIsOpen()
+		public override bool Connect()
 		{
 			if (!_port.IsOpen)
 			{
-				int attempts = 0;
-				do
+				try
 				{
-					attempts++;
-					try
+					Log.WriteLine("SERIAL: Port {0} is not open, attempting to open...", _portName);
+					_port.Open();
+					if (_port.IsOpen)
 					{
-						Log.WriteLine("SERIAL: Port {0} is not open, attempt {1} to open...", _portName, attempts);
-						_port.Open();
-						Thread.Sleep(750); // Arduino resets on connection. Give it time to start up.
-						if (_port.IsOpen)
-						{
-							Log.WriteLine("SERIAL: Port is open, sending initial [:I#] command..");
-							_port.Write(":I#");
-							return true;
-						}
-						Log.WriteLine("SERIAL: Port did not open, sleeping and trying again..");
-						Thread.Sleep(750);
+						Log.WriteLine("SERIAL: Port is open, starting Jobs Processor.");
+						StartJobsProcessor();
 					}
-					catch (Exception ex)
+					else
 					{
-						Log.WriteLine("SERIAL: Failed to open the port on attempt {1}. {0}", ex.Message, attempts);
-						Thread.Sleep(250); // Wait a little before trying again.
+						Log.WriteLine("SERIAL: Port did not open.");
 					}
 				}
-				while (attempts < 3);
-				return false;
+				catch (Exception ex)
+				{
+					Log.WriteLine("SERIAL: Failed to open the port. {0}", ex.Message);
+				}
 			}
-			return true;
+			return _port.IsOpen;
 		}
 
 		public override void Disconnect()
 		{
+			Log.WriteLine("SERIAL: Stopping Jobs processor.");
+			StopJobsProcessor();
 			if (_port != null && _port.IsOpen)
 			{
-				Log.WriteLine("SERIAL: Stopping Jobs processor.");
-				StopJobsProcessor();
 				Log.WriteLine("SERIAL: Port is open, sending shutdown command [:Qq#]");
 				if (_port.IsOpen)
 				{
 					_port.Write(":Qq#");
+					Thread.Sleep(10);
 					Log.WriteLine("SERIAL: Closing port...");
 					_port.Close();
 				}
