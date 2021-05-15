@@ -303,7 +303,9 @@ namespace OATControl
 		protected bool TryParseLatLong(string latlong, ref float fLatLong)
 		{
 			var parts = latlong.Split('*', '\'');
-			fLatLong = 1.0f * int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0f;
+			fLatLong = 1.0f * int.Parse(parts[0]);
+			// Subtract if negative, also accounting for -0.x
+			fLatLong += (latlong[0].Equals('-') ? -1.0f : 1.0f) * int.Parse(parts[1]) / 60.0f;
 			return true;
 		}
 
