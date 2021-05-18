@@ -143,7 +143,7 @@ namespace OATCommunications.CommunicationHandlers
 		{
 			get
 			{
-				return _client != null && _client.Connected;
+				return _client != null;
 			}
 		}
 
@@ -154,6 +154,7 @@ namespace OATCommunications.CommunicationHandlers
 				Log.WriteLine($"COMMFACTORY: Creating Wifi handler to monitor {_ip}:{_port} ...");
 				_client = new TcpClient();
 				Log.WriteLine("COMMFACTORY: Created TCP client, starting Jobs Processor ");
+				StopJobsProcessor();
 				StartJobsProcessor();
 			}
 			catch (Exception ex)

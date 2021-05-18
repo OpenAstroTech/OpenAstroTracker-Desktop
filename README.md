@@ -16,6 +16,9 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V1.0.1.1 - Updates**
+- Fixed communication bug that prevented ESP32 from staying connected.
+
 **V1.0.1.0 - Updates**
 - Support new split ALT/AZ configuration
 - Allow ALT control in MiniController window (keys 'W' and 'S' to move up and down, 1 - 4 to select distance).
