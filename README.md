@@ -16,6 +16,11 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**V1.0.1.2 - Updates**
+- Re-enabled logging by default and provided a -nolog switch instead.
+- Added display of Focus stepping position if focuser addon is present.
+
+
 **V1.0.1.1 - Updates**
 - Fixed communication bug that prevented ESP32 from staying connected.
 
