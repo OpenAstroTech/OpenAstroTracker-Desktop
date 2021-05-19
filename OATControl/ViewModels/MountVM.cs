@@ -46,6 +46,7 @@ namespace OATControl.ViewModels
 		long _decStepper = 0;
 		string _decStepperTicks = "0";
 		long _trkStepper = 0;
+		long _focStepper = 0;
 		float _raStepsPerDegree = 1;
 		float _raStepsPerDegreeEdit = 1;
 		float _raStepperMinimum = -7;
@@ -349,6 +350,10 @@ namespace OATControl.ViewModels
 			Process.Start(info);
 		}
 
+		public bool IsLoggingEnabled
+		{
+			get { return Log.IsLoggingEnabled; }
+		}
 
 		private async Task OnSetHome()
 		{
@@ -556,6 +561,10 @@ namespace OATControl.ViewModels
 									CurrentDECDegree = int.Parse(parts[6].Substring(0, 3));
 									CurrentDECMinute = int.Parse(parts[6].Substring(3, 2));
 									CurrentDECSecond = int.Parse(parts[6].Substring(5, 2));
+									if (parts.Length > 8)
+									{
+										FocStepper = int.Parse(parts[7]);
+									}
 								}
 								catch (Exception ex)
 								{
@@ -1888,6 +1897,15 @@ namespace OATControl.ViewModels
 		{
 			get { return _trkStepper; }
 			set { SetPropertyValue(ref _trkStepper, value, OnRAPosChanged); }
+		}
+
+		/// <summary>
+		/// Gets or sets the FOC Stepper position
+		/// </summary>
+		public long FocStepper
+		{
+			get { return _focStepper; }
+			set { SetPropertyValue(ref _focStepper, value); }
 		}
 
 		/// <summary>

@@ -13,6 +13,7 @@
 		<converters:BoolToStringConverter x:Key="SlewModeConverter" TrueString="Pulsed" FalseString="Continuous" />
 		<converters:BoolToVisibilityConverter x:Key="TrueBoolToHidden" Collapse="False" IsReversed="True"/>
 		<converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
+		<converters:BoolToVisibilityConverter x:Key="CollapseIfFalse" Collapse="True" IsReversed="False" />
 		<converters:IntToBoolConverter x:Key="Int1ToBool" TrueValue="1" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
@@ -470,12 +471,12 @@
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto" />
 				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
 				<RowDefinition Height="*"/>
-				<RowDefinition Height="Auto" />
-				<RowDefinition Height="Auto" />
-				<RowDefinition Height="Auto" />
-				<RowDefinition Height="Auto" />
-				<RowDefinition Height="Auto" />
 				<RowDefinition Height="Auto" />
 			</Grid.RowDefinitions>
 			<Grid.ColumnDefinitions>
@@ -488,6 +489,7 @@
 
 			<Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" >
 				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
 					<RowDefinition Height="Auto" />
 					<RowDefinition Height="Auto" />
 					<RowDefinition Height="Auto" />
@@ -552,6 +554,9 @@
 
 				<TextBlock Grid.Row="3" Grid.Column="1" Text="TRK Stepper"  Style="{StaticResource TextBlockLabelSmall}"/>
 				<TextBlock Grid.Row="3" Grid.Column="2" MinWidth="64" Text="{Binding TrkStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
+
+				<TextBlock Grid.Row="4" Grid.Column="1" Text="FOC Stepper"  Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}" />
+				<TextBlock Grid.Row="4" Grid.Column="2" MinWidth="64" Text="{Binding FocStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
 			</Grid>
 
 			<TextBlock Grid.Column="0" Grid.Row="1" Text="Tracking" Margin="0,5,0,1"  Style="{StaticResource TextBlockHeading}" />
@@ -565,7 +570,7 @@
 				<TextBlock Grid.Column="1" MinWidth="64" Text="{Binding ConnectedTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
 			</Grid>
 
-			<Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" >
+			<Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" Margin="0,0,0,10">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="Auto" />
@@ -591,9 +596,9 @@
 			<Controls:ToggleSwitchButton Grid.Row="3" Grid.Column="1" Margin="0,2" IsEnabled="{Binding MountConnected}" Name="ShowLimits" ThumbIndicatorBrush="#E00" IsChecked="{Binding ShowDECLimits}"/>
 
 			
-			<Button Grid.Row="3" Grid.Column="2" Content="Mini-Control" Margin="0,2" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}" />
-			<Button Grid.Row="4" Grid.Column="2" Content="Settings" Margin="0,2" HorizontalAlignment="Right" Padding="15,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
-			<Button Grid.Row="5" Grid.Column="2" Content="Log Files" Margin="0,2" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" />
+			<Button Grid.Row="3" Grid.Column="2" Content="Mini-Control" Margin="0,8" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}" />
+			<Button Grid.Row="4" Grid.Column="2" Content="Settings" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
+			<Button Grid.Row="5" Grid.Column="2" Content="Log Files" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" Visibility="{Binding IsLoggingEnabled, Converter={StaticResource CollapseIfFalse}}"/>
 
 			<Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" >
 				<Grid.ColumnDefinitions>
@@ -602,7 +607,7 @@
 					<ColumnDefinition Width="*" />
 				</Grid.ColumnDefinitions>
 				<TextBlock Grid.Row="0" Grid.Column="1"  Text="Mount" Style="{StaticResource TextBlockHeading}" Margin="0,10,0,0" HorizontalAlignment="Right"/>
-				<Button Grid.Column="2" Margin="10,12,0,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ConnectScopeCommand}" Content="{Binding ConnectCommandString}"/>
+				<Button Grid.Column="2" Margin="0,12,0,0" Width="110" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ConnectScopeCommand}" Content="{Binding ConnectCommandString}" HorizontalAlignment="Right"/>
 			</Grid>
 			<TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScopeName}" Style="{StaticResource TextBlockLabel}" Margin="0,2,0,0" HorizontalAlignment="Right" />
 		</Grid>

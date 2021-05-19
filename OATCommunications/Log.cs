@@ -26,9 +26,14 @@ namespace OATCommunications.Utilities
 #endif
 
 
-		public static void EnableLogging()
+		public static void EnableLogging(bool state = true)
 		{
-			logging = true;
+			logging = state;
+		}
+
+		public static bool IsLoggingEnabled
+		{
+			get { return logging; }
 		}
 
 		public static string Filename
@@ -47,10 +52,10 @@ namespace OATCommunications.Utilities
 
 			// Create this session logfile
 			sPath = string.Format("{0}\\OATControl_{1}-{2}.log", sFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"), Environment.UserName);
-			
+
 			// Find old logfiles and keep the latest 5 around.
 			var oldLogFiles = Directory.GetFiles(sFolder, "OATControl*.log").OrderByDescending(s => s).Skip(5).ToList();
-			
+
 			// Probably should run this by the user.... for now they can jhust manually delete them
 			// oldLogFiles.AddRange(Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "oat_*.log"));
 

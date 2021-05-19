@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.0.1.2                                              20 May 2021
+- Re-enabled logging by default and provided a -nolog switch instead.
+- Added display of Focus stepping position if focuser addon is present.
+
 OATControl V1.0.1.1                                              18 May 2021
 - Fixed communication bug that prevented ESP32 from staying connected.
 

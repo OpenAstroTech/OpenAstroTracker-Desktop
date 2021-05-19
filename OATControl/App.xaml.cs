@@ -23,18 +23,21 @@ namespace OATControl
 
 		protected override void OnStartup(StartupEventArgs e)
 		{
-#if DEBUG
-			Log.Init("OatControl");
-#else
+			bool enableLogging = true;
+
 			if (e.Args.Length > 0)
 			{
-				if (e.Args[0].ToLower() == "-log")
+				if (e.Args[0].ToLower() == "-nolog")
 				{
-					Log.Init("OatControl");
-					Log.EnableLogging();
+					enableLogging = false;
 				}
 			}
-#endif
+
+			if (enableLogging)
+			{
+				Log.Init("OatControl");
+				Log.EnableLogging();
+			}
 
 			ThemeManager.AddAccent("RedAccent", new Uri("pack://application:,,,/OATControl;component/Resources/RedAccent.xaml"));
 			ThemeManager.AddAppTheme("RedTheme", new Uri("pack://application:,,,/OATControl;component/Resources/RedTheme.xaml"));
