@@ -38,5 +38,8 @@
     <Setting Name="BaudRate" Type="System.String" Scope="User">
       <Value Profile="(Default)">19200</Value>
     </Setting>
+    <Setting Name="KeepMiniControlOnTop" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
