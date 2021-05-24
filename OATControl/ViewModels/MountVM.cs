@@ -1855,7 +1855,7 @@ namespace OATControl.ViewModels
 
 		public string CurrentRAString
 		{
-			get { return $"{CurrentRAHour:00}°{CurrentRAMinute:00}'{CurrentRASecond:00}"; }
+			get { return $"{CurrentRAHour:00}h{CurrentRAMinute:00}m{CurrentRASecond:00}s"; }
 		}
 
 		public string CurrentDECString
