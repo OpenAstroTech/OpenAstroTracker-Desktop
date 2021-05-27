@@ -166,5 +166,17 @@ namespace OATControl.Properties {
                 this["BaudRate"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool KeepMiniControlOnTop {
+            get {
+                return ((bool)(this["KeepMiniControlOnTop"]));
+            }
+            set {
+                this["KeepMiniControlOnTop"] = value;
+            }
+        }
     }
 }

@@ -71,6 +71,7 @@ namespace OATControl.ViewModels
 		bool _isSlewingWest = false;
 		bool _isSlewingEast = false;
 		bool _driftAlignRunning = false;
+		bool _keepMiniControllerOnTop = false;
 		SemaphoreSlim exclusiveAccess = new SemaphoreSlim(1, 1);
 		string _driftAlignStatus = "Drift Alignment";
 		float _driftPhase = 0;
@@ -322,6 +323,8 @@ namespace OATControl.ViewModels
 			if (_miniController == null)
 			{
 				_miniController = new MiniController(this);
+				_miniController.Topmost = KeepMiniControlOnTop;
+
 				if (Settings.Default.MiniControllerPos.X != -1)
 				{
 					_miniController.Left = Settings.Default.MiniControllerPos.X;
@@ -1001,6 +1004,7 @@ namespace OATControl.ViewModels
 			Settings.Default.ShowDecLimits = ShowDECLimits;
 			Settings.Default.LowerDecLimit = DECStepperLowerLimit;
 			Settings.Default.UpperDecLimit = DECStepperUpperLimit;
+			Settings.Default.KeepMiniControlOnTop = KeepMiniControlOnTop;
 			Settings.Default.Save();
 
 			if (MountConnected)
@@ -2685,6 +2689,22 @@ namespace OATControl.ViewModels
 					"1200",
 					"300",
 				};
+
+		/// <summary>
+		/// Gets or sets the keep mini control on-top
+		/// </summary>
+		public bool KeepMiniControlOnTop
+		{
+			get { return _keepMiniControllerOnTop; }
+			set
+			{
+				SetPropertyValue(ref _keepMiniControllerOnTop, value);
+				if(_miniController != null)
+                {
+					_miniController.Topmost = value;
+				}
+			}
+		}
 	}
 }
 
