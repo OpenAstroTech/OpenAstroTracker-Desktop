@@ -472,8 +472,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="39.667" />
-                <RowDefinition Height="25"/>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -488,7 +487,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Margin="0,0,-0.333,0.333" >
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -560,9 +559,9 @@
                 <TextBlock Grid.Row="4" Grid.Column="2" MinWidth="64" Text="{Binding FocStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
             </Grid>
 
-            <TextBlock Grid.Column="0" Grid.Row="1" Text="Tracking" Margin="0,8.667,0,5"  Style="{StaticResource TextBlockHeading}" />
-            <Controls:ToggleSwitchButton  Grid.Column="1" Grid.Row="1"  Margin="0,5.667,0,0" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}" IsChecked="{Binding IsTracking}" ThumbIndicatorBrush="#E00" />
-            <Grid Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" Grid.ColumnSpan="3" Margin="0,157,-0.333,0" Grid.RowSpan="2">
+            <TextBlock Grid.Column="0" Grid.Row="1" Text="Tracking" Margin="0,5,0,1"  Style="{StaticResource TextBlockHeading}" />
+            <Controls:ToggleSwitchButton  Grid.Column="1" Grid.Row="1"  Margin="0,6,0,0" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}" IsChecked="{Binding IsTracking}" ThumbIndicatorBrush="#E00" />
+            <Grid Grid.Row="1" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -571,7 +570,7 @@
                 <TextBlock Grid.Column="1" MinWidth="64" Text="{Binding ConnectedTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
             </Grid>
 
-            <Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" Margin="0,0,-0.333,0" Grid.ColumnSpan="3">
+            <Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -581,7 +580,7 @@
             </Grid>
 
 
-            <Grid Grid.Row="2" Grid.Column="1" Margin="0,0,0,39.334" Grid.RowSpan="2" >
+            <Grid Grid.Row="2" Grid.Column="1" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -591,18 +590,23 @@
                 <TextBlock Grid.Column="2" Text="On" FontSize="10" Margin="0,-4,0,0" FontWeight="Bold" />
             </Grid>
 
-            <Button Grid.Row="2" Grid.Column="0" Content="Set Low" Height="22" Margin="6,8,0,7.667" HorizontalAlignment="Left" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetDecLowerLimitCommand}" Visibility="{Binding ElementName=ShowLimits, Path=IsChecked,Converter={StaticResource TrueBoolToVisible}}"/>
+            <Button Grid.Row="2" Grid.Column="0" Content="Set Low" Height="22" Margin="6,2,0,2" HorizontalAlignment="Left" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetDecLowerLimitCommand}" Visibility="{Binding ElementName=ShowLimits, Path=IsChecked,Converter={StaticResource TrueBoolToVisible}}"/>
 
-            <TextBlock Grid.Column="0" Grid.Row="3" Text="Show Limits" Margin="0,13.667,0,0"  Style="{StaticResource TextBlockLabelSmall}" VerticalAlignment="Top" />
-            <Controls:ToggleSwitchButton Grid.Row="3" Grid.Column="1" Margin="0,5.667,0,0" IsEnabled="{Binding MountConnected}" Name="ShowLimits" ThumbIndicatorBrush="#E00" IsChecked="{Binding ShowDECLimits}" Grid.RowSpan="2" VerticalAlignment="Top"/>
+            <TextBlock Grid.Column="0" Grid.Row="3" Text="Show Limits" Margin="0,5,0,1"  Style="{StaticResource TextBlockLabelSmall}" />
+            <Controls:ToggleSwitchButton Grid.Row="3" Grid.Column="1" Margin="0,2" IsEnabled="{Binding MountConnected}" Name="ShowLimits" ThumbIndicatorBrush="#E00" IsChecked="{Binding ShowDECLimits}"/>
 
 
-            <Button Grid.Row="3" Grid.Column="2" Content="Mini-Control" Margin="0,8.333,-0.333,0" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}" Grid.ColumnSpan="3" Height="29" VerticalAlignment="Top" />
-            <CheckBox Content="Keep On-Top" Grid.Column="2" HorizontalAlignment="Right" Margin="0,2.667,16.667,0" Grid.Row="4" VerticalAlignment="Top" IsChecked="{Binding KeepMiniControlOnTop}" Grid.RowSpan="2" />
-            <Button Grid.Row="5" Grid.Column="2" Content="Settings" Margin="0,1.999,-0.333,2.334" Width="110" HorizontalAlignment="Right" Padding="15,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}" Grid.ColumnSpan="3"/>
-            <Button Grid.Row="6" Grid.Column="2" Content="Log Files" Margin="0,1.666,-0.333,1.667" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" Visibility="{Binding IsLoggingEnabled, Converter={StaticResource CollapseIfFalse}}" Grid.ColumnSpan="3"/>
+            <Button Grid.Row="3" Grid.Column="2" Content="Mini-Control" Margin="0,8" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}">
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Keep On Top" IsCheckable="True" IsChecked="{Binding KeepMiniControlOnTop}" Style="{StaticResource MetroMenuItem}"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+            <Button Grid.Row="4" Grid.Column="2" Content="Settings" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
+            <Button Grid.Row="5" Grid.Column="2" Content="Log Files" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" Visibility="{Binding IsLoggingEnabled, Converter={StaticResource CollapseIfFalse}}"/>
 
-            <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Margin="0,0.333,-0.333,0.001" >
+            <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -611,7 +615,7 @@
                 <TextBlock Grid.Row="0" Grid.Column="1"  Text="Mount" Style="{StaticResource TextBlockHeading}" Margin="0,10,0,0" HorizontalAlignment="Right"/>
                 <Button Grid.Column="2" Margin="0,12,0,0" Width="110" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ConnectScopeCommand}" Content="{Binding ConnectCommandString}" HorizontalAlignment="Right"/>
             </Grid>
-            <TextBlock Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="3" Text="{Binding ScopeName}" Style="{StaticResource TextBlockLabel}" Margin="0,4.999,-0.333,3.001" HorizontalAlignment="Right" />
+            <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScopeName}" Style="{StaticResource TextBlockLabel}" Margin="0,2,0,0" HorizontalAlignment="Right" />
         </Grid>
 
     </Grid>
