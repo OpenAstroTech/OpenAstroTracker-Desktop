@@ -11,7 +11,7 @@
       xmlns:converters="clr-namespace:OATControl.Converters"
       mc:Ignorable="d"
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="Virtual OAT" Height="500" Width="500">
+      Title="Virtual OAT" Height="500" Width="500" Loaded="Window_Loaded">
     <Window.Resources>
         <converters:BoolToStringConverter x:Key="SlewModeConverter" TrueString="Pulsed" FalseString="Continuous" />
         <converters:BoolToVisibilityConverter x:Key="TrueBoolToHidden" Collapse="False" IsReversed="True"/>
@@ -146,15 +146,14 @@
     </Window.Resources >
 
     <Grid x:Name="MainLayoutGrid">
-        <HelixToolkit:HelixViewport3D ZoomExtentsWhenLoaded="False" Name="_helixViewport" ShowViewCube="False">
+        <HelixToolkit:HelixViewport3D ZoomExtentsWhenLoaded="False" Name="helixViewport" ShowViewCube="False" ZoomAroundMouseDownPoint="True" RotateAroundMouseDownPoint="True">
             <!--<HelixToolkit:GridLinesVisual3D Width="100" Length="100" MinorDistance="1" MajorDistance="10" Thickness="0.01"/>-->
             <HelixToolkit:CoordinateSystemVisual3D  />
 
-            <!-- Remember to add light to the scene -->
+            <!--Add light to the scene -->
             <HelixToolkit:SunLight>
             </HelixToolkit:SunLight>
 
-            <!-- The content of this visual is defined in MainViewModel.cs -->
             <ModelVisual3D Content="{Binding OATModel}"/>
 
         </HelixToolkit:HelixViewport3D>

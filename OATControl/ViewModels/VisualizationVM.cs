@@ -9,12 +9,19 @@ using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace OATControl.ViewModels
 {
     public class VisualizationVM : ViewModelBase
     {
         #region Variables
+
+        public Viewport3D v1;
+        public HelixViewport3D viewport;
+
+        private PerspectiveCamera _camera;
+
         Model3D _OATModel;
 
         Model3DGroup _oatGroup;
@@ -31,7 +38,7 @@ namespace OATControl.ViewModels
         double _stepIncrement;
 
         private DispatcherTimer _animationTimer;
-        private Dispatcher dispatcher;
+        // private Dispatcher dispatcher;
 
         bool _isInitialized;
 
@@ -78,6 +85,19 @@ namespace OATControl.ViewModels
             LoadModels();
         }
 
+        public void InitScene()
+        {
+
+            _camera = v1.Camera as PerspectiveCamera;
+            _camera.LookDirection = new Vector3D(0.425674784673568, 0.757510575883799, -0.494953235282964);
+            _camera.Position = new Point3D(-40.7495297796499, -72.3315376567743, 52.2016896285573);
+
+            // v1.Cam.ResetCamera();
+            // v1.UpdateCameras();
+            // var updirection = helixViewport.Camera.UpDirection;
+            // _helixViewport.Viewport.Camera.Position = new Point3D(0,100,100);
+        }
+
         #region Methods
         public async void LoadModelsAsync()
         {
@@ -95,9 +115,9 @@ namespace OATControl.ViewModels
                     // Alt 1. - freeze the model 
                     return mi.Load(model3DPath, null, true);
                 }
-
+                return null;
                 // Alt. 2 - create the model on the UI dispatcher
-                return mi.Load(model3DPath, this.dispatcher);
+                // return mi.Load(model3DPath, this.dispatcher);
             });
         }
 
@@ -106,9 +126,9 @@ namespace OATControl.ViewModels
             _oatGroup = new Model3DGroup();
             //_oatCompass = new ObjReader().Read(@"Visualization/OBJs/OAT_Compass.obj");
             _oatCompass = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_Compass.obj", true).Result);
-            _oatBase = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_Base.obj", true).Result);
-            var _oatRAF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_RA.obj", true).Result);
-            var _oatDECF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_DEC.obj", true).Result);
+            _oatBase = await Task.Run(() => LoadAsync(@"Visualization/OBJs/Base.obj", true).Result);
+            var _oatRAF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/RA.obj", true).Result);
+            var _oatDECF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/DEC.obj", true).Result);
 
             // Get around frozen state
             _oatRA = _oatRAF.Clone();
@@ -126,6 +146,9 @@ namespace OATControl.ViewModels
             myRotateTransform.CenterY = 0;
             myRotateTransform.CenterZ = 0;
             _oatGroup.Transform = myRotateTransform;
+
+            ScaleTransform3D scaleTransform3D = new ScaleTransform3D(0.1, 0.1, 0.1);
+            _oatGroup.Transform = scaleTransform3D;
 
             // Assign final group
             OATModel = _oatGroup;
@@ -152,15 +175,15 @@ namespace OATControl.ViewModels
 
             Transform3DGroup raTransform3DGroup = new Transform3DGroup();
 
-            RotateTransform3D _raRX = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), -49.954));
-            RotateTransform3D _raRY = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), -1.056));
-            RotateTransform3D _raRZ = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), -0.887 + angle));
+            RotateTransform3D _raRX = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), -50));
+            RotateTransform3D _raRY = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), 0));
+            RotateTransform3D _raRZ = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), angle));
 
             raTransform3DGroup.Children.Add(_raRZ);
             raTransform3DGroup.Children.Add(_raRX);
             raTransform3DGroup.Children.Add(_raRY);
 
-            TranslateTransform3D raTranslate = new TranslateTransform3D(0.171, 5.016, -12.753);
+            TranslateTransform3D raTranslate = new TranslateTransform3D(0, 46.22, -136.364);
             raTransform3DGroup.Children.Add(raTranslate);
 
             _oatRA.Transform = raTransform3DGroup;
@@ -173,8 +196,8 @@ namespace OATControl.ViewModels
 
             Transform3DGroup decTransform3DGroup = new Transform3DGroup();
 
-            TranslateTransform3D decTranslate = new TranslateTransform3D(0, 0, 20.0);
-            RotateTransform3D decRX = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), -18.628 + angle));
+            TranslateTransform3D decTranslate = new TranslateTransform3D(0, 0, 0);
+            RotateTransform3D decRX = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), angle));
 
             decTransform3DGroup.Children.Add(decRX);
             decTransform3DGroup.Children.Add(decTranslate);
@@ -184,6 +207,9 @@ namespace OATControl.ViewModels
 
         private void AnimationUpdate(object sender, EventArgs e)
         {
+            var la = _camera.LookDirection;
+            var pos = _camera.Position;
+            
             if (!IsInitialized)
                 return;
 

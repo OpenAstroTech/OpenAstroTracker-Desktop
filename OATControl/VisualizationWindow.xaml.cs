@@ -24,23 +24,31 @@ namespace OATControl
     /// </summary>
     public partial class VisualizationWindow : Window
     {
-        public VisualizationVM visualizationVM; 
+        public VisualizationVM visualizationVM;
 
-        public VisualizationWindow()
+        public VisualizationWindow(VisualizationVM vizVM)
         {
             InitializeComponent();
-            visualizationVM = new VisualizationVM();
+            visualizationVM = vizVM; //new VisualizationVM();
             MainLayoutGrid.DataContext = visualizationVM;
         }
+
+        
         #region Overrides
         protected override void OnClosing(CancelEventArgs e)
         {
             Settings.Default.VisualizationPos = new System.Drawing.Point((int)this.Left, (int)this.Top);
             base.OnClosing(e);
         }
+
         #endregion
 
-        
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            visualizationVM.viewport = helixViewport;
+            visualizationVM.v1 = helixViewport.Viewport;
+            visualizationVM.InitScene();
+        }
     }
 
 }

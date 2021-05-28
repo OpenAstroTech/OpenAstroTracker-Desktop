@@ -217,29 +217,29 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Visualization\OBJs\OAT_Base.mtl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Include="Visualization\OBJs\Base.mtl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Visualization\OBJs\OAT_Base.obj">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Include="Visualization\OBJs\Base.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Visualization\OBJs\DEC.mtl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Visualization\OBJs\DEC.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Visualization\OBJs\OAT_Compass.mtl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Visualization\OBJs\OAT_Compass.obj">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Visualization\OBJs\OAT_DEC.mtl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Include="Visualization\OBJs\RA.mtl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Visualization\OBJs\OAT_DEC.obj">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Visualization\OBJs\OAT_RA.mtl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Visualization\OBJs\OAT_RA.obj">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Include="Visualization\OBJs\RA.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
