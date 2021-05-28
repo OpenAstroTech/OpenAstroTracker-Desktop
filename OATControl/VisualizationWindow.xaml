@@ -171,12 +171,12 @@
 
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="1" Text="Loading OAT..." Grid.Column="0" Margin="16,9.667,13,5.333" Foreground="White" FontSize="14" Visibility="{Binding IsInitialized, Converter={StaticResource TrueBoolToHidden}}"/>
+            
+            <!-- TESTING SLIDERS
             <TextBlock Grid.Row="1" Text="RA Angle" Grid.Column="1" Margin="16,9.667,0.333,8.333" Foreground="#FFD0D0D0"/>
             <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RAAngle}" TextAlignment="Center" Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" Margin="10.667,5.667,10.333,5.333" Height="23"/>
             <TextBlock Grid.Row="2" Text="DEC Angle" Grid.Column="1" Margin="9,6.667,0.333,6.667" Foreground="#FFC7C7C7"/>
             <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding DECAngle}" TextAlignment="Center" Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" Margin="10.667,5.667,10.333,5.667" Height="22"/>
-            <!-- TESTING SLIDERS -->
-            <!--
             <Slider Value="{Binding RAAngle}" Maximum="90" Minimum="-90" Height="29" VerticalAlignment="Top" Grid.Row="1" Margin="10,1,10.333,0" />
             <Slider Value="{Binding DECAngle}" Maximum="90" Minimum="-90" Height="29" VerticalAlignment="Top" Grid.Row="2" Margin="10,0.333,10.333,0" />
             -->

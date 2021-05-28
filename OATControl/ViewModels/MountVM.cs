@@ -573,15 +573,12 @@ namespace OATControl.ViewModels
 								CurrentDECMinute = int.Parse(parts[6].Substring(3, 2));
 								CurrentDECSecond = int.Parse(parts[6].Substring(5, 2));
 
-								if(_visualizationWindow.IsVisible)
+								if(_visualizationWindow != null && _visualizationWindow.IsVisible)
                                 {
 									Application.Current.Dispatcher.Invoke(() =>
 									{
-										double raDeg = (RAStepper / -RAStepsPerDegree) + (TrkStepper / -RAStepsPerDegree);
-										double decDeg = DECStepper / -DECStepsPerDegree;
-
-										_visualizationVM.RAAngle = raDeg;
-										_visualizationVM.DECAngle = decDeg;
+										_visualizationVM.RAAngle = RAStepperHours * 15.0f;
+										_visualizationVM.DECAngle = DECStepperDegrees;
 									});
 								}
 							}

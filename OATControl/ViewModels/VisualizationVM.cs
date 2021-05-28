@@ -55,7 +55,7 @@ namespace OATControl.ViewModels
         {
             get { return _angleRA; }
             set {
-                SetPropertyValue(ref _targetRA, value);
+                SetPropertyValue(ref _targetRA, -value);
             }
         }
 
@@ -64,7 +64,7 @@ namespace OATControl.ViewModels
             get { return _angleDEC; }
             set
             {
-                SetPropertyValue(ref _targetDEC, value);
+                SetPropertyValue(ref _targetDEC, -value);
             }
         }
 
@@ -125,7 +125,7 @@ namespace OATControl.ViewModels
         {
             _oatGroup = new Model3DGroup();
             //_oatCompass = new ObjReader().Read(@"Visualization/OBJs/OAT_Compass.obj");
-            _oatCompass = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_Compass.obj", true).Result);
+            //_oatCompass = await Task.Run(() => LoadAsync(@"Visualization/OBJs/OAT_Compass.obj", true).Result);
             _oatBase = await Task.Run(() => LoadAsync(@"Visualization/OBJs/Base.obj", true).Result);
             var _oatRAF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/RA.obj", true).Result);
             var _oatDECF = await Task.Run(() => LoadAsync(@"Visualization/OBJs/DEC.obj", true).Result);
@@ -135,20 +135,27 @@ namespace OATControl.ViewModels
             _oatDEC = _oatDECF.Clone();
 
             //add them to the group
-            _oatGroup.Children.Add(_oatCompass);
+            //_oatGroup.Children.Add(_oatCompass);
             _oatGroup.Children.Add(_oatBase);
             _oatGroup.Children.Add(_oatRA);
             _oatRA.Children.Add(_oatDEC);
+
+            Transform3DGroup baseTransformGroup = new Transform3DGroup();
 
             //rotate entire OAT group 90 degrees
             RotateTransform3D myRotateTransform = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), 90));
             myRotateTransform.CenterX = 0;
             myRotateTransform.CenterY = 0;
             myRotateTransform.CenterZ = 0;
-            _oatGroup.Transform = myRotateTransform;
+            // _oatGroup.Transform = myRotateTransform;
 
-            ScaleTransform3D scaleTransform3D = new ScaleTransform3D(0.1, 0.1, 0.1);
+            ScaleTransform3D scaleTransform3D = new ScaleTransform3D(1.0, 1.0, 1.0);
             _oatGroup.Transform = scaleTransform3D;
+
+            baseTransformGroup.Children.Add(scaleTransform3D);
+            baseTransformGroup.Children.Add(myRotateTransform);
+
+            _oatGroup.Transform = baseTransformGroup;
 
             // Assign final group
             OATModel = _oatGroup;
@@ -183,7 +190,7 @@ namespace OATControl.ViewModels
             raTransform3DGroup.Children.Add(_raRX);
             raTransform3DGroup.Children.Add(_raRY);
 
-            TranslateTransform3D raTranslate = new TranslateTransform3D(0, 46.22, -136.364);
+            TranslateTransform3D raTranslate = new TranslateTransform3D(0, 4.622, -13.6364);
             raTransform3DGroup.Children.Add(raTranslate);
 
             _oatRA.Transform = raTransform3DGroup;
@@ -196,8 +203,9 @@ namespace OATControl.ViewModels
 
             Transform3DGroup decTransform3DGroup = new Transform3DGroup();
 
-            TranslateTransform3D decTranslate = new TranslateTransform3D(0, 0, 0);
             RotateTransform3D decRX = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), angle));
+            TranslateTransform3D decTranslate = new TranslateTransform3D(0, -0.5078, 20.39);
+            
 
             decTransform3DGroup.Children.Add(decRX);
             decTransform3DGroup.Children.Add(decTranslate);
