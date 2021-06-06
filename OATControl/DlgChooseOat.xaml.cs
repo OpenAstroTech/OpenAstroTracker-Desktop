@@ -424,10 +424,8 @@ namespace OATControl
 
 							// Turn on the Digital Level
 							var doneEvent = new AutoResetEvent(false);
-							_sendCommand(":XL1#,#", (a) => { doneEvent.Set(); });
-							doneEvent.WaitOne();
-
-							doneEvent.Reset();
+							_sendCommand(":XL1#,#", (a) => { });
+							Thread.Sleep(100);
 							// Get the reference angles from the level.
 							_sendCommand(":XLGR#,#", (a) =>
 							{
@@ -435,8 +433,9 @@ namespace OATControl
 								{
 									string referenceAngles = a.Data;
 									var angles = referenceAngles.Split(",".ToCharArray());
-									float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float _pitchReference);
-									float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float _rollReference);
+									float pitch, roll;
+									float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out _pitchReference);
+									float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out _rollReference);
 								}
 								doneEvent.Set();
 							});
@@ -453,7 +452,7 @@ namespace OATControl
 						{
 							ShowManualLocation = true;
 							CurrentStep = Steps.ConfirmLocation;
-							// Let's get teh coordinate stored on the OAT
+							// Let's get the coordinate stored on the OAT
 							var locDoneEvent = new AutoResetEvent(false);
 							bool gotLoc = false;
 							float lat = 0, lng = 0;
