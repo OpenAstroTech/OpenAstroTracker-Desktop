@@ -31,8 +31,8 @@ namespace OATControl
 
 		protected override void OnClosing(CancelEventArgs e)
 		{
-			Settings.Default.TargetChooserPos = new System.Drawing.Point((int)this.Left, (int)this.Top);
-			Settings.Default.TargetChooserSize = new System.Drawing.Size((int)this.Width, (int)this.Height);
+			AppSettings.Instance.TargetChooserPos = new Point((int)this.Left, (int)this.Top);
+			AppSettings.Instance.TargetChooserSize = new Size((int)this.Width, (int)this.Height);
 			base.OnClosing(e);
 		}
 		

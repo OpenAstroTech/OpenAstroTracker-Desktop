@@ -80,9 +80,9 @@ namespace OATControl
 			_mountViewModel = mountViewModel;
 			_rollOffsetHistory = new List<double>(5);
 			_pitchOffsetHistory = new List<double>(5);
-			_latitude = Settings.Default.SiteLatitude;
-			_longitude = Settings.Default.SiteLongitude;
-			_altitude = Settings.Default.SiteAltitude;
+			_latitude = AppSettings.Instance.SiteLatitude;
+			_longitude = AppSettings.Instance.SiteLongitude;
+			_altitude = AppSettings.Instance.SiteAltitude;
 
 			CurrentStep = Steps.Idle;
 			_rescanCommand = new DelegateCommand(() => { CommunicationHandlerFactory.DiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForBaudrate));
@@ -376,10 +376,10 @@ namespace OATControl
 					GPSStatus = "Sync'd! Setting OAT location...";
 					Task.Run(() => _mountViewModel.SetSiteLatitude(Latitude)).Wait();
 					Task.Run(() => _mountViewModel.SetSiteLongitude(Longitude)).Wait();
-					Settings.Default.SiteLatitude = Latitude;
-					Settings.Default.SiteLongitude = Longitude;
-					Settings.Default.SiteAltitude = Altitude;
-					Settings.Default.Save();
+					AppSettings.Instance.SiteLatitude = Latitude;
+					AppSettings.Instance.SiteLongitude = Longitude;
+					AppSettings.Instance.SiteAltitude = Altitude;
+					AppSettings.Instance.Save();
 					CurrentStep = Steps.Completed;
 					break;
 
@@ -560,9 +560,9 @@ namespace OATControl
 								await Task.Delay(400);
 							}
 
-							Settings.Default.SiteLatitude = latitude;
-							Settings.Default.SiteLongitude = longitude;
-							Settings.Default.Save();
+							AppSettings.Instance.SiteLatitude = latitude;
+							AppSettings.Instance.SiteLongitude = longitude;
+							AppSettings.Instance.Save();
 							CurrentStep = Steps.Completed;
 						}
 					}

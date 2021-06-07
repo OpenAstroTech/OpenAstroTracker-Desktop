@@ -36,18 +36,18 @@ namespace OATControl
 		protected override void OnInitialized(EventArgs e)
 		{
 			base.OnInitialized(e);
-			if (Settings.Default.WindowPos.X != -1)
+			if (AppSettings.Instance.WindowPos.X != -1)
 			{
-				this.Left = Math.Max(0, Math.Min(Settings.Default.WindowPos.X, System.Windows.SystemParameters.VirtualScreenWidth - 100));
-				this.Top = Math.Max(0, Math.Min(Settings.Default.WindowPos.Y, System.Windows.SystemParameters.VirtualScreenHeight- 100));
+				this.Left = Math.Max(0, Math.Min(AppSettings.Instance.WindowPos.X, System.Windows.SystemParameters.VirtualScreenWidth - 100));
+				this.Top = Math.Max(0, Math.Min(AppSettings.Instance.WindowPos.Y, System.Windows.SystemParameters.VirtualScreenHeight- 100));
 			}
 		}
 		protected override void OnClosing(CancelEventArgs e)
 		{
 			mountVm.Disconnect();
 			base.OnClosing(e);
-			Settings.Default.WindowPos = new System.Drawing.Point((int)Math.Max(0, this.Left), (int)Math.Max(0, this.Top));
-			Settings.Default.Save();
+			AppSettings.Instance.WindowPos = new Point((int)Math.Max(0, this.Left), (int)Math.Max(0, this.Top));
+			AppSettings.Instance.Save();
 		}
 
 		private void TextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)

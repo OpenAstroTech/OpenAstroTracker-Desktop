@@ -4,6 +4,7 @@ using System.Windows;
 using System.Threading;
 using System.Windows.Threading;
 using OATCommunications.Utilities;
+using OATControl.Properties;
 
 namespace OATControl
 {
@@ -19,6 +20,7 @@ namespace OATControl
 			AppDomain.CurrentDomain.UnhandledException += App.UnhandledException;
 
 			this.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(App.AppDispatcherUnhandledException);
+			//AppSettings.Instance.Upgrade();
 		}
 
 		protected override void OnStartup(StartupEventArgs e)

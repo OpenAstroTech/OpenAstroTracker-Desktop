@@ -31,12 +31,14 @@
 			<Setter Property="HorizontalAlignment" Value="Stretch" />
 			<Setter Property="TextAlignment" Value="Center" />
 			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
+			<Setter Property="Foreground" Value="#F00" />
 		</Style>
 		<Style x:Key="TextBlockLabelTiny" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
 			<Setter Property="FontSize" Value="10" />
+			<Setter Property="Foreground" Value="#E00" />
 		</Style>
 		<Style x:Key="TextBlockLabelTinyLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelTiny}">
-			<Setter Property="Foreground" Value="#C20" />
+			<Setter Property="Foreground" Value="#B00" />
 		</Style>
 		<Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
 			<Setter Property="Width" Value="16" />

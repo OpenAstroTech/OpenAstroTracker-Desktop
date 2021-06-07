@@ -50,7 +50,7 @@ namespace OATControl
 					await SendCommandAsync($":Sr02:59:09#,n");
 
 					// Move DEC to twice Polaris Dec
-					if (Settings.Default.SiteLatitude > 0) // Northern hemisphere
+					if (AppSettings.Instance.SiteLatitude > 0) // Northern hemisphere
 					{
 						await SendCommandAsync($":Sd+88*42:12#,n");
 					}
@@ -63,7 +63,7 @@ namespace OATControl
 				else if (_state == 3)
 				{
 					// Sync the mount to Polaris coordinates
-					if (Settings.Default.SiteLatitude > 0) // Northern hemisphere
+					if (AppSettings.Instance.SiteLatitude > 0) // Northern hemisphere
 					{
 						await SendCommandAsync($":SY+89*21:06.02:59:09#,n");
 					}

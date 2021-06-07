@@ -63,7 +63,7 @@ namespace OATControl
 
 		protected override void OnClosing(CancelEventArgs e)
 		{
-			Settings.Default.MiniControllerPos = new System.Drawing.Point((int)this.Left, (int)this.Top);
+			AppSettings.Instance.MiniControllerPos = new Point((int)this.Left, (int)this.Top);
 			base.OnClosing(e);
 		}
 		protected override void OnKeyUp(KeyEventArgs e)

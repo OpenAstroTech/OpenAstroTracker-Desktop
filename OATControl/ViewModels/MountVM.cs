@@ -135,6 +135,8 @@ namespace OATControl.ViewModels
 		DelegateCommand _startChangingCommand;
 		DelegateCommand _chooseTargetCommand;
 		DelegateCommand _setDecLowerLimitCommand;
+		DelegateCommand _setDECHomeOffsetFromPowerOn;
+		DelegateCommand _gotoDECHomeFromPowerOn;
 
 		MiniController _miniController;
 		TargetChooser _targetChooser;
@@ -199,6 +201,9 @@ namespace OATControl.ViewModels
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 			_chooseTargetCommand = new DelegateCommand((p) => OnShowTargetChooser(), () => MountConnected);
 			_setDecLowerLimitCommand = new DelegateCommand((p) => SetDecLowLimit(), () => MountConnected);
+			_setDECHomeOffsetFromPowerOn = new DelegateCommand((p) => OnSetDECHomeOffsetFromPowerOn(), () => MountConnected);
+			_gotoDECHomeFromPowerOn = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10916));
+
 
 			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
 			Log.WriteLine("Mount: Attempting to read Point of Interest from {0}...", poiFile);
@@ -213,6 +218,47 @@ namespace OATControl.ViewModels
 
 			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
 			Log.WriteLine("Mount: Initialization of OATControl {0} complete...", this.Version);
+
+			AppSettings.Instance.UpgradeVersion += OnUpgradeSettings;
+			AppSettings.Instance.Load();
+		}
+
+		public void OnUpgradeSettings(object sender, UpgradeEventArgs e)
+		{
+			// If needed upgrade the settings file between versions here.
+			// e.LoadedVersion vs. e.CurrentVersion;
+		}
+
+		public void OnGotoDECHomeFromPowerOn()
+		{
+			if (AppSettings.Instance.DECHomeOffset != 0)
+			{
+				_oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { });
+			}
+		}
+
+		public void OnSetDECHomeOffsetFromPowerOn()
+		{
+			var donePosQuery = new AutoResetEvent(false);
+			long raPos = -1, decPos = -1;
+			bool posValid = false;
+			_oatMount.SendCommand(":GX#,#", (a) =>
+			{
+				if (a.Success)
+				{
+					posValid = true;
+					var parts = a.Data.Split(',');
+					posValid = posValid && long.TryParse(parts[2], out raPos);
+					posValid = posValid && long.TryParse(parts[3], out decPos);
+					donePosQuery.Set();
+				}
+			});
+			donePosQuery.WaitOne();
+			if (posValid)
+			{
+				AppSettings.Instance.DECHomeOffset = decPos;
+				AppSettings.Instance.Save();
+			}
 		}
 
 		private void OnStartChangingParameter(object p)
@@ -299,12 +345,12 @@ namespace OATControl.ViewModels
 			if (_targetChooser == null)
 			{
 				_targetChooser = new TargetChooser(this);
-				if (Settings.Default.TargetChooserPos.X != -1)
+				if (AppSettings.Instance.TargetChooserPos.X != -1)
 				{
-					_targetChooser.Left = Settings.Default.TargetChooserPos.X;
-					_targetChooser.Top = Settings.Default.TargetChooserPos.Y;
-					_targetChooser.Width = Settings.Default.TargetChooserSize.Width;
-					_targetChooser.Height = Settings.Default.TargetChooserSize.Height;
+					_targetChooser.Left = AppSettings.Instance.TargetChooserPos.X;
+					_targetChooser.Top = AppSettings.Instance.TargetChooserPos.Y;
+					_targetChooser.Width = AppSettings.Instance.TargetChooserSize.Width;
+					_targetChooser.Height = AppSettings.Instance.TargetChooserSize.Height;
 				}
 			}
 			if (_targetChooser.IsVisible)
@@ -325,10 +371,10 @@ namespace OATControl.ViewModels
 				_miniController = new MiniController(this);
 				_miniController.Topmost = KeepMiniControlOnTop;
 
-				if (Settings.Default.MiniControllerPos.X != -1)
+				if (AppSettings.Instance.MiniControllerPos.X != -1)
 				{
-					_miniController.Left = Settings.Default.MiniControllerPos.X;
-					_miniController.Top = Settings.Default.MiniControllerPos.Y;
+					_miniController.Left = AppSettings.Instance.MiniControllerPos.X;
+					_miniController.Top = AppSettings.Instance.MiniControllerPos.Y;
 				}
 			}
 			if (_miniController.IsVisible)
@@ -360,6 +406,12 @@ namespace OATControl.ViewModels
 
 		private async Task OnSetHome()
 		{
+			if (Keyboard.IsKeyDown(Key.LeftShift))
+			{
+				AppSettings.Instance.DECHomeOffset = DECStepper;
+				AppSettings.Instance.Save();
+			}
+
 			Log.WriteLine("Mount: Setting Home...");
 			this.SendOatCommand(":SHP#,n", (a) => { });
 			await ReadHA();
@@ -594,6 +646,7 @@ namespace OATControl.ViewModels
 		public async Task<string> SetSiteLatitude(float latitude)
 		{
 			string result = await _oatMount.SetSiteLatitude(latitude);
+			AppSettings.Instance.SiteLatitude = latitude;
 			UpdateLocation();
 			return result;
 		}
@@ -601,6 +654,7 @@ namespace OATControl.ViewModels
 		public async Task<string> SetSiteLongitude(float longitude)
 		{
 			string result = await _oatMount.SetSiteLongitude(longitude);
+			AppSettings.Instance.SiteLongitude = longitude;
 			UpdateLocation();
 			return result;
 		}
@@ -749,8 +803,8 @@ namespace OATControl.ViewModels
 
 		public void UpdateLocation()
 		{
-			float latitude = Settings.Default.SiteLatitude;
-			float longitude = Settings.Default.SiteLongitude;
+			float latitude = AppSettings.Instance.SiteLatitude;
+			float longitude = AppSettings.Instance.SiteLongitude;
 
 			ScopeLatitude = $"{Math.Abs(latitude):0.00}{(latitude < 0 ? "S" : "N")}";
 			ScopeLongitude = $"{Math.Abs(longitude):0.00}{(longitude < 0 ? "W" : "E")}";
@@ -1001,11 +1055,11 @@ namespace OATControl.ViewModels
 				_targetChooser = null;
 			}
 
-			Settings.Default.ShowDecLimits = ShowDECLimits;
-			Settings.Default.LowerDecLimit = DECStepperLowerLimit;
-			Settings.Default.UpperDecLimit = DECStepperUpperLimit;
-			Settings.Default.KeepMiniControlOnTop = KeepMiniControlOnTop;
-			Settings.Default.Save();
+			AppSettings.Instance.ShowDecLimits = ShowDECLimits;
+			AppSettings.Instance.LowerDecLimit = DECStepperLowerLimit;
+			AppSettings.Instance.UpperDecLimit = DECStepperUpperLimit;
+			AppSettings.Instance.KeepMiniControlOnTop = KeepMiniControlOnTop;
+			AppSettings.Instance.Save();
 
 			if (MountConnected)
 			{
@@ -1100,9 +1154,9 @@ namespace OATControl.ViewModels
 
 				await doneEvent.WaitAsync();
 
-				ShowDECLimits = Settings.Default.ShowDecLimits;
-				DECStepperLowerLimit = Settings.Default.LowerDecLimit;
-				DECStepperUpperLimit = Settings.Default.UpperDecLimit;
+				ShowDECLimits = AppSettings.Instance.ShowDecLimits;
+				DECStepperLowerLimit = AppSettings.Instance.LowerDecLimit;
+				DECStepperUpperLimit = AppSettings.Instance.UpperDecLimit;
 
 				_connectedAt = DateTime.UtcNow;
 				MountConnected = true;
@@ -1249,6 +1303,9 @@ namespace OATControl.ViewModels
 			_showMiniControllerCommand.Requery();
 			_chooseTargetCommand.Requery();
 			_setDecLowerLimitCommand.Requery();
+			_setDECHomeOffsetFromPowerOn.Requery();
+			_gotoDECHomeFromPowerOn.Requery();
+
 
 			OnPropertyChanged("ConnectCommandString");
 		}
@@ -1523,7 +1580,7 @@ namespace OATControl.ViewModels
 
 		private bool ChooseTelescope()
 		{
-			_serialBaudRate = Settings.Default.BaudRate;
+			_serialBaudRate = AppSettings.Instance.BaudRate;
 
 			var dlg = new DlgChooseOat(this, SendOatCommand) { Owner = Application.Current.MainWindow, WindowStartupLocation = WindowStartupLocation.CenterOwner };
 
@@ -1693,6 +1750,8 @@ namespace OATControl.ViewModels
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 		public ICommand ChooseTargetCommand { get { return _chooseTargetCommand; } }
 		public ICommand SetDecLowerLimitCommand { get { return _setDecLowerLimitCommand; } }
+		public ICommand SetDECHomeOffsetFromPowerOn { get { return _setDECHomeOffsetFromPowerOn; } }
+		public ICommand GotoDECHomeFromPowerOn { get { return _gotoDECHomeFromPowerOn; } }
 
 		public double TargetRATotalHours
 		{
@@ -2406,7 +2465,7 @@ namespace OATControl.ViewModels
 				SetPropertyValue(ref _showDecLimits, value);
 				if (MountConnected)
 				{
-					Settings.Default.ShowDecLimits = ShowDECLimits;
+					AppSettings.Instance.ShowDecLimits = ShowDECLimits;
 				}
 			}
 		}
@@ -2666,7 +2725,7 @@ namespace OATControl.ViewModels
 			set
 			{
 				_serialBaudRate = value;
-				Settings.Default.BaudRate = value;
+				AppSettings.Instance.BaudRate = value;
 			}
 		}
 
@@ -2699,8 +2758,8 @@ namespace OATControl.ViewModels
 			set
 			{
 				SetPropertyValue(ref _keepMiniControllerOnTop, value);
-				if(_miniController != null)
-                {
+				if (_miniController != null)
+				{
 					_miniController.Topmost = value;
 				}
 			}
