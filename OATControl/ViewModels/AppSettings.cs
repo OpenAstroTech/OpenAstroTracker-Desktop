@@ -130,14 +130,14 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		[DefaultValueAttribute("45.0")]
+		[DefaultValueAttribute("45")]
 		public float SiteLatitude
 		{
 			get { return float.Parse(this["SiteLatitude"]); }
 			set { this["SiteLatitude"] = value.ToString(); }
 		}
 
-		[DefaultValueAttribute("45.0")]
+		[DefaultValueAttribute("45")]
 		public float SiteLongitude
 		{
 			get { return float.Parse(this["SiteLongitude"]); }
