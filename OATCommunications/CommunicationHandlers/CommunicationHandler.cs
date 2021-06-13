@@ -136,5 +136,8 @@ namespace OATCommunications.CommunicationHandlers
 		public abstract bool Connected { get; }
 		public abstract void Disconnect();
 		public abstract bool Connect();
+		public abstract bool IsDriverForDevice(string device);
+		public abstract ICommunicationHandler CreateHandler(string device);
+		public abstract void DiscoverDeviceInstances(Action<string> addDevice);
 	}
 }

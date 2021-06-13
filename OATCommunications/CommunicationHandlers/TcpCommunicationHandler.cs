@@ -1,9 +1,13 @@
-﻿using OATCommunications.Utilities;
+﻿using OATCommunications.ClientAdapters;
+using OATCommunications.Utilities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using static OATCommunications.ClientAdapters.UdpClientAdapter;
 
 namespace OATCommunications.CommunicationHandlers
 {
@@ -12,28 +16,29 @@ namespace OATCommunications.CommunicationHandlers
 		private IPAddress _ip;
 		private int _port;
 		private TcpClient _client;
+		private List<string> _available;
+		private Action<string> _addCallback;
+
+		public TcpCommunicationHandler()
+		{
+			_port = 0;
+			_available = new List<string>();
+		}
 
 		public TcpCommunicationHandler(string spec)
 		{
 			Log.WriteLine($"COMMFACTORY: Reading Wifi data from {spec} ...");
 
-			string ip = string.Empty;
-			string port = string.Empty;
-
-			var colon = spec.IndexOf(':');
-			if (colon > 0)
+			var regex = new System.Text.RegularExpressions.Regex(@"([A-z]+:\s*)([A-z]+\s*)\(([0-9.]+):([0-9]+)\)@(\d+)");
+			var result = regex.Match(spec);
+			if (result.Success)
 			{
-				try
-				{
-					ip = spec.Substring(0, colon);
-					port = spec.Substring(colon + 1);
-					_ip = IPAddress.Parse(ip);
-					_port = int.Parse(port);
-				}
-				catch (Exception ex)
-				{
-					Log.WriteLine($"COMMFACTORY: Failed to parse IP address and port. {ex.Message}");
-				}
+				_ip = IPAddress.Parse(result.Groups[3].Value);
+				_port = int.Parse(result.Groups[4].Value);
+			}
+			else
+			{
+				Log.WriteLine($"COMMFACTORY: Failed to parse IP address and port.");
 			}
 		}
 
@@ -182,6 +187,33 @@ namespace OATCommunications.CommunicationHandlers
 				_client = null;
 				Log.WriteLine("TCP: Disconnected...");
 			}
+		}
+
+
+		private void OnWifiClientFound(object sender, ClientFoundEventArgs e)
+		{
+			Log.WriteLine($"COMMFACTORY: Wifi device {e.Name} replied from {e.Address}:4030!");
+			var deviceName = $"WiFi: {e.Name} ({e.Address}:4030)";
+			_available.Insert(0, deviceName);
+			_addCallback(deviceName);
+		}
+
+		public override bool IsDriverForDevice(string device)
+		{
+			return device.StartsWith("WiFi: ");
+		}
+
+		public override void DiscoverDeviceInstances(Action<string> addDevice)
+		{
+			_addCallback = addDevice;
+			var searcher = new UdpClientAdapter("OAT", 4031);
+			searcher.ClientFound += OnWifiClientFound;
+			searcher.StartClientSearch();
+		}
+
+		public override ICommunicationHandler CreateHandler(string device)
+		{
+			return new TcpCommunicationHandler(device);
 		}
 	}
 }

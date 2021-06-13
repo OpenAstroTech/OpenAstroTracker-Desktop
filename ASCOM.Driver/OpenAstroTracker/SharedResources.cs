@@ -212,37 +212,9 @@ namespace ASCOM.OpenAstroTracker
 			return retVal;
 		}
 
-		public static string SendPassThroughCommand(string message, string terminator)
+		public static string SendPassThroughCommand(string message)
 		{
-			lock (lockObject)
-			{
-				tl.LogMessage("OAT Server", "Locked Serial");
-
-				try
-				{
-					if (SharedSerial.Connected && !String.IsNullOrEmpty(message))
-					{
-						tl.LogMessage("Telescope", "Send message: " + message);
-						SharedSerial.ClearBuffers();
-						SharedSerial.Transmit(message);
-						if (!string.IsNullOrEmpty(terminator))
-						{
-							return SharedSerial.ReceiveTerminated(terminator.ToString());
-						}
-					}
-					else
-					{
-						tl.LogMessage("OAT Server", "Not connected or Empty Message: " + message);
-					}
-				}
-				catch (Exception e)
-				{
-					tl.LogMessage($"Caught exception while SendPassThroughCommand - ${message}", e.Message);
-				}
-			}
-
-			tl.LogMessage("OAT Server", "Unlocked Serial");
-			return string.Empty;
+			return SendMessage(message);
 		}
 
 

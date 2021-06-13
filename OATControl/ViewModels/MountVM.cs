@@ -176,6 +176,46 @@ namespace OATControl.ViewModels
 		public MountVM()
 		{
 			Log.WriteLine("Mount: Initialization starting...");
+
+			Log.WriteLine("Mount: Initializing communication handler factory...");
+			CommunicationHandlerFactory.Initialize();
+
+			Log.WriteLine("Mount: Checking whether ASCOM driver is present...");
+			string location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			string ascomDriver = Path.Combine(location, "OATCommunications.ASCOM.dll");
+			if (File.Exists(ascomDriver))
+			{
+				try
+				{
+					Log.WriteLine("Mount: Loading ASCOM driver ...");
+					var ascom = Assembly.LoadFrom(ascomDriver);
+					//ascom.GetExportedTypes().FirstOrDefault((t) => t.;
+					var types = ascom.GetTypes();
+					for (int i = 0; i < types.Length; i++)
+					{
+						Type type = ascom.GetType(types[i].FullName);
+						if (type.GetInterface("ICommunicationHandler") != null)
+						{
+							object obj = Activator.CreateInstance(type);
+							if (obj != null)
+							{
+								CommunicationHandlerFactory.AddHandler(obj as ICommunicationHandler);
+								Log.WriteLine("Mount: ASCOM driver successfully added...");
+							}
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Log.WriteLine("Mount: Failed to load ASCOM driver. " + ex.Message);
+				}
+			}
+			else
+			{
+				Log.WriteLine("Mount: ASCOM driver is not present. Expected at " + ascomDriver);
+			}
+
+			Log.WriteLine("Mount: Initiating communication device discovery...");
 			CommunicationHandlerFactory.DiscoverDevices();
 			Log.WriteLine("Mount: Device discovery started...");
 

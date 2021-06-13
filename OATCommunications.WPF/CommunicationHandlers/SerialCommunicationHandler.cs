@@ -3,9 +3,7 @@ using OATCommunications.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace OATCommunications.WPF.CommunicationHandlers
 {
@@ -13,19 +11,28 @@ namespace OATCommunications.WPF.CommunicationHandlers
 	{
 		private string _portName;
 		private SerialPort _port;
+		private List<string> _available;
+		
+		public SerialCommunicationHandler()
+		{
+			_available = new List<string>();
+			_portName = string.Empty;
+			_port = null;
+		}
 
 		public SerialCommunicationHandler(string comPort)
 		{
 			Log.WriteLine($"COMMFACTORY: Creating Serial handler on {comPort} ...");
-			var parts = comPort.Split('@');
-			if (parts.Length > 0)
+			var regex = new System.Text.RegularExpressions.Regex(@"([A-z]+:\s*)(COM\d)?@?(\d+)?");
+			var result =regex.Match(comPort);
+			if (result.Success)
 			{
-				_portName = parts[0];
+				_portName = result.Groups[2].Value;
 				_port = new SerialPort(_portName);
 				int rate = 19200;
-				if (parts.Length > 1)
+				if (result.Groups.Count==4)
 				{
-					int.TryParse(parts[1], out rate);
+					int.TryParse(result.Groups[3].Value, out rate);
 				}
 				_port.BaudRate = rate;
 				_port.DtrEnable = false;
@@ -160,6 +167,32 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				_port = null;
 				Log.WriteLine("SERIAL: Disconnected...");
 			}
+		}
+
+		public override void DiscoverDeviceInstances(Action<string> addDevice)
+		{
+			Log.WriteLine("SERIAL: Checking Serial ports....");
+
+			_available.Clear();
+			foreach (var port in SerialPort.GetPortNames())
+			{
+				Log.WriteLine("SERIAL: Found Serial port [{0}]", port);
+				if (!_available.Contains("Serial: " + port))
+				{
+					_available.Add("Serial: " + port);
+					addDevice("Serial: " + port);
+				}
+			}
+		}
+
+		public override bool IsDriverForDevice(string device)
+		{
+			return device.StartsWith("Serial: ");
+		}
+
+		public override ICommunicationHandler CreateHandler(string device)
+		{
+			return new SerialCommunicationHandler(device);
 		}
 	}
 }

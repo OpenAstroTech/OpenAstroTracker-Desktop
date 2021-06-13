@@ -2,10 +2,11 @@
 OpenAstroTracker ASCOM Driver 
 =============================
 
-Version 6.6.1.0, published 03 May 2021
+Version 6.6.2.0, published 15-Jun-2021
 ----------------------------------------
 
 * History
+	* 6.6.2.0	2021-06-15		:		CHANGE : Changed passthrough command to support OATControl.
 	* 6.6.1.0	2021-05-03		:		CHANGE : Added support for OAT focuser.
 	* 6.5.4.0	2021-04-15		:		CHANGE : Changed available and default baud rate(s).
 	* 6.5.3.0	2021-04-10		:		CHANGE : Fixed Sync command. Added choosable baudrate. Lots of bug fixes.
@@ -21,8 +22,8 @@ Version 6.6.1.0, published 03 May 2021
 
 
 * Arduino information
-	* Tested on Arduino Mega and ESP32.  No other variants of Arduino have been tested, or are officially supported (MKS falls under Mega).
-	* Tested with V1.9.03 firmware, which is the RECOMMENDED version.
+	* Tested on MKS Gen L V2.1, Arduino Mega and ESP32. No other variants of Arduino have been tested, or are officially supported.
+	* Tested with V1.9.15 firmware, which is the RECOMMENDED version.
 	* Will probably work with earlier version (down to V1.6.32 and later).
 
 * Last Conformance Test - 2021-04-09 - All tests passed, no errors, no issues.
