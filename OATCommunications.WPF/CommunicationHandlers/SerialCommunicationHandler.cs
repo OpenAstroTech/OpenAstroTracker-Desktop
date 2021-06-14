@@ -41,6 +41,8 @@ namespace OATCommunications.WPF.CommunicationHandlers
 			}
 		}
 
+		public override string Name => "Serial Port";
+
 		public override bool Connected { get { return _port.IsOpen; } }
 
 		long requestIndex = 1;

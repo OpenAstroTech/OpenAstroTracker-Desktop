@@ -32,6 +32,8 @@ namespace OATCommunications.CommunicationHandlers
 			_oat.Action("Serial:PassThroughCommand", "I#");
 		}
 
+		public override string Name => "ASCOM";
+
 		public override bool Connected { get { return _oat.Connected; } }
 
 		long requestIndex = 1;
@@ -115,6 +117,23 @@ namespace OATCommunications.CommunicationHandlers
 		public override bool IsDriverForDevice(string device)
 		{
 			return device.StartsWith("ASCOM: ");
+		}
+
+		public override bool SupportsSetupDialog
+		{
+			get
+			{
+				return true;
+			}
+		}
+
+		public override bool RunSetupDialog()
+		{
+			_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
+			_oat.SetupDialog();
+			_oat.Dispose();
+			_oat = null;
+			return true;
 		}
 
 		public override ICommunicationHandler CreateHandler(string device)

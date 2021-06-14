@@ -108,7 +108,7 @@ namespace OATControl.ViewModels
 		string _scopeNetworkState = string.Empty;
 		string _scopeNetworkIPAddress = string.Empty;
 		string _scopeNetworkSSID = string.Empty;
-
+		string _connectionState = string.Empty;
 		string _mountStatus = string.Empty;
 		string _currentHA = string.Empty;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
@@ -519,6 +519,7 @@ namespace OATControl.ViewModels
 					{
 						Disconnect();
 						ScopeName = "Connection Lost...";
+						ConnectionState = string.Empty;
 					}
 				}
 				if (_oatMount?.Connected ?? false)
@@ -1115,6 +1116,7 @@ namespace OATControl.ViewModels
 			}
 
 			ScopeName = string.Empty;
+			ConnectionState = string.Empty;
 			ScopeHardware = string.Empty;
 			_oatMount = null;
 			RequeryCommands();
@@ -1206,6 +1208,7 @@ namespace OATControl.ViewModels
 			{
 				ScopeName = string.Empty;
 				ScopeHardware = string.Empty;
+				ConnectionState = string.Empty;
 				Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", fex.Message);
 				MessageBox.Show("Connected to OpenAstroTracker, but protocol could not be established.\n\nIs the firmware compiled with DEBUG_LEVEL set to DEBUG_NONE?", "Protocol Error", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
@@ -1213,6 +1216,7 @@ namespace OATControl.ViewModels
 			{
 				ScopeName = string.Empty;
 				ScopeHardware = string.Empty;
+				ConnectionState = string.Empty;
 				Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", ex.Message);
 				MessageBox.Show("Error trying to connect to OpenAstroTracker.\n\n" + ex.Message, "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
@@ -1359,11 +1363,14 @@ namespace OATControl.ViewModels
 			string resultName = string.Empty;
 			var doneEvent = new AsyncAutoResetEvent();
 
+			ConnectionState = "Connecting. Opening port...";
+
 			_commHandler = CommunicationHandlerFactory.ConnectToDevice(device);
 			if (_commHandler != null)
 			{
 				if (_commHandler.Connect())
 				{
+					ConnectionState = "Connecting. Querying OAT...";
 					_oatMount = new OatmealTelescopeCommandHandlers(_commHandler);
 
 					for (int attempts = 0; attempts < 4; attempts++)
@@ -1414,9 +1421,13 @@ namespace OATControl.ViewModels
 
 			if (failed)
 			{
+				ConnectionState = string.Empty;
 				return Tuple.Create(false, message);
 			}
-			Thread.Sleep(200);
+
+			ConnectionState = $"Connected via {_commHandler.Name}";
+
+			await Task.Delay(200);
 
 			Log.WriteLine("Mount: Connected to OAT. Requesting firmware version..");
 			this.SendOatCommand("GVN#,#", (resultNr) =>
@@ -2291,6 +2302,12 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _scopeHardware, value); }
 		}
 
+		public string ConnectionState
+		{
+			get { return _connectionState; }
+			set { SetPropertyValue(ref _connectionState, value); }
+		}
+
 		/// <summary>
 		/// Gets or sets the type of RA stepper of the scope 
 		/// </summary>
@@ -2503,10 +2520,6 @@ namespace OATControl.ViewModels
 			set
 			{
 				SetPropertyValue(ref _showDecLimits, value);
-				if (MountConnected)
-				{
-					AppSettings.Instance.ShowDecLimits = ShowDECLimits;
-				}
 			}
 		}
 

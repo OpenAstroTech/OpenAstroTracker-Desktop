@@ -146,7 +146,8 @@ namespace ASCOM.OpenAstroTracker
 		{
 			None,
 			Digit,
-			HashTerminated
+			HashTerminated,
+			DoubleHashTerminated,
 		}
 
 		/// <summary>
@@ -170,6 +171,11 @@ namespace ASCOM.OpenAstroTracker
 				{
 					message = message.Substring(0, message.Length - 2);
 					expect = ExpectedAnswer.HashTerminated;
+				}
+				else if (message.EndsWith("#,##"))
+				{
+					message = message.Substring(0, message.Length - 3);
+					expect = ExpectedAnswer.DoubleHashTerminated;
 				}
 				else if (message.EndsWith("#,n"))
 				{
@@ -197,6 +203,15 @@ namespace ASCOM.OpenAstroTracker
 							retVal = SharedSerial.ReceiveTerminated("#");
 							tl.LogMessage("OAT Server", "Raw reply :" + retVal);
 							retVal = retVal.TrimEnd('#');
+							break;
+						case ExpectedAnswer.DoubleHashTerminated:
+							tl.LogMessage("OAT Server", "Wait for two replies. Wait for 1st string reply");
+							retVal = SharedSerial.ReceiveTerminated("#");
+							tl.LogMessage("OAT Server", "First Raw reply :" + retVal);
+							retVal = retVal.TrimEnd('#');
+							tl.LogMessage("OAT Server", "Wait for 2nd string reply");
+							retVal = SharedSerial.ReceiveTerminated("#");
+							tl.LogMessage("OAT Server", "Second Raw reply :" + retVal);
 							break;
 					}
 

@@ -185,7 +185,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="8" Text="Target" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="5" Text="Target" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
 
             <controls:PushButton Grid.Row="1" Grid.Column="1" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH+" />
             <controls:PushButton Grid.Row="1" Grid.Column="3" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM+" />
@@ -511,7 +511,7 @@
                 </StackPanel>
 
                 <TextBlock Grid.Row="0" Grid.Column="1" Text="Safe Time" Style="{StaticResource TextBlockLabelSmall}"  />
-                <TextBlock Grid.Row="0" Grid.Column="2" MinWidth="64" Text="{Binding RemainingRATime}"  Style="{StaticResource TextBlockLabelValue}"  TextAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="2" MinWidth="75" Text="{Binding RemainingRATime}"  Style="{StaticResource TextBlockLabelValue}"  TextAlignment="Center" />
 
                 <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1" Grid.RowSpan="3" >
                     <Grid.RowDefinitions>
@@ -550,16 +550,16 @@
                 </Grid>
 
                 <TextBlock Grid.Row="1" Grid.Column="1" Text="RA Stepper" Style="{StaticResource TextBlockLabelSmall}"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" MinWidth="64" Text="{Binding RAStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
+                <TextBlock Grid.Row="1" Grid.Column="2" MinWidth="75" Text="{Binding RAStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
 
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="DEC Stepper"  Style="{StaticResource TextBlockLabelSmall}"/>
-                <TextBlock Grid.Row="2" Grid.Column="2" MinWidth="64" Text="{Binding DECStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" MouseRightButtonUp="OnDecMouseRightButtonUp"/>
+				<TextBlock Grid.Row="2" Grid.Column="2" MinWidth="75" Text="{Binding DECStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" MouseRightButtonUp="OnDecMouseRightButtonUp"/>
 
                 <TextBlock Grid.Row="3" Grid.Column="1" Text="TRK Stepper"  Style="{StaticResource TextBlockLabelSmall}"/>
-                <TextBlock Grid.Row="3" Grid.Column="2" MinWidth="64" Text="{Binding TrkStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
+				<TextBlock Grid.Row="3" Grid.Column="2" MinWidth="75" Text="{Binding TrkStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
 
                 <TextBlock Grid.Row="4" Grid.Column="1" Text="FOC Stepper"  Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}" />
-                <TextBlock Grid.Row="4" Grid.Column="2" MinWidth="64" Text="{Binding FocStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
+				<TextBlock Grid.Row="4" Grid.Column="2" MinWidth="75" Text="{Binding FocStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
             </Grid>
 
             <TextBlock Grid.Column="0" Grid.Row="1" Text="Tracking" Margin="0,5,0,1"  Style="{StaticResource TextBlockHeading}" />
@@ -570,7 +570,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Connected" Style="{StaticResource TextBlockLabelSmall}"/>
-                <TextBlock Grid.Column="1" MinWidth="64" Text="{Binding ConnectedTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
+				<TextBlock Grid.Column="1" MinWidth="75" Text="{Binding ConnectedTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
             </Grid>
 
             <Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" Margin="0,0,0,10">
@@ -579,7 +579,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="LST" Style="{StaticResource TextBlockLabelSmall}"/>
-                <TextBlock Grid.Column="1" MinWidth="64" Text="{Binding ScopeSiderealTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
+				<TextBlock Grid.Column="1" MinWidth="75" Text="{Binding ScopeSiderealTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
             </Grid>
 
 
@@ -619,7 +619,7 @@
                 <Button Grid.Column="2" Margin="0,12,0,0" Width="110" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ConnectScopeCommand}" Content="{Binding ConnectCommandString}" HorizontalAlignment="Right"/>
             </Grid>
             <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScopeName}" Style="{StaticResource TextBlockLabel}" Margin="0,2,0,0" HorizontalAlignment="Right" />
-        </Grid>
-
+			<TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ConnectionState}" Style="{StaticResource TextBlockLabelSmall}" Margin="0,2,0,0" HorizontalAlignment="Right" />
+		</Grid>
     </Grid>
 </Controls:MetroWindow>

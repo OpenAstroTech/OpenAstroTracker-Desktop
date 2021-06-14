@@ -31,7 +31,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 			_available.Clear();
 			_handlers.ForEach(handler => handler.DiscoverDeviceInstances((device) =>
 			{
-				Log.WriteLine("COMMFACTORY: Device found: " + device); 
+				Log.WriteLine("COMMFACTORY: Device found: " + device);
 				WpfUtilities.RunOnUiThread(() =>
 				{
 					_available.Add(device);
@@ -41,6 +41,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 		}
 
 		public static ObservableCollection<String> AvailableDevices { get { return _available; } }
+		public static List<ICommunicationHandler> AvailableHandlers { get { return _handlers; } }
 
 		public static ICommunicationHandler ConnectToDevice(string device)
 		{

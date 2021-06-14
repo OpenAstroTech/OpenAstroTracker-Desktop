@@ -42,6 +42,8 @@ namespace OATCommunications.CommunicationHandlers
 			}
 		}
 
+		public override string Name => "TCP/IP";
+
 		public TcpCommunicationHandler(IPAddress ip, int port)
 		{
 			Log.WriteLine($"COMMFACTORY: Reading Wifi data from {ip.ToString()}:{port} ...");

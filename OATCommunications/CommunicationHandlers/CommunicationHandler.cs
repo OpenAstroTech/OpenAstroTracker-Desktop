@@ -131,13 +131,17 @@ namespace OATCommunications.CommunicationHandlers
 			_jobsProcessorStopped.Set();
 		}
 
-		protected abstract void RunJob(Job job);
 
+		public abstract string Name { get; }
 		public abstract bool Connected { get; }
 		public abstract void Disconnect();
 		public abstract bool Connect();
 		public abstract bool IsDriverForDevice(string device);
 		public abstract ICommunicationHandler CreateHandler(string device);
 		public abstract void DiscoverDeviceInstances(Action<string> addDevice);
+		public virtual bool SupportsSetupDialog { get { return false; } }
+		public virtual bool RunSetupDialog() { return true; }
+
+		protected abstract void RunJob(Job job);
 	}
 }
