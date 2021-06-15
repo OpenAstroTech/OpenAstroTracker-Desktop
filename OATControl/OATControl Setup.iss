@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "OATControl"
-#define MyAppVersion "1.0.1.3"
+#define MyAppVersion "1.0.2.1"
 #define MyAppPublisher "OpenAstroTech"
 #define MyAppURL "https://wiki.openastrotech.com/"
 #define MyAppExeName "OATControl.exe"
@@ -46,6 +46,11 @@ Source: ".\bin\Release\MahApps.Metro.dll"; DestDir: "{app}"; Flags: ignoreversio
 Source: ".\bin\Release\MahApps.Metro.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\OATCommunications.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\OATCommunications.WPF.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\OATCommunications.ASCOM.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\ASCOM.DeviceInterfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\ASCOM.DriverAccess.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\ASCOM.Exceptions.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\ASCOM.Utilities.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\OATControl.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\PointsOfInterest.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\System.Windows.Interactivity.dll"; DestDir: "{app}"; Flags: ignoreversion

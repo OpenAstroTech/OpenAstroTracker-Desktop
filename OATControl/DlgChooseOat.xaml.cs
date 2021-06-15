@@ -1,10 +1,13 @@
 ﻿using MahApps.Metro.Controls;
+using OATCommuncations.WPF;
+using OATCommunications;
 using OATCommunications.Model;
 using OATCommunications.WPF.CommunicationHandlers;
 using OATControl.Properties;
 using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -31,6 +34,20 @@ namespace OATControl
 	/// </summary>
 	public partial class DlgChooseOat : MetroWindow, INotifyPropertyChanged
 	{
+		public class DeviceDriver
+		{
+			public DeviceDriver(string name, bool hasSetup, ICommand runSetup)
+			{
+				DeviceName = name;
+				SupportsSetup = hasSetup;
+				RunSetupCommand = runSetup;
+			}
+
+			public string DeviceName { get; set; }
+			public bool SupportsSetup { get; set; }
+			public ICommand RunSetupCommand { get; set; }
+		}
+
 		public enum Steps
 		{
 			Idle,
@@ -49,7 +66,7 @@ namespace OATControl
 		private float _latitude = 15;
 		private float _longitude = -15;
 		private float _altitude = 100;
-		private string _device;
+		private DeviceDriver _device;
 		private bool _showGPSStatus = false;
 		private bool _showManualLocation = false;
 		private bool _showBaudRate = false;
@@ -72,6 +89,7 @@ namespace OATControl
 
 		public DlgChooseOat(MountVM mountViewModel, Action<string, Action<CommandResponse>> sendCommand)
 		{
+			AvailableDevices = new ObservableCollection<DeviceDriver>();
 			stateTimer = new DispatcherTimer();
 			stateTimer.Tick += new EventHandler(ProcessStateMachine);
 			stateTimer.Interval = TimeSpan.FromMilliseconds(100);
@@ -85,7 +103,7 @@ namespace OATControl
 			_altitude = AppSettings.Instance.SiteAltitude;
 
 			CurrentStep = Steps.Idle;
-			_rescanCommand = new DelegateCommand(() => { CommunicationHandlerFactory.DiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForBaudrate));
+			_rescanCommand = new DelegateCommand(async () => { await OnDiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForBaudrate));
 			_connectAndNextCommand = new DelegateCommand((o) => AdvanceStateMachine(), () => IsNextEnabled);
 
 			this.DataContext = this;
@@ -93,18 +111,37 @@ namespace OATControl
 
 			this.Result = false;
 
+			Task.Run(async () => { await OnDiscoverDevices(); });
+
 			stateTimer.Start();
+		}
+
+		public async Task OnDiscoverDevices()
+		{
+			WpfUtilities.RunOnUiThread(() => { AvailableDevices.Clear(); }, Application.Current.Dispatcher);
+
+			CommunicationHandlerFactory.DiscoverDevices();
+			await Task.Delay(500);
+
+			foreach (var device in CommunicationHandlerFactory.AvailableDevices)
+			{
+				var handler = CommunicationHandlerFactory.AvailableHandlers.First(h => h.IsDriverForDevice(device));
+				var driver = new DeviceDriver(device, handler.SupportsSetupDialog, new DelegateCommand((p) => OnRunDeviceHandlerSetup(handler, p)));
+				WpfUtilities.RunOnUiThread(() => { AvailableDevices.Add(driver); }, Application.Current.Dispatcher);
+			}
 		}
 
 		public ICommand RescanCommand { get { return _rescanCommand; } }
 		public ICommand ConnectAndNextCommand { get { return _connectAndNextCommand; } }
 
-		public IList<string> AvailableDevices
+		public ObservableCollection<DeviceDriver> AvailableDevices { get; private set; }
+
+		private void OnRunDeviceHandlerSetup(ICommunicationHandler handler, object device)
 		{
-			get { return CommunicationHandlerFactory.AvailableDevices; }
+			handler.RunSetupDialog();
 		}
 
-		public string SelectedDevice
+		public DeviceDriver SelectedDevice
 		{
 			get { return _device; }
 			set
@@ -117,7 +154,6 @@ namespace OATControl
 						AdvanceStateMachine();
 					}
 					OnPropertyChanged("SelectedDevice");
-
 				}
 			}
 		}
@@ -319,14 +355,24 @@ namespace OATControl
 					break;
 
 				case Steps.WaitForDeviceConfirm: // Clicked on Next
-					CurrentStep = SelectedDevice.StartsWith("Serial") ? Steps.WaitForBaudrate : Steps.WaitForConnection;
-					ShowBaudRate = CurrentStep == Steps.WaitForBaudrate;
+					if (SelectedDevice.DeviceName.StartsWith("Serial"))
+					{
+						CurrentStep = Steps.WaitForBaudrate;
+						ShowBaudRate = true;
+					}
+					else
+					{
+						CurrentStep = Steps.CheckHardware;
+						GPSStatus = $"Connecting to OAT on {SelectedDevice.DeviceName}";
+						ShowGPSStatus = true;
+					}
+				
 					ShowNextButton = !string.IsNullOrEmpty(SelectedBaudRate);
 					break;
 
 				case Steps.WaitForBaudrate:
 				case Steps.WaitForConnection:
-					GPSStatus = $"Connecting to OAT on {SelectedDevice}{(SelectedDevice.StartsWith("Serial") ? " at " + SelectedBaudRate + " baud" : "")}";
+					GPSStatus = $"Connecting to OAT on {SelectedDevice.DeviceName}{(SelectedDevice.DeviceName.StartsWith("Serial") ? " at " + SelectedBaudRate + " baud" : "")}";
 					ShowGPSStatus = true;
 					CurrentStep = Steps.CheckHardware;
 					break;
@@ -405,7 +451,7 @@ namespace OATControl
 
 				case Steps.CheckHardware:
 					{
-						var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice + "@" + SelectedBaudRate);
+						var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice.DeviceName + "@" + SelectedBaudRate);
 
 						ShowGPSStatus = false;
 						GPSStatus = string.Empty;
@@ -415,6 +461,7 @@ namespace OATControl
 							ShowGPSStatus = true;
 							GPSStatus = connectResult.Item2;
 							CurrentStep = Steps.WaitForConnection;
+							_mountViewModel.ConnectionState = string.Empty;
 							return;
 						}
 
@@ -596,7 +643,7 @@ namespace OATControl
 
 					case Steps.WaitForDeviceConfirm:
 					case Steps.WaitForConnection:
-						return !string.IsNullOrEmpty(SelectedDevice);
+						return SelectedDevice != null;
 
 					case Steps.CheckHardware:
 						return false;
@@ -623,7 +670,7 @@ namespace OATControl
 		{
 			if (SelectedDevice != null)
 			{
-				CurrentStep = SelectedDevice.StartsWith("Serial") ? Steps.WaitForDeviceConfirm : Steps.WaitForConnection;
+				CurrentStep = SelectedDevice.DeviceName.StartsWith("Serial") ? Steps.WaitForDeviceConfirm : Steps.WaitForConnection;
 				AdvanceStateMachine();
 			}
 		}

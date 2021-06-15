@@ -6,17 +6,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OATControl" xmlns:converters="clr-namespace:OATControl.Converters"
 					  mc:Ignorable="d"
-        Title="Connect to OpenAstroTracker" Height="500" Width="700" ResizeMode="NoResize" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold">
+        Title="Connect to OpenAstroTracker" Height="600" Width="700" ResizeMode="NoResize" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold">
 	<Controls:MetroWindow.Resources>
 		<converters:BoolToVisibilityConverter x:Key="ShowOnTrue"  Collapse="True" />
 		<converters:BoolToVisibilityConverter x:Key="CollapseOnFalse"  Collapse="True" />
-		<Style x:Key="ListItemsStyle" TargetType="ListBoxItem">
+		<Style x:Key="ListItemsStyle" TargetType="ListViewItem">
 			<Setter Property="Margin" Value="10,3,5,1" />
 			<Setter Property="Padding" Value="6,3" />
 			<Setter Property="BorderThickness" Value="1" />
 			<Setter Property="BorderBrush" Value="{StaticResource AccentBaseColorBrush}" />
 			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
 			<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
+			<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 		</Style>
 		<ItemsPanelTemplate x:Key="ListBoxItemsPanel">
 			<StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="{StaticResource WhiteBrush}"/>
@@ -32,6 +33,7 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto" MinHeight="20"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -39,10 +41,11 @@
 			<RowDefinition Height="*"/>
 			<RowDefinition Height="Auto" />
 		</Grid.RowDefinitions>
-		<TextBlock Grid.Row="0" Grid.Column="0"  Text="Available Connections" Margin="16,16,16,17" Foreground="{StaticResource AccentSelectedColorBrush}"  />
-		<Button Grid.Row="0" Grid.Column="1"  Content="Rescan" Margin="0,10,10,11" Width="80" Style="{StaticResource AccentedSquareButtonStyle}" HorizontalAlignment="Right" Command="{Binding RescanCommand}" />
-		<ListBox Grid.Row="0"
-				 Grid.Column="1" 
+		<TextBlock Grid.Row="0" Grid.Column="0"  Text="Available Connections" Margin="16,16,16,18" Foreground="{StaticResource AccentSelectedColorBrush}" />
+		<Button Grid.Row="0" Grid.Column="1"  Content="Rescan" Margin="0,10,10,12" Width="80" Style="{StaticResource AccentedSquareButtonStyle}" HorizontalAlignment="Right" Command="{Binding RescanCommand}"  />
+		<ListView Grid.Row="1"
+				 Grid.Column="0" 
+				 Grid.ColumnSpan="2" 
 				 VerticalAlignment="Top"
 				 ItemsSource="{Binding AvailableDevices,Mode=OneWay}" 
 				 ItemsPanel="{StaticResource ListBoxItemsPanel}" 
@@ -51,41 +54,56 @@
 				 ItemContainerStyle="{StaticResource ListItemsStyle}" 
 				 MinHeight="18" 
 				 HorizontalAlignment="Stretch" 
-				 MinWidth="20" 
+				 HorizontalContentAlignment="Stretch" 
+				 MinWidth="500" 
 				 Background="Transparent" 
 				 MouseDoubleClick="Device_MouseDoubleClick"
-				 Margin="0,12,100,0">
-			<ListBox.ItemTemplate>
-				<DataTemplate DataType="string">
-					<Grid >
-						<TextBlock Text="{Binding}" Style="{StaticResource MetroTextBlock}"/>
+				 Margin="20,-10,0,0">
+			<ListView.ItemTemplate>
+				<DataTemplate>
+					<Grid HorizontalAlignment="Stretch"  Width="500">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="Auto"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" Text="{Binding Path=DeviceName}" Style="{StaticResource MetroTextBlock}"/>
+						<Button Grid.Column="1" Content="Setup" 
+								Padding="0,-4,0,0" 
+								Margin="30,0,0,0" 
+								Width="80" 
+								Height="20" 
+								Style="{StaticResource AccentedSquareButtonStyle}" 
+								HorizontalAlignment="Right" 
+								Command="{Binding RunSetupCommand}" 
+								CommandParameter="{Binding}" 
+								Visibility="{Binding SupportsSetup, Converter={StaticResource CollapseOnFalse}}" />
 					</Grid>
 				</DataTemplate>
-			</ListBox.ItemTemplate>
-		</ListBox>
+			</ListView.ItemTemplate>
+		</ListView>
 
-		<TextBlock Grid.Row="1" Grid.Column="0"  Text="Baud rate" Foreground="{StaticResource AccentSelectedColorBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,16,16,0" Visibility="{Binding ShowBaudRate,Converter={StaticResource CollapseOnFalse}}"/>
-		<ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" Margin="8,20,0,0" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding SelectedBaudRate}"
+		<TextBlock Grid.Row="2" Grid.Column="0"  Text="Baud rate" Foreground="{StaticResource AccentSelectedColorBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,20,16,5" Visibility="{Binding ShowBaudRate,Converter={StaticResource CollapseOnFalse}}"/>
+		<ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="1" Margin="8,19,0,1" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding SelectedBaudRate}"
 					  Width="120" FontSize="16" HorizontalAlignment="Left" Foreground="Red" FontWeight="Bold" BorderBrush="#FF880000" Visibility="{Binding ShowBaudRate,Converter={StaticResource CollapseOnFalse}}"/>
 
-		<TextBlock Grid.Row="2" Grid.Column="0" Text="Pitch Level:" HorizontalAlignment="Right" Margin="0,20,9,11" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
-		<local:LevelDisplay Grid.Row="2" Grid.Column="1" Value="{Binding PitchOffset}" Range="3" Labels="-3|-2|-1|0|1|2|3" Margin="10,24,20,6" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
+		<TextBlock Grid.Row="3" Grid.Column="0" Text="Pitch Level:" HorizontalAlignment="Right" Margin="0,19,8,12" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
+		<local:LevelDisplay Grid.Row="3" Grid.Column="1" Value="{Binding PitchOffset}" Range="3" Labels="-3|-2|-1|0|1|2|3" Margin="10,23,20,7" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
 
-		<TextBlock Grid.Row="3" Grid.Column="0" Text="Roll Level:" HorizontalAlignment="Right" Margin="0,0,9,11" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
-		<local:LevelDisplay Grid.Row="3" Grid.Column="1" Value="{Binding RollOffset}" Range="3" Labels="-3|-2|-1|0|1|2|3" Margin="10,4,20,6" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
+		<TextBlock Grid.Row="3" Grid.Column="0" Text="Roll Level:" HorizontalAlignment="Right" Margin="0,54,8,12" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" Grid.RowSpan="2" />
+		<local:LevelDisplay Grid.Row="4" Grid.Column="1" Value="{Binding RollOffset}" Range="3" Labels="-3|-2|-1|0|1|2|3" Margin="10,3,20,7" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
 
-		<TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding GPSStatus}" HorizontalAlignment="Center" Margin="10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowGPSStatus, Converter={StaticResource ShowOnTrue}}"/>
+		<TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding GPSStatus}" HorizontalAlignment="Center" Margin="20,9,20,20" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowGPSStatus, Converter={StaticResource ShowOnTrue}}"/>
 
-		<TextBlock Grid.Row="5" Grid.Column="0" Text="Latitude" HorizontalAlignment="Right" Margin="0,5,8,10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
-		<TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Latitude, StringFormat={}{0:0.00}}" Width="150" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentSelectedColorBrush}" Background="{StaticResource AccentColorBrush2}" Margin="5,0,0,5" HorizontalAlignment="Left" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
+		<TextBlock Grid.Row="6" Grid.Column="0" Text="Latitude" HorizontalAlignment="Right" Margin="0,5,7,10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
+		<TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Latitude, StringFormat={}{0:0.00}}" Width="150" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentSelectedColorBrush}" Background="{StaticResource AccentColorBrush2}" Margin="5,0,0,5" HorizontalAlignment="Left" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
 
-		<TextBlock Grid.Row="6" Grid.Column="0" Text="Longitude" HorizontalAlignment="Right" Margin="0,10,10,10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
-		<TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Longitude, StringFormat={}{0:0.00}}" Width="150" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentSelectedColorBrush}" Background="{StaticResource AccentColorBrush2}" Margin="5,5,0,5" HorizontalAlignment="Left" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}"  />
+		<TextBlock Grid.Row="7" Grid.Column="0" Text="Longitude" HorizontalAlignment="Right" Margin="0,10,10,10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
+		<TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Longitude, StringFormat={}{0:0.00}}" Width="150" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentSelectedColorBrush}" Background="{StaticResource AccentColorBrush2}" Margin="5,5,0,5" HorizontalAlignment="Left" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}"  />
 
-		<TextBlock Grid.Row="7" Grid.Column="0" Text="Altitude" HorizontalAlignment="Right" Margin="0,10,8,10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
-		<TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Altitude}" Width="150" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentSelectedColorBrush}" Background="{StaticResource AccentColorBrush2}" Margin="5,5,0,5" HorizontalAlignment="Left" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
+		<TextBlock Grid.Row="8" Grid.Column="0" Text="Altitude" HorizontalAlignment="Right" Margin="0,10,7,10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
+		<TextBox Grid.Row="8" Grid.Column="1" Text="{Binding Altitude}" Width="150" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentSelectedColorBrush}" Background="{StaticResource AccentColorBrush2}" Margin="5,5,0,5" HorizontalAlignment="Left" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
 
-		<Grid Grid.Row="9" HorizontalAlignment="Stretch" Grid.ColumnSpan="2">
+		<Grid Grid.Row="10" HorizontalAlignment="Stretch" Grid.ColumnSpan="2">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
 				<ColumnDefinition Width="*" />

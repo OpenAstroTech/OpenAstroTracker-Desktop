@@ -7,14 +7,32 @@ using OATCommunications.CommunicationHandlers;
 namespace OATCommunications
 {
     public interface ICommunicationHandler {
-        
-        // Connect the device (for devices that keep an open connection.
+
+        // Get the name of the communication layer
+        string Name { get; }
+
+        // Find any instances of this type available on the system
+        void DiscoverDeviceInstances(Action<string> addDevice);
+
+        // Can this handler process the given device identifier?
+        bool IsDriverForDevice(string device);
+
+        // Does this handler allow a supprot dialog to be shown
+        bool SupportsSetupDialog { get; }
+
+        // Tell the handler to run the support dialog. Return false to cancel connection.
+        bool RunSetupDialog();
+
+        // Creates another instance of this handler
+        ICommunicationHandler CreateHandler(string device);
+
+        // Connect the device (for devices that keep an open connection).
         bool Connect();
 
         // Disconnect from the device
         void Disconnect();
 
-        // Are we connected
+        // Are we connected?
         bool Connected { get; }
 
         // Send a command, no response expected
@@ -29,5 +47,5 @@ namespace OATCommunications
 
         // Send a command, expect a single digit response
         void SendCommandConfirm(string command, Action<CommandResponse> onFullFilledAction);
-    }
+	}
 }
