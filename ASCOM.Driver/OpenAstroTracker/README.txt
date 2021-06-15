@@ -2,7 +2,7 @@
 OpenAstroTracker ASCOM Driver 
 =============================
 
-Version 6.6.3.0, published XX-Jun-2021
+Version 6.6.3.0, published 14-Jun-2021
 ----------------------------------------
 
 * History
