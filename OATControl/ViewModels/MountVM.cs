@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -146,6 +146,8 @@ namespace OATControl.ViewModels
 
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
+
+		private SimulationConnect _oatSimComm = new SimulationConnect();
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -650,6 +652,19 @@ namespace OATControl.ViewModels
 									DECStepper = int.Parse(parts[3]);
 									TrkStepper = int.Parse(parts[4]);
 
+									if (_oatSimComm != null)
+									{
+										//_oatSimComm.Send($"RAStepsPerDegree:{RAStepsPerDegree}#RAStepper:{RAStepper}#DECStepper:{DECStepper}#TrkStepper:{TrkStepper}#Version:{Version}\n");
+										
+										_oatSimComm.Send($"RAStepsPerDegree:{RAStepsPerDegree}\n");
+										_oatSimComm.Send($"DECStepsPerDegree:{DECStepsPerDegree}\n");
+										_oatSimComm.Send($"RAStepper:{RAStepper}\n");
+										_oatSimComm.Send($"DECStepper:{DECStepper}\n");
+										_oatSimComm.Send($"TrkStepper:{TrkStepper}\n");
+										_oatSimComm.Send($"Version:{Version}\n");
+										
+									}
+
 									CurrentRAHour = int.Parse(parts[5].Substring(0, 2));
 									CurrentRAMinute = int.Parse(parts[5].Substring(2, 2));
 									CurrentRASecond = int.Parse(parts[5].Substring(4, 2));
@@ -661,6 +676,9 @@ namespace OATControl.ViewModels
 									{
 										FocStepper = int.Parse(parts[7]);
 									}
+
+									
+
 								}
 								catch (Exception ex)
 								{
@@ -1109,6 +1127,12 @@ namespace OATControl.ViewModels
 
 			ShowDECLimits = false;
 
+			if (_oatSimComm != null)
+			{
+				_oatSimComm.Disconnect();
+				_oatSimComm = null;
+			}
+
 			if (_commHandler != null)
 			{
 				_commHandler.Disconnect();
@@ -1238,6 +1262,7 @@ namespace OATControl.ViewModels
 				{
 					await UpdateInitialScopeValues();
 					await RecalculatePointsPositions(true);
+					_oatSimComm.Connect();
 				}
 			}
 		}
