@@ -1,12 +1,10 @@
 ﻿using HelixToolkit.Wpf.SharpDX;
-using HelixToolkit.Wpf.SharpDX.Animations;
 using HelixToolkit.Wpf.SharpDX.Assimp;
 using HelixToolkit.Wpf.SharpDX.Controls;
 using HelixToolkit.Wpf.SharpDX.Model;
 using HelixToolkit.Wpf.SharpDX.Model.Scene;
 using SharpDX;
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
-using System.Windows.Threading;
 
 namespace OATSimulation.ViewModels
 {
@@ -29,7 +26,6 @@ namespace OATSimulation.ViewModels
 
         private SynchronizationContext context = SynchronizationContext.Current;
         private HelixToolkitScene scene = null;
-        // private IAnimationUpdater animationUpdater = null;
         private CompositionTargetEx compositeHelper = new CompositionTargetEx();
         private MainWindow mainWindow = null;
         
@@ -47,8 +43,6 @@ namespace OATSimulation.ViewModels
         private string _status = "Not connected...";
         private string _version = "0.0";
         private string _firmwareVersion = "0.0";
-
-        private int frameCnt = 0;
 
         private double _raAngle = 0.0;
         private double _decAngle = 0.0;
@@ -486,10 +480,6 @@ namespace OATSimulation.ViewModels
             
             LoadOATModels();
 
-            // Start updating at 30fps
-            //_animationTimer.Tick += Animation_Tick;
-            //_animationTimer.Start();
-
             // Create TCP Client
             _tcpClient = new Communication.TCPSimClient(this);
 
@@ -629,12 +619,6 @@ namespace OATSimulation.ViewModels
                 }
                 RotateDEC();
             }
-        }
-
-        private void Animation_Tick(object sender, EventArgs e)
-        {
-            //Status = frameCnt.ToString();
-            //frameCnt++;
         }
 
         public void RotateRA()
