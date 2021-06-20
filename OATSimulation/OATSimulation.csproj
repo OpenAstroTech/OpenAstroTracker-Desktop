@@ -103,6 +103,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Communication\TCPSimClient.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="DelegateCommand.cs" />
     <Compile Include="ObservableObject.cs" />

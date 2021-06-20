@@ -1,12 +1,10 @@
-﻿using System.Globalization;
+﻿using OATSimulation.ViewModels;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-
-using OATSimulation.ViewModels;
 
 
 namespace OATSimulation.TCPServer
@@ -15,31 +13,21 @@ namespace OATSimulation.TCPServer
     {
         CultureInfo _oatCulture = new CultureInfo("en-US");
 
-        //string host;
         int port = 8888;
-        System.Net.Sockets.Socket serverSocket = null;
-        //IPHostEntry hostEntry = null;
-        System.Net.Sockets.Socket tempClient = null;
+        Socket serverSocket = null;
+        Socket tempClient = null;
         Task taskOfAccept;
-        //Task taskOfReceive;
-
+        
         MainViewModel _mainViewModel;
 
         public void StartServer(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
-
-            //var ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
-            //host = Dns.GetHostName();
-            //hostEntry = Dns.GetHostEntry(host);
-
-            //IPAddress address = hostEntry.AddressList[1];
             var address = IPAddress.Parse("127.0.0.1");
             IPEndPoint ipe = new IPEndPoint(address, port);
-            serverSocket = new Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);//Create a socket with which protocol
+            serverSocket = new Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             serverSocket.Bind(ipe);
             serverSocket.Listen(10);
-            // listbox.Dispatcher.BeginInvoke(new Action(() => { this.listbox.Items.Add(ipe.Address + "Server opened"); }));
             taskOfAccept = new Task(AcceptClient);
             taskOfAccept.Start();
 
@@ -49,8 +37,7 @@ namespace OATSimulation.TCPServer
         {
             while (true)
             {
-                tempClient = serverSocket.Accept();//Continuous monitoring
-                // listbox.Dispatcher.BeginInvoke(new Action(() => { this.listbox.Items.Add(" connected"); }));
+                tempClient = serverSocket.Accept();
                 ThreadPool.QueueUserWorkItem(new WaitCallback(Receive), tempClient);
                 _mainViewModel.Status = "Connected";
             }
@@ -63,7 +50,6 @@ namespace OATSimulation.TCPServer
                 string dataReceive = string.Empty;
                 byte[] bytesReceived = new byte[256];
                 int bytes = 0;
-                // The following will block until the page is transmitted.
                 do
                 {
                     bytes = tempClient.Receive(bytesReceived, bytesReceived.Length, 0);
@@ -73,23 +59,19 @@ namespace OATSimulation.TCPServer
                     {
                         ProcessCommand(dataReceive);
                     }
-                    // listbox.Dispatcher.Invoke(new Action(() => { this.listbox.Items.Add("Server Received:" + dataReceive); }));
                     dataReceive = string.Empty;
 
                 }
-                while (bytes > 0); //If bytes <0 is exiting a client, this can be used to detect the survival status of the client
+                while (bytes > 0);
             }
 
         }
 
         /*
-        private void Send_Click(object sender, RoutedEventArgs e)
+        public void Send(string command)
         {
-            string dataSend = string.Empty;
-            dataSend = "hello client";
-            byte[] bytesSent = Encoding.ASCII.GetBytes(dataSend);
+            byte[] bytesSent = Encoding.ASCII.GetBytes(command);
             tempClient.Send(bytesSent, bytesSent.Length, 0); //Send is also blocked synchronously
-            // listbox.Dispatcher.Invoke(new Action(() => { this.listbox.Items.Add("Server send:" + dataSend); }));
         }
         */
 

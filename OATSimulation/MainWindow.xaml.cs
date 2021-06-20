@@ -3,6 +3,7 @@ using HelixToolkit.Wpf.SharpDX.Model.Scene;
 using System.Windows;
 
 using OATSimulation.ViewModels;
+using System.Windows.Media;
 
 namespace OATSimulation
 {
@@ -15,6 +16,9 @@ namespace OATSimulation
         {
             InitializeComponent();
             this.DataContext = new MainViewModel(this);
+
+            // Font
+            this.FontFamily = new FontFamily("Courier New");
 
             view.AddHandler(Element3D.MouseDown3DEvent, new RoutedEventHandler((s, e) =>
             {

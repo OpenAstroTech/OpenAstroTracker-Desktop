@@ -6,7 +6,6 @@ using HelixToolkit.Wpf.SharpDX.Model;
 using HelixToolkit.Wpf.SharpDX.Model.Scene;
 using SharpDX;
 using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
@@ -16,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
+using System.Windows.Threading;
 
 namespace OATSimulation.ViewModels
 {
@@ -23,16 +23,32 @@ namespace OATSimulation.ViewModels
     {
         CultureInfo _oatCulture = new CultureInfo("en-US");
 
-        private TCPServer.TCPServer _tcpServer;
+        private Communication.TCPSimClient _tcpClient;
+        private bool _isConnected = false;
+        private string _isConnectedString = "Connect";
 
         private SynchronizationContext context = SynchronizationContext.Current;
         private HelixToolkitScene scene = null;
-        private IAnimationUpdater animationUpdater = null;
+        // private IAnimationUpdater animationUpdater = null;
         private CompositionTargetEx compositeHelper = new CompositionTargetEx();
         private MainWindow mainWindow = null;
+        
+        // RA Transform
+        Transform3DGroup _raTransformGrp = new Transform3DGroup();
+        RotateTransform3D _raRT = new RotateTransform3D();
+        AxisAngleRotation3D _raAR = new AxisAngleRotation3D();
 
+        // DEC Transform
+        Transform3DGroup _decTransformGrp = new Transform3DGroup();
+        RotateTransform3D _decRT = new RotateTransform3D();
+        AxisAngleRotation3D _decAR = new AxisAngleRotation3D();
+
+        private bool isLoading = false;
         private string _status = "Not connected...";
-        private string _version = "";
+        private string _version = "0.0";
+        private string _firmwareVersion = "0.0";
+
+        private int frameCnt = 0;
 
         private double _raAngle = 0.0;
         private double _decAngle = 0.0;
@@ -42,7 +58,18 @@ namespace OATSimulation.ViewModels
         private float _raStepsPerDegree = 0.0f;
         private float _decStepsPerDegree = 0.0f;
 
-        private bool renderEnvironmentMap = true;
+        private string _scopeSiderealTime = "0";
+        private string _scopePolarisHourAngle = "0";
+
+        // Animation
+        // DispatcherTimer _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33.3) };
+       
+        private double _raTargetAngle = 0.0;
+        private double _decTargetAngle = 0.0;
+        private double _raTargetDegSteps = 0.0;
+        private double _decTargetDegSteps = 0.0;
+
+        private bool renderEnvironmentMap = false;
 
         #region Properties
         // Lights
@@ -84,7 +111,65 @@ namespace OATSimulation.ViewModels
         public PBRMaterial PrintedMaterial { get; }
         public PBRMaterial AluminiumMaterial { get; }
         public PBRMaterial FloorMaterial { get; }
+        public PBRMaterial MetalMaterial { get; }
 
+        public bool RenderEnvironmentMap
+        {
+            set
+            {
+                if (SetValue(ref renderEnvironmentMap, value) && scene != null && scene.Root != null)
+                {
+                    foreach (var node in scene.Root.Traverse())
+                    {
+                        if (node is MaterialGeometryNode m && m.Material is PBRMaterialCore material)
+                        {
+                            material.RenderEnvironmentMap = value;
+                        }
+                    }
+                }
+            }
+            get => renderEnvironmentMap;
+        }
+
+        public bool IsLoading
+        {
+            private set => SetValue(ref isLoading, value);
+            get => isLoading;
+        }
+
+        public SceneNodeGroupModel3D GroupModel { get; } = new SceneNodeGroupModel3D();
+
+        public TextureModel EnvironmentMap { get; }
+
+        // Connection Properties
+        public string IsConnectedString
+        {
+            
+            get
+            {
+                return IsConnected ? "Disconnect" : "Connect";
+            }
+            set
+            {
+                _isConnectedString = value;
+                OnPropertyChanged("IsConnectedString");
+            }
+        }
+
+        public bool IsConnected
+        {
+            get
+            {
+                return _isConnected;
+            }
+            set
+            {
+                _isConnected = value;
+                OnPropertyChanged("IsConnected");
+            }
+        }
+
+        // Mount Properties
         public double RAAngle
         {
             get
@@ -111,7 +196,32 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("DECAngle");
             }
         }
+        public double RATargetAngle
+        {
+            get
+            {
+                return _raTargetAngle;
+            }
 
+            set
+            {
+                _raTargetAngle = value;
+                OnPropertyChanged("RATargetAngle");
+            }
+        }
+        public double DECTargetAngle
+        {
+            get
+            {
+                return _decTargetAngle;
+            }
+
+            set
+            {
+                _decTargetAngle = value;
+                OnPropertyChanged("DECTargetAngle");
+            }
+        }
         public int RAStepper
         {
             get
@@ -125,7 +235,6 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("RAStepper");
             }
         }
-
         public int DECStepper
         {
             get
@@ -139,7 +248,6 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("DECStepper");
             }
         }
-
         public int TRKStepper
         {
             get
@@ -204,71 +312,81 @@ namespace OATSimulation.ViewModels
 
             set
             {
-                _version = "v" + value;
+                _version = value;
                 OnPropertyChanged("Version");
             }
         }
 
-        public bool RenderEnvironmentMap
+        public string FirmwareVersion
         {
+            get
+            {
+                return _firmwareVersion;
+            }
+
             set
             {
-                if (SetValue(ref renderEnvironmentMap, value) && scene != null && scene.Root != null)
-                {
-                    foreach (var node in scene.Root.Traverse())
-                    {
-                        if (node is MaterialGeometryNode m && m.Material is PBRMaterialCore material)
-                        {
-                            material.RenderEnvironmentMap = value;
-                        }
-                    }
-                }
+                _firmwareVersion = value;
+                OnPropertyChanged("FirmwareVersion");
             }
-            get => renderEnvironmentMap;
         }
 
-        private bool isLoading = false;
-        public bool IsLoading
+        public string ScopeSiderealTime
         {
-            private set => SetValue(ref isLoading, value);
-            get => isLoading;
-        }
+            get
+            {
+                return _scopeSiderealTime;
+            }
 
-        public ObservableCollection<IAnimationUpdater> Animations { get; } = new ObservableCollection<IAnimationUpdater>();
-
-        public SceneNodeGroupModel3D GroupModel { get; } = new SceneNodeGroupModel3D();
-
-        private float speed = 1.0f;
-        public float Speed
-        {
             set
             {
-                if (SetValue(ref speed, value))
-                {
-                    if (animationUpdater != null)
-                        animationUpdater.Speed = value;
-                }
+                _scopeSiderealTime = value;
+                OnPropertyChanged("ScopeSiderealTime");
             }
-            get => speed;
         }
 
-        public TextureModel EnvironmentMap { get; }
+        public string ScopePolarisHourAngle
+        {
+            get
+            {
+                return _scopePolarisHourAngle;
+            }
+
+            set
+            {
+                _scopePolarisHourAngle = value;
+                OnPropertyChanged("ScopePolarisHourAngle");
+            }
+        }
 
         #endregion
-        
+
+        #region Commands
+        public ICommand ConnectCommand { get; }
+        #endregion
+
         public MainViewModel(MainWindow window)
         {
-            // Create TCP server
-            _tcpServer = new TCPServer.TCPServer();
-            _tcpServer.StartServer(this);
-
             EnvironmentMap = TextureModel.Create("Assets\\Cubemap_Grandcanyon.dds");
             EffectsManager = new DefaultEffectsManager();
 
             Title = "OAT Simulation v0.1";
 
+            // RA Transform Setup
             RAAngle = 0.0;
+            RATargetAngle = 0.0;
+            _raAR.Axis = new Vector3D(0, 0, 1);
+            _raAR.Angle = RAAngle;
+            _raRT.Rotation = _raAR;
+            _raTransformGrp.Children.Add(_raRT);
+
+            // DEC Transform Setup
             DECAngle = 0.0;
+            DECTargetAngle = 0.0;
+            _decAR.Axis = new Vector3D(1, 0, 0);
+            _decAR.Angle = DECAngle;
+            _decRT.Rotation = _decAR;
+            _decTransformGrp.Children.Add(_decRT);
 
             ShadowMapResolution = new Size(2048, 2048);
             
@@ -301,11 +419,14 @@ namespace OATSimulation.ViewModels
             {
                 AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
                 ClearCoatStrength = 0.0,
-                RoughnessFactor = 0.0,
+                RoughnessFactor = 0.56,
                 MetallicFactor = 0.0,
+                ReflectanceFactor = 0.52,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 0.4
+                AmbientOcclusionFactor = 0.2,
+                RenderEnvironmentMap = false,
+                EnableTessellation = true
             };
 
             AluminiumMaterial = new PBRMaterial()
@@ -313,12 +434,26 @@ namespace OATSimulation.ViewModels
                 AlbedoColor = new SharpDX.Color4(0.6f, 0.6f, 0.6f, 1.0f),
                 RoughnessFactor = 0.0,
                 MetallicFactor = 0.0,
+                ReflectanceFactor = 0.8,
+                RenderShadowMap = false,
+                EnableAutoTangent = true,
+                RenderEnvironmentMap = true,
+            };
+            
+            MetalMaterial = new PBRMaterial()
+            {
+                AlbedoColor = new SharpDX.Color4(0.6f, 0.6f, 0.6f, 1.0f),
+                RoughnessFactor = 0.3,
+                ClearCoatStrength = 0.01,
+                ReflectanceFactor = 0.8,
+                MetallicFactor = 1.0,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
+                RenderEnvironmentMap = false,
             };
 
             // ----------------------------------------------
-            // Scene Setup
+            // Lights and scene setup
             AmbientLightColor = System.Windows.Media.Color.FromRgb(24, 24, 24);
 
             AnimatedLightColor = System.Windows.Media.Color.FromRgb(10, 10, 78);// Colors.DarkBlue;
@@ -331,8 +466,8 @@ namespace OATSimulation.ViewModels
             SpotlightTransform = CreateAnimatedTransform2(-SpotlightDirection * 2, new Vector3D(0, 1, 0), 50);
             SpotlightDirectionTransform = CreateAnimatedTransform2(-SpotlightDirection, new Vector3D(1, 0, 0), 50);
 
-            MSAA = MSAALevel.Four;
-            FXAA = FXAALevel.High;
+            MSAA = MSAALevel.Two;
+            FXAA = FXAALevel.Medium;
 
             // ----------------------------------------------
             // floor
@@ -349,8 +484,29 @@ namespace OATSimulation.ViewModels
                 RenderShadowMap = true
             };
             
-
             LoadOATModels();
+
+            // Start updating at 30fps
+            //_animationTimer.Tick += Animation_Tick;
+            //_animationTimer.Start();
+
+            // Create TCP Client
+            _tcpClient = new Communication.TCPSimClient(this);
+
+            ConnectCommand = new RelayCommand((o) =>
+            {
+                if(IsConnected)
+                {
+                    _tcpClient.Disconnect();
+                }
+                else
+                {
+                    _tcpClient.Connect();
+                    StartAnimation();
+                }
+                
+            });
+
         }
         
         private void LoadOATModels()
@@ -359,6 +515,7 @@ namespace OATSimulation.ViewModels
             _ = Task.Run(() =>
               {
                   var loader = new Importer();
+                  loader.Configuration.GlobalScale = 0.01f;
                   return loader.Load("Assets\\OAT\\OAT_01.fbx");
               }).ContinueWith((result) =>
               {
@@ -404,10 +561,14 @@ namespace OATSimulation.ViewModels
                                       {
                                           m.Material = FloorMaterial;
                                       }
+                                      if (m.Material.Name == "metal")
+                                      {
+                                          m.Material = MetalMaterial;
+                                      }
                                       if (m.Material is PBRMaterialCore pbr)
                                       {
-                                        //pbr.RenderEnvironmentMap = RenderEnvironmentMap;
-                                    }
+                                        pbr.RenderEnvironmentMap = RenderEnvironmentMap;
+                                      }
                                       else if (m.Material is PhongMaterialCore phong)
                                       {
                                           phong.RenderEnvironmentMap = RenderEnvironmentMap;
@@ -417,23 +578,11 @@ namespace OATSimulation.ViewModels
                           }
                           GroupModel.AddNode(scene.Root);
 
-                          /*
-                          if (scene.HasAnimation)
-                          {
-                              var dict = scene.Animations.CreateAnimationUpdaters();
-                              foreach (var ani in dict.Values)
-                              {
-                                  Animations.Add(ani);
-                              }
-                          }
-                          */
                           foreach (var n in scene.Root.Traverse())
                           {
                               n.Tag = new AttachedNodeViewModel(n);
                           }
                       }
-                      StartAnimation();
-
                       isLoading = false;
                   }
                   else if (result.IsFaulted && result.Exception != null)
@@ -453,53 +602,56 @@ namespace OATSimulation.ViewModels
         {
             compositeHelper.Rendering -= CompositeHelper_Rendering;
         }
-
         private void CompositeHelper_Rendering(object sender, RenderingEventArgs e)
         {
-            RotateRA();
-            RotateDEC();
-
-            if (animationUpdater != null)
+            if (RAAngle != _raTargetAngle)
             {
-                animationUpdater.Update(Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+                if (RAAngle < _raTargetAngle)
+                {
+                    RAAngle += _raTargetDegSteps;
+                }
+                else
+                {
+                    RAAngle -= _raTargetDegSteps;
+                }
+                RotateRA();
             }
+
+            if (DECAngle != _decTargetAngle)
+            {
+                if (DECAngle < _decTargetAngle)
+                {
+                    DECAngle += _decTargetDegSteps;
+                }
+                else
+                {
+                    DECAngle -= _decTargetDegSteps;
+                }
+                RotateDEC();
+            }
+        }
+
+        private void Animation_Tick(object sender, EventArgs e)
+        {
+            //Status = frameCnt.ToString();
+            //frameCnt++;
         }
 
         public void RotateRA()
         {
-            Transform3DGroup grp;
-            RotateTransform3D rt = new RotateTransform3D();
-            AxisAngleRotation3D ar = new AxisAngleRotation3D();
-            ar.Axis = new Vector3D(0, 0, 1);
-            ar.Angle = RAAngle;
-
-            rt.Rotation = ar;
-
-            grp = new Transform3DGroup();
-            grp.Children.Add(rt);
-
             if(RAGroup != null)
             {
-                RAGroup.ModelMatrix = grp.ToMatrix();
+                _raAR.Angle = RAAngle;
+                RAGroup.ModelMatrix = _raTransformGrp.ToMatrix();
             }
         }
 
         public void RotateDEC()
         {
-            Transform3DGroup grp;
-            RotateTransform3D rt = new RotateTransform3D();
-            AxisAngleRotation3D ar = new AxisAngleRotation3D();
-            ar.Axis = new Vector3D(1, 0, 0);
-            ar.Angle = DECAngle;
-
-            rt.Rotation = ar;
-
-            grp = new Transform3DGroup();
-            grp.Children.Add(rt);
-
             if(DECGroup != null)
             {
-                DECGroup.ModelMatrix = grp.ToMatrix();
+                _decAR.Angle = DECAngle;
+                DECGroup.ModelMatrix = _decTransformGrp.ToMatrix();
             }
         }
 
@@ -545,12 +697,18 @@ namespace OATSimulation.ViewModels
 
         public void StatusUpdate()
         {
-            RAAngle = -(RAStepper + TRKStepper) / RAStepsPerDegree;
-            DECAngle = -DECStepper / DECStepsPerDegree;
+            if(RAStepsPerDegree != 0.0)
+            {
+                RATargetAngle = -(RAStepper + TRKStepper) / RAStepsPerDegree;
+                _raTargetDegSteps = Math.Abs((RAAngle - _raTargetAngle) / 30.0);
+            }
+
+            if(DECStepsPerDegree != 0.0)
+            {
+                DECTargetAngle = -DECStepper / DECStepsPerDegree;
+                _decTargetDegSteps = Math.Abs((DECAngle - _decTargetAngle) / 30.0);
+            }
+
         }
     }
-
-    
-
-
 }

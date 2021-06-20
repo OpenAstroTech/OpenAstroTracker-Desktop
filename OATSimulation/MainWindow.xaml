@@ -12,16 +12,15 @@
     <Window.Resources>
         <hx:RenderTechniqueConverter x:Key="RenderTechniqueConverter" />
     </Window.Resources>
-    <Grid>
+    <Grid Background="Black">
         <Grid.RowDefinitions>
-            <RowDefinition Height="13*"/>
-            <RowDefinition Height="180*"/>
-            <RowDefinition Height="35"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition Width="78"/>
-            <ColumnDefinition Width="70"/>
+            <ColumnDefinition Width="84"/>
+            <ColumnDefinition Width="77.333"/>
         </Grid.ColumnDefinitions>
         <hx:Viewport3DX
             x:Name="view"
@@ -32,7 +31,8 @@
             Camera="{Binding Camera}"
             CoordinateSystemLabelForeground="White"
             EffectsManager="{Binding EffectsManager}"
-            EnableSwapChainRendering="False"
+            EnableSwapChainRendering="True"
+            EnableSSAO="True"
             FXAALevel="{Binding FXAA}"
             IsShadowMappingEnabled="True"
             MSAA="{Binding MSAA}"
@@ -42,7 +42,7 @@
             ShowViewCube="False"
             SubTitle="{Binding SubTitle}"
             TextBrush="Black"
-            UseDefaultGestures="False" Grid.ColumnSpan="3" Margin="0,0,0.333,-0.333" Grid.RowSpan="3">
+            UseDefaultGestures="False" Grid.RowSpan="2" Margin="0,0,10,-0.333">
             <hx:Viewport3DX.InputBindings>
                 <KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
                 <KeyBinding Key="F" Command="hx:ViewportCommands.FrontView" />
@@ -60,7 +60,6 @@
             <hx:AmbientLight3D Color="{Binding AmbientLightColor}" />
 
             <hx:PointLight3D
-                IsRendering="{Binding RenderAnimatedLight}"
                 Transform="{Binding AnimatedLightTransform}"
                 Color="{Binding AnimatedLightColor}" />
 
@@ -86,74 +85,38 @@
             </hx:GroupModel3D>
             <hx:PostEffectBloom x:Name="bloom" />
             <!--<hx:LineGeometryModel3D Geometry="{Binding CubeEdges}" Color="{x:Static SharpDX:Color.Red}" Thickness="4"/>-->
+            <hx:EnvironmentMap3D IsRendering="{Binding RenderEnvironmentMap}" Texture="{Binding EnvironmentMap}" />
         </hx:Viewport3DX>
 
-        <StackPanel Grid.Column="1" Height="100" Margin="0.667,10,10.333,0" VerticalAlignment="Top" Grid.Row="1">
-            <TextBlock Text="RA" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="DEC" Foreground="White" Grid.RowSpan="2"/>
+        <StackPanel Grid.Column="1" Margin="1,10,0,52.667">
+            <TextBlock Text="RA Deg" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="DEC Deg" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="RA Stepper" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="DEC Stepper" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="TRK Stepper" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="-----" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="LST" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="Polaris HA" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="----" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="OC Version" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="FW Version" Foreground="White" Grid.RowSpan="2"/>
 
         </StackPanel>
 
-        <StackPanel Grid.Column="2" Height="100" Margin="0.667,10,10.333,0" VerticalAlignment="Top" Grid.Row="1">
+        <StackPanel Grid.Column="2" Margin="1,10,10.333,52.667">
             <TextBlock Text="{Binding RAAngle, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="{Binding DECAngle, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="{Binding RAStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="{Binding DECStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="{Binding TRKStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="----" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="{Binding ScopeSiderealTime}" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="{Binding ScopePolarisHourAngle}" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="----" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="{Binding Version}" Foreground="White" Grid.RowSpan="2"/>
+            <TextBlock Text="{Binding FirmwareVersion}" Foreground="White" Grid.RowSpan="2"/>
         </StackPanel>
-        <Label x:Name="label" Content="{Binding Status}" HorizontalAlignment="Left" Margin="0,0,0,-0.333" Grid.Row="2" Width="118" Foreground="White" Height="26" VerticalAlignment="Bottom"/>
-        <Label x:Name="version" Content="{Binding Version}" HorizontalContentAlignment="Right"  Margin="0,9,0.333,-0.333" Grid.Row="2" VerticalAlignment="Top" Height="26" Width="131" Foreground="White" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Right"/>
+        <Label Content="{Binding Status}" Margin="1,0,0.333,25.667" Foreground="White" Height="26" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Grid.Column="1" Grid.RowSpan="2"/>
+        <Button x:Name="button" Grid.ColumnSpan="2" Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10.333,9.667" Width="75" Height="21" VerticalAlignment="Bottom" Grid.Row="1"/>
     </Grid>
-    <!--
-    <Grid>
-        <hx:Viewport3DX
-            x:Name="view"
-            Grid.Row="1"
-            Background="Black"
-            BackgroundColor="Black"
-            Camera="{Binding Camera}"
-            ShowViewCube="False"
-            CoordinateSystemLabelForeground="White"
-            EnableDesignModeRendering="False"
-            EffectsManager="{Binding EffectsManager}"
-            Title="{Binding Title}"
-
-            EnableSwapChainRendering="True"
-            FXAALevel="Medium"
-            IsShadowMappingEnabled="True"
-            ShowCoordinateSystem="False"
-            ShowFrameDetails="False"
-            >
-            <hx:Viewport3DX.InputBindings>
-                <KeyBinding Command="hx:ViewportCommands.ZoomExtents" Key="F" />
-                <MouseBinding Command="hx:ViewportCommands.Rotate" Gesture="RightClick" />
-                <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
-                <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
-            </hx:Viewport3DX.InputBindings>
-            
-
-            <hx:EnvironmentMap3D IsRendering="{Binding RenderEnvironmentMap}" Texture="{Binding EnvironmentMap}" />
-            
-            <hx:DynamicReflectionMap3D>
-                <hx:Element3DPresenter Content="{Binding GroupModel}" />
-            </hx:DynamicReflectionMap3D>
-
-            
-
-            <hx:SpotLight3D
-                x:Name="spotLight"
-                Direction="{Binding Camera.LookDirection, Mode=OneWay}"
-                OuterAngle="{Binding Camera.FieldOfView}"
-                Position="{Binding Camera.Position, Mode=OneWay}"
-                Range="{Binding Camera.FarPlaneDistance}"
-                Color="#DEDEDE" />
-
-        </hx:Viewport3DX>
-        <Label x:Name="label" Content="{Binding RAAngle}" Margin="0,10,10.333,0" Foreground="White" HorizontalAlignment="Right" Width="38" Height="10" VerticalAlignment="Top"/>
-
-    </Grid>
-    -->
 </Window>

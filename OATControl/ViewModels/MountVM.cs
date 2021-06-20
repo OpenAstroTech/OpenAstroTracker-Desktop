@@ -147,7 +147,7 @@ namespace OATControl.ViewModels
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
 
-		private SimulationConnect _oatSimComm = new SimulationConnect();
+		private TCPSimServer _oatSimComm = new TCPSimServer();
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -263,6 +263,9 @@ namespace OATControl.ViewModels
 
 			AppSettings.Instance.UpgradeVersion += OnUpgradeSettings;
 			AppSettings.Instance.Load();
+
+			// Start Simulation Server
+			_oatSimComm.StartServer();
 		}
 
 		public void OnUpgradeSettings(object sender, UpgradeEventArgs e)
@@ -652,19 +655,8 @@ namespace OATControl.ViewModels
 									DECStepper = int.Parse(parts[3]);
 									TrkStepper = int.Parse(parts[4]);
 
-									if (_oatSimComm != null)
-									{
-										//_oatSimComm.Send($"RAStepsPerDegree:{RAStepsPerDegree}#RAStepper:{RAStepper}#DECStepper:{DECStepper}#TrkStepper:{TrkStepper}#Version:{Version}\n");
-										
-										_oatSimComm.Send($"RAStepsPerDegree:{RAStepsPerDegree}\n");
-										_oatSimComm.Send($"DECStepsPerDegree:{DECStepsPerDegree}\n");
-										_oatSimComm.Send($"RAStepper:{RAStepper}\n");
-										_oatSimComm.Send($"DECStepper:{DECStepper}\n");
-										_oatSimComm.Send($"TrkStepper:{TrkStepper}\n");
-										_oatSimComm.Send($"Version:{Version}\n");
-										
-									}
-
+									UpdateSimulationClient();
+									
 									CurrentRAHour = int.Parse(parts[5].Substring(0, 2));
 									CurrentRAMinute = int.Parse(parts[5].Substring(2, 2));
 									CurrentRASecond = int.Parse(parts[5].Substring(4, 2));
@@ -1129,7 +1121,7 @@ namespace OATControl.ViewModels
 
 			if (_oatSimComm != null)
 			{
-				_oatSimComm.Disconnect();
+				_oatSimComm.StopServer();
 				_oatSimComm = null;
 			}
 
@@ -1262,7 +1254,6 @@ namespace OATControl.ViewModels
 				{
 					await UpdateInitialScopeValues();
 					await RecalculatePointsPositions(true);
-					_oatSimComm.Connect();
 				}
 			}
 		}
@@ -2840,6 +2831,23 @@ namespace OATControl.ViewModels
 				{
 					_miniController.Topmost = value;
 				}
+			}
+		}
+
+		private void UpdateSimulationClient()
+        {
+			if (_oatSimComm != null)
+			{
+				_oatSimComm.Send($"RAStepsPerDegree|{RAStepsPerDegree}\n");
+				_oatSimComm.Send($"DECStepsPerDegree|{DECStepsPerDegree}\n");
+				_oatSimComm.Send($"RAStepper|{RAStepper}\n");
+				_oatSimComm.Send($"DECStepper|{DECStepper}\n");
+				_oatSimComm.Send($"TrkStepper|{TrkStepper}\n");
+				_oatSimComm.Send($"Version|{Version}\n");
+				_oatSimComm.Send($"FirmwareVersion|{ScopeVersion}\n");
+				_oatSimComm.Send($"ScopeSiderealTime|{ScopeSiderealTime}\n");
+				_oatSimComm.Send($"ScopePolarisHourAngle|{ScopePolarisHourAngle}\n");
+
 			}
 		}
 	}
