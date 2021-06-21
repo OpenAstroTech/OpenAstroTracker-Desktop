@@ -108,7 +108,6 @@
     <Compile Include="DelegateCommand.cs" />
     <Compile Include="ObservableObject.cs" />
     <Compile Include="RelayCommand.cs" />
-    <Compile Include="TCPServer\TCPServer.cs" />
     <Compile Include="ViewModels\AttachedNodeViewModel.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />

@@ -63,20 +63,30 @@ namespace OATSimulation.ViewModels
         private double _raTargetDegSteps = 0.0;
         private double _decTargetDegSteps = 0.0;
 
-        private bool renderEnvironmentMap = false;
+        private bool renderEnvironmentMap = true;
 
         #region Properties
         // Lights
         public System.Windows.Media.Color AmbientLightColor { get; set; }
+
+        // -- Animated
         public Vector3D AnimatedLightDirection { get; set; }
         public System.Windows.Media.Color AnimatedLightColor { get; set; }
         public Transform3D AnimatedLightTransform { get; private set; }
 
+        // -- Spot
         public Vector3D SpotlightAttenuation { get; set; }
         public Transform3D SpotlightDirectionTransform { get; private set; }
         public Vector3D SpotlightDirection { get; set; }
         public Transform3D SpotlightTransform { get; private set; }
         public System.Windows.Media.Color SpotlightColor { get; set; }
+
+        // -- Point
+        public Vector3D PointlightAttenuation { get; set; }
+        public Transform3D PointlightDirectionTransform { get; private set; }
+        public Vector3D PointlightDirection { get; set; }
+        public Transform3D PointlightTransform { get; private set; }
+        public System.Windows.Media.Color PointlightColor { get; set; }
 
         public HelixToolkit.Wpf.SharpDX.MeshGeometry3D Floor { get; private set; }
         public Transform3D FloorTransform { get; private set; }
@@ -106,6 +116,7 @@ namespace OATSimulation.ViewModels
         public PBRMaterial AluminiumMaterial { get; }
         public PBRMaterial FloorMaterial { get; }
         public PBRMaterial MetalMaterial { get; }
+        public PBRMaterial GlassMaterial { get; }
 
         public bool RenderEnvironmentMap
         {
@@ -419,7 +430,7 @@ namespace OATSimulation.ViewModels
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
                 AmbientOcclusionFactor = 0.2,
-                RenderEnvironmentMap = false,
+                RenderEnvironmentMap = RenderEnvironmentMap,
                 EnableTessellation = true
             };
 
@@ -431,7 +442,7 @@ namespace OATSimulation.ViewModels
                 ReflectanceFactor = 0.8,
                 RenderShadowMap = false,
                 EnableAutoTangent = true,
-                RenderEnvironmentMap = true,
+                RenderEnvironmentMap = RenderEnvironmentMap,
             };
             
             MetalMaterial = new PBRMaterial()
@@ -440,6 +451,18 @@ namespace OATSimulation.ViewModels
                 RoughnessFactor = 0.3,
                 ClearCoatStrength = 0.01,
                 ReflectanceFactor = 0.8,
+                MetallicFactor = 1.0,
+                RenderShadowMap = true,
+                EnableAutoTangent = true,
+                RenderEnvironmentMap = RenderEnvironmentMap,
+            };
+
+            GlassMaterial = new PBRMaterial()
+            {
+                AlbedoColor = new SharpDX.Color4(0.0f, 0.0f, 0.8f, 0.8f),
+                RoughnessFactor = 0.0,
+                ClearCoatStrength = 1.0,
+                ReflectanceFactor = 1.0,
                 MetallicFactor = 1.0,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
@@ -459,6 +482,11 @@ namespace OATSimulation.ViewModels
             SpotlightDirection = new Vector3D(0, -5, -1);
             SpotlightTransform = CreateAnimatedTransform2(-SpotlightDirection * 2, new Vector3D(0, 1, 0), 50);
             SpotlightDirectionTransform = CreateAnimatedTransform2(-SpotlightDirection, new Vector3D(1, 0, 0), 50);
+
+            PointlightColor = System.Windows.Media.Color.FromRgb(220, 220, 220);
+            PointlightAttenuation = new Vector3D(1.0f, 1.0f, 1.0f);
+            PointlightDirection = new Vector3D(0, -2, 5);
+            PointlightTransform = CreateAnimatedTransform2(-PointlightDirection , new Vector3D(0, 1, 0), 50);
 
             MSAA = MSAALevel.Two;
             FXAA = FXAALevel.Medium;
@@ -550,6 +578,10 @@ namespace OATSimulation.ViewModels
                                       if (m.Material.Name == "floor")
                                       {
                                           m.Material = FloorMaterial;
+                                      }
+                                      if (m.Material.Name == "GlassMat")
+                                      {
+                                          m.Material = GlassMaterial;
                                       }
                                       if (m.Material.Name == "metal")
                                       {

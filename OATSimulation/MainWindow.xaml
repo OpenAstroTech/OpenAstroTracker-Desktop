@@ -63,6 +63,11 @@
                 Transform="{Binding AnimatedLightTransform}"
                 Color="{Binding AnimatedLightColor}" />
 
+            <hx:PointLight3D
+                Transform="{Binding PointlightTransform}"
+                Color="{Binding PointlightColor}"
+                Range="8"/>
+
             <hx:SpotLight3D
                 Attenuation="{Binding SpotlightAttenuation}"
                 Direction="{Binding SpotlightDirection}"
@@ -116,7 +121,7 @@
             <TextBlock Text="{Binding Version}" Foreground="White" Grid.RowSpan="2"/>
             <TextBlock Text="{Binding FirmwareVersion}" Foreground="White" Grid.RowSpan="2"/>
         </StackPanel>
-        <Label Content="{Binding Status}" Margin="1,0,0.333,25.667" Foreground="White" Height="26" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Grid.Column="1" Grid.RowSpan="2"/>
-        <Button x:Name="button" Grid.ColumnSpan="2" Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10.333,9.667" Width="75" Height="21" VerticalAlignment="Bottom" Grid.Row="1"/>
+        <Label Content="{Binding Status}" Margin="1,0,0.333,9.667" Foreground="White" Height="26" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1"/>
+        <Button x:Name="button" Grid.ColumnSpan="2" Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10.333,9.667" Width="75" Height="21" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>
