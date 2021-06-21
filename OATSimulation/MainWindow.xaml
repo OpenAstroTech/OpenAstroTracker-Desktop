@@ -66,7 +66,8 @@
             <hx:PointLight3D
                 Transform="{Binding PointlightTransform}"
                 Color="{Binding PointlightColor}"
-                Range="8"/>
+                Attenuation="{Binding PointlightAttenuation}"
+                Range="10"/>
 
             <hx:SpotLight3D
                 Attenuation="{Binding SpotlightAttenuation}"

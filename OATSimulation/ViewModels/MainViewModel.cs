@@ -116,7 +116,9 @@ namespace OATSimulation.ViewModels
         public PBRMaterial AluminiumMaterial { get; }
         public PBRMaterial FloorMaterial { get; }
         public PBRMaterial MetalMaterial { get; }
+        public PBRMaterial BlackMetalMaterial { get; }
         public PBRMaterial GlassMaterial { get; }
+        public PBRMaterial MarkersMaterial { get; }
 
         public bool RenderEnvironmentMap
         {
@@ -442,6 +444,7 @@ namespace OATSimulation.ViewModels
                 ReflectanceFactor = 0.8,
                 RenderShadowMap = false,
                 EnableAutoTangent = true,
+                AmbientOcclusionFactor = 0.8,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
             
@@ -454,6 +457,20 @@ namespace OATSimulation.ViewModels
                 MetallicFactor = 1.0,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
+                AmbientOcclusionFactor = 1.0,
+                RenderEnvironmentMap = RenderEnvironmentMap,
+            };
+
+            BlackMetalMaterial = new PBRMaterial()
+            {
+                AlbedoColor = new SharpDX.Color4(0.1f, 0.1f, 0.1f, 1.0f),
+                RoughnessFactor = 0.3,
+                ClearCoatStrength = 0.01,
+                ReflectanceFactor = 0.2,
+                MetallicFactor = 0.0,
+                RenderShadowMap = true,
+                EnableAutoTangent = true,
+                AmbientOcclusionFactor = 0.2,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
 
@@ -467,6 +484,20 @@ namespace OATSimulation.ViewModels
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
                 RenderEnvironmentMap = false,
+            };
+
+            MarkersMaterial = new PBRMaterial()
+            {
+                AlbedoColor = new SharpDX.Color4(0.2f, 0.2f, 0.2f, 1.0f),
+                ClearCoatStrength = 0.0,
+                RoughnessFactor = 0.56,
+                MetallicFactor = 0.0,
+                ReflectanceFactor = 0.52,
+                RenderShadowMap = true,
+                EnableAutoTangent = true,
+                AmbientOcclusionFactor = 0.2,
+                RenderEnvironmentMap = RenderEnvironmentMap,
+                EnableTessellation = false
             };
 
             // ----------------------------------------------
@@ -484,7 +515,7 @@ namespace OATSimulation.ViewModels
             SpotlightDirectionTransform = CreateAnimatedTransform2(-SpotlightDirection, new Vector3D(1, 0, 0), 50);
 
             PointlightColor = System.Windows.Media.Color.FromRgb(220, 220, 220);
-            PointlightAttenuation = new Vector3D(1.0f, 1.0f, 1.0f);
+            PointlightAttenuation = new Vector3D(0.1f, 0.1f, 0.1f);
             PointlightDirection = new Vector3D(0, -2, 5);
             PointlightTransform = CreateAnimatedTransform2(-PointlightDirection , new Vector3D(0, 1, 0), 50);
 
@@ -567,11 +598,11 @@ namespace OATSimulation.ViewModels
 
                                       m.IsThrowingShadow = true;
                                     //m.Geometry.SetAsTransient();
-                                    if (m.Material.Name == "printed")
+                                    if (m.Material.Name == "printed_mat")
                                       {
                                           m.Material = PrintedMaterial;
                                       }
-                                      else if (m.Material.Name == "aluminium")
+                                      else if (m.Material.Name == "aluminium_mat")
                                       {
                                           m.Material = AluminiumMaterial;
                                       }
@@ -579,13 +610,21 @@ namespace OATSimulation.ViewModels
                                       {
                                           m.Material = FloorMaterial;
                                       }
-                                      if (m.Material.Name == "GlassMat")
+                                      if (m.Material.Name == "glass_mat")
                                       {
                                           m.Material = GlassMaterial;
                                       }
-                                      if (m.Material.Name == "metal")
+                                      if (m.Material.Name == "metal_mat")
                                       {
                                           m.Material = MetalMaterial;
+                                      }
+                                      if (m.Material.Name == "black_metal_mat")
+                                      {
+                                          m.Material = BlackMetalMaterial;
+                                      }
+                                      if (m.Material.Name == "markers_mat")
+                                      {
+                                          m.Material = MarkersMaterial;
                                       }
                                       if (m.Material is PBRMaterialCore pbr)
                                       {
