@@ -74,6 +74,7 @@ namespace OATCommunications.CommunicationHandlers
 					}
 
 					reply = _oat.Action("Serial:PassThroughCommand", command);
+					if (_logJobs) Log.WriteLine("[{0:0000}] ASCOM: [{1}] Received reply: '{2}'", requestIndex, job.Command, reply);
 					response = new CommandResponse(reply, true);
 				}
 				catch (Exception ex)

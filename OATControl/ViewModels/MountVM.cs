@@ -242,7 +242,7 @@ namespace OATControl.ViewModels
 			_chooseTargetCommand = new DelegateCommand((p) => OnShowTargetChooser(), () => MountConnected);
 			_setDecLowerLimitCommand = new DelegateCommand((p) => SetDecLowLimit(), () => MountConnected);
 			_setDECHomeOffsetFromPowerOn = new DelegateCommand((p) => OnSetDECHomeOffsetFromPowerOn(), () => MountConnected);
-			_gotoDECHomeFromPowerOn = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10916));
+			_gotoDECHomeFromPowerOn = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10915));
 
 
 			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
@@ -547,8 +547,8 @@ namespace OATControl.ViewModels
 					{
 						if (result.Success)
 						{
-							//   0   1  2 3 4    5      6
-							// Idle,--T,0,0,31,080300,+900000,#
+							//   0   1  2 3 4    5      6     7
+							// Idle,--T,0,0,31,080300,+900000,50000,#
 							string status = result.Data;
 							if (result.Success && !string.IsNullOrWhiteSpace(status))
 							{
@@ -659,7 +659,11 @@ namespace OATControl.ViewModels
 									CurrentDECSecond = int.Parse(parts[6].Substring(5, 2));
 									if (parts.Length > 8)
 									{
-										FocStepper = int.Parse(parts[7]);
+										int focusStepper;
+										if (int.TryParse(parts[7], out focusStepper))
+										{
+											FocStepper = focusStepper;
+										}
 									}
 								}
 								catch (Exception ex)
