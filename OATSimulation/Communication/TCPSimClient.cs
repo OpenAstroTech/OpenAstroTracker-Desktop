@@ -9,7 +9,7 @@ namespace OATSimulation.Communication
     public class TCPSimClient
     {
         private Socket _client = null;
-        int port = 8888;
+        int port = 4035;
         Task taskOfReceiveData;
 
         MainViewModel _mainViewModel;
@@ -51,10 +51,9 @@ namespace OATSimulation.Communication
                         byte[] bytesSent = Encoding.ASCII.GetBytes(dataSent);
                         _client.Send(bytesSent, bytesSent.Length, 0);
 
-                        _mainViewModel.Status = "Connected";
+                        _mainViewModel.Status = $"Connected on {IPAddress.Loopback}:{port}";
                         _mainViewModel.IsConnected = true;
                         _mainViewModel.IsConnectedString = "Disconnect";
-                        IsConnected = true;
 
                         taskOfReceiveData = new Task(receiveData);
                         taskOfReceiveData.Start();
@@ -157,6 +156,16 @@ namespace OATSimulation.Communication
 
                     case "ScopePolarisHourAngle":
                         _mainViewModel.ScopePolarisHourAngle = items[1];
+                        break;
+
+                    case "CurrentRAString":
+                        var _raValues = items[1].Split(',');
+                        _mainViewModel.CurrentRAString = $"{_raValues[0]}h{_raValues[1]}m{_raValues[2]}s";
+                        break;
+
+                    case "CurrentDECString":
+                        var _decValues = items[1].Split(',');
+                        _mainViewModel.CurrentDECString = $"{_decValues[0]}\u00B0{_decValues[1]}m{_decValues[2]}s";
                         break;
 
                     default:

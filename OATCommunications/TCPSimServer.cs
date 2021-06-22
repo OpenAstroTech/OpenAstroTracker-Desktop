@@ -12,7 +12,7 @@ namespace OATCommunications
     {
         // CultureInfo _oatCulture = new CultureInfo("en-US");
 
-        int port = 8888;
+        int port = 4035;
         Socket serverSocket = null;
         public Socket tempClient = null;
         Task taskOfAccept;
@@ -66,8 +66,6 @@ namespace OATCommunications
             {
                 Console.WriteLine("Client disconnected...");
             }
-            
-
         }
             
         public void Send(string command)
