@@ -1,17 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using OATSimulation.ViewModels;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-
-using OATSimulation.ViewModels;
 
 namespace OATSimulation.Communication
 {
-
     public class TCPSimClient
     {
         private Socket _client = null;
@@ -44,8 +38,7 @@ namespace OATSimulation.Communication
         {
             _mainViewModel.Status = "Trying to connect...";
             _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            var ipAddress = IPAddress.Parse("127.0.0.1");
-            IPEndPoint endPoint = new IPEndPoint(ipAddress, port);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, port);
 
             for (var retries = 0; retries < 3; retries++)
             {
@@ -54,7 +47,7 @@ namespace OATSimulation.Communication
                     _client.Connect(endPoint);
                     if (_client.Connected)
                     {
-                        string dataSent = "Connect:1\n";
+                        string dataSent = "connect:1\n";
                         byte[] bytesSent = Encoding.ASCII.GetBytes(dataSent);
                         _client.Send(bytesSent, bytesSent.Length, 0);
 
@@ -80,19 +73,18 @@ namespace OATSimulation.Communication
         {
             if (_client != null)
             {
-                _client.Close();
+                Send("close\n");
                 _mainViewModel.IsConnected = false;
                 _mainViewModel.IsConnectedString = "Connect";
             }
         }
-
 
         private void receiveData()
         {
             while (true)
             {
                 string dataReceive = string.Empty;
-                byte[] bytesReceived = new byte[256];
+                byte[] bytesReceived = new byte[512];
                 int bytes = 0;
                 do
                 {
@@ -101,7 +93,6 @@ namespace OATSimulation.Communication
                     if (dataReceive.EndsWith("\n"))
                     {
                         ProcessCommand(dataReceive);
-                        Send("1#");
                     }
                     dataReceive = "";
                 }
@@ -126,10 +117,10 @@ namespace OATSimulation.Communication
 
                 switch (items[0])
                 {
-                    case "Connect":
+                    case "connect":
                         break;
 
-                    case "OK":
+                    case "ok":
                         break;
 
                     case "RAStepper":

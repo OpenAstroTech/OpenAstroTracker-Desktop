@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -9,7 +10,7 @@ namespace OATCommunications
 {
     public class TCPSimServer
     {
-        CultureInfo _oatCulture = new CultureInfo("en-US");
+        // CultureInfo _oatCulture = new CultureInfo("en-US");
 
         int port = 8888;
         Socket serverSocket = null;
@@ -18,14 +19,12 @@ namespace OATCommunications
 
         public void StartServer()
         {
-            var address = IPAddress.Parse("127.0.0.1");
-            IPEndPoint ipe = new IPEndPoint(address, port);
+            IPEndPoint ipe = new IPEndPoint(IPAddress.Loopback, port);
             serverSocket = new Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             serverSocket.Bind(ipe);
             serverSocket.Listen(10);
             taskOfAccept = new Task(AcceptClient);
             taskOfAccept.Start();
-
         }
 
         private void AcceptClient()
@@ -39,29 +38,35 @@ namespace OATCommunications
 
         private void Receive(object state)
         {
-            while (true)
+            try
             {
                 string dataReceive = string.Empty;
-                byte[] bytesReceived = new byte[256];
+                byte[] bytesReceived = new byte[512];
                 int bytes = 0;
                 do
                 {
                     bytes = tempClient.Receive(bytesReceived, bytesReceived.Length, 0);
 
                     dataReceive = dataReceive + Encoding.ASCII.GetString(bytesReceived, 0, bytes);
-                    if (dataReceive.EndsWith("\n") && dataReceive.StartsWith("Connect:"))
+                    if (dataReceive.EndsWith("\n") && dataReceive.StartsWith("connect:"))
                     {
-                        Send("OK:1\n");
+                        Send("ok:1\n");
                     }
-                    else if(dataReceive.StartsWith("1#"))
+                    else if (dataReceive == "close\n")
                     {
-
+                        tempClient.Close();
+                        return;
                     }
                     dataReceive = string.Empty;
 
                 }
                 while (bytes > 0);
             }
+            catch(SocketException e)
+            {
+                Console.WriteLine("Client disconnected...");
+            }
+            
 
         }
             
@@ -69,8 +74,8 @@ namespace OATCommunications
         {
             if(tempClient != null)
             {
-                byte[] bytesSent = Encoding.ASCII.GetBytes(command);
-                tempClient.Send(bytesSent, bytesSent.Length, 0); //Send is also blocked synchronously
+                byte[] bytesSent = Encoding.ASCII.GetBytes(command+"\n");
+                tempClient.Send(bytesSent, bytesSent.Length, 0);
             }
         }
             
