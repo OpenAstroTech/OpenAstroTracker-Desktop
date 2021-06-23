@@ -168,10 +168,27 @@ namespace OATSimulation.Communication
                         _mainViewModel.CurrentDECString = $"{_decValues[0]}\u00B0{_decValues[1]}m{_decValues[2]}s";
                         break;
 
+                    case "ScopeRASlewMS":
+                        _mainViewModel.ScopeRASlewMS = int.Parse(items[1]);
+                        break;
+                    case "ScopeRATrackMS":
+                        _mainViewModel.ScopeRATrackMS = int.Parse(items[1]);
+                        break;
+                    case "ScopeDECSlewMS":
+                        _mainViewModel.ScopeDECSlewMS = int.Parse(items[1]);
+                        break;
+                    case "ScopeDECGuideMS":
+                        _mainViewModel.ScopeDECGuideMS = int.Parse(items[1]);
+                        break;
+                    case "ScopeLongitude":
+                        _mainViewModel.ScopeLongitude = items[1];
+                        break;
+                    case "ScopeLatitude":
+                        _mainViewModel.ScopeLatitude = items[1];
+                        break;
                     default:
                         break;
                 }
-
                 _mainViewModel.StatusUpdate();
             }
         }

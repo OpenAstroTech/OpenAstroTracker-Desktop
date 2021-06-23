@@ -57,24 +57,42 @@
             </hx:Viewport3DX.InputBindings>
 
             <hx:ShadowMap3D Resolution="{Binding ShadowMapResolution}" />
-            <hx:AmbientLight3D Color="{Binding AmbientLightColor}" />
+            
+            <!-- DARK PRESET -->
+            <hx:AmbientLight3D
+                Color="{Binding AmbientLightColor}"
+                IsRendering="{Binding DarkPresetActive}"/>
 
             <hx:PointLight3D
                 Transform="{Binding AnimatedLightTransform}"
-                Color="{Binding AnimatedLightColor}" />
+                Color="{Binding AnimatedLightColor}"
+                IsRendering="{Binding DarkPresetActive}"/>
 
             <hx:PointLight3D
                 Transform="{Binding PointlightTransform}"
                 Color="{Binding PointlightColor}"
                 Attenuation="{Binding PointlightAttenuation}"
-                Range="10"/>
+                Range="10"
+                IsRendering="{Binding DarkPresetActive}"/>
 
             <hx:SpotLight3D
                 Attenuation="{Binding SpotlightAttenuation}"
                 Direction="{Binding SpotlightDirection}"
                 Range="100"
                 Transform="{Binding SpotlightTransform}"
-                Color="{Binding SpotlightColor}" />
+                Color="{Binding SpotlightColor}"
+                IsRendering="{Binding DarkPresetActive}"/>
+            
+            <!-- LIGHT PRESET -->
+            <hx:AmbientLight3D
+                Color="{Binding LPAmbientLightColor}"
+                IsRendering="{Binding LightPresetActive}"/>
+
+            <hx:DirectionalLight3D
+                Direction="{Binding Light1Direction}"
+                IsRendering="{Binding LightPresetActive}"
+                Transform="{Binding Light1Transform}"
+                Color="{Binding Light1Color}" />
 
             <hx:GroupModel3D>
 

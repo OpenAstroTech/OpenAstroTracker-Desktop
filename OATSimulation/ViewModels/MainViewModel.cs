@@ -53,9 +53,19 @@ namespace OATSimulation.ViewModels
         private int _trkStepper = 0;
         private float _raStepsPerDegree = 0.0f;
         private float _decStepsPerDegree = 0.0f;
+        private int _scopeRASlewMS = 0;
+        private int _scopeRATrackMS = 0;
+        private int _scopeDECSlewMS = 0;
+        private int _scopeDECGuideMS = 0;
+        private string _scopeLongitude = "-";
+        private string _scopeLatitude = "-";
 
         private string _scopeSiderealTime = "0";
         private string _scopePolarisHourAngle = "0";
+
+        // Lights
+        private bool _darkPresetActive = false;
+        private bool _lightPresetActive = true;
 
         // Animation
         // DispatcherTimer _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33.3) };
@@ -68,7 +78,8 @@ namespace OATSimulation.ViewModels
         private bool renderEnvironmentMap = true;
 
         #region Properties
-        // Lights
+        // LIGHTS -------------------------------------------------------
+        // - Dark Preset 
         public System.Windows.Media.Color AmbientLightColor { get; set; }
 
         // -- Animated
@@ -89,6 +100,43 @@ namespace OATSimulation.ViewModels
         public Vector3D PointlightDirection { get; set; }
         public Transform3D PointlightTransform { get; private set; }
         public System.Windows.Media.Color PointlightColor { get; set; }
+
+        // LIGHTS -------------------------------------------------------
+        // - Light Preset 
+        public System.Windows.Media.Color LightAmbientLightColor { get; set; }
+
+        public Transform3D Light1Transform { get; private set; }
+        public Vector3D Light1Direction { get; set; }
+        public System.Windows.Media.Color Light1Color { get; set; }
+        public Transform3D Light1DirectionTransform { get; private set; }
+
+        public bool DarkPresetActive
+        {
+            get
+            {
+                return _darkPresetActive;
+            }
+
+            set
+            {
+                _darkPresetActive = value;
+                OnPropertyChanged("DarkPresetActive");
+            }
+        }
+
+        public bool LightPresetActive
+        {
+            get
+            {
+                return _lightPresetActive;
+            }
+
+            set
+            {
+                _lightPresetActive = value;
+                OnPropertyChanged("LightPresetActive");
+            }
+        }
 
         public HelixToolkit.Wpf.SharpDX.MeshGeometry3D Floor { get; private set; }
         public Transform3D FloorTransform { get; private set; }
@@ -124,8 +172,9 @@ namespace OATSimulation.ViewModels
         public PBRMaterial GlassMaterial { get; }
         public PBRMaterial MarkersMaterial { get; }
 
-        private Color4 _errorColor = new Color4(1.0f, 0.0f, 0.0f, 1.0f);
+        private Color4 _errorEmissiveColor = new Color4(0.4f, 0.0f, 0.0f, 1.0f);
         private Color4 _printedBaseColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+        private Color4 _normalEmissiveColor = new Color4(0.0f, 0.0f, 0.0f, 1.0f);
 
         public bool RenderEnvironmentMap
         {
@@ -401,6 +450,90 @@ namespace OATSimulation.ViewModels
             }
         }
 
+        public int ScopeRASlewMS
+        {
+            get
+            {
+                return _scopeRASlewMS;
+            }
+
+            set
+            {
+                _scopeRASlewMS = value;
+                OnPropertyChanged("ScopeRASlewMS");
+            }
+        }
+
+        public int ScopeRATrackMS
+        {
+            get
+            {
+                return _scopeRATrackMS;
+            }
+
+            set
+            {
+                _scopeRATrackMS = value;
+                OnPropertyChanged("ScopeRATrackMS");
+            }
+        }
+
+        public int ScopeDECSlewMS
+        {
+            get
+            {
+                return _scopeDECSlewMS;
+            }
+
+            set
+            {
+                _scopeDECSlewMS = value;
+                OnPropertyChanged("ScopeDECSlewMS");
+            }
+        }
+
+        public int ScopeDECGuideMS
+        {
+            get
+            {
+                return _scopeDECGuideMS;
+            }
+
+            set
+            {
+                _scopeDECGuideMS = value;
+                OnPropertyChanged("ScopeDECGuideMS");
+            }
+        }
+
+        public string ScopeLongitude
+        {
+            get
+            {
+                return _scopeLongitude;
+            }
+
+            set
+            {
+                _scopeLongitude = value;
+                OnPropertyChanged("ScopeLongitude");
+            }
+        }
+
+        public string ScopeLatitude
+        {
+            get
+            {
+                return _scopeLatitude;
+            }
+
+            set
+            {
+                _scopeLatitude = value;
+                OnPropertyChanged("ScopeLatitude");
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -449,7 +582,7 @@ namespace OATSimulation.ViewModels
             // Material Setup
             FloorMaterial = new PBRMaterial()
             {
-                AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
                 RoughnessFactor = 0.8,
                 MetallicFactor = 0.2,
                 RenderShadowMap = true,
@@ -459,6 +592,7 @@ namespace OATSimulation.ViewModels
 
             PrintedMaterial = new PBRMaterial()
             {
+                Name = "PrintedMaterial",
                 AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
                 ClearCoatStrength = 0.0,
                 RoughnessFactor = 0.56,
@@ -473,6 +607,7 @@ namespace OATSimulation.ViewModels
 
             PrintedRAMaterial = new PBRMaterial()
             {
+                Name = "PrintedRAMaterial",
                 AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
                 ClearCoatStrength = 0.0,
                 RoughnessFactor = 0.56,
@@ -487,6 +622,7 @@ namespace OATSimulation.ViewModels
 
             PrintedDECMaterial = new PBRMaterial()
             {
+                Name = "PrintedDECMaterial",
                 AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
                 ClearCoatStrength = 0.0,
                 RoughnessFactor = 0.56,
@@ -501,6 +637,7 @@ namespace OATSimulation.ViewModels
 
             AluminiumMaterial = new PBRMaterial()
             {
+                Name = "AluminiumMaterial",
                 AlbedoColor = new SharpDX.Color4(0.6f, 0.6f, 0.6f, 1.0f),
                 RoughnessFactor = 0.0,
                 MetallicFactor = 0.0,
@@ -513,6 +650,7 @@ namespace OATSimulation.ViewModels
 
             MetalMaterial = new PBRMaterial()
             {
+                Name = "MetalMaterial",
                 AlbedoColor = new SharpDX.Color4(0.6f, 0.6f, 0.6f, 1.0f),
                 RoughnessFactor = 0.3,
                 ClearCoatStrength = 0.01,
@@ -526,6 +664,7 @@ namespace OATSimulation.ViewModels
 
             BlackMetalMaterial = new PBRMaterial()
             {
+                Name = "BlackMetalMaterial",
                 AlbedoColor = new SharpDX.Color4(0.1f, 0.1f, 0.1f, 1.0f),
                 RoughnessFactor = 0.3,
                 ClearCoatStrength = 0.01,
@@ -539,7 +678,8 @@ namespace OATSimulation.ViewModels
 
             GlassMaterial = new PBRMaterial()
             {
-                AlbedoColor = new SharpDX.Color4(0.0f, 0.0f, 0.8f, 0.8f),
+                Name = "GlassMaterial",
+                AlbedoColor = new SharpDX.Color4(0.0f, 0.0f, 0.0f, 0.8f),
                 RoughnessFactor = 0.0,
                 ClearCoatStrength = 1.0,
                 ReflectanceFactor = 1.0,
@@ -551,6 +691,7 @@ namespace OATSimulation.ViewModels
 
             MarkersMaterial = new PBRMaterial()
             {
+                Name = "MarkersMaterial",
                 AlbedoColor = new SharpDX.Color4(0.2f, 0.2f, 0.2f, 1.0f),
                 ClearCoatStrength = 0.0,
                 RoughnessFactor = 0.56,
@@ -564,7 +705,7 @@ namespace OATSimulation.ViewModels
             };
 
             // ----------------------------------------------
-            // Lights and scene setup
+            // DP Setup
             AmbientLightColor = System.Windows.Media.Color.FromRgb(24, 24, 24);
 
             AnimatedLightColor = System.Windows.Media.Color.FromRgb(10, 10, 78);// Colors.DarkBlue;
@@ -579,8 +720,15 @@ namespace OATSimulation.ViewModels
 
             PointlightColor = System.Windows.Media.Color.FromRgb(220, 220, 220);
             PointlightAttenuation = new Vector3D(0.1f, 0.1f, 0.1f);
-            PointlightDirection = new Vector3D(0, -2, 5);
-            PointlightTransform = CreateAnimatedTransform2(-PointlightDirection, new Vector3D(0, 1, 0), 50);
+            PointlightDirection = new Vector3D(0, -2, 2);
+            PointlightTransform = CreateAnimatedTransform2(-PointlightDirection*2, new Vector3D(0, 1, 0), 50);
+
+            // LP Setup
+            Light1Color = Colors.White;
+            Light1Direction = new Vector3D(0, -1, 0);
+            Light1Transform = new TranslateTransform3D(new Vector3D(0, 0, 0));
+
+            //Light1DirectionTransform = new Vector3D(0, -1, 0);//CreateAnimatedTransform2(Light1Direction, new Vector3D(0, -1, 0), 24);
 
             MSAA = MSAALevel.Two;
             FXAA = FXAALevel.Medium;
@@ -589,8 +737,8 @@ namespace OATSimulation.ViewModels
             // floor
             var b2 = new MeshBuilder(true, true, true);
             b2.AddBox(new Vector3(0.0f, -0.5f, 0.0f), 15, 1, 15, BoxFaces.All);
-            this.Floor = b2.ToMeshGeometry3D();
-            this.FloorTransform = new TranslateTransform3D(0, 0, 0);
+            Floor = b2.ToMeshGeometry3D();
+            FloorTransform = new TranslateTransform3D(0, 0, 0);
             var mat = new PhongMaterial
             {
                 AmbientColor = Colors.Gray.ToColor4(),
@@ -599,7 +747,7 @@ namespace OATSimulation.ViewModels
                 SpecularShininess = 100f,
                 RenderShadowMap = true
             };
-
+            ToggleScenePresets(2);
             LoadOATModels();
 
             // Create TCP Client
@@ -617,7 +765,6 @@ namespace OATSimulation.ViewModels
                 }
 
             });
-
         }
 
         private void LoadOATModels()
@@ -660,6 +807,7 @@ namespace OATSimulation.ViewModels
 
                                       m.IsThrowingShadow = true;
                                       //m.Geometry.SetAsTransient();
+
                                       string name = m.Material.Name;
 
                                       if (m.Material.Name == "printed_mat")
@@ -709,6 +857,7 @@ namespace OATSimulation.ViewModels
                                   }
                               }
                           }
+
                           GroupModel.AddNode(scene.Root);
 
                           foreach (var n in scene.Root.Traverse())
@@ -717,6 +866,7 @@ namespace OATSimulation.ViewModels
                           }
                       }
                       isLoading = false;
+
                   }
                   else if (result.IsFaulted && result.Exception != null)
                   {
@@ -780,16 +930,16 @@ namespace OATSimulation.ViewModels
                 _decAR.Angle = DECAngle;
                 DECGroup.ModelMatrix = _decTransformGrp.ToMatrix();
             }
-            /*
-            if (DECAngle > 5.0)
+
+            if (DECAngle > 35.0 || DECAngle < -180.0)
             {
-                PrintedDECMaterial.AlbedoColor = _errorColor;
+                PrintedDECMaterial.EmissiveColor = _errorEmissiveColor;
             }
             else
             {
-                PrintedDECMaterial.AlbedoColor = _printedBaseColor;
+                PrintedDECMaterial.EmissiveColor = _normalEmissiveColor;
             }
-            */
+
         }
 
         private Transform3D CreateAnimatedTransform1(Vector3D translate, Vector3D axis, double speed = 4)
@@ -834,18 +984,81 @@ namespace OATSimulation.ViewModels
 
         public void StatusUpdate()
         {
-            if (RAStepsPerDegree != 0.0)
+            if (ScopeRATrackMS != 0 && ScopeRASlewMS != 0)
             {
-                RATargetAngle = -(RAStepper + TRKStepper) / RAStepsPerDegree;
-                _raTargetDegSteps = Math.Abs((RAAngle - _raTargetAngle) / 30.0);
+                float raTrkFactor = ScopeRATrackMS / ScopeRASlewMS;
+
+                if (RAStepsPerDegree != 0.0)
+                {
+                    RATargetAngle = -(RAStepper + (TRKStepper / raTrkFactor)) / RAStepsPerDegree;
+                    _raTargetDegSteps = Math.Abs((RAAngle - _raTargetAngle) / 30.0);
+                }
+
+
             }
 
-            if (DECStepsPerDegree != 0.0)
+            if (ScopeDECSlewMS != 0 && ScopeDECGuideMS != 0 && DECStepsPerDegree != 0.0)
             {
+                // float decTrkFactor = ScopeDECGuideMS / ScopeDECSlewMS;
                 DECTargetAngle = -DECStepper / DECStepsPerDegree;
                 _decTargetDegSteps = Math.Abs((DECAngle - _decTargetAngle) / 30.0);
             }
 
         }
+
+        public void ToggleScenePresets(int presetNr)
+        {
+            switch(presetNr)
+            {
+                case 1:
+                    DarkPreset();
+                    DarkPresetActive = true;
+                    LightPresetActive = false;
+                    break;
+
+                case 2:
+                    LightPreset();
+                    DarkPresetActive = false;
+                    LightPresetActive = true;
+                    break;
+            }
+        }
+
+        #region Scene Presets
+        public void DarkPreset()
+        {
+            PrintedMaterial.AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+            PrintedMaterial.AmbientOcclusionFactor = 0.2;
+
+            PrintedRAMaterial.AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+            PrintedRAMaterial.AmbientOcclusionFactor = 0.2;
+
+            PrintedDECMaterial.AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+            PrintedDECMaterial.AmbientOcclusionFactor = 0.2;
+
+            FloorMaterial.AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+            FloorMaterial.AmbientOcclusionFactor = 0.5;
+
+            AmbientLightColor = System.Windows.Media.Color.FromRgb(24, 24, 24);
+        }
+
+        public void LightPreset()
+        {
+            PrintedMaterial.AlbedoColor = new Color4(0.5f, 0.5f, 0.5f, 1.0f);
+            PrintedMaterial.AmbientOcclusionFactor = 0.2;
+
+            PrintedRAMaterial.AlbedoColor = new Color4(0.5f, 0.5f, 0.5f, 1.0f);
+            PrintedRAMaterial.AmbientOcclusionFactor = 0.2;
+
+            PrintedDECMaterial.AlbedoColor = new Color4(0.5f, 0.5f, 0.5f, 1.0f);
+            PrintedDECMaterial.AmbientOcclusionFactor = 0.2;
+
+            FloorMaterial.AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+            FloorMaterial.AmbientOcclusionFactor = 0.8;
+
+            AmbientLightColor = System.Windows.Media.Color.FromRgb(64, 64, 64);
+
+        }
+        #endregion
     }
 }
