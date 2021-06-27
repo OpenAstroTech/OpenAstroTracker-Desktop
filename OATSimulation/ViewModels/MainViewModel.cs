@@ -5,6 +5,10 @@ using HelixToolkit.Wpf.SharpDX.Model;
 using HelixToolkit.Wpf.SharpDX.Model.Scene;
 using SharpDX;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +28,8 @@ namespace OATSimulation.ViewModels
         private bool _isConnected = false;
         private string _isConnectedString = "Connect";
 
+        // public ObservableDictonary<string, string> OATData { get; set; }
+
         private SynchronizationContext context = SynchronizationContext.Current;
         private HelixToolkitScene scene = null;
         private CompositionTargetEx compositeHelper = new CompositionTargetEx();
@@ -35,9 +41,44 @@ namespace OATSimulation.ViewModels
         AxisAngleRotation3D _raAR = new AxisAngleRotation3D();
 
         // DEC Transform
-        Transform3DGroup _decTransformGrp = new Transform3DGroup();
-        RotateTransform3D _decRT = new RotateTransform3D();
-        AxisAngleRotation3D _decAR = new AxisAngleRotation3D();
+        private Transform3DGroup _decTransformGrp = new Transform3DGroup();
+        private RotateTransform3D _decRT = new RotateTransform3D();
+        private AxisAngleRotation3D _decAR = new AxisAngleRotation3D();
+
+        // OAT Main Groups
+        private GroupNode _raOffsetGrp { get; set; }
+        private TranslateTransform3D _raOffsetGroupTranslate { get; set; }
+        private Transform3DGroup _raOffsetGroupTransform { get; set; }
+
+        public int[] MountAngles { get; } = new int[] { 20, 30, 40, 50};
+        private int _mountAngle = 50;
+        public int SelectMountAngle
+        {
+            get
+            {
+                return _mountAngle;
+            }
+
+            set
+            {
+                _mountAngle = value;
+                SetMountAngle(value);
+                OnPropertyChanged("SelectMountAngle");
+            }
+        }
+
+
+        private GroupNode _raAngleGrp { get; set; }
+        private Transform3DGroup _raAngleGroupTransform = new Transform3DGroup();
+        private AxisAngleRotation3D _raAngleGroupRotateAxis = new AxisAngleRotation3D();
+        private RotateTransform3D _raAngleGroupRotateTransform = new RotateTransform3D();
+        
+        private GroupNode RAGroup { get; set; }
+        private GroupNode DECGroup { get; set; }
+        private GroupNode Deg20Group { get; set; }
+        private GroupNode Deg30Group { get; set; }
+        private GroupNode Deg40Group { get; set; }
+        private GroupNode Deg50Group { get; set; }
 
         private bool isLoading = false;
         private string _status = "Not connected...";
@@ -79,8 +120,9 @@ namespace OATSimulation.ViewModels
 
         #region Properties
         // LIGHTS -------------------------------------------------------
+        private int _lightPreset = 2;
         // - Dark Preset 
-        public System.Windows.Media.Color AmbientLightColor { get; set; }
+        public System.Windows.Media.Color DarkAmbientLightColor { get; set; }
 
         // -- Animated
         public Vector3D AnimatedLightDirection { get; set; }
@@ -110,6 +152,21 @@ namespace OATSimulation.ViewModels
         public System.Windows.Media.Color Light1Color { get; set; }
         public Transform3D Light1DirectionTransform { get; private set; }
 
+        public int LightPreset
+        {
+            get
+            {
+                return _lightPreset;
+            }
+
+            set
+            {
+                _lightPreset = value;
+                ToggleScenePresets(value);
+                OnPropertyChanged("LightPreset");
+            }
+        }
+
         public bool DarkPresetActive
         {
             get
@@ -138,6 +195,7 @@ namespace OATSimulation.ViewModels
             }
         }
 
+        // --------------------
         public HelixToolkit.Wpf.SharpDX.MeshGeometry3D Floor { get; private set; }
         public Transform3D FloorTransform { get; private set; }
 
@@ -157,9 +215,58 @@ namespace OATSimulation.ViewModels
 
         public Size ShadowMapResolution { get; private set; }
 
-        // OAT Main Groups
-        private GroupNode RAGroup { get; set; }
-        private GroupNode DECGroup { get; set; }
+        // Colors
+        private Color4 _errorEmissiveColor = new Color4(0.4f, 0.0f, 0.0f, 1.0f);
+        private Color4 _printedBaseColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
+        private Color4 _normalEmissiveColor = new Color4(0.0f, 0.0f, 0.0f, 1.0f);
+
+        private System.Windows.Media.Color _albedoColorBase = Colors.White;
+        public System.Windows.Media.Color AlbedoColorBase
+        {
+            get
+            {
+                return _albedoColorBase;
+            }
+
+            set
+            {
+                _albedoColorBase = value;
+                PrintedMaterial.AlbedoColor = value.ToColor4();
+                OnPropertyChanged("AlbedoColorBase");
+            }
+        }
+
+        private System.Windows.Media.Color _albedoColorRA = Colors.White;
+        public System.Windows.Media.Color AlbedoColorRA
+        {
+            get
+            {
+                return _albedoColorRA;
+            }
+
+            set
+            {
+                _albedoColorRA = value;
+                PrintedRAMaterial.AlbedoColor = value.ToColor4();
+                OnPropertyChanged("AlbedoColorRA");
+            }
+        }
+
+        private System.Windows.Media.Color _albedoColorDEC = Colors.White;
+        public System.Windows.Media.Color AlbedoColorDEC
+        {
+            get
+            {
+                return _albedoColorDEC;
+            }
+
+            set
+            {
+                _albedoColorDEC = value;
+                PrintedDECMaterial.AlbedoColor = value.ToColor4();
+                OnPropertyChanged("AlbedoColorDEC");
+            }
+        }
 
         // Materials
         public PBRMaterial PrintedMaterial { get; }
@@ -171,10 +278,6 @@ namespace OATSimulation.ViewModels
         public PBRMaterial BlackMetalMaterial { get; }
         public PBRMaterial GlassMaterial { get; }
         public PBRMaterial MarkersMaterial { get; }
-
-        private Color4 _errorEmissiveColor = new Color4(0.4f, 0.0f, 0.0f, 1.0f);
-        private Color4 _printedBaseColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
-        private Color4 _normalEmissiveColor = new Color4(0.0f, 0.0f, 0.0f, 1.0f);
 
         public bool RenderEnvironmentMap
         {
@@ -542,7 +645,37 @@ namespace OATSimulation.ViewModels
 
         public MainViewModel(MainWindow window)
         {
-            EnvironmentMap = TextureModel.Create("Assets\\Cubemap_Grandcanyon.dds");
+            /*
+            OATData = new ObservableDictonary<string, string>
+            {
+                { "RAStepper", "0" },
+                { "DECStepper", "0" },
+                { "TrkStepper", "0" },
+                { "RAStepsPerDegree", "0" },
+                { "DECStepsPerDegree", "0" },
+                { "Version", "0" },
+                { "FirmwareVersion", "0" },
+                { "ScopeSiderealTime", "0" },
+                { "ScopePolarisHourAngle", "0" },
+                { "CurrentRAString", "0" },
+                { "CurrentDECString", "0" },
+                { "ScopeRASlewMS", "0" },
+                { "ScopeRATrackMS", "0" },
+                { "ScopeDECSlewMS", "0" },
+                { "ScopeDECGuideMS", "0" },
+                { "ScopeLongitude", "0" },
+                { "ScopeLatitude", "0" }
+            };
+            */
+            
+            AppSettings.Instance.UpgradeVersion += OnUpgradeSettings;
+            AppSettings.Instance.Load();
+
+            //Load settings
+            _albedoColorBase = AppSettings.Instance.AlbedoColorBase;
+            _albedoColorRA = AppSettings.Instance.AlbedoColorRA;
+            _albedoColorDEC = AppSettings.Instance.AlbedoColorDEC;
+
             EffectsManager = new DefaultEffectsManager();
 
             Title = "OAT Simulation v0.1";
@@ -555,13 +688,22 @@ namespace OATSimulation.ViewModels
             _raRT.Rotation = _raAR;
             _raTransformGrp.Children.Add(_raRT);
 
-            // DEC Transform Setup
+            // OAT Transforms Setup
             DECAngle = 0.0;
             DECTargetAngle = 0.0;
             _decAR.Axis = new Vector3D(1, 0, 0);
             _decAR.Angle = DECAngle;
             _decRT.Rotation = _decAR;
             _decTransformGrp.Children.Add(_decRT);
+
+            _raAngleGroupRotateAxis.Axis = new Vector3D(1, 0, 0);
+            _raAngleGroupRotateAxis.Angle = 50.0;
+            _raAngleGroupRotateTransform.Rotation = _raAngleGroupRotateAxis;
+            _raAngleGroupTransform.Children.Add(_raAngleGroupRotateTransform);
+
+            _raOffsetGroupTransform = new Transform3DGroup();
+            _raOffsetGroupTranslate = new TranslateTransform3D();
+            _raOffsetGroupTransform.Children.Add(_raOffsetGroupTranslate);
 
             ShadowMapResolution = new Size(2048, 2048);
 
@@ -579,7 +721,19 @@ namespace OATSimulation.ViewModels
             };
 
             // ----------------------------------------------
+            DarkAmbientLightColor = System.Windows.Media.Color.FromRgb(12, 12, 12);
+            LightAmbientLightColor = System.Windows.Media.Color.FromRgb(24, 24, 24);
+
             // Material Setup
+            double plaOcclusionFactor = 0.3;
+            double plaRoughnessFactor = 0.53;
+            double plaMetallicFactor = 0.0;
+            double plaReflectanceFactor = 0.0;
+
+            EnvironmentMap = TextureModel.Create("Assets\\Cubemap_Grandcanyon.dds");
+            var normalMap = TextureModel.Create("Assets\\TextureNoise1_dot3.dds");
+
+
             FloorMaterial = new PBRMaterial()
             {
                 AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
@@ -587,52 +741,50 @@ namespace OATSimulation.ViewModels
                 MetallicFactor = 0.2,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 0.5
+                //AmbientOcclusionFactor = 0.5
             };
 
             PrintedMaterial = new PBRMaterial()
             {
                 Name = "PrintedMaterial",
-                AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                AlbedoColor = _albedoColorBase.ToColor4(),
                 ClearCoatStrength = 0.0,
-                RoughnessFactor = 0.56,
-                MetallicFactor = 0.0,
-                ReflectanceFactor = 0.52,
-                RenderShadowMap = true,
+                RoughnessFactor = plaRoughnessFactor,
+                MetallicFactor = plaMetallicFactor,
+                ReflectanceFactor = plaReflectanceFactor,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 0.2,
-                RenderEnvironmentMap = RenderEnvironmentMap,
-                EnableTessellation = true
+                EnableTessellation = true,
+                NormalMap = normalMap,
+                RenderShadowMap = true,
+                //AmbientOcclusionFactor = plaOcclusionFactor
             };
 
             PrintedRAMaterial = new PBRMaterial()
             {
                 Name = "PrintedRAMaterial",
-                AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                AlbedoColor = _albedoColorRA.ToColor4(),
                 ClearCoatStrength = 0.0,
-                RoughnessFactor = 0.56,
-                MetallicFactor = 0.0,
-                ReflectanceFactor = 0.52,
-                RenderShadowMap = true,
+                RoughnessFactor = plaRoughnessFactor,
+                MetallicFactor = plaMetallicFactor,
+                ReflectanceFactor = plaReflectanceFactor,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 0.2,
-                RenderEnvironmentMap = RenderEnvironmentMap,
-                EnableTessellation = true
+                EnableTessellation = true,
+                NormalMap = normalMap,
+                RenderShadowMap = true,
             };
 
             PrintedDECMaterial = new PBRMaterial()
             {
                 Name = "PrintedDECMaterial",
-                AlbedoColor = new SharpDX.Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                AlbedoColor = _albedoColorDEC.ToColor4(),
                 ClearCoatStrength = 0.0,
-                RoughnessFactor = 0.56,
-                MetallicFactor = 0.0,
-                ReflectanceFactor = 0.52,
-                RenderShadowMap = true,
+                RoughnessFactor = plaRoughnessFactor,
+                MetallicFactor = plaMetallicFactor,
+                ReflectanceFactor = plaReflectanceFactor,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 0.2,
-                RenderEnvironmentMap = RenderEnvironmentMap,
-                EnableTessellation = true
+                EnableTessellation = true,
+                NormalMap = normalMap,
+                RenderShadowMap = true,
             };
 
             AluminiumMaterial = new PBRMaterial()
@@ -644,7 +796,7 @@ namespace OATSimulation.ViewModels
                 ReflectanceFactor = 0.8,
                 RenderShadowMap = false,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 0.8,
+                //AmbientOcclusionFactor = 0.8,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
 
@@ -658,7 +810,6 @@ namespace OATSimulation.ViewModels
                 MetallicFactor = 1.0,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 1.0,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
 
@@ -705,14 +856,14 @@ namespace OATSimulation.ViewModels
             };
 
             // ----------------------------------------------
-            // DP Setup
-            AmbientLightColor = System.Windows.Media.Color.FromRgb(24, 24, 24);
+            // Dark Preset Setup
+            //AmbientLightColor = System.Windows.Media.Color.FromRgb(28, 28, 28);
 
             AnimatedLightColor = System.Windows.Media.Color.FromRgb(10, 10, 78);// Colors.DarkBlue;
             AnimatedLightDirection = new Vector3D(0, -10, 0);
             AnimatedLightTransform = CreateAnimatedTransform1(-AnimatedLightDirection, new Vector3D(1, 0, 0), 10);
 
-            SpotlightColor = Colors.LightBlue;
+            SpotlightColor = Colors.Black; //Colors.LightBlue;
             SpotlightAttenuation = new Vector3D(0.1f, 0.1f, 0.0f);
             SpotlightDirection = new Vector3D(0, -5, -1);
             SpotlightTransform = CreateAnimatedTransform2(-SpotlightDirection * 2, new Vector3D(0, 1, 0), 50);
@@ -723,10 +874,10 @@ namespace OATSimulation.ViewModels
             PointlightDirection = new Vector3D(0, -2, 2);
             PointlightTransform = CreateAnimatedTransform2(-PointlightDirection*2, new Vector3D(0, 1, 0), 50);
 
-            // LP Setup
-            Light1Color = Colors.White;
+            // Light Preset Setup
+            Light1Color = Colors.Black;
             Light1Direction = new Vector3D(0, -1, 0);
-            Light1Transform = new TranslateTransform3D(new Vector3D(0, 0, 0));
+            Light1Transform = new TranslateTransform3D(new Vector3D(1, 4, 0));
 
             //Light1DirectionTransform = new Vector3D(0, -1, 0);//CreateAnimatedTransform2(Light1Direction, new Vector3D(0, -1, 0), 24);
 
@@ -747,9 +898,8 @@ namespace OATSimulation.ViewModels
                 SpecularShininess = 100f,
                 RenderShadowMap = true
             };
-            ToggleScenePresets(2);
             LoadOATModels();
-
+            
             // Create TCP Client
             _tcpClient = new Communication.TCPSimClient(this);
             ConnectCommand = new RelayCommand((o) =>
@@ -765,6 +915,31 @@ namespace OATSimulation.ViewModels
                 }
 
             });
+        }
+
+        public void OnUpgradeSettings(object sender, UpgradeEventArgs e)
+        {
+            // If needed upgrade the settings file between versions here.
+            // e.LoadedVersion vs. e.CurrentVersion;
+        }
+
+        public void OnClosing()
+        {
+            AppSettings.Instance.LightPreset = _lightPreset;
+            AppSettings.Instance.MountAngle = _mountAngle;
+
+            AppSettings.Instance.AlbedoColorBase = _albedoColorBase;
+            AppSettings.Instance.AlbedoColorRA = _albedoColorRA;
+            AppSettings.Instance.AlbedoColorDEC = _albedoColorDEC;
+
+            AppSettings.Instance.Save();
+        }
+
+        private void SceneLoaded()
+        {
+            SelectMountAngle = AppSettings.Instance.MountAngle;
+            LightPreset = AppSettings.Instance.LightPreset;
+
         }
 
         private void LoadOATModels()
@@ -796,10 +971,37 @@ namespace OATSimulation.ViewModels
                                       {
                                           RAGroup = g;
                                       }
+                                      else if (node.Name == "ra_angle_offset_grp")
+                                      {
+                                          _raAngleGrp = g;
+                                      }
+                                      else if (node.Name == "ra_offset_grp")
+                                      {
+                                          _raOffsetGrp = g;
+                                      }
+
                                       else if (node.Name == "dec_grp")
                                       {
                                           DECGroup = g;
                                       }
+
+                                      else if (node.Name == "deg_20_grp")
+                                      {
+                                          Deg20Group = g;
+                                      }
+                                      else if (node.Name == "deg_30_grp")
+                                      {
+                                          Deg30Group = g;
+                                      }
+                                      else if (node.Name == "deg_40_grp")
+                                      {
+                                          Deg40Group = g;
+                                      }
+                                      else if (node.Name == "deg_50_grp")
+                                      {
+                                          Deg50Group = g;
+                                      }
+
                                   }
 
                                   if (node is MaterialGeometryNode m)
@@ -866,6 +1068,8 @@ namespace OATSimulation.ViewModels
                           }
                       }
                       isLoading = false;
+                      SceneLoaded();
+                      
 
                   }
                   else if (result.IsFaulted && result.Exception != null)
@@ -993,8 +1197,6 @@ namespace OATSimulation.ViewModels
                     RATargetAngle = -(RAStepper + (TRKStepper / raTrkFactor)) / RAStepsPerDegree;
                     _raTargetDegSteps = Math.Abs((RAAngle - _raTargetAngle) / 30.0);
                 }
-
-
             }
 
             if (ScopeDECSlewMS != 0 && ScopeDECGuideMS != 0 && DECStepsPerDegree != 0.0)
@@ -1011,22 +1213,83 @@ namespace OATSimulation.ViewModels
             switch(presetNr)
             {
                 case 1:
-                    DarkPreset();
+                    LightingPresetDark();
                     DarkPresetActive = true;
                     LightPresetActive = false;
                     break;
 
                 case 2:
-                    LightPreset();
+                    LightingPresetBright();
                     DarkPresetActive = false;
                     LightPresetActive = true;
                     break;
             }
         }
 
-        #region Scene Presets
-        public void DarkPreset()
+        public void SetMountAngle(int degrees)
         {
+            // Clear previous transforms
+            _raOffsetGroupTransform.Children.Clear();
+
+            switch (degrees)
+            {
+                case 20:
+                    Deg20Group.ModelMatrix = new ScaleTransform3D(new Vector3D(1.0, 1.0, 1.0)).ToMatrix();
+                    Deg30Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg40Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg50Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+
+                    // Offset RA Group
+                    _raAngleGroupRotateAxis.Angle = -20.0;
+                    _raOffsetGroupTranslate = new TranslateTransform3D(0.0, 156.339, -128.94);
+                    
+                    break;
+                case 30:
+                    Deg20Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg30Group.ModelMatrix = new ScaleTransform3D(new Vector3D(1.0, 1.0, 1.0)).ToMatrix();
+                    Deg40Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg50Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+
+                    // Offset RA Group
+                    _raAngleGroupRotateAxis.Angle = -30.0;
+                    _raOffsetGroupTranslate = new TranslateTransform3D(0.0, 115.074, -131.541);
+                    
+                    break;
+                case 40:
+                    Deg20Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg30Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg40Group.ModelMatrix = new ScaleTransform3D(new Vector3D(1.0, 1.0, 1.0)).ToMatrix();
+                    Deg50Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+
+                    // Offset RA Group
+                    _raAngleGroupRotateAxis.Angle = -40.0;
+                    _raOffsetGroupTranslate = new TranslateTransform3D(0.0, 73.409, -134.276);
+                    
+                    break;
+                case 50:
+                    Deg20Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg30Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg40Group.ModelMatrix = new ScaleTransform3D(new Vector3D(0.0, 0.0, 0.0)).ToMatrix();
+                    Deg50Group.ModelMatrix = new ScaleTransform3D(new Vector3D(1.0, 1.0, 1.0)).ToMatrix();
+
+                    // Offset RA Group
+                    _raAngleGroupRotateAxis.Angle = -50.0;
+                    _raOffsetGroupTranslate = new TranslateTransform3D(0.0, 46.168, -136.247);
+                    
+                    break;
+                default:
+                    break;
+            }
+
+            _raAngleGrp.ModelMatrix = _raAngleGroupTransform.ToMatrix();
+            _raOffsetGroupTransform.Children.Add(_raOffsetGroupTranslate);
+            _raOffsetGrp.ModelMatrix = _raOffsetGroupTransform.ToMatrix();
+        }
+
+        #region Scene Presets
+        public void LightingPresetDark()
+        {
+            /*
             PrintedMaterial.AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f);
             PrintedMaterial.AmbientOcclusionFactor = 0.2;
 
@@ -1040,10 +1303,14 @@ namespace OATSimulation.ViewModels
             FloorMaterial.AmbientOcclusionFactor = 0.5;
 
             AmbientLightColor = System.Windows.Media.Color.FromRgb(24, 24, 24);
+            */
         }
 
-        public void LightPreset()
+        public void LightingPresetBright()
         {
+            /*
+            Color4 printedBase = new Color4(0.5f, 0.5f, 0.5f, 1.0f);
+
             PrintedMaterial.AlbedoColor = new Color4(0.5f, 0.5f, 0.5f, 1.0f);
             PrintedMaterial.AmbientOcclusionFactor = 0.2;
 
@@ -1057,8 +1324,81 @@ namespace OATSimulation.ViewModels
             FloorMaterial.AmbientOcclusionFactor = 0.8;
 
             AmbientLightColor = System.Windows.Media.Color.FromRgb(64, 64, 64);
-
+            */
         }
         #endregion
+
+        
+        public class ObservableDictonary<TKey, TValue> : Dictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
+        {
+            public event NotifyCollectionChangedEventHandler CollectionChanged;
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            public new void Add(TKey key, TValue value)
+            {
+                base.Add(key, value);
+                if (!TryGetValue(key, out _)) return;
+                var index = Keys.Count;
+                OnPropertyChanged(nameof(Count));
+                OnPropertyChanged(nameof(Values));
+                OnCollectionChanged(NotifyCollectionChangedAction.Add, value, index);
+            }
+
+            public new void Remove(TKey key)
+            {
+                if (!TryGetValue(key, out var value)) return;
+                var index = IndexOf(Keys, key);
+                OnPropertyChanged(nameof(Count));
+                OnPropertyChanged(nameof(Values));
+                OnCollectionChanged(NotifyCollectionChangedAction.Remove, value, index);
+                base.Remove(key);
+            }
+
+            public new void Clear()
+            {
+
+            }
+
+            protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
+            {
+                PropertyChanged?.Invoke(this, e);
+            }
+
+            protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+            {
+                CollectionChanged?.Invoke(this, e);
+            }
+
+            private void OnPropertyChanged(string propertyName)
+            {
+                OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
+            }
+
+            private void OnCollectionChanged(NotifyCollectionChangedAction action, object item)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item));
+            }
+
+            private void OnCollectionChanged(NotifyCollectionChangedAction action, object item, int index)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item, index));
+            }
+
+            private int IndexOf(KeyCollection keys, TKey key)
+            {
+                var index = 0;
+                foreach (var k in keys)
+                {
+                    if (Equals(k, key))
+                        return index;
+                    index++;
+                }
+                return -1;
+            }
+        }
+        
     }
+
+    
 }

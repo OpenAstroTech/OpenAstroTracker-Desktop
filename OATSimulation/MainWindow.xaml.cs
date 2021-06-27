@@ -6,6 +6,7 @@ using OATSimulation.ViewModels;
 using System.Windows.Media;
 using System.Windows.Input;
 using System;
+using System.ComponentModel;
 
 namespace OATSimulation
 {
@@ -14,12 +15,12 @@ namespace OATSimulation
     /// </summary>
     public partial class MainWindow : Window
     {
-        MainViewModel viewModel = null;
+        private MainViewModel _viewModel = null;
         public MainWindow()
         {
             InitializeComponent();
-            viewModel = new MainViewModel(this);
-            DataContext = viewModel;
+            _viewModel = new MainViewModel(this);
+            DataContext = _viewModel;
 
             // Font
             this.FontFamily = new FontFamily("Courier New");
@@ -39,16 +40,26 @@ namespace OATSimulation
             }));
         }
 
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+
+            _viewModel.OnClosing();
+
+            AppSettings.Instance.WindowPos = new Point((int)Math.Max(0, this.Left), (int)Math.Max(0, this.Top));
+            AppSettings.Instance.Save();
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             switch (e.Key)
             {
                 case Key.D1:
-                    viewModel.ToggleScenePresets(1);
+                    _viewModel.LightPreset = 1;
                     e.Handled = true;
                     break;
                 case Key.D2:
-                    viewModel.ToggleScenePresets(2);
+                    _viewModel.LightPreset = 2;
                     e.Handled = true;
                     break;
             }

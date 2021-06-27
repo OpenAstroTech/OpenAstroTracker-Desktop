@@ -132,6 +132,7 @@ namespace OATSimulation.Communication
 
                     case "TrkStepper":
                         _mainViewModel.TRKStepper = int.Parse(items[1]);
+                        //_mainViewModel.OATData["TrkStepper"] = items[1];
                         break;
 
                     case "RAStepsPerDegree":

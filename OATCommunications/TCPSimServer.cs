@@ -31,8 +31,17 @@ namespace OATCommunications
         {
             while (true)
             {
-                tempClient = serverSocket.Accept();
-                ThreadPool.QueueUserWorkItem(new WaitCallback(Receive), tempClient);
+                try
+                {
+                    tempClient = serverSocket.Accept();
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(Receive), tempClient);
+                }
+                catch(SocketException e)
+                {
+                    Console.WriteLine(e);
+                }
+                
+                
             }
         }
 
@@ -82,6 +91,10 @@ namespace OATCommunications
             try
             {
                 serverSocket.Shutdown(SocketShutdown.Both);
+            }
+            catch(SocketException e)
+            {
+
             }
             finally
             {

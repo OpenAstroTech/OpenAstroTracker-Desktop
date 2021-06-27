@@ -2838,15 +2838,24 @@ namespace OATControl.ViewModels
         {
 			if (_oatSimComm != null)
 			{
-				_oatSimComm.Send($"RAStepsPerDegree|{RAStepsPerDegree}\n");
-				_oatSimComm.Send($"DECStepsPerDegree|{DECStepsPerDegree}\n");
-				_oatSimComm.Send($"RAStepper|{RAStepper}\n");
-				_oatSimComm.Send($"DECStepper|{DECStepper}\n");
-				_oatSimComm.Send($"TrkStepper|{TrkStepper}\n");
-				_oatSimComm.Send($"Version|{Version}\n");
-				_oatSimComm.Send($"FirmwareVersion|{ScopeVersion}\n");
-				_oatSimComm.Send($"ScopeSiderealTime|{ScopeSiderealTime}\n");
-				_oatSimComm.Send($"ScopePolarisHourAngle|{ScopePolarisHourAngle}\n");
+				_oatSimComm.Send($"CurrentRAString|{CurrentRAHour},{CurrentRAMinute},{CurrentRASecond}");
+				_oatSimComm.Send($"CurrentDECString|{CurrentDECDegree},{CurrentDECMinute},{CurrentDECSecond}");
+				_oatSimComm.Send($"RAStepsPerDegree|{RAStepsPerDegree}");
+				_oatSimComm.Send($"DECStepsPerDegree|{DECStepsPerDegree}");
+				_oatSimComm.Send($"RAStepper|{RAStepper}");
+				_oatSimComm.Send($"DECStepper|{DECStepper}");
+				_oatSimComm.Send($"TrkStepper|{TrkStepper}");
+				_oatSimComm.Send($"Version|{Version}");
+				_oatSimComm.Send($"FirmwareVersion|{ScopeVersion}");
+				_oatSimComm.Send($"ScopeSiderealTime|{ScopeSiderealTime}");
+				_oatSimComm.Send($"ScopePolarisHourAngle|{ScopePolarisHourAngle}");
+				_oatSimComm.Send($"ScopeRASlewMS|{ScopeRASlewMS}");
+				_oatSimComm.Send($"ScopeRATrackMS|{ScopeRATrackMS}");
+				_oatSimComm.Send($"ScopeDECSlewMS|{ScopeDECSlewMS}");
+				_oatSimComm.Send($"ScopeDECGuideMS|{ScopeDECGuideMS}");
+				_oatSimComm.Send($"ScopeLongitude|{ScopeLongitude}");
+				_oatSimComm.Send($"ScopeLatitude|{ScopeLatitude}");
+
 
 			}
 		}
