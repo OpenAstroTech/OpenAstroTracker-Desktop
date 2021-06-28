@@ -55,11 +55,11 @@ namespace OATSimulation
             switch (e.Key)
             {
                 case Key.D1:
-                    _viewModel.LightPreset = 1;
+                    _viewModel.LightPresetNumber = 1;
                     e.Handled = true;
                     break;
                 case Key.D2:
-                    _viewModel.LightPreset = 2;
+                    _viewModel.LightPresetNumber = 2;
                     e.Handled = true;
                     break;
             }

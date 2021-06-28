@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -8,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace OATCommunications
 {
-    public class TCPSimServer
+    public class SimulationServer
     {
         // CultureInfo _oatCulture = new CultureInfo("en-US");
 
-        int port = 4035;
+        // int port = 4035;
         Socket serverSocket = null;
         public Socket tempClient = null;
         Task taskOfAccept;
 
-        public void StartServer()
+        public void Start(int port)
         {
             IPEndPoint ipe = new IPEndPoint(IPAddress.Loopback, port);
             serverSocket = new Socket(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -40,8 +39,6 @@ namespace OATCommunications
                 {
                     Console.WriteLine(e);
                 }
-                
-                
             }
         }
 
@@ -86,7 +83,7 @@ namespace OATCommunications
             }
         }
             
-        public void StopServer()
+        public void Stop()
         {
             try
             {

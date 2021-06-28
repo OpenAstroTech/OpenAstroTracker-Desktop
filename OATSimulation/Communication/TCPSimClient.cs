@@ -9,7 +9,7 @@ namespace OATSimulation.Communication
     public class TCPSimClient
     {
         private Socket _client = null;
-        int port = 4035;
+        // int port = 4035;
         Task taskOfReceiveData;
 
         MainViewModel _mainViewModel;
@@ -34,7 +34,7 @@ namespace OATSimulation.Communication
             _mainViewModel = mainViewModel;
         }
 
-        public void Connect()
+        public void Connect(int port)
         {
             _mainViewModel.Status = "Trying to connect...";
             _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);

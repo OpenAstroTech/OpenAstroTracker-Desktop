@@ -184,5 +184,12 @@ namespace OATSimulation.ViewModels
             get { return ToColor(this["AlbedoColorDEC"]); }
             set { this["AlbedoColorDEC"] = FromColor(value); }
         }
+
+        [DefaultValueAttribute("70|70|80")]
+        public Color AlbedoColorGuider
+        {
+            get { return ToColor(this["AlbedoColorGuider"]); }
+            set { this["AlbedoColorGuider"] = FromColor(value); }
+        }
     }
 }

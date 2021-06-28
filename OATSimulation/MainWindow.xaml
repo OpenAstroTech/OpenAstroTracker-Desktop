@@ -15,14 +15,12 @@
     <Grid Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition/>
-            <RowDefinition Height="136"/>
-
-            <RowDefinition Height="35"/>
+            <RowDefinition Height="41.333"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="220"/>
+
         </Grid.ColumnDefinitions>
         <hx:Viewport3DX
             x:Name="view"
@@ -44,7 +42,7 @@
             ShowViewCube="False"
             SubTitle="{Binding SubTitle}"
             TextBrush="Black"
-            UseDefaultGestures="False" Grid.RowSpan="3" Margin="0,0,10.333,0">
+            UseDefaultGestures="False" Grid.RowSpan="2" Margin="0,0,0.333,0">
             <hx:Viewport3DX.InputBindings>
                 <KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
                 <KeyBinding Key="F" Command="hx:ViewportCommands.FrontView" />
@@ -63,19 +61,19 @@
             <!-- DARK PRESET -->
             <hx:AmbientLight3D
                 Color="{Binding DarkAmbientLightColor}"
-                IsRendering="{Binding DarkPresetActive}"/>
+                IsRendering="{Binding LightPreset01Active}"/>
 
             <hx:PointLight3D
                 Transform="{Binding AnimatedLightTransform}"
                 Color="{Binding AnimatedLightColor}"
-                IsRendering="{Binding DarkPresetActive}"/>
+                IsRendering="{Binding LightPreset01Active}"/>
 
             <hx:PointLight3D
                 Transform="{Binding PointlightTransform}"
                 Color="{Binding PointlightColor}"
                 Attenuation="{Binding PointlightAttenuation}"
                 Range="10"
-                IsRendering="{Binding DarkPresetActive}"/>
+                IsRendering="{Binding LightPreset01Active}"/>
 
             <hx:SpotLight3D
                 Attenuation="{Binding SpotlightAttenuation}"
@@ -83,18 +81,18 @@
                 Range="100"
                 Transform="{Binding SpotlightTransform}"
                 Color="{Binding SpotlightColor}"
-                IsRendering="{Binding DarkPresetActive}"/>
+                IsRendering="{Binding LightPreset01Active}"/>
 
             <!-- LIGHT PRESET -->
             <hx:AmbientLight3D
                 Color="{Binding LightAmbientLightColor}"
-                IsRendering="{Binding LightPresetActive}"/>
+                IsRendering="{Binding LightPreset02Active}"/>
 
             <hx:DirectionalLight3D
                 Direction="{Binding Light1Direction}"
-                IsRendering="{Binding LightPresetActive}"
                 Transform="{Binding Light1Transform}"
-                Color="{Binding Light1Color}" />
+                Color="{Binding Light1Color}"
+                IsRendering="{Binding LightPreset02Active}"/>
 
             <hx:PointLight3D
                 x:Name="pointLightFront"
@@ -131,7 +129,7 @@
                 Position="{Binding Camera.Position, Mode=OneWay}"
                 Range="{Binding Camera.FarPlaneDistance}"
                 Color="#FFEBEBEB"
-                IsRendering="{Binding LightPresetActive}"/>
+                IsRendering="{Binding LightPreset02Active}"/>
 
             <hx:GroupModel3D>
 
@@ -147,64 +145,168 @@
                     Transform="{Binding FloorTransform}" />
             </hx:GroupModel3D>
             <hx:PostEffectBloom x:Name="bloom" />
-            <!--<hx:LineGeometryModel3D Geometry="{Binding CubeEdges}" Color="{x:Static SharpDX:Color.Red}" Thickness="4"/>-->
             <hx:EnvironmentMap3D IsRendering="{Binding RenderEnvironmentMap}" Texture="{Binding EnvironmentMap}" />
         </hx:Viewport3DX>
-
-
 
         <!--
         <DataGrid x:Name="DataGrid" ItemsSource="{Binding OATData}" AutoGenerateColumns="True" Margin="0.667,0,0.333,136.333" Grid.ColumnSpan="2" Grid.Column="1" Grid.RowSpan="2" >  
         </DataGrid>
         -->
-        
-        <StackPanel Grid.Column="1" Margin="0.667,10,0.333,41.333" Grid.RowSpan="2">
-            <TextBlock Text="RA" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="DEC" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="RA Stepper" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="DEC Stepper" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="TRK Stepper" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="RA Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="DEC Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="LST" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="Polaris HA" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="OC Version" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="FW Version" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="RA Degrees" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="DEC Degrees" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+        <ScrollViewer Margin="1.667,0,0.333,0.667" Grid.Column="1">
+            <StackPanel Orientation="Vertical">
+                <Grid Height="350">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100*"/>
+                        <ColumnDefinition Width="100*"/>
+                    </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Longitude" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="Latitude" Foreground="White" Grid.RowSpan="2"/>
+                    <Label Foreground="White" Content="OAT Data" Grid.ColumnSpan="2" Margin="0,0,0.667,0" Height="34" HorizontalContentAlignment="Center" VerticalAlignment="Top" FontSize="14" FontWeight="Bold"/>
 
-        </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="0" Margin="1,34,99.667,0" Grid.ColumnSpan="2">
+                        <TextBlock Text="RA" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="DEC" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="RA Stepper" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="DEC Stepper" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="TRK Stepper" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="RA Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="DEC Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="LST" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="Polaris HA" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="OC Version" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="FW Version" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="RA Degrees" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="DEC Degrees" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
 
-        <StackPanel Grid.Column="2" Margin="0.667,10,0.333,0" Height="329" VerticalAlignment="Top" Grid.RowSpan="2">
-            <TextBlock Text="{Binding CurrentRAString}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding CurrentDECString}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding RAStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding DECStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding TRKStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding RAStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding DECStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding ScopeSiderealTime}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding ScopePolarisHourAngle}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding Version}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding FirmwareVersion}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding RAAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding DECAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding ScopeLongitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
-            <TextBlock Text="{Binding ScopeLatitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="Longitude" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="Latitude" Foreground="White" Grid.RowSpan="2"/>
 
-        </StackPanel>
-        
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Grid.Row="0" Margin="0.333,34,0.667,0">
+                        <TextBlock Text="{Binding CurrentRAString}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding CurrentDECString}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding RAStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding DECStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding TRKStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding RAStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding DECStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding ScopeSiderealTime}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding ScopePolarisHourAngle}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding Version}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding FirmwareVersion}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding RAAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding DECAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding ScopeLongitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding ScopeLatitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+
+                    </StackPanel>
+
+                </Grid>
+
+                <Expander
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    VerticalContentAlignment="Stretch"
+                    BorderBrush="LightGray"
+                    Header="Settings"
+                    IsExpanded="False" MinWidth="180"
+                    Width="Auto"
+                    Margin="10" Foreground="White">
+                    <Grid>
+                        <StackPanel Orientation="Vertical">
+                            <Label Foreground="White" Content="Mount Angel"/>
+                            <ComboBox ItemsSource="{Binding MountAngles}" SelectedValue="{Binding SelectMountAngle}"/>
+                            <Label Foreground="White" Content="PLA Color Base"/>
+                            <pt:ColorPicker SelectedColor="{Binding AlbedoColorBase}"/>
+                            <Label Foreground="White" Content="PLA Color RA"/>
+                            <pt:ColorPicker SelectedColor="{Binding AlbedoColorRA}"/>
+                            <Label Foreground="White" Content="PLA Color DEC"/>
+                            <pt:ColorPicker SelectedColor="{Binding AlbedoColorDEC}"/>
+                            <Label Foreground="White" Content="PLA Color Guider"/>
+                            <pt:ColorPicker SelectedColor="{Binding AlbedoColorGuider}"/>
+
+                        </StackPanel>
+                    </Grid>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+        <Button Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10,10" Width="205" Grid.Row="1" Height="21" VerticalAlignment="Bottom"/>
+
+        <!--     
+        <ScrollViewer Margin="0.667,0,0.333,0.333" Grid.ColumnSpan="2" Grid.Column="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="51*"/>
+                    <RowDefinition Height="20*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="102*"/>
+                    <ColumnDefinition Width="79*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Grid.Row="0" Margin="1,10,0,93.333" Grid.RowSpan="2">
+                    <TextBlock Text="RA" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="DEC" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="RA Stepper" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="DEC Stepper" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="TRK Stepper" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="RA Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="DEC Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="LST" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="Polaris HA" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="OC Version" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="FW Version" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="RA Degrees" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="DEC Degrees" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+
+                    <TextBlock Text="Longitude" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="Latitude" Foreground="White" Grid.RowSpan="2"/>
+
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Grid.Row="0" Margin="1,0,0.333,0" Height="161" VerticalAlignment="Top">
+                    <TextBlock Text="{Binding CurrentRAString}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding CurrentDECString}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding RAStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding DECStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding TRKStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding RAStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding DECStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding ScopeSiderealTime}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding ScopePolarisHourAngle}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding Version}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding FirmwareVersion}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding RAAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding DECAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding ScopeLongitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+                    <TextBlock Text="{Binding ScopeLatitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
+
+                </StackPanel>
+
+                <Expander Margin="0,0,0,0.333" Grid.Column="0" Grid.Row="1" Grid.RowSpan="2">
+
+                </Expander>
+            </Grid>
+
+
+
+        </ScrollViewer>
 
         <StackPanel Orientation="Vertical" Margin="0.667,0,10.333,0.333" Grid.ColumnSpan="2" Grid.Column="1" Height="136" VerticalAlignment="Bottom" Grid.RowSpan="2">
             <Label Foreground="White" Content="Mount Angel"/>
@@ -220,6 +322,6 @@
 
         <Label Content="{Binding Status}" Margin="0,0,10.333,4" Foreground="White" Height="26" VerticalAlignment="Bottom" Grid.Row="2"/>
         <Button x:Name="button" Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10.333,10" Width="157" Grid.Row="2" Grid.ColumnSpan="2" Height="21" VerticalAlignment="Bottom"/>
-
+-->
     </Grid>
 </Window>

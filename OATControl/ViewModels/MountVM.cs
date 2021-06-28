@@ -147,7 +147,7 @@ namespace OATControl.ViewModels
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
 
-		private TCPSimServer _oatSimComm = new TCPSimServer();
+		private SimulationServer _oatSimComm = new SimulationServer();
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -265,7 +265,7 @@ namespace OATControl.ViewModels
 			AppSettings.Instance.Load();
 
 			// Start Simulation Server
-			_oatSimComm.StartServer();
+			_oatSimComm.Start(4035);
 		}
 
 		public void OnUpgradeSettings(object sender, UpgradeEventArgs e)
@@ -1121,7 +1121,7 @@ namespace OATControl.ViewModels
 
 			if (_oatSimComm != null)
 			{
-				_oatSimComm.StopServer();
+				_oatSimComm.Stop();
 				_oatSimComm = null;
 			}
 
