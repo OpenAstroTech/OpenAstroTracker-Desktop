@@ -16,6 +16,13 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**OATControl V1.0.2.3 - Updates**
+- Added support for focuser reset on Settings page.
+
+**OATControl V1.0.2.2 - Updates**
+- DEC Go Home command was requiring one firmware version too high. Fixed.
+- Focuser position was being queried incorrectly. Fixed.
+
 **ASCOM.Driver V6.6.3.0 - Updates**
 - Changed pass through command to correctly handle all Meade commands that OAT implements.
 

@@ -137,6 +137,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _setDecLowerLimitCommand;
 		DelegateCommand _setDECHomeOffsetFromPowerOn;
 		DelegateCommand _gotoDECHomeFromPowerOn;
+		DelegateCommand _focuserResetCommand;
 
 		MiniController _miniController;
 		TargetChooser _targetChooser;
@@ -243,6 +244,7 @@ namespace OATControl.ViewModels
 			_setDecLowerLimitCommand = new DelegateCommand((p) => SetDecLowLimit(), () => MountConnected);
 			_setDECHomeOffsetFromPowerOn = new DelegateCommand((p) => OnSetDECHomeOffsetFromPowerOn(), () => MountConnected);
 			_gotoDECHomeFromPowerOn = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10915));
+			_focuserResetCommand = new DelegateCommand((p) => OnResetFocuserPosition(), () => MountConnected && (FirmwareVersion > 10918));
 
 
 			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
@@ -267,6 +269,12 @@ namespace OATControl.ViewModels
 		{
 			// If needed upgrade the settings file between versions here.
 			// e.LoadedVersion vs. e.CurrentVersion;
+		}
+		
+		public void OnResetFocuserPosition()
+		{
+			// 50000 seems to be the standard focuser rest position
+			_oatMount.SendCommand($":FP50000#,n", (a) => { });
 		}
 
 		public void OnGotoDECHomeFromPowerOn()
@@ -1353,6 +1361,7 @@ namespace OATControl.ViewModels
 			_setDecLowerLimitCommand.Requery();
 			_setDECHomeOffsetFromPowerOn.Requery();
 			_gotoDECHomeFromPowerOn.Requery();
+			_focuserResetCommand.Requery();
 
 
 			OnPropertyChanged("ConnectCommandString");
@@ -1807,6 +1816,7 @@ namespace OATControl.ViewModels
 		public ICommand SetDecLowerLimitCommand { get { return _setDecLowerLimitCommand; } }
 		public ICommand SetDECHomeOffsetFromPowerOn { get { return _setDECHomeOffsetFromPowerOn; } }
 		public ICommand GotoDECHomeFromPowerOn { get { return _gotoDECHomeFromPowerOn; } }
+		public ICommand FocuserResetCommand { get { return _focuserResetCommand; } }
 
 		public double TargetRATotalHours
 		{
