@@ -164,28 +164,35 @@ namespace OATSimulation.ViewModels
             set { this["WindowPos"] = FromPoint(value); }
         }
 
-        [DefaultValueAttribute("70|70|80")]
+        [DefaultValueAttribute("False")]
+        public bool KeepWindowOnTop
+        {
+            get { return Convert.ToBoolean(this["KeepWindowOnTop"]); }
+            set { this["KeepWindowOnTop"] = value.ToString(); }
+        }
+
+        [DefaultValueAttribute("70|70|70")]
         public Color AlbedoColorBase
         {
             get { return ToColor(this["AlbedoColorBase"]); }
             set { this["AlbedoColorBase"] = FromColor(value); }
         }
 
-        [DefaultValueAttribute("70|70|80")]
+        [DefaultValueAttribute("70|70|70")]
         public Color AlbedoColorRA
         {
             get { return ToColor(this["AlbedoColorRA"]); }
             set { this["AlbedoColorRA"] = FromColor(value); }
         }
 
-        [DefaultValueAttribute("70|70|80")]
+        [DefaultValueAttribute("70|70|70")]
         public Color AlbedoColorDEC
         {
             get { return ToColor(this["AlbedoColorDEC"]); }
             set { this["AlbedoColorDEC"] = FromColor(value); }
         }
 
-        [DefaultValueAttribute("70|70|80")]
+        [DefaultValueAttribute("70|70|70")]
         public Color AlbedoColorGuider
         {
             get { return ToColor(this["AlbedoColorGuider"]); }

@@ -8,7 +8,7 @@
         xmlns:sdx="clr-namespace:SharpDX;assembly=SharpDX.Mathematics"
         xmlns:local="clr-namespace:OATSimulation"
         mc:Ignorable="d"
-        Title="{Binding Title}" Height="505.556" Width="800">
+        Title="{Binding Title}" Height="505.556" Width="800" Closing="Window_Closing">
     <Window.Resources>
         <hx:RenderTechniqueConverter x:Key="RenderTechniqueConverter" />
     </Window.Resources>
@@ -24,25 +24,27 @@
         </Grid.ColumnDefinitions>
         <hx:Viewport3DX
             x:Name="view"
-            Title="{Binding Title}"
+            Title="{Binding Status}"
+            SubTitle="{Binding SubTitle}"
             Grid.Row="0"
             Grid.Column="0"
             BackgroundColor="Black"
             Camera="{Binding Camera}"
             CoordinateSystemLabelForeground="White"
             EffectsManager="{Binding EffectsManager}"
-            EnableSwapChainRendering="True"
+            EnableSwapChainRendering="False"
             EnableSSAO="True"
-            FXAALevel="{Binding FXAA}"
-            IsShadowMappingEnabled="True"
+            SSAOSamplingRadius="{Binding SSAOSamplingRadius}"
+            SSAOIntensity="{Binding SSAOIntensity}"
+            FXAALevel="{Binding FXAA}"            
             MSAA="{Binding MSAA}"
+            IsShadowMappingEnabled="True"
             ShowCoordinateSystem="False"
             ShowFrameDetails="False"
             ShowFrameRate="False"
             ShowViewCube="False"
-            SubTitle="{Binding SubTitle}"
-            TextBrush="Black"
-            UseDefaultGestures="False" Grid.RowSpan="2" Margin="0,0,0.333,0">
+            TextBrush="White"
+            UseDefaultGestures="False" Grid.RowSpan="2" Margin="0,0,0.333,0" Foreground="Black">
             <hx:Viewport3DX.InputBindings>
                 <KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
                 <KeyBinding Key="F" Command="hx:ViewportCommands.FrontView" />
@@ -57,7 +59,8 @@
             </hx:Viewport3DX.InputBindings>
 
             <hx:ShadowMap3D Resolution="{Binding ShadowMapResolution}" />
-
+            <!--<hx:EnvironmentMap3D IsRendering="{Binding RenderEnviromentMap}" Texture="{Binding EnvironmentMap}" />-->
+            
             <!-- DARK PRESET -->
             <hx:AmbientLight3D
                 Color="{Binding DarkAmbientLightColor}"
@@ -131,23 +134,38 @@
                 Color="#FFEBEBEB"
                 IsRendering="{Binding LightPreset02Active}"/>
 
-            <hx:GroupModel3D>
-
-                <hx:DynamicReflectionMap3D IsDynamicScene="True">
-                    <hx:Element3DPresenter Content="{Binding GroupModel}" />
-                </hx:DynamicReflectionMap3D>
-
-                <hx:MeshGeometryModel3D
-                    x:Name="floor"
-                    CullMode="Back"
-                    Geometry="{Binding Floor}"
-                    Material="{Binding FloorMaterial}"
-                    Transform="{Binding FloorTransform}" />
-            </hx:GroupModel3D>
-            <hx:PostEffectBloom x:Name="bloom" />
-            <hx:EnvironmentMap3D IsRendering="{Binding RenderEnvironmentMap}" Texture="{Binding EnvironmentMap}" />
+            
+            <hx:Element3DPresenter Content="{Binding GroupModel}" />
+            
         </hx:Viewport3DX>
-
+        <TextBlock Foreground="White" Margin="10,59,0.333,10" Grid.RowSpan="2" Visibility="{Binding ShowHelp}" TextWrapping="Wrap">
+            Make sure OAT Control is running and you are connected to the mount. Then press 'Connect'<LineBreak/>
+            <LineBreak/>
+            
+            -- Keyboard hotkeys --
+            <LineBreak/>
+            <LineBreak/>
+            
+            1: Light Preset 1<LineBreak/>
+            2: Light Preset 2<LineBreak/>
+            <LineBreak/>
+            
+            F: Front View<LineBreak/>
+            B: Back View<LineBreak/>
+            U: Top View<LineBreak/>
+            D: Down View<LineBreak/>
+            L: Left View<LineBreak/>
+            R: Right View<LineBreak/>
+            
+            <LineBreak/>
+            -- Camera Control --
+            <LineBreak/>
+            <LineBreak/>
+            Rotate: Right Click<LineBreak/>
+            Pan: Left Click<LineBreak/>
+            Zoom: Middle Click<LineBreak/>
+            
+        </TextBlock>
         <!--
         <DataGrid x:Name="DataGrid" ItemsSource="{Binding OATData}" AutoGenerateColumns="True" Margin="0.667,0,0.333,136.333" Grid.ColumnSpan="2" Grid.Column="1" Grid.RowSpan="2" >  
         </DataGrid>
@@ -232,6 +250,11 @@
                             <pt:ColorPicker SelectedColor="{Binding AlbedoColorDEC}"/>
                             <Label Foreground="White" Content="PLA Color Guider"/>
                             <pt:ColorPicker SelectedColor="{Binding AlbedoColorGuider}"/>
+                            <Label Foreground="White" Content=""/>
+                            <CheckBox Margin="4" IsChecked="{Binding KeepWindowOnTop}" Foreground="White">
+                                Window On Top
+                            </CheckBox>
+
 
                         </StackPanel>
                     </Grid>
@@ -239,89 +262,38 @@
             </StackPanel>
         </ScrollViewer>
         <Button Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10,10" Width="205" Grid.Row="1" Height="21" VerticalAlignment="Bottom"/>
-
-        <!--     
-        <ScrollViewer Margin="0.667,0,0.333,0.333" Grid.ColumnSpan="2" Grid.Column="1">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="51*"/>
-                    <RowDefinition Height="20*"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="102*"/>
-                    <ColumnDefinition Width="79*"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Grid.Row="0" Margin="1,10,0,93.333" Grid.RowSpan="2">
-                    <TextBlock Text="RA" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="DEC" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="RA Stepper" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="DEC Stepper" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="TRK Stepper" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="RA Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="DEC Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="LST" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="Polaris HA" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="OC Version" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="FW Version" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="RA Degrees" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="DEC Degrees" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-
-                    <TextBlock Text="Longitude" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="Latitude" Foreground="White" Grid.RowSpan="2"/>
-
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Grid.Row="0" Margin="1,0,0.333,0" Height="161" VerticalAlignment="Top">
-                    <TextBlock Text="{Binding CurrentRAString}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding CurrentDECString}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding RAStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding DECStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding TRKStepper, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding RAStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding DECStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding ScopeSiderealTime}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding ScopePolarisHourAngle}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding Version}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding FirmwareVersion}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding RAAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding DECAngle, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding ScopeLongitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
-                    <TextBlock Text="{Binding ScopeLatitude, StringFormat={}{0:0.00}}" Foreground="White" Grid.RowSpan="2"/>
-
-                </StackPanel>
-
-                <Expander Margin="0,0,0,0.333" Grid.Column="0" Grid.Row="1" Grid.RowSpan="2">
-
-                </Expander>
-            </Grid>
-
-
-
-        </ScrollViewer>
-
-        <StackPanel Orientation="Vertical" Margin="0.667,0,10.333,0.333" Grid.ColumnSpan="2" Grid.Column="1" Height="136" VerticalAlignment="Bottom" Grid.RowSpan="2">
-            <Label Foreground="White" Content="Mount Angel"/>
-            <ComboBox ItemsSource="{Binding MountAngles}" SelectedValue="{Binding SelectMountAngle}" Margin="0,10.333,0.333,2" Grid.Column="2" Grid.Row="2"/>
-            <Label Foreground="White" Content="PLA Color"/>
-
-            <StackPanel Orientation="Horizontal">
-                <pt:ColorPicker SelectedColor="{Binding AlbedoColorBase}" Width="60" />
-                <pt:ColorPicker SelectedColor="{Binding AlbedoColorRA}" Width="60" />
-                <pt:ColorPicker SelectedColor="{Binding AlbedoColorDEC}" Width="60" />
-            </StackPanel>
-        </StackPanel>
-
-        <Label Content="{Binding Status}" Margin="0,0,10.333,4" Foreground="White" Height="26" VerticalAlignment="Bottom" Grid.Row="2"/>
-        <Button x:Name="button" Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10.333,10" Width="157" Grid.Row="2" Grid.ColumnSpan="2" Height="21" VerticalAlignment="Bottom"/>
--->
+        <!--
+        <StatusBar
+            Grid.Row="1"
+            Height="20"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Bottom">
+            <StatusBar.Background>
+                <SolidColorBrush Opacity="0.25" Color="WhiteSmoke" />
+            </StatusBar.Background>
+            <StatusBarItem>
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Text="{Binding FrameRate, ElementName=view1, StringFormat=D3D11 - \{0:0.00\} FPS}" />
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock Text="{Binding Camera.Position, StringFormat=Position: \{0:0.0\}}" />
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock Text="{Binding Camera.LookDirection, StringFormat=LookDirection: \{0:0.0\}}" />
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock Text="{Binding Camera.UpDirection, StringFormat=UpDirection: \{0:0.0\}}" />
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock Text="{Binding Items.Count, ElementName=view1, StringFormat=Children: \{0\}}" />
+            </StatusBarItem>
+        </StatusBar>
+       -->
     </Grid>
 </Window>

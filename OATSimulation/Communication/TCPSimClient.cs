@@ -190,7 +190,7 @@ namespace OATSimulation.Communication
                     default:
                         break;
                 }
-                _mainViewModel.StatusUpdate();
+                _mainViewModel.CalculatePositions();
             }
         }
     }

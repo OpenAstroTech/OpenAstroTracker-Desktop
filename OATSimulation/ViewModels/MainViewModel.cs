@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -81,9 +82,9 @@ namespace OATSimulation.ViewModels
 
         private bool isLoading = false;
         private string _status = "Not connected...";
-        private string _version = "0.0";
-        private string _firmwareVersion = "0.0";
-
+        private bool _keepWindowOnTop = false;
+        private Visibility _showHelp = Visibility.Hidden;
+        
         private double _raAngle = 0.0;
         private double _decAngle = 0.0;
         private string _currentRAString = "--";
@@ -103,21 +104,31 @@ namespace OATSimulation.ViewModels
         private string _scopeSiderealTime = "0";
         private string _scopePolarisHourAngle = "0";
 
-        // Lights
-        // private bool _darkPresetActive = false;
-        // private bool _lightPresetActive = true;
-
-        // Animation
-        // DispatcherTimer _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33.3) };
-
         private double _raTargetAngle = 0.0;
         private double _decTargetAngle = 0.0;
         private double _raTargetDegSteps = 0.0;
         private double _decTargetDegSteps = 0.0;
 
+        private string _version = "0.0";
+        private string _firmwareVersion = "0.0";
+
         private bool renderEnvironmentMap = true;
 
-        #region Properties
+        #region Scene Properties
+        public Visibility ShowHelp 
+        {
+            get
+            {
+                return _showHelp;
+            }
+            set
+            {
+                _showHelp = value;
+                OnPropertyChanged("ShowHelp");
+            }
+        }
+        
+        public TextureModel SkyboxTexture { private set; get; }
         // LIGHTS -------------------------------------------------------
         private int _lightPreset = 2;
 
@@ -193,6 +204,7 @@ namespace OATSimulation.ViewModels
         public HelixToolkit.Wpf.SharpDX.MeshGeometry3D Floor { get; private set; }
         public Transform3D FloorTransform { get; private set; }
 
+        // DirectX Post Effects
         public MSAALevel MSAA
         {
             set; get;
@@ -208,6 +220,9 @@ namespace OATSimulation.ViewModels
         public FXAALevel[] FXAAs { get; } = new FXAALevel[] { FXAALevel.None, FXAALevel.Low, FXAALevel.Medium, FXAALevel.High, FXAALevel.Ultra };
 
         public Size ShadowMapResolution { get; private set; }
+
+        public float SSAOSamplingRadius { get; set; }
+        public float SSAOIntensity { get; set; }
 
         // Colors
         private Color4 _errorEmissiveColor = new Color4(0.4f, 0.0f, 0.0f, 1.0f);
@@ -278,34 +293,17 @@ namespace OATSimulation.ViewModels
         }
 
         // Materials
-        public PBRMaterial PrintedMaterial { get; }
-        public PBRMaterial PrintedRAMaterial { get; }
-        public PBRMaterial PrintedDECMaterial { get; }
-        public PBRMaterial PrintedGuiderMaterial { get; }
-        public PBRMaterial AluminiumMaterial { get; }
-        public PBRMaterial FloorMaterial { get; }
-        public PBRMaterial MetalMaterial { get; }
-        public PBRMaterial BlackMetalMaterial { get; }
-        public PBRMaterial GlassMaterial { get; }
-        public PBRMaterial MarkersMaterial { get; }
-
-        public bool RenderEnvironmentMap
-        {
-            set
-            {
-                if (SetValue(ref renderEnvironmentMap, value) && scene != null && scene.Root != null)
-                {
-                    foreach (var node in scene.Root.Traverse())
-                    {
-                        if (node is MaterialGeometryNode m && m.Material is PBRMaterialCore material)
-                        {
-                            material.RenderEnvironmentMap = value;
-                        }
-                    }
-                }
-            }
-            get => renderEnvironmentMap;
-        }
+        public PBRMaterial PrintedMaterial { get; set; }
+        public PBRMaterial PrintedRAMaterial { get; set; }
+        public PBRMaterial PrintedDECMaterial { get; set; }
+        public PBRMaterial PrintedGuiderMaterial { get; set; }
+        public PBRMaterial AluminiumMaterial { get; set; }
+        public PBRMaterial FloorMaterial { get; set; }
+        public PBRMaterial MetalMaterial { get; set; }
+        public PBRMaterial BlackMetalMaterial { get; set; }
+        public PBRMaterial GlassMaterial { get; set; }
+        public PBRMaterial MarkersMaterial { get; set; }
+        public PBRMaterial DomeMaterial { get; set; }
 
         public bool IsLoading
         {
@@ -315,7 +313,7 @@ namespace OATSimulation.ViewModels
 
         public SceneNodeGroupModel3D GroupModel { get; } = new SceneNodeGroupModel3D();
 
-        public TextureModel EnvironmentMap { get; }
+        
 
         // Connection Properties
         public string IsConnectedString
@@ -345,7 +343,30 @@ namespace OATSimulation.ViewModels
             }
         }
 
-        // Mount Properties
+        /// <summary>
+        /// Keep window on top. Good have for Stellarium when only using one screen
+        /// </summary>
+        public bool KeepWindowOnTop
+        {
+            get
+            {
+                return _keepWindowOnTop;
+            }
+            set
+            {
+                Window owner = Application.Current.Windows.OfType<Window>().FirstOrDefault();
+                _keepWindowOnTop = owner.Topmost = value;
+               
+                OnPropertyChanged("KeepWindowOnTop");
+            }
+        }
+
+        #endregion
+
+        #region Mount Properties
+        /// <summary>
+        /// Gets or sets the RA angle in degrees from home position
+        /// </summary>
         public double RAAngle
         {
             get
@@ -359,6 +380,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("RAAngle");
             }
         }
+        /// <summary>
+		/// Gets or sets the DEC angle in degrees from home position
+		/// </summary>
         public double DECAngle
         {
             get
@@ -372,6 +396,10 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("DECAngle");
             }
         }
+        /// <summary>
+		/// Gets or sets the RA target angle in degrees.
+        /// Target Angle is how much it should move over the next second
+		/// </summary>
         public double RATargetAngle
         {
             get
@@ -385,6 +413,10 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("RATargetAngle");
             }
         }
+        /// <summary>
+		/// Gets or sets the DEC target angle in degrees.
+        /// Target Angle is how much it should move over the next second
+		/// </summary>
         public double DECTargetAngle
         {
             get
@@ -398,6 +430,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("DECTargetAngle");
             }
         }
+        /// <summary>
+		/// Gets or sets the RA Stepper position
+		/// </summary>
         public int RAStepper
         {
             get
@@ -411,6 +446,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("RAStepper");
             }
         }
+        /// <summary>
+		/// Gets or sets the DEC Stepper position
+		/// </summary>
         public int DECStepper
         {
             get
@@ -424,6 +462,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("DECStepper");
             }
         }
+        /// <summary>
+		/// Gets or sets the Tracking Stepper position
+		/// </summary>
         public int TRKStepper
         {
             get
@@ -437,7 +478,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("TRKStepper");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the RA Steps/Degree
+		/// </summary>
         public float RAStepsPerDegree
         {
             get
@@ -451,6 +494,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("RAStepsPerDegree");
             }
         }
+        /// <summary>
+		/// Gets or sets the DEC Steps/Degree
+		/// </summary>
         public float DECStepsPerDegree
         {
             get
@@ -464,7 +510,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("DECStepsPerDegree");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the top left corner status message
+		/// </summary>
         public string Status
         {
             get
@@ -478,7 +526,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("Status");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the version of the OAT Control
+		/// </summary>
         public string Version
         {
             get
@@ -492,7 +542,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("Version");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the version of the scope firmware
+		/// </summary>
         public string FirmwareVersion
         {
             get
@@ -506,7 +558,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("FirmwareVersion");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the Sidereal time of the scope
+		/// </summary>
         public string ScopeSiderealTime
         {
             get
@@ -520,7 +574,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopeSiderealTime");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the HA of the scope
+		/// </summary>
         public string ScopePolarisHourAngle
         {
             get
@@ -534,7 +590,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopePolarisHourAngle");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the HHMMSS string of RA
+		/// </summary>
         public string CurrentRAString
         {
             get
@@ -548,7 +606,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("CurrentRAString");
             }
         }
-
+        /// <summary>
+		/// Gets or sets the DDMMSS string of DEC
+		/// </summary>
         public string CurrentDECString
         {
             get
@@ -562,7 +622,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("CurrentDECString");
             }
         }
-
+        /// <summary>
+		/// Gets or sets slewing microsteps of RA
+		/// </summary>
         public int ScopeRASlewMS
         {
             get
@@ -576,7 +638,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopeRASlewMS");
             }
         }
-
+        /// <summary>
+		/// Gets or sets tracking microsteps of RA
+		/// </summary>
         public int ScopeRATrackMS
         {
             get
@@ -590,7 +654,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopeRATrackMS");
             }
         }
-
+        /// <summary>
+        /// Gets or sets slewing microsteps of DEC
+        /// </summary>
         public int ScopeDECSlewMS
         {
             get
@@ -604,7 +670,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopeDECSlewMS");
             }
         }
-
+        /// <summary>
+        /// Gets or sets guiding microsteps of DEC
+        /// </summary>
         public int ScopeDECGuideMS
         {
             get
@@ -618,7 +686,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopeDECGuideMS");
             }
         }
-
+        /// <summary>
+        /// Gets or sets scope current longitude
+        /// </summary>
         public string ScopeLongitude
         {
             get
@@ -632,7 +702,9 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopeLongitude");
             }
         }
-
+        /// <summary>
+        /// Gets or sets scope current latitude
+        /// </summary>
         public string ScopeLatitude
         {
             get
@@ -683,6 +755,14 @@ namespace OATSimulation.ViewModels
 
             EffectsManager = new DefaultEffectsManager();
 
+            // Screen space ambient occlusion
+            SSAOSamplingRadius = 0.4f;
+            SSAOIntensity = 1.0f;
+
+            // Anti aliasing
+            MSAA = MSAALevel.Two; 
+            FXAA = FXAALevel.Medium;
+
             Title = "OAT Simulation v0.1";
 
             // RA Transform Setup
@@ -726,27 +806,28 @@ namespace OATSimulation.ViewModels
             };
 
             // ----------------------------------------------
-            DarkAmbientLightColor = System.Windows.Media.Color.FromRgb(12, 12, 12);
-            LightAmbientLightColor = System.Windows.Media.Color.FromRgb(24, 24, 24);
+            DarkAmbientLightColor = System.Windows.Media.Color.FromRgb(20, 20, 20);
+            LightAmbientLightColor = System.Windows.Media.Color.FromRgb(30, 30, 30);
 
             // Material Setup
             // double plaOcclusionFactor = 0.3;
             double plaRoughnessFactor = 0.53;
             double plaMetallicFactor = 0.0;
-            double plaReflectanceFactor = 0.0;
+            double plaReflectanceFactor = 0.38;
 
-            EnvironmentMap = TextureModel.Create("Assets\\Cubemap_Grandcanyon.dds");
             var normalMap = TextureModel.Create("Assets\\TextureNoise1_dot3.dds");
-
+            var milkyWayMap = TextureModel.Create("Assets\\Milky_Way.jpg");
+            var milkyWayEmissiveMap = TextureModel.Create("Assets\\Milky_Way_Emissive_3k.jpg");
 
             FloorMaterial = new PBRMaterial()
             {
-                AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
-                RoughnessFactor = 0.8,
-                MetallicFactor = 0.2,
+                AlbedoColor = new Color4(0.0f, 0.0f, 0.0f, 1.0f),
+                RoughnessFactor = 0.78,
+                MetallicFactor = 0.0,
+                ReflectanceFactor = 1.0,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
-                //AmbientOcclusionFactor = 0.5
+                AmbientOcclusionFactor = 0.5
             };
 
             PrintedMaterial = new PBRMaterial()
@@ -761,7 +842,6 @@ namespace OATSimulation.ViewModels
                 EnableTessellation = true,
                 NormalMap = normalMap,
                 RenderShadowMap = true,
-                //AmbientOcclusionFactor = plaOcclusionFactor
             };
 
             PrintedRAMaterial = new PBRMaterial()
@@ -794,7 +874,7 @@ namespace OATSimulation.ViewModels
 
             PrintedGuiderMaterial = new PBRMaterial()
             {
-                Name = "PrintedGuderMaterial",
+                Name = "PrintedGuiderMaterial",
                 AlbedoColor = _albedoColorGuider.ToColor4(),
                 ClearCoatStrength = 0.0,
                 RoughnessFactor = plaRoughnessFactor,
@@ -809,27 +889,24 @@ namespace OATSimulation.ViewModels
             AluminiumMaterial = new PBRMaterial()
             {
                 Name = "AluminiumMaterial",
-                AlbedoColor = new Color4(0.6f, 0.6f, 0.6f, 1.0f),
-                RoughnessFactor = 0.0,
-                MetallicFactor = 0.0,
+                AlbedoColor = new Color4(0.4f, 0.4f, 0.4f, 1.0f),
+                RoughnessFactor = 0.43,
+                MetallicFactor = 0.8,
                 ReflectanceFactor = 0.8,
-                RenderShadowMap = false,
+                RenderShadowMap = true,
                 EnableAutoTangent = true,
-                //AmbientOcclusionFactor = 0.8,
-                RenderEnvironmentMap = RenderEnvironmentMap,
             };
 
             MetalMaterial = new PBRMaterial()
             {
                 Name = "MetalMaterial",
                 AlbedoColor = new SharpDX.Color4(0.6f, 0.6f, 0.6f, 1.0f),
-                RoughnessFactor = 0.3,
+                RoughnessFactor = 0.7,
                 ClearCoatStrength = 0.01,
-                ReflectanceFactor = 0.8,
+                ReflectanceFactor = 0.3,
                 MetallicFactor = 1.0,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
-                RenderEnvironmentMap = RenderEnvironmentMap,
             };
 
             BlackMetalMaterial = new PBRMaterial()
@@ -842,27 +919,25 @@ namespace OATSimulation.ViewModels
                 MetallicFactor = 0.0,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
-                AmbientOcclusionFactor = 0.2,
-                RenderEnvironmentMap = RenderEnvironmentMap,
+                AmbientOcclusionFactor = 0.2
             };
 
             GlassMaterial = new PBRMaterial()
             {
                 Name = "GlassMaterial",
-                AlbedoColor = new Color4(0.0f, 0.0f, 0.0f, 0.8f),
+                AlbedoColor = new Color4(1.0f, 1.0f, 0.0f, 0.98f),
                 RoughnessFactor = 0.0,
                 ClearCoatStrength = 1.0,
                 ReflectanceFactor = 1.0,
                 MetallicFactor = 1.0,
                 RenderShadowMap = true,
-                EnableAutoTangent = true,
-                RenderEnvironmentMap = false,
+                EnableAutoTangent = true
             };
 
             MarkersMaterial = new PBRMaterial()
             {
                 Name = "MarkersMaterial",
-                AlbedoColor = new Color4(0.2f, 0.2f, 0.2f, 1.0f),
+                AlbedoColor = new Color4(0.7f, 0.7f, 0.7f, 1.0f),
                 ClearCoatStrength = 0.0,
                 RoughnessFactor = 0.56,
                 MetallicFactor = 0.0,
@@ -870,8 +945,19 @@ namespace OATSimulation.ViewModels
                 RenderShadowMap = true,
                 EnableAutoTangent = true,
                 AmbientOcclusionFactor = 0.2,
-                RenderEnvironmentMap = RenderEnvironmentMap,
                 EnableTessellation = false
+            };
+
+            DomeMaterial = new PBRMaterial()
+            {
+                AlbedoMap = milkyWayMap,
+                RenderAlbedoMap = true,
+                EmissiveMap = milkyWayEmissiveMap,
+                RenderEmissiveMap = true,
+                EmissiveColor = new Color4(0.3f, 0.3f, 0.3f, 1.0f),
+                RoughnessFactor = 0.0,
+                RenderShadowMap = false,
+                EnableAutoTangent = true,
             };
 
             // ----------------------------------------------
@@ -900,9 +986,7 @@ namespace OATSimulation.ViewModels
 
             //Light1DirectionTransform = new Vector3D(0, -1, 0);//CreateAnimatedTransform2(Light1Direction, new Vector3D(0, -1, 0), 24);
 
-            MSAA = MSAALevel.Two;
-            FXAA = FXAALevel.Medium;
-
+            /*
             // ----------------------------------------------
             // floor
             var b2 = new MeshBuilder(true, true, true);
@@ -917,6 +1001,9 @@ namespace OATSimulation.ViewModels
                 SpecularShininess = 100f,
                 RenderShadowMap = true
             };
+            */
+
+            LoadUserSettings();
             LoadOATModels();
             
             // Create TCP Client
@@ -943,8 +1030,19 @@ namespace OATSimulation.ViewModels
             // e.LoadedVersion vs. e.CurrentVersion;
         }
 
+        private void LoadUserSettings()
+        {
+            KeepWindowOnTop = AppSettings.Instance.KeepWindowOnTop;
+
+            AlbedoColorBase = AppSettings.Instance.AlbedoColorBase;
+            AlbedoColorRA = AppSettings.Instance.AlbedoColorRA;
+            AlbedoColorDEC = AppSettings.Instance.AlbedoColorDEC;
+            AlbedoColorGuider = AppSettings.Instance.AlbedoColorGuider;
+        }
+
         public void OnClosing()
         {
+            AppSettings.Instance.KeepWindowOnTop = _keepWindowOnTop;
             AppSettings.Instance.LightPreset = _lightPreset;
             AppSettings.Instance.MountAngle = _mountAngle;
 
@@ -960,16 +1058,13 @@ namespace OATSimulation.ViewModels
         {
             SelectMountAngle = AppSettings.Instance.MountAngle;
             LightPresetNumber = AppSettings.Instance.LightPreset;
-
-            AlbedoColorBase = AppSettings.Instance.AlbedoColorBase;
-            AlbedoColorRA = AppSettings.Instance.AlbedoColorRA;
-            AlbedoColorDEC = AppSettings.Instance.AlbedoColorDEC;
-            AlbedoColorGuider = AppSettings.Instance.AlbedoColorGuider;
-
+            
+            SubTitle = "Press H for help";
         }
 
         private void LoadOATModels()
         {
+            SubTitle = "Loading model...";
             IsLoading = true;
             _ = Task.Run(() =>
               {
@@ -982,15 +1077,17 @@ namespace OATSimulation.ViewModels
                   if (result.IsCompleted)
                   {
                       scene = result.Result;
-                      // Animations.Clear();
-                      GroupModel.Clear();
-
                       if (scene != null)
                       {
                           if (scene.Root != null)
                           {
                               foreach (var node in scene.Root.Traverse())
                               {
+                                  if(node is MeshNode mesh)
+                                  {
+                                      mesh.CullMode = SharpDX.Direct3D11.CullMode.Back;
+                                  }
+
                                   if (node is GroupNode g)
                                   {
                                       if (node.Name == "ra_grp")
@@ -1029,6 +1126,54 @@ namespace OATSimulation.ViewModels
                                       }
 
                                   }
+
+                                  if (node.Name == "ra_marker_geo")
+                                  {
+                                      if (node is MaterialGeometryNode matNode)
+                                      {
+                                          matNode.Material = MarkersMaterial;
+                                      }
+                                  }
+
+                                  if (node.Name == "guider_lens")
+                                  {
+
+                                      if (node is MaterialGeometryNode matNode)
+                                      {
+                                          matNode.Material = GlassMaterial;
+                                      }
+                                  }
+
+                                  if (node.Name == "Floor")
+                                  {
+
+                                      if (node is MaterialGeometryNode matNode)
+                                      {
+                                          matNode.Material = FloorMaterial;
+                                          
+                                      }
+                                  }
+
+                                  if (node.Name == "Dome")
+                                  {
+                                      
+                                      if (node is MaterialGeometryNode matNode)
+                                      {
+                                          /*
+                                          var white = new PhongMaterial()
+                                          {
+                                              DiffuseColor = SharpDX.Color.White,
+                                              AmbientColor = SharpDX.Color.Black,
+                                              ReflectiveColor = SharpDX.Color.Black,
+                                              EmissiveColor = SharpDX.Color.Black,
+                                              SpecularColor = SharpDX.Color.Black,
+                                              DiffuseMap = TextureModel.Create("Assets\\Milky_Way.jpg"),
+                                          };
+                                          */
+                                          matNode.Material = DomeMaterial;
+                                      }
+                                  }
+
 
                                   if (node is MaterialGeometryNode m)
                                   {
@@ -1080,11 +1225,11 @@ namespace OATSimulation.ViewModels
                                       }
                                       else if (m.Material is PBRMaterialCore pbr)
                                       {
-                                          pbr.RenderEnvironmentMap = RenderEnvironmentMap;
+                                          //pbr.RenderEnvironmentMap = RenderEnvironmentMap;
                                       }
                                       else if (m.Material is PhongMaterialCore phong)
                                       {
-                                          phong.RenderEnvironmentMap = RenderEnvironmentMap;
+                                          //phong.RenderEnvironmentMap = RenderEnvironmentMap;
                                       }
                                   }
                               }
@@ -1096,10 +1241,12 @@ namespace OATSimulation.ViewModels
                           {
                               n.Tag = new AttachedNodeViewModel(n);
                           }
+
+                          
                       }
                       isLoading = false;
+                      SubTitle = "Loading done...";
                       SceneLoaded();
-                      
 
                   }
                   else if (result.IsFaulted && result.Exception != null)
@@ -1147,7 +1294,10 @@ namespace OATSimulation.ViewModels
                 RotateDEC();
             }
         }
-
+        /// <summary>
+        /// Perform the rotation of the RA model
+        /// Trigger an red color if passed a sertain angle
+        /// </summary>
         public void RotateRA()
         {
             if (RAGroup != null)
@@ -1155,8 +1305,20 @@ namespace OATSimulation.ViewModels
                 _raAR.Angle = RAAngle;
                 RAGroup.ModelMatrix = _raTransformGrp.ToMatrix();
             }
-        }
 
+            if (RAAngle > 102.0 || RAAngle < -102.0)
+            {
+                PrintedRAMaterial.EmissiveColor = _errorEmissiveColor;
+            }
+            else
+            {
+                PrintedRAMaterial.EmissiveColor = _normalEmissiveColor;
+            }
+        }
+        /// <summary>
+        /// Perform the rotation of the DEC model
+        /// Trigger an red color if passed a sertain angle
+        /// </summary>
         public void RotateDEC()
         {
             if (DECGroup != null)
@@ -1215,8 +1377,10 @@ namespace OATSimulation.ViewModels
             lightTrafo.Children.Add(rotateTransform);
             return lightTrafo;
         }
-
-        public void StatusUpdate()
+        /// <summary>
+		/// Calculate the RA/DEC angles based on stepper positions
+		/// </summary>
+        public void CalculatePositions()
         {
             if (ScopeRATrackMS != 0 && ScopeRASlewMS != 0)
             {
@@ -1237,7 +1401,9 @@ namespace OATSimulation.ViewModels
             }
 
         }
-
+        /// <summary>
+		/// Gets or sets lighting presets of the scene
+		/// </summary>
         public void ToggleScenePresets(int presetNr)
         {
             switch(presetNr)
@@ -1254,6 +1420,9 @@ namespace OATSimulation.ViewModels
             }
         }
 
+        /// <summary>
+		/// Gets or sets the mount angle, 20,30,40 or 50
+		/// </summary>
         public void SetMountAngle(int degrees)
         {
             // Clear previous transforms
@@ -1314,6 +1483,8 @@ namespace OATSimulation.ViewModels
             _raOffsetGrp.ModelMatrix = _raOffsetGroupTransform.ToMatrix();
         }
 
+
+        /*
         public class ObservableDictonary<TKey, TValue> : Dictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
         {
             public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -1382,6 +1553,6 @@ namespace OATSimulation.ViewModels
                 return -1;
             }
         }
-        
+        */
     }
 }

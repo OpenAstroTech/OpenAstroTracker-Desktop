@@ -23,7 +23,7 @@ namespace OATSimulation
             DataContext = _viewModel;
 
             // Font
-            this.FontFamily = new FontFamily("Courier New");
+            FontFamily = new FontFamily("Courier New");
 
             view.AddHandler(Element3D.MouseDown3DEvent, new RoutedEventHandler((s, e) =>
             {
@@ -38,16 +38,21 @@ namespace OATSimulation
                     vm.Selected = !vm.Selected;
                 }
             }));
+
+            // Restore window position
+            if (AppSettings.Instance.WindowPos.X != -1)
+            {
+                Left = AppSettings.Instance.WindowPos.X;
+                Top = AppSettings.Instance.WindowPos.Y;
+            }
+
+            
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
-
             _viewModel.OnClosing();
-
-            AppSettings.Instance.WindowPos = new Point((int)Math.Max(0, this.Left), (int)Math.Max(0, this.Top));
-            AppSettings.Instance.Save();
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -60,6 +65,17 @@ namespace OATSimulation
                     break;
                 case Key.D2:
                     _viewModel.LightPresetNumber = 2;
+                    e.Handled = true;
+                    break;
+                case Key.H:
+                    if(_viewModel.ShowHelp == Visibility.Visible)
+                    {
+                        _viewModel.ShowHelp = Visibility.Hidden;
+                    }
+                    else
+                    {
+                        _viewModel.ShowHelp = Visibility.Visible;
+                    }
                     e.Handled = true;
                     break;
             }
@@ -83,6 +99,12 @@ namespace OATSimulation
             }
 
             base.OnKeyUp(e);
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            AppSettings.Instance.WindowPos = new Point((int)Math.Max(0, Left), (int)Math.Max(0, Top));
+            AppSettings.Instance.Save();
         }
     }
 }
