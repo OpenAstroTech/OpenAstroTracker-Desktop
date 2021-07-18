@@ -2,10 +2,11 @@
 OpenAstroTracker ASCOM Driver 
 =============================
 
-Version 6.6.3.0, published 14-Jun-2021
+Version 6.6.5.0, published 06-Jul-2021
 ----------------------------------------
 
 * History
+	* 6.6.5.0	2021-07-06		:		CHANGE : Added ability to connect to OAT and set steps and speed.
 	* 6.6.3.0	2021-06-13		:		CHANGE : Changed passthrough command to support double-# terminated reply.
 	* 6.6.2.0	2021-06-12		:		CHANGE : Changed passthrough command to support OATControl.
 	* 6.6.1.0	2021-05-03		:		CHANGE : Added support for OAT focuser.

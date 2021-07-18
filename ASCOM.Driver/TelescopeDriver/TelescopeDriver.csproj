@@ -138,6 +138,12 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\sethome.png" />
+    <None Include="Resources\home.png" />
+    <None Include="Resources\arrow.png" />
+    <None Include="Resources\arrow-270.png" />
+    <None Include="Resources\arrow-180.png" />
+    <None Include="Resources\arrow-090.png" />
     <None Include="Resources\OATAscom.png" />
     <None Include="Resources\favicon.png" />
     <None Include="app.config" />

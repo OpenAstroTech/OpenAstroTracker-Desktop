@@ -115,12 +115,11 @@ namespace ASCOM.OpenAstroTracker
 				MessageBox.Show("Already connected, just press OK");
 			}
 
-			using (var f = new SetupDialogForm(Profile))
+			using (var f = new SetupDialogForm(Profile, null))
 			{
 				if (f.ShowDialog() == DialogResult.OK)
 				{
-					SharedResources.WriteProfile(f
-						.GetProfileData()); // Persist device configuration values to the ASCOM Profile store
+					SharedResources.WriteProfile(f.GetProfileData()); // Persist device configuration values to the ASCOM Profile store
 				}
 			}
 		}
