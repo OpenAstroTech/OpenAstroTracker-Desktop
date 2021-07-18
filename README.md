@@ -16,6 +16,12 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**OATControl V1.0.2.4 - Updates**
+- Added support for Hall sensor based RA auto homing.
+
+**ASCOM.Driver V6.6.5.0 - Updates**
+- Added ability to connect to OAT from the driver properties and do rudimentary operations (slew, home, set home, adjust RA steps, DEC  steps and speed factor).
+
 **OATControl V1.0.2.3 - Updates**
 - Added support for focuser reset on Settings page.
 

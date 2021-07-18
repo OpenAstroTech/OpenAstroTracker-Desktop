@@ -220,5 +220,12 @@ namespace OATControl.ViewModels
 			get { return Convert.ToInt32(this["DECHomeOffset"]); }
 			set { this["DECHomeOffset"] = value.ToString(); }
 		}
+
+		[DefaultValueAttribute("0")]
+		public long RAHomeOffset
+		{
+			get { return Convert.ToInt32(this["RAHomeOffset"]); }
+			set { this["RAHomeOffset"] = value.ToString(); }
+		}
 	}
 }

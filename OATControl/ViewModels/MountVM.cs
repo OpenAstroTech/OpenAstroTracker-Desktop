@@ -95,6 +95,7 @@ namespace OATControl.ViewModels
 		bool _scopeHasAZ = false;
 		bool _scopeHasALT = false;
 		bool _scopeHasFOC = false;
+		bool _scopeHasHSAH = false;
 		string _scopeBoard = string.Empty;
 		string _scopeDisplay = string.Empty;
 		string _scopeFeatures = string.Empty;
@@ -136,7 +137,10 @@ namespace OATControl.ViewModels
 		DelegateCommand _chooseTargetCommand;
 		DelegateCommand _setDecLowerLimitCommand;
 		DelegateCommand _setDECHomeOffsetFromPowerOn;
+		DelegateCommand _setRAHomeOffsetCommand;
 		DelegateCommand _gotoDECHomeFromPowerOn;
+		DelegateCommand _autoHomeRACommand;
+		DelegateCommand _gotoDECParkBeforePowerOff;
 		DelegateCommand _focuserResetCommand;
 
 		MiniController _miniController;
@@ -243,7 +247,10 @@ namespace OATControl.ViewModels
 			_chooseTargetCommand = new DelegateCommand((p) => OnShowTargetChooser(), () => MountConnected);
 			_setDecLowerLimitCommand = new DelegateCommand((p) => SetDecLowLimit(), () => MountConnected);
 			_setDECHomeOffsetFromPowerOn = new DelegateCommand((p) => OnSetDECHomeOffsetFromPowerOn(), () => MountConnected);
+			_setRAHomeOffsetCommand = new DelegateCommand((p) => OnSetRAHomeOffset(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAH);
 			_gotoDECHomeFromPowerOn = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10915));
+			_autoHomeRACommand = new DelegateCommand((p) => OnAutoHomeRA(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAH);
+			_gotoDECParkBeforePowerOff = new DelegateCommand((p) => OnGotoDECParkBeforePowerOff(), () => MountConnected && (FirmwareVersion > 10915));
 			_focuserResetCommand = new DelegateCommand((p) => OnResetFocuserPosition(), () => MountConnected && (FirmwareVersion > 10918));
 
 
@@ -270,11 +277,17 @@ namespace OATControl.ViewModels
 			// If needed upgrade the settings file between versions here.
 			// e.LoadedVersion vs. e.CurrentVersion;
 		}
-		
+
 		public void OnResetFocuserPosition()
 		{
 			// 50000 seems to be the standard focuser rest position
 			_oatMount.SendCommand($":FP50000#,n", (a) => { });
+		}
+
+
+		public void OnAutoHomeRA()
+		{
+			_oatMount.SendCommand($":MHR#,n", (a) => { });
 		}
 
 		public void OnGotoDECHomeFromPowerOn()
@@ -284,6 +297,50 @@ namespace OATControl.ViewModels
 				_oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { });
 			}
 		}
+
+		public void OnGotoDECParkBeforePowerOff()
+		{
+			if (AppSettings.Instance.DECHomeOffset != 0)
+			{
+				if (DECStepper != 0)
+				{
+					var win = Application.Current.Windows.OfType<MetroWindow>().FirstOrDefault();
+					var a = new MetroDialogSettings();
+					a.AffirmativeButtonText = "OK";
+					DialogManager.ShowModalMessageExternal(win, "DEC Position", $"DEC axis is not in Home position. Please slew Home before parking.", MessageDialogStyle.Affirmative, a);
+				}
+				else
+				{
+					_oatMount.SendCommand($":MXd{-AppSettings.Instance.DECHomeOffset}#,n", (a) => { });
+				}
+			}
+		}
+
+		public void OnSetRAHomeOffset()
+		{
+			var donePosQuery = new AutoResetEvent(false);
+			long raPos = -1, decPos = -1;
+			bool posValid = false;
+			_oatMount.SendCommand(":GX#,#", (a) =>
+			{
+				if (a.Success)
+				{
+					posValid = true;
+					var parts = a.Data.Split(',');
+					posValid = posValid && long.TryParse(parts[2], out raPos);
+					posValid = posValid && long.TryParse(parts[3], out decPos);
+					donePosQuery.Set();
+				}
+			});
+			donePosQuery.WaitOne();
+			if (posValid)
+			{
+				_oatMount.SendCommand($":XSHR{-raPos}#", (a) => { });
+				AppSettings.Instance.RAHomeOffset = raPos;
+				AppSettings.Instance.Save();
+			}
+		}
+
 
 		public void OnSetDECHomeOffsetFromPowerOn()
 		{
@@ -304,8 +361,18 @@ namespace OATControl.ViewModels
 			donePosQuery.WaitOne();
 			if (posValid)
 			{
-				AppSettings.Instance.DECHomeOffset = decPos;
-				AppSettings.Instance.Save();
+				if (decPos == 0)
+				{
+					var win = Application.Current.Windows.OfType<MetroWindow>().FirstOrDefault();
+					var a = new MetroDialogSettings();
+					a.AffirmativeButtonText = "OK";
+					DialogManager.ShowModalMessageExternal(win, "DEC Position", $"DEC axis is at zero position. Skipping.", MessageDialogStyle.Affirmative, a);
+				}
+				else
+				{
+					AppSettings.Instance.DECHomeOffset = decPos;
+					AppSettings.Instance.Save();
+				}
 			}
 		}
 
@@ -564,6 +631,7 @@ namespace OATControl.ViewModels
 								{
 									var parts = status.Split(",".ToCharArray());
 									string prevStatus = MountStatus;
+									_isGuiding = false;
 									MountStatus = parts[0];
 									if ((MountStatus == "SlewToTarget") && (prevStatus != "SlewToTarget"))
 									{
@@ -634,7 +702,11 @@ namespace OATControl.ViewModels
 										OnPropertyChanged("RASlewProgress");
 										OnPropertyChanged("DECSlewProgress");
 									}
-
+									else if (MountStatus == "Guiding")
+									{
+										_isGuiding = true;
+										_isTracking = true;
+									}
 
 									switch (parts[1][0])
 									{
@@ -652,7 +724,7 @@ namespace OATControl.ViewModels
 									// Don't use property here since it sends a command.
 									_isTracking = parts[1][2] == 'T';
 									OnPropertyChanged("IsTracking");
-
+									OnPropertyChanged("IsGuiding");
 
 									RAStepper = int.Parse(parts[2]);
 									DECStepper = int.Parse(parts[3]);
@@ -1108,14 +1180,13 @@ namespace OATControl.ViewModels
 				_targetChooser = null;
 			}
 
-			AppSettings.Instance.ShowDecLimits = ShowDECLimits;
-			AppSettings.Instance.LowerDecLimit = DECStepperLowerLimit;
-			AppSettings.Instance.UpperDecLimit = DECStepperUpperLimit;
-			AppSettings.Instance.KeepMiniControlOnTop = KeepMiniControlOnTop;
-			AppSettings.Instance.Save();
-
 			if (MountConnected)
 			{
+				AppSettings.Instance.ShowDecLimits = ShowDECLimits;
+				AppSettings.Instance.LowerDecLimit = DECStepperLowerLimit;
+				AppSettings.Instance.UpperDecLimit = DECStepperUpperLimit;
+				AppSettings.Instance.KeepMiniControlOnTop = KeepMiniControlOnTop;
+				AppSettings.Instance.Save();
 				MountConnected = false;
 			}
 
@@ -1209,6 +1280,7 @@ namespace OATControl.ViewModels
 				await doneEvent.WaitAsync();
 
 				ShowDECLimits = AppSettings.Instance.ShowDecLimits;
+				KeepMiniControlOnTop = AppSettings.Instance.KeepMiniControlOnTop;
 				DECStepperLowerLimit = AppSettings.Instance.LowerDecLimit;
 				DECStepperUpperLimit = AppSettings.Instance.UpperDecLimit;
 
@@ -1360,7 +1432,10 @@ namespace OATControl.ViewModels
 			_chooseTargetCommand.Requery();
 			_setDecLowerLimitCommand.Requery();
 			_setDECHomeOffsetFromPowerOn.Requery();
+			_setRAHomeOffsetCommand.Requery();
 			_gotoDECHomeFromPowerOn.Requery();
+			_autoHomeRACommand.Requery();
+			_gotoDECParkBeforePowerOff.Requery();
 			_focuserResetCommand.Requery();
 
 
@@ -1521,6 +1596,7 @@ namespace OATControl.ViewModels
 			ScopeHasALT = false;
 			ScopeHasAZ = false;
 			ScopeHasFOC = false;
+			ScopeHasHSAH = false;
 			ScopeFeatures = "";
 			ScopeDisplay = "None";
 
@@ -1615,6 +1691,11 @@ namespace OATControl.ViewModels
 				{
 					ScopeHasFOC = true;
 					ScopeFeatures += "Focuser, ";
+				}
+				else if (hwParts[i] == "HSAH")
+				{
+					ScopeHasHSAH = true;
+					ScopeFeatures += "RA Auto Home, ";
 				}
 			}
 			if (string.IsNullOrEmpty(ScopeFeatures))
@@ -1814,8 +1895,11 @@ namespace OATControl.ViewModels
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 		public ICommand ChooseTargetCommand { get { return _chooseTargetCommand; } }
 		public ICommand SetDecLowerLimitCommand { get { return _setDecLowerLimitCommand; } }
-		public ICommand SetDECHomeOffsetFromPowerOn { get { return _setDECHomeOffsetFromPowerOn; } }
-		public ICommand GotoDECHomeFromPowerOn { get { return _gotoDECHomeFromPowerOn; } }
+		public ICommand SetDECHomeOffsetFromPowerOnCommand { get { return _setDECHomeOffsetFromPowerOn; } }
+		public ICommand SetRAHomeOffsetCommand { get { return _setRAHomeOffsetCommand; } }
+		public ICommand GotoDECHomeFromPowerOnCommand { get { return _gotoDECHomeFromPowerOn; } }
+		public ICommand AutoHomeRACommand { get { return _autoHomeRACommand; } }
+		public ICommand GotoDECParkBeforePowerOffCommand { get { return _gotoDECParkBeforePowerOff; } }
 		public ICommand FocuserResetCommand { get { return _focuserResetCommand; } }
 
 		public double TargetRATotalHours
@@ -2068,7 +2152,17 @@ namespace OATControl.ViewModels
 
 		public float RAStepperHours
 		{
-			get { return _raStepper / RAStepsPerDegree / 15.0f; }
+			get
+			{
+				bool valid = long.TryParse(ScopeRATrackMS, out long raTrackMs);
+				valid &= long.TryParse(ScopeRASlewMS, out long raSlewMs);
+				if (valid)
+				{
+					float trkStepsInRaMS = 1.0f * _trkStepper / (1.0f * raTrackMs / raSlewMs);
+					return (trkStepsInRaMS + _raStepper) / RAStepsPerDegree / 15.0f;
+				}
+				return _raStepper / RAStepsPerDegree / 15.0f;
+			}
 		}
 
 		/// <summary>
@@ -2416,6 +2510,12 @@ namespace OATControl.ViewModels
 		{
 			get { return _scopeHasFOC; }
 			set { SetPropertyValue(ref _scopeHasFOC, value); }
+		}
+
+		public bool ScopeHasHSAH
+		{
+			get { return _scopeHasHSAH; }
+			set { SetPropertyValue(ref _scopeHasHSAH, value); }
 		}
 
 		public string ScopeLatitude
