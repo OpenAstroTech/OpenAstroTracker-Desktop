@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace OATCommunications
 {
+    /// <summary>
+    /// Server class to handle communication with OAT Simulation client
+    /// </summary>
     public class SimulationServer
     {
         // CultureInfo _oatCulture = new CultureInfo("en-US");

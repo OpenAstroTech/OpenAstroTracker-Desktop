@@ -23,12 +23,10 @@ namespace OATSimulation.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
-        CultureInfo _oatCulture = new CultureInfo("en-US");
-
         private Communication.TCPSimClient _tcpClient;
         private bool _isConnected = false;
-        private string _isConnectedString = "Connect";
-
+        
+        // Keep
         // public ObservableDictonary<string, string> OATData { get; set; }
 
         private SynchronizationContext context = SynchronizationContext.Current;
@@ -727,7 +725,7 @@ namespace OATSimulation.ViewModels
 
         public MainViewModel(MainWindow window)
         {
-            /*
+            /* Keeping this for manybe converting data to Dict
             OATData = new ObservableDictonary<string, string>
             {
                 { "RAStepper", "0" },
@@ -962,8 +960,6 @@ namespace OATSimulation.ViewModels
 
             // ----------------------------------------------
             // Light Preset 01
-            //AmbientLightColor = System.Windows.Media.Color.FromRgb(28, 28, 28);
-
             AnimatedLightColor = System.Windows.Media.Color.FromRgb(10, 10, 78);// Colors.DarkBlue;
             AnimatedLightDirection = new Vector3D(0, -10, 0);
             AnimatedLightTransform = CreateAnimatedTransform1(-AnimatedLightDirection, new Vector3D(1, 0, 0), 10);
@@ -983,25 +979,6 @@ namespace OATSimulation.ViewModels
             Light1Color = Colors.Black;
             Light1Direction = new Vector3D(0, -1, 0);
             Light1Transform = new TranslateTransform3D(new Vector3D(0, 10, 0));
-
-            //Light1DirectionTransform = new Vector3D(0, -1, 0);//CreateAnimatedTransform2(Light1Direction, new Vector3D(0, -1, 0), 24);
-
-            /*
-            // ----------------------------------------------
-            // floor
-            var b2 = new MeshBuilder(true, true, true);
-            b2.AddBox(new Vector3(0.0f, -0.5f, 0.0f), 15, 1, 15, BoxFaces.All);
-            Floor = b2.ToMeshGeometry3D();
-            FloorTransform = new TranslateTransform3D(0, 0, 0);
-            var mat = new PhongMaterial
-            {
-                AmbientColor = Colors.Gray.ToColor4(),
-                DiffuseColor = new Color4(0.75f, 0.75f, 0.75f, 1.0f),
-                SpecularColor = Colors.White.ToColor4(),
-                SpecularShininess = 100f,
-                RenderShadowMap = true
-            };
-            */
 
             LoadUserSettings();
             LoadOATModels();
@@ -1159,17 +1136,6 @@ namespace OATSimulation.ViewModels
                                       
                                       if (node is MaterialGeometryNode matNode)
                                       {
-                                          /*
-                                          var white = new PhongMaterial()
-                                          {
-                                              DiffuseColor = SharpDX.Color.White,
-                                              AmbientColor = SharpDX.Color.Black,
-                                              ReflectiveColor = SharpDX.Color.Black,
-                                              EmissiveColor = SharpDX.Color.Black,
-                                              SpecularColor = SharpDX.Color.Black,
-                                              DiffuseMap = TextureModel.Create("Assets\\Milky_Way.jpg"),
-                                          };
-                                          */
                                           matNode.Material = DomeMaterial;
                                       }
                                   }
@@ -1179,10 +1145,6 @@ namespace OATSimulation.ViewModels
                                   {
 
                                       m.IsThrowingShadow = true;
-                                      //m.Geometry.SetAsTransient();
-
-                                      string name = m.Material.Name;
-
                                       if (m.Material.Name == "printed_mat")
                                       {
                                           m.Material = PrintedMaterial;
@@ -1485,6 +1447,7 @@ namespace OATSimulation.ViewModels
 
 
         /*
+        // Convert data to observable dict in the future
         public class ObservableDictonary<TKey, TValue> : Dictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
         {
             public event NotifyCollectionChangedEventHandler CollectionChanged;
