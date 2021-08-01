@@ -25,7 +25,8 @@ namespace OATSimulation.ViewModels
     {
         private Communication.TCPSimClient _tcpClient;
         private bool _isConnected = false;
-        
+        private string _isConnectedString = "Connect";
+
         // Keep
         // public ObservableDictonary<string, string> OATData { get; set; }
 

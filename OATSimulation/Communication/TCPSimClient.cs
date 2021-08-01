@@ -9,11 +9,8 @@ namespace OATSimulation.Communication
     public class TCPSimClient
     {
         private Socket _client = null;
-        // int port = 4035;
         Task taskOfReceiveData;
-
         MainViewModel _mainViewModel;
-
         private bool _isConnected = false;
 
         public bool IsConnected
@@ -75,6 +72,7 @@ namespace OATSimulation.Communication
                 Send("close\n");
                 _mainViewModel.IsConnected = false;
                 _mainViewModel.IsConnectedString = "Connect";
+                _mainViewModel.Status = "Disconnected";
             }
         }
 
@@ -109,6 +107,8 @@ namespace OATSimulation.Communication
         private void ProcessCommand(string command)
         {
             var cmdSplit = command.Split('\n');
+            int intResult = 0;
+            float floatResult = 0.0f;
 
             foreach (var cmd in cmdSplit)
             {
@@ -123,24 +123,43 @@ namespace OATSimulation.Communication
                         break;
 
                     case "RAStepper":
-                        _mainViewModel.RAStepper = int.Parse(items[1]);
+                        bool success = int.TryParse(items[1], out intResult);
+                        if (success)
+                        {
+                            _mainViewModel.RAStepper = intResult;
+                        }
                         break;
 
                     case "DECStepper":
-                        _mainViewModel.DECStepper = int.Parse(items[1]);
+                        success = int.TryParse(items[1], out intResult);
+                        if (success)
+                        {
+                            _mainViewModel.DECStepper = intResult;
+                        }
                         break;
 
                     case "TrkStepper":
-                        _mainViewModel.TRKStepper = int.Parse(items[1]);
-                        //_mainViewModel.OATData["TrkStepper"] = items[1];
+                        success = int.TryParse(items[1], out intResult);
+                        if (success)
+                        {
+                            _mainViewModel.TRKStepper = intResult;
+                        }
                         break;
 
                     case "RAStepsPerDegree":
-                        _mainViewModel.RAStepsPerDegree = float.Parse(items[1]);
+                        success = float.TryParse(items[1], out floatResult);
+                        if (success)
+                        {
+                            _mainViewModel.RAStepsPerDegree = floatResult;
+                        }
                         break;
 
                     case "DECStepsPerDegree":
-                        _mainViewModel.DECStepsPerDegree = float.Parse(items[1]);
+                        success = float.TryParse(items[1], out floatResult);
+                        if (success)
+                        {
+                            _mainViewModel.DECStepsPerDegree = floatResult;
+                        }
                         break;
 
                     case "Version":
@@ -170,16 +189,32 @@ namespace OATSimulation.Communication
                         break;
 
                     case "ScopeRASlewMS":
-                        _mainViewModel.ScopeRASlewMS = int.Parse(items[1]);
+                        success = int.TryParse(items[1], out intResult);
+                        if (success)
+                        {
+                            _mainViewModel.ScopeRASlewMS = intResult;
+                        }
                         break;
                     case "ScopeRATrackMS":
-                        _mainViewModel.ScopeRATrackMS = int.Parse(items[1]);
+                        success = int.TryParse(items[1], out intResult);
+                        if (success)
+                        {
+                            _mainViewModel.ScopeRATrackMS = intResult;
+                        }
                         break;
                     case "ScopeDECSlewMS":
-                        _mainViewModel.ScopeDECSlewMS = int.Parse(items[1]);
+                        success = int.TryParse(items[1], out intResult);
+                        if (success)
+                        {
+                            _mainViewModel.ScopeDECSlewMS = intResult;
+                        }
                         break;
                     case "ScopeDECGuideMS":
-                        _mainViewModel.ScopeDECGuideMS = int.Parse(items[1]);
+                        success = int.TryParse(items[1], out intResult);
+                        if (success)
+                        {
+                            _mainViewModel.ScopeDECGuideMS = intResult;
+                        }
                         break;
                     case "ScopeLongitude":
                         _mainViewModel.ScopeLongitude = items[1];

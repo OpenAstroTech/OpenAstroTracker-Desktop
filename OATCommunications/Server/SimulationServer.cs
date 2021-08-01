@@ -7,17 +7,24 @@ using System.Threading.Tasks;
 
 namespace OATCommunications
 {
+    public delegate void Notify();  // delegate
     /// <summary>
     /// Server class to handle communication with OAT Simulation client
     /// </summary>
     public class SimulationServer
     {
-        // CultureInfo _oatCulture = new CultureInfo("en-US");
-
-        // int port = 4035;
         Socket serverSocket = null;
         public Socket tempClient = null;
         Task taskOfAccept;
+
+        public event Notify ClientConnected;
+        public bool _isClientConnected = false;
+
+        public bool IsClientConnected
+        {
+            get { return _isClientConnected; }
+            set { _isClientConnected = value; }
+        }
 
         public void Start(int port)
         {
@@ -60,10 +67,14 @@ namespace OATCommunications
                     if (dataReceive.EndsWith("\n") && dataReceive.StartsWith("connect:"))
                     {
                         Send("ok:1\n");
+                        IsClientConnected = true;
+                        ClientConnected?.Invoke();
+
                     }
                     else if (dataReceive == "close\n")
                     {
                         tempClient.Close();
+                        IsClientConnected = false;
                         return;
                     }
                     dataReceive = string.Empty;
@@ -73,6 +84,7 @@ namespace OATCommunications
             }
             catch(SocketException e)
             {
+                IsClientConnected = false;
                 Console.WriteLine("Client disconnected...");
             }
         }
@@ -94,11 +106,12 @@ namespace OATCommunications
             }
             catch(SocketException e)
             {
-
+                
             }
             finally
             {
                 serverSocket.Close();
+                IsClientConnected = false;
             }
         }
 

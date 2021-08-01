@@ -266,6 +266,7 @@ namespace OATControl.ViewModels
 
 			// Start Simulation Server
 			_oatSimComm.Start(4035);
+			_oatSimComm.ClientConnected += OnSimulationClientConnect;
 		}
 
 		public void OnUpgradeSettings(object sender, UpgradeEventArgs e)
@@ -407,7 +408,6 @@ namespace OATControl.ViewModels
 				_targetChooser.Show();
 			}
 		}
-
 
 		private void OnShowMiniController()
 		{
@@ -1254,6 +1254,7 @@ namespace OATControl.ViewModels
 				{
 					await UpdateInitialScopeValues();
 					await RecalculatePointsPositions(true);
+					OnSimulationClientConnect();
 				}
 			}
 		}
@@ -2833,30 +2834,35 @@ namespace OATControl.ViewModels
 				}
 			}
 		}
-
-		private void UpdateSimulationClient()
-        {
-			if (_oatSimComm != null)
+		private void OnSimulationClientConnect()
+		{
+			if (_oatSimComm != null && _oatSimComm.IsClientConnected == true)
 			{
-				_oatSimComm.Send($"CurrentRAString|{CurrentRAHour},{CurrentRAMinute},{CurrentRASecond}");
-				_oatSimComm.Send($"CurrentDECString|{CurrentDECDegree},{CurrentDECMinute},{CurrentDECSecond}");
-				_oatSimComm.Send($"RAStepsPerDegree|{RAStepsPerDegree}");
-				_oatSimComm.Send($"DECStepsPerDegree|{DECStepsPerDegree}");
-				_oatSimComm.Send($"RAStepper|{RAStepper}");
-				_oatSimComm.Send($"DECStepper|{DECStepper}");
-				_oatSimComm.Send($"TrkStepper|{TrkStepper}");
 				_oatSimComm.Send($"Version|{Version}");
 				_oatSimComm.Send($"FirmwareVersion|{ScopeVersion}");
-				_oatSimComm.Send($"ScopeSiderealTime|{ScopeSiderealTime}");
-				_oatSimComm.Send($"ScopePolarisHourAngle|{ScopePolarisHourAngle}");
 				_oatSimComm.Send($"ScopeRASlewMS|{ScopeRASlewMS}");
 				_oatSimComm.Send($"ScopeRATrackMS|{ScopeRATrackMS}");
 				_oatSimComm.Send($"ScopeDECSlewMS|{ScopeDECSlewMS}");
 				_oatSimComm.Send($"ScopeDECGuideMS|{ScopeDECGuideMS}");
 				_oatSimComm.Send($"ScopeLongitude|{ScopeLongitude}");
 				_oatSimComm.Send($"ScopeLatitude|{ScopeLatitude}");
+				_oatSimComm.Send($"RAStepsPerDegree|{RAStepsPerDegree}");
+				_oatSimComm.Send($"DECStepsPerDegree|{DECStepsPerDegree}");
+			}
+		}
 
-
+		private void UpdateSimulationClient()
+        {
+			if (_oatSimComm != null && _oatSimComm.IsClientConnected == true)
+			{
+				_oatSimComm.Send($"CurrentRAString|{CurrentRAHour},{CurrentRAMinute},{CurrentRASecond}");
+				_oatSimComm.Send($"CurrentDECString|{CurrentDECDegree},{CurrentDECMinute},{CurrentDECSecond}");
+				_oatSimComm.Send($"RAStepper|{RAStepper}");
+				_oatSimComm.Send($"DECStepper|{DECStepper}");
+				_oatSimComm.Send($"TrkStepper|{TrkStepper}");
+				_oatSimComm.Send($"ScopeSiderealTime|{ScopeSiderealTime}");
+				_oatSimComm.Send($"ScopePolarisHourAngle|{ScopePolarisHourAngle}");
+				
 			}
 		}
 	}
