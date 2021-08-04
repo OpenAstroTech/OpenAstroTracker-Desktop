@@ -222,6 +222,9 @@ namespace OATSimulation.Communication
                     case "ScopeLatitude":
                         _mainViewModel.ScopeLatitude = items[1];
                         break;
+                    case "ScopeTime":
+                        _mainViewModel.ScopeTime = items[1];
+                        break;
                     default:
                         break;
                 }

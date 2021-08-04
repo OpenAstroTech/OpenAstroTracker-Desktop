@@ -267,6 +267,7 @@ namespace OATControl.ViewModels
 			// Start Simulation Server
 			_oatSimComm.Start(4035);
 			_oatSimComm.ClientConnected += OnSimulationClientConnect;
+			_oatSimComm.ClientCommand += OnSimationClientCommand;
 		}
 
 		public void OnUpgradeSettings(object sender, UpgradeEventArgs e)
@@ -2862,9 +2863,14 @@ namespace OATControl.ViewModels
 				_oatSimComm.Send($"TrkStepper|{TrkStepper}");
 				_oatSimComm.Send($"ScopeSiderealTime|{ScopeSiderealTime}");
 				_oatSimComm.Send($"ScopePolarisHourAngle|{ScopePolarisHourAngle}");
-				
+				_oatSimComm.Send($"ScopeTime|{ScopeTime}");
 			}
 		}
+
+		private void OnSimationClientCommand(string cmd)
+        {
+			this.SendOatCommand(cmd, (a) => { });
+        }
 	}
 }
 

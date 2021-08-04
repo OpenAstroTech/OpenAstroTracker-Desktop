@@ -5,10 +5,6 @@ using HelixToolkit.Wpf.SharpDX.Model;
 using HelixToolkit.Wpf.SharpDX.Model.Scene;
 using SharpDX;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -23,6 +19,8 @@ namespace OATSimulation.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
+        CultureInfo _oatCulture = new CultureInfo("en-US");
+
         private Communication.TCPSimClient _tcpClient;
         private bool _isConnected = false;
         private string _isConnectedString = "Connect";
@@ -100,6 +98,7 @@ namespace OATSimulation.ViewModels
         private string _scopeLongitude = "-";
         private string _scopeLatitude = "-";
 
+        private string _scopeTime = "00:00:00";
         private string _scopeSiderealTime = "0";
         private string _scopePolarisHourAngle = "0";
 
@@ -110,6 +109,8 @@ namespace OATSimulation.ViewModels
 
         private string _version = "0.0";
         private string _firmwareVersion = "0.0";
+
+        private DateTime currentDateTime = DateTime.Now;
 
         private bool renderEnvironmentMap = true;
 
@@ -558,6 +559,22 @@ namespace OATSimulation.ViewModels
             }
         }
         /// <summary>
+		/// Gets or sets the Local Time of the scope
+		/// </summary>
+        public string ScopeTime
+        {
+            get
+            {
+                return _scopeTime;
+            }
+
+            set
+            {
+                _scopeTime = value;
+                OnPropertyChanged("ScopeTime");
+            }
+        }
+        /// <summary>
 		/// Gets or sets the Sidereal time of the scope
 		/// </summary>
         public string ScopeSiderealTime
@@ -717,11 +734,27 @@ namespace OATSimulation.ViewModels
                 OnPropertyChanged("ScopeLatitude");
             }
         }
-
+        /// <summary>
+        /// Override for setting current date and time
+        /// </summary>
+        public DateTime CurrentDateTime
+        {
+            get
+            {
+                return currentDateTime;
+            }
+            set
+            {
+                currentDateTime = value;
+                SetSiteTime();
+                OnPropertyChanged("CurrentDateTime");
+            }
+        }
         #endregion
 
         #region Commands
         public ICommand ConnectCommand { get; }
+        public ICommand ResetTimeOverride { get; }
         #endregion
 
         public MainViewModel(MainWindow window)
@@ -984,7 +1017,7 @@ namespace OATSimulation.ViewModels
             LoadUserSettings();
             LoadOATModels();
             
-            // Create TCP Client
+            // UI button actions
             _tcpClient = new Communication.TCPSimClient(this);
             ConnectCommand = new RelayCommand((o) =>
             {
@@ -999,6 +1032,10 @@ namespace OATSimulation.ViewModels
                     StartAnimation();
                 }
 
+            });
+            ResetTimeOverride = new RelayCommand((o) =>
+            {
+                CurrentDateTime = DateTime.Now;
             });
         }
 
@@ -1446,6 +1483,15 @@ namespace OATSimulation.ViewModels
             _raOffsetGrp.ModelMatrix = _raOffsetGroupTransform.ToMatrix();
         }
 
+        private void SetSiteTime()
+        {
+            if(_tcpClient.IsConnected)
+            {
+                _tcpClient.Send(string.Format(_oatCulture, ":SL{0,2:00}:{1,2:00}:{2,2:00}#,n", currentDateTime.Hour, currentDateTime.Minute, currentDateTime.Second));
+                _tcpClient.Send(string.Format(_oatCulture, ":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", currentDateTime.Month, currentDateTime.Day, currentDateTime.Year - 2000));
+            }
+            
+        }
 
         /*
         // Convert data to observable dict in the future

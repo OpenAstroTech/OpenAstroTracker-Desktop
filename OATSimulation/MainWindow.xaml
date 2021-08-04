@@ -5,6 +5,7 @@
         xmlns:hx="http://helix-toolkit.org/wpf/SharpDX"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pt="http://propertytools.org/wpf"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:sdx="clr-namespace:SharpDX;assembly=SharpDX.Mathematics"
         xmlns:local="clr-namespace:OATSimulation"
         mc:Ignorable="d"
@@ -146,8 +147,8 @@
             <LineBreak/>
             <LineBreak/>
             
-            1: Light Preset 1<LineBreak/>
-            2: Light Preset 2<LineBreak/>
+            F1: Light Preset 1<LineBreak/>
+            F2: Light Preset 2<LineBreak/>
             <LineBreak/>
             
             F: Front View<LineBreak/>
@@ -189,6 +190,7 @@
                         <TextBlock Text="RA Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="DEC Steps/Deg" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="Local Time" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="LST" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="Polaris HA" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
@@ -213,6 +215,7 @@
                         <TextBlock Text="{Binding RAStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="{Binding DECStepsPerDegree, StringFormat={}{0:00}}" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
+                        <TextBlock Text="{Binding ScopeTime}" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="{Binding ScopeSiderealTime}" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="{Binding ScopePolarisHourAngle}" Foreground="White" Grid.RowSpan="2"/>
                         <TextBlock Text="" Foreground="White" Grid.RowSpan="2"/>
@@ -228,6 +231,21 @@
                     </StackPanel>
 
                 </Grid>
+                
+                <Label Foreground="White" Content="Overrides" Grid.ColumnSpan="2" Margin="0,0,0.667,0" Height="34" HorizontalContentAlignment="Center" VerticalAlignment="Top" FontSize="14" FontWeight="Bold"/>
+
+                <xctk:DateTimePicker Height="30" MinWidth="100" Value="{Binding CurrentDateTime}"/>
+                <Button Content="Reset" Command="{Binding ResetTimeOverride}" Grid.Column="1" HorizontalAlignment="Right" MinWidth="120" Grid.Row="1" Height="21" VerticalAlignment="Bottom"/>
+                <!--
+                <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="HHInput" Height="23" TextWrapping="Wrap" Text="{Binding SiteTimeHH}" Width="30" Margin="5,0,0,0"/>
+                    <Label Content="HH" Foreground="White"/>
+                    <TextBox x:Name="MMInput" Height="23" TextWrapping="Wrap" Text="{Binding SiteTimeMM}" Width="30" Margin="5,0,0,0"/>
+                    <Label Content="MM" Foreground="White"/>
+                    <TextBox x:Name="SSInput" Height="23" TextWrapping="Wrap" Text="{Binding SiteTimeSS}" Width="30" Margin="5,0,0,0"/>
+                    <Label Content="SS" Foreground="White"/>
+                </StackPanel>
+                -->
 
                 <Expander
                     HorizontalAlignment="Left"
@@ -259,6 +277,7 @@
                         </StackPanel>
                     </Grid>
                 </Expander>
+                
             </StackPanel>
         </ScrollViewer>
         <Button Content="{Binding IsConnectedString}" Command="{Binding ConnectCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10,10" Width="205" Grid.Row="1" Height="21" VerticalAlignment="Bottom"/>

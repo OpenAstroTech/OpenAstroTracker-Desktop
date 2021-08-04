@@ -18,6 +18,10 @@ namespace OATCommunications
         Task taskOfAccept;
 
         public event Notify ClientConnected;
+        
+        public delegate void ClientCommandHandler(string cmd);
+        public event ClientCommandHandler ClientCommand;
+
         public bool _isClientConnected = false;
 
         public bool IsClientConnected
@@ -76,6 +80,10 @@ namespace OATCommunications
                         tempClient.Close();
                         IsClientConnected = false;
                         return;
+                    }
+                    else if (dataReceive.StartsWith(":"))
+                    {
+                        ClientCommand?.Invoke(dataReceive);
                     }
                     dataReceive = string.Empty;
 
