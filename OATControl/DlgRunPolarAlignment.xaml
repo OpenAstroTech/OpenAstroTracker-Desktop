@@ -6,8 +6,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Polar Alignment" Height="220" Width="570.879" ResizeMode="NoResize" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold" >
+        Title="Polar Alignment" Height="418" Width="697.879" ResizeMode="NoResize" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold" >
 	<Controls:MetroWindow.Resources>
+		<controls:WpfBitmapConverter x:Key="WpfBitmapConverter" />
 		<Style x:Key="StateText" TargetType="TextBlock">
 			<Setter Property="Margin" Value="10,0" />
 			<Setter Property="Foreground" Value="#FFFF1010"  />
@@ -85,5 +86,8 @@
 				Style="{StaticResource StateButton}"  
 				IsCancel="True" 
 				/>
+		<Canvas HorizontalAlignment="Left" Height="187" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Top" Width="273" >
+			<Image x:Name="image" Height="187" Width="273" Source="{Binding CurrentFrameBitmap, Converter={StaticResource WpfBitmapConverter}}"/>
+		</Canvas>
 	</Grid>
 </Controls:MetroWindow>

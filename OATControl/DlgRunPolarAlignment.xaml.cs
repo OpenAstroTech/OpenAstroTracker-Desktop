@@ -4,6 +4,7 @@ using OATCommunications.Model;
 using OATCommunications.WPF.CommunicationHandlers;
 using OATControl.Properties;
 using OATControl.ViewModels;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,9 +32,22 @@ namespace OATControl
 		private DelegateCommand _closeCommand;
 		private int _state;
 		private Action<string, Action<CommandResponse>> _sendCommand;
+		private VideoCapture _videoCapture;
+		private Mat _frame;
 
 		public DlgRunPolarAlignment(Action<string, Action<CommandResponse>> sendCommand)
 		{
+			int deviceId = AppSettings.Instance.GuideCamIndex;
+			if (deviceId != -1)
+			{
+				_videoCapture = new VideoCapture(deviceId);
+				_videoCapture.Exposure = 0.5;
+				_videoCapture.Grab();
+				var mat = _videoCapture.RetrieveMat();
+				this._frame = mat;
+			}
+
+
 			_sendCommand = sendCommand;
 			_closeCommand = new DelegateCommand(() =>
 			{
@@ -115,6 +129,14 @@ namespace OATControl
 			if (PropertyChanged != null)
 			{
 				PropertyChanged(this, new PropertyChangedEventArgs(field));
+			}
+		}
+
+		public System.Drawing.Bitmap CurrentFrameBitmap
+		{
+			get
+			{
+				return null;// this._frame.Bitmap;
 			}
 		}
 	}

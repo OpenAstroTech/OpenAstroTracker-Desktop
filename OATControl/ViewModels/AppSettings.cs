@@ -165,6 +165,13 @@ namespace OATControl.ViewModels
 			set { this["SiteAltitude"] = value.ToString(); }
 		}
 
+		[DefaultValueAttribute("-1")]
+		public int GuideCamIndex
+		{
+			get { return int.Parse(this["GuideCamIndex"]); }
+			set { this["GuideCamIndex"] = value.ToString(); }
+		}
+
 		[DefaultValueAttribute("0|0")]
 		public Point TargetChooserPos
 		{

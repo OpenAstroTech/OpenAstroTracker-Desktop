@@ -296,6 +296,13 @@ namespace OATControl.ViewModels
 			{
 				_oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { });
 			}
+			else
+			{
+				var win = Application.Current.Windows.OfType<MetroWindow>().FirstOrDefault();
+				var a = new MetroDialogSettings();
+				a.AffirmativeButtonText = "OK";
+				DialogManager.ShowModalMessageExternal(win, "DEC Position", $"No DEC axis offset is stored. Slew to home position from Off position and press 'Set DEC Home Offset'.", MessageDialogStyle.Affirmative, a);
+			}
 		}
 
 		public void OnGotoDECParkBeforePowerOff()
@@ -722,7 +729,7 @@ namespace OATControl.ViewModels
 									}
 
 									// Don't use property here since it sends a command.
-									_isTracking = parts[1][2] == 'T';
+									_isTracking = (parts[1][2] == 'T') || _isGuiding;
 									OnPropertyChanged("IsTracking");
 									OnPropertyChanged("IsGuiding");
 

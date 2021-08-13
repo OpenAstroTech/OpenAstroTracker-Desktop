@@ -1,0 +1,85 @@
+﻿<Window x:Class="GuideCamCapture.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GuideCamCapture"
+        mc:Ignorable="d"
+        Title="GuideCam Capture" Height="692" Width="830">
+	<Window.Resources>
+		<!--<WpfBitmapConverter x:Name="WpfBitmapConverter" />-->
+		<Style x:Key="ExposureLabels" TargetType="TextBlock">
+			<Setter Property="HorizontalAlignment" Value="Right" />
+			<Setter Property="FontSize" Value="9" />
+			<Setter Property="VerticalAlignment" Value="Top" />
+			<Setter Property="Margin" Value="0" />
+		</Style>
+	</Window.Resources>
+	<Grid Margin="0,0,0,0">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="300"/>
+			<ColumnDefinition Width="437*"/>
+		</Grid.ColumnDefinitions>
+
+		<TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" Height="16" Margin="4" Text="Camera" TextWrapping="Wrap" VerticalAlignment="Top" Width="62" />
+		<ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="213" ItemsSource="{Binding AvailableCameras}" SelectedItem="{Binding SelectedCamera}"/>
+
+		<TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Height="16" Margin="4" Text="Resolution" TextWrapping="Wrap" VerticalAlignment="Top" Width="62" />
+		<ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="213" ItemsSource="{Binding AvailableResolutions}" SelectedItem="{Binding SelectedResolution}" />
+		<CheckBox Grid.Row="2" Grid.Column="1" Content="Capture images to disk" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" IsChecked="{Binding CaptureImageFiles}" />
+
+		<TextBlock Grid.Row="3" Grid.Column="0" x:Name="textBlock1" HorizontalAlignment="Left" Height="16" Margin="4" Text="Exposure" TextWrapping="Wrap" VerticalAlignment="Center" Width="62" />
+		<StackPanel Grid.Row="3" Grid.Column="1" Orientation="Vertical">
+			<Grid HorizontalAlignment="Stretch">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Column="0" Text="8ms" Style="{StaticResource ExposureLabels}"/>
+				<TextBlock Grid.Column="1" Text="10ms" Style="{StaticResource ExposureLabels}"/>
+				<TextBlock Grid.Column="2" Text="20ms" Style="{StaticResource ExposureLabels}"/>
+				<TextBlock Grid.Column="3" Text="40ms" Style="{StaticResource ExposureLabels}"/>
+				<TextBlock Grid.Column="4" Text="80ms" Style="{StaticResource ExposureLabels}"/>
+				<TextBlock Grid.Column="5" Text="160ms" Style="{StaticResource ExposureLabels}"/>
+				<TextBlock Grid.Column="6" Text="320ms" Style="{StaticResource ExposureLabels}"/>
+				<TextBlock Grid.Column="7" Text="640ms" Style="{StaticResource ExposureLabels}"/>
+			</Grid>
+			<Slider x:Name="slider" HorizontalAlignment="Stretch" Margin="4" VerticalAlignment="Top" Maximum="-1" Minimum="-8" SmallChange="1" TickPlacement="TopLeft" Value="{Binding Exposure}"/>
+		</StackPanel>
+
+		<TextBlock Grid.Row="5" Grid.Column="0" HorizontalAlignment="Left" Height="16" Margin="4" Text="Gain" TextWrapping="Wrap" VerticalAlignment="Center" Width="62" />
+		<Slider Grid.Row="5" Grid.Column="1" HorizontalAlignment="Stretch" Margin="4" VerticalAlignment="Top" Maximum="100" SmallChange="1" TickPlacement="TopLeft" Value="{Binding Gain}" LargeChange="10" TickFrequency="10" />
+
+		<TextBlock Grid.Row="6" Grid.Column="0" HorizontalAlignment="Left" Height="16" Margin="4" Text="Brightness" TextWrapping="Wrap" VerticalAlignment="Center" Width="62" />
+		<Slider Grid.Row="6" Grid.Column="1" HorizontalAlignment="Stretch" Margin="4" VerticalAlignment="Top" Maximum="100" SmallChange="1" TickPlacement="TopLeft" Value="{Binding Brightness}" LargeChange="10" TickFrequency="10" Minimum="-100" />
+
+		<TextBlock Grid.Row="7" Grid.Column="0" HorizontalAlignment="Left" Height="16" Margin="4" Text="Contrast" TextWrapping="Wrap" VerticalAlignment="Center" Width="62" />
+		<Slider Grid.Row="7" Grid.Column="1" HorizontalAlignment="Stretch" Margin="4" VerticalAlignment="Top" Maximum="100" SmallChange="1" TickPlacement="TopLeft" Value="{Binding Contrast}" LargeChange="10" TickFrequency="10" />
+
+		<TextBlock Grid.Row="8" Grid.Column="0" HorizontalAlignment="Left" Height="16" Margin="4" Text="Gamma" TextWrapping="Wrap" VerticalAlignment="Center" Width="62" />
+		<Slider Grid.Row="8" Grid.Column="1" HorizontalAlignment="Stretch" Margin="4" VerticalAlignment="Top" Maximum="300" TickPlacement="TopLeft" Value="{Binding Gamma}" TickFrequency="10" LargeChange="25" Minimum="100" SmallChange="5" />
+
+
+		<Image Grid.Row="0" Grid.Column="2" Grid.RowSpan="10" x:Name="image" HorizontalAlignment="Left" Height="600" Margin="20,4" VerticalAlignment="Top" Width="800" Source="{Binding CurrentFrame}" />
+
+	</Grid>
+</Window>

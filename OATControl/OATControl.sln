@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OATCommunications.WPF", "..
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OATCommunications.ASCOM", "..\OATCommunications.ASCOM\OATCommunications.ASCOM.csproj", "{9DA34FCF-6464-491C-88B1-7726454A1183}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuideCamCapture", "..\GuideCamCapture\GuideCamCapture.csproj", "{75F356F3-FA89-48B4-BB87-6722D99A7584}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{9DA34FCF-6464-491C-88B1-7726454A1183}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9DA34FCF-6464-491C-88B1-7726454A1183}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9DA34FCF-6464-491C-88B1-7726454A1183}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75F356F3-FA89-48B4-BB87-6722D99A7584}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75F356F3-FA89-48B4-BB87-6722D99A7584}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75F356F3-FA89-48B4-BB87-6722D99A7584}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75F356F3-FA89-48B4-BB87-6722D99A7584}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
