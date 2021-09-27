@@ -10,8 +10,9 @@
 		mc:Ignorable="d"
 		Title="{Binding Version, StringFormat={} OpenAstroTracker Control V{0}}" MinHeight="767" MinWidth="720" Height="767" Width="720">
     <Window.Resources>
-        <converters:BoolToStringConverter x:Key="SlewModeConverter" TrueString="Pulsed" FalseString="Continuous" />
-        <converters:BoolToVisibilityConverter x:Key="TrueBoolToHidden" Collapse="False" IsReversed="True"/>
+		<converters:AbsConverter x:Key="AbsConverter" />
+		<converters:BoolToStringConverter x:Key="SlewModeConverter" TrueString="Pulsed" FalseString="Continuous" />
+		<converters:BoolToVisibilityConverter x:Key="TrueBoolToHidden" Collapse="False" IsReversed="True"/>
         <converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
         <converters:BoolToVisibilityConverter x:Key="CollapseIfFalse" Collapse="True" IsReversed="False" />
         <converters:IntToBoolConverter x:Key="Int1ToBool" TrueValue="1" Operator="==" />
@@ -169,15 +170,17 @@
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="20"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto" MinWidth="40"/>
+				<ColumnDefinition Width="20"/>
+				<ColumnDefinition Width="Auto" MinWidth="40"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto" MinWidth="40"/>
                 <ColumnDefinition Width="Auto"/>
@@ -185,57 +188,58 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="5" Text="Target" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="5" Text="Target" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
 
-            <controls:PushButton Grid.Row="1" Grid.Column="1" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH+" />
-            <controls:PushButton Grid.Row="1" Grid.Column="3" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM+" />
-            <controls:PushButton Grid.Row="1" Grid.Column="5" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS+" />
+            <controls:PushButton Grid.Row="1" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH+" />
+            <controls:PushButton Grid.Row="1" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM+" />
+            <controls:PushButton Grid.Row="1" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS+" />
 
             <TextBlock Grid.Row="2" Grid.Column="0"  Text="RA" Style="{StaticResource TextBlockHeading}" />
-            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TargetRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RH" TabIndex="1" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
-            <TextBlock Grid.Row="2" Grid.Column="2"  Text="h" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
-            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding TargetRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RM" TabIndex="2" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
-            <TextBlock Grid.Row="2" Grid.Column="4"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBox Grid.Row="2" Grid.Column="5" Text="{Binding TargetRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RS" TabIndex="3" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
-            <TextBlock Grid.Row="2" Grid.Column="6"  Text="s" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
+            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding TargetRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RH" TabIndex="1" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+            <TextBlock Grid.Row="2" Grid.Column="3"  Text="h" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
+            <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding TargetRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RM" TabIndex="2" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+            <TextBlock Grid.Row="2" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
+            <TextBox Grid.Row="2" Grid.Column="6" Text="{Binding TargetRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RS" TabIndex="3" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+            <TextBlock Grid.Row="2" Grid.Column="7"  Text="s" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
 
-            <controls:PushButton Grid.Row="3" Grid.Column="1" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH-" />
-            <controls:PushButton Grid.Row="3" Grid.Column="3" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM-" />
-            <controls:PushButton Grid.Row="3" Grid.Column="5" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS-" />
+            <controls:PushButton Grid.Row="3" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH-" />
+            <controls:PushButton Grid.Row="3" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM-" />
+            <controls:PushButton Grid.Row="3" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS-" />
 
-            <controls:PushButton Grid.Row="4" Grid.Column="1" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD+" />
-            <controls:PushButton Grid.Row="4" Grid.Column="3" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM+" />
-            <controls:PushButton Grid.Row="4" Grid.Column="5" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS+" />
+            <controls:PushButton Grid.Row="4" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD+" />
+            <controls:PushButton Grid.Row="4" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM+" />
+            <controls:PushButton Grid.Row="4" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS+" />
 
             <TextBlock Grid.Row="5" Grid.Column="0"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
-            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding TargetDECDegree, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DD" TabIndex="4" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
-            <TextBlock Grid.Row="5" Grid.Column="2"  Text="°" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}" />
-            <TextBox Grid.Row="5" Grid.Column="3" Text="{Binding TargetDECMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DM" TabIndex="5" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  />
-            <TextBlock Grid.Row="5" Grid.Column="4"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBox Grid.Row="5" Grid.Column="5" Text="{Binding TargetDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DS" TabIndex="6" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
-            <TextBlock Grid.Row="5" Grid.Column="6"  Text="s" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
+			<TextBlock Grid.Row="5" Grid.Column="1"  Text="{Binding TargetDECSign}" Margin="0,0,4,4" Style="{StaticResource TextBlockLabel}" HorizontalAlignment="Right" />
+			<TextBox Grid.Row="5" Grid.Column="2" Text="{Binding TargetDECDegree, StringFormat={}{0:00}, Converter={StaticResource AbsConverter}}" Style="{StaticResource TextBorder}" Tag="DD" TabIndex="4" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+            <TextBlock Grid.Row="5" Grid.Column="3"  Text="°" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}" />
+            <TextBox Grid.Row="5" Grid.Column="4" Text="{Binding TargetDECMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DM" TabIndex="5" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  />
+            <TextBlock Grid.Row="5" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
+            <TextBox Grid.Row="5" Grid.Column="6" Text="{Binding TargetDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DS" TabIndex="6" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+            <TextBlock Grid.Row="5" Grid.Column="7"  Text="s" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
 
-            <controls:PushButton Grid.Row="6" Grid.Column="1" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD-" />
-            <controls:PushButton Grid.Row="6" Grid.Column="3" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM-" />
-            <controls:PushButton Grid.Row="6" Grid.Column="5" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS-" />
+            <controls:PushButton Grid.Row="6" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD-" />
+            <controls:PushButton Grid.Row="6" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM-" />
+            <controls:PushButton Grid.Row="6" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS-" />
 
-            <Button Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="5" Content="Choose Target..." MinWidth="50" Margin="2,20,2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ChooseTargetCommand}" />
-            <TextBlock Grid.Row="7" Grid.Column="6" Grid.ColumnSpan="5" Text="{Binding SelectedPointOfInterest.Name}" MinWidth="50" Margin="2,20,2,0" Style="{StaticResource TextBlockLabelSmall}" HorizontalAlignment="Left"/>
+            <Button Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="5" Content="Choose Target..." MinWidth="50" Margin="2,20,2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ChooseTargetCommand}" />
+            <TextBlock Grid.Row="7" Grid.Column="7" Grid.ColumnSpan="5" Text="{Binding SelectedPointOfInterest.Name}" MinWidth="50" Margin="2,20,2,0" Style="{StaticResource TextBlockLabelSmall}" HorizontalAlignment="Left"/>
 
-            <Button Grid.Row="1" Grid.Column="7" Grid.RowSpan="1" Margin="8,0,8,4" Padding="0,4,0,8"  Content="&lt;- Sync" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToCurrentCommand}" />
-            <Button Grid.Row="2" Grid.Column="7" Grid.RowSpan="4" Margin="8,0" Padding="30,20"  Content="Slew!" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SlewToTargetCommand}" />
-            <Button Grid.Row="6" Grid.Column="7" Grid.RowSpan="1" Margin="8,4,8,0" Padding="0,4,0,8"  Content="Sync -&gt;" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToTargetCommand}" />
+            <Button Grid.Row="1" Grid.Column="8" Grid.RowSpan="1" Margin="8,0,8,4" Padding="0,4,0,8"  Content="&lt;- Sync" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToCurrentCommand}" />
+            <Button Grid.Row="2" Grid.Column="8" Grid.RowSpan="4" Margin="8,0" Padding="30,20"  Content="Slew!" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SlewToTargetCommand}" />
+            <Button Grid.Row="6" Grid.Column="8" Grid.RowSpan="1" Margin="8,4,8,0" Padding="0,4,0,8"  Content="Sync -&gt;" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToTargetCommand}" />
 
-            <TextBlock Grid.Row="0" Grid.Column="8" Grid.ColumnSpan="7"  Text="Current" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="9" Grid.ColumnSpan="7"  Text="Current" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="8"  Text="RA" Style="{StaticResource TextBlockHeading}" />
-            <TextBlock Grid.Row="2" Grid.Column="9" Text="{Binding CurrentRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="2" Grid.Column="10"  Text="h" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
-            <TextBlock Grid.Row="2" Grid.Column="11" Text="{Binding CurrentRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="2" Grid.Column="12"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBlock Grid.Row="2" Grid.Column="13" Text="{Binding CurrentRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="2" Grid.Column="14"  Text="s" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
-            <Border Grid.Row="3" Grid.Column="8" Grid.ColumnSpan="7" Margin="8,2,15,0">
+            <TextBlock Grid.Row="2" Grid.Column="9"  Text="RA" Style="{StaticResource TextBlockHeading}" />
+            <TextBlock Grid.Row="2" Grid.Column="11" Text="{Binding CurrentRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+            <TextBlock Grid.Row="2" Grid.Column="12"  Text="h" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
+            <TextBlock Grid.Row="2" Grid.Column="13" Text="{Binding CurrentRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+            <TextBlock Grid.Row="2" Grid.Column="14"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
+            <TextBlock Grid.Row="2" Grid.Column="15" Text="{Binding CurrentRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+            <TextBlock Grid.Row="2" Grid.Column="16"  Text="s" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
+            <Border Grid.Row="3" Grid.Column="9" Grid.ColumnSpan="8" Margin="8,2,15,0">
                 <Border.Resources>
                     <Style TargetType="Border">
                         <Setter Property="BorderThickness" Value="0,0,0,0"/>
@@ -256,15 +260,16 @@
                 </Border.BorderBrush>
             </Border>
 
-            <TextBlock Grid.Row="5" Grid.Column="8"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
-            <TextBlock Grid.Row="5" Grid.Column="9" Text="{Binding CurrentDECDegree, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}"/>
-            <TextBlock Grid.Row="5" Grid.Column="10"  Text="°" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}" />
-            <TextBlock Grid.Row="5" Grid.Column="11" Text="{Binding CurrentDECMinute, StringFormat={}{0:00}}"  Style="{StaticResource TextBlockValue}"/>
-            <TextBlock Grid.Row="5" Grid.Column="12"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBlock Grid.Row="5" Grid.Column="13" Text="{Binding CurrentDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="5" Grid.Column="14"  Text="s" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
+            <TextBlock Grid.Row="5" Grid.Column="9"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
+			<TextBlock Grid.Row="5" Grid.Column="10" Text="{Binding CurrentDECSign}" Margin="0,0,4,4" Style="{StaticResource TextBlockLabel}" HorizontalAlignment="Right" />
+			<TextBlock Grid.Row="5" Grid.Column="11" Text="{Binding CurrentDECDegree, StringFormat={}{0:00}, Converter={StaticResource AbsConverter}}" Style="{StaticResource TextBlockValue}"/>
+            <TextBlock Grid.Row="5" Grid.Column="12"  Text="°" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}" />
+            <TextBlock Grid.Row="5" Grid.Column="13" Text="{Binding CurrentDECMinute, StringFormat={}{0:00}}"  Style="{StaticResource TextBlockValue}"/>
+            <TextBlock Grid.Row="5" Grid.Column="14"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
+            <TextBlock Grid.Row="5" Grid.Column="15" Text="{Binding CurrentDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+            <TextBlock Grid.Row="5" Grid.Column="16"  Text="s" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
 
-            <Border Grid.Row="6" Grid.Column="8" Grid.ColumnSpan="7" Margin="8,2,15,0">
+            <Border Grid.Row="6" Grid.Column="9" Grid.ColumnSpan="8" Margin="8,2,15,0">
                 <Border.Resources>
                     <Style TargetType="Border">
                         <Setter Property="BorderThickness" Value="0,0,0,0"/>
