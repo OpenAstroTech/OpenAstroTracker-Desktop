@@ -40,6 +40,18 @@ namespace OATControl.ViewModels
 				OnPropertyChanged(memberName);
 			}
 		}
-	}
 
+		protected void SetPropertyValue<T>(T newValue, Func<T> getValue, Func<T, bool> updater, Action<T, T> onChanged, [CallerMemberName] string memberName = "")
+		{
+			T oldValue = getValue();
+			if (!newValue.Equals(oldValue))
+			{
+				if (updater(newValue))
+				{
+					onChanged(oldValue, getValue());
+					OnPropertyChanged(memberName);
+				}
+			}
+		}
+	}
 }

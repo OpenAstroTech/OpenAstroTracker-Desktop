@@ -24,24 +24,18 @@ using System.Text;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.CompilerServices;
 
 namespace OATControl.ViewModels
 {
 	public class MountVM : ViewModelBase
 	{
 		const long InitialIncrementalDelay = 250;
-		int _targetRAHour = 0;
-		int _targetRAMinute = 0;
-		int _targetRASecond = 0;
-		int _targetDECDegree = 90;
-		int _targetDECMinute = 0;
-		int _targetDECSecond = 0;
-		int _curRAHour = 0;
-		int _curRAMinute = 0;
-		int _curRASecond = 0;
-		int _curDECDegree = 90;
-		int _curDECMinute = 0;
-		int _curDECSecond = 0;
+		DayTime _targetRA = new DayTime();
+		Declination _targetDEC=new Declination();
+		DayTime _currentRA = new DayTime();
+		Declination _currentDEC = new Declination();
+
 		long _raStepper = 0;
 		long _decStepper = 0;
 		string _decStepperTicks = "0";
@@ -287,7 +281,7 @@ namespace OATControl.ViewModels
 
 		public void OnAutoHomeRA()
 		{
-			_oatMount.SendCommand($":MHR#,n", (a) => { });
+			_oatMount.SendCommand($":MHRR#,n", (a) => { });
 		}
 
 		public void OnGotoDECHomeFromPowerOn()
@@ -295,6 +289,13 @@ namespace OATControl.ViewModels
 			if (AppSettings.Instance.DECHomeOffset != 0)
 			{
 				_oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { });
+			}
+			else
+			{
+				var win = Application.Current.Windows.OfType<MetroWindow>().FirstOrDefault();
+				var a = new MetroDialogSettings();
+				a.AffirmativeButtonText = "OK";
+				DialogManager.ShowModalMessageExternal(win, "DEC Position", $"No DEC axis offset is stored. Slew to home position from Off position and press 'Set DEC Home Offset'.", MessageDialogStyle.Affirmative, a);
 			}
 		}
 
@@ -640,10 +641,8 @@ namespace OATControl.ViewModels
 										{
 											if (raRes.Success)
 											{
-												TargetRAHour = int.Parse(raRes.Data.Substring(0, 2));
-												TargetRAMinute = int.Parse(raRes.Data.Substring(3, 2));
-												TargetRASecond = int.Parse(raRes.Data.Substring(6, 2));
-												_slewTargetRA = (TargetRAHour * 60 + TargetRAMinute) * 60 + TargetRASecond;
+												_targetRA.SetTime(int.Parse(raRes.Data.Substring(0, 2)),int.Parse(raRes.Data.Substring(3, 2)),int.Parse(raRes.Data.Substring(6, 2)));
+												_slewTargetRA = _targetRA.TotalSeconds;
 											}
 										});
 
@@ -651,10 +650,8 @@ namespace OATControl.ViewModels
 										{
 											if (decRes.Success)
 											{
-												TargetDECDegree = int.Parse(decRes.Data.Substring(0, 3));
-												TargetDECMinute = int.Parse(decRes.Data.Substring(4, 2));
-												TargetDECSecond = int.Parse(decRes.Data.Substring(7, 2));
-												_slewTargetDEC = (TargetDECDegree * 60 + TargetDECMinute) * 60 + TargetDECSecond;
+												_targetDEC.SetTime(int.Parse(decRes.Data.Substring(0, 3)),int.Parse(decRes.Data.Substring(4, 2)),int.Parse(decRes.Data.Substring(7, 2)));
+												_slewTargetDEC = _targetDEC.TotalSeconds;
 											}
 											waitForTarget.Set();
 										});
@@ -685,8 +682,8 @@ namespace OATControl.ViewModels
 										}
 										else
 										{
-											_slewStartRA = (CurrentRAHour * 60 + CurrentRAMinute) * 60 + CurrentRASecond;
-											_slewStartDEC = (CurrentDECDegree * 60 + CurrentDECMinute) * 60 + CurrentDECSecond;
+											_slewStartRA = _currentRA.TotalSeconds;
+											_slewStartDEC = _currentDEC.TotalSeconds;
 										}
 										OnPropertyChanged("RASlewProgress");
 										OnPropertyChanged("DECSlewProgress");
@@ -722,7 +719,7 @@ namespace OATControl.ViewModels
 									}
 
 									// Don't use property here since it sends a command.
-									_isTracking = parts[1][2] == 'T';
+									_isTracking = (parts[1][2] == 'T') || _isGuiding;
 									OnPropertyChanged("IsTracking");
 									OnPropertyChanged("IsGuiding");
 
@@ -730,13 +727,16 @@ namespace OATControl.ViewModels
 									DECStepper = int.Parse(parts[3]);
 									TrkStepper = int.Parse(parts[4]);
 
-									CurrentRAHour = int.Parse(parts[5].Substring(0, 2));
-									CurrentRAMinute = int.Parse(parts[5].Substring(2, 2));
-									CurrentRASecond = int.Parse(parts[5].Substring(4, 2));
+									_currentRA.SetTime(int.Parse(parts[5].Substring(0, 2)),int.Parse(parts[5].Substring(2, 2)),int.Parse(parts[5].Substring(4, 2)));
+									_currentDEC.SetTime(int.Parse(parts[6].Substring(1, 2)), int.Parse(parts[6].Substring(3, 2)), int.Parse(parts[6].Substring(5, 2)));
+									if (parts[6][0] == '-')
+									{
+										_currentDEC = Declination.FromSeconds(-_currentDEC.TotalSeconds);
+									}
 
-									CurrentDECDegree = int.Parse(parts[6].Substring(0, 3));
-									CurrentDECMinute = int.Parse(parts[6].Substring(3, 2));
-									CurrentDECSecond = int.Parse(parts[6].Substring(5, 2));
+									OnTargetChanged(0, 0);
+									UpdateCurrentDisplay();
+
 									if (parts.Length > 8)
 									{
 										int focusStepper;
@@ -766,6 +766,32 @@ namespace OATControl.ViewModels
 
 				await doneEvent.WaitAsync();
 			}
+		}
+
+		public void UpdateTargetDisplay()
+		{
+			OnPropertyChanged("TargetRAHour");
+			OnPropertyChanged("TargetRAMinute");
+			OnPropertyChanged("TargetRASecond");
+			OnPropertyChanged("TargetRATotalHours");
+			OnPropertyChanged("TargetDECSign");
+			OnPropertyChanged("TargetDECDegree");
+			OnPropertyChanged("TargetDECMinute");
+			OnPropertyChanged("TargetDECSecond");
+			OnPropertyChanged("TargetDECTotalHours");
+		}
+
+		public void UpdateCurrentDisplay()
+		{
+			OnPropertyChanged("CurrentRAHour");
+			OnPropertyChanged("CurrentRAMinute");
+			OnPropertyChanged("CurrentRASecond");
+			OnPropertyChanged("CurrentRATotalHours");
+			OnPropertyChanged("CurrentDECSign");
+			OnPropertyChanged("CurrentDECDegree");
+			OnPropertyChanged("CurrentDECMinute");
+			OnPropertyChanged("CurrentDECSecond");
+			OnPropertyChanged("CurrentDECTotalHours");
 		}
 
 		public async Task<string> SetSiteLatitude(float latitude)
@@ -1088,7 +1114,8 @@ namespace OATControl.ViewModels
 		private async Task OnSlewToTarget()
 		{
 			var waitFor = new AsyncAutoResetEvent();
-			this.SendOatCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", this.TargetRATotalHours, this.TargetDECTotalHours), (res) =>
+			_slewTargetValid = false;
+			this.SendOatCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", this._targetRA.TotalHours, this._targetDEC.TotalHours), (res) =>
 			{
 				if (res.Success)
 				{
@@ -1124,22 +1151,20 @@ namespace OATControl.ViewModels
 				}
 			}
 
-			await _oatMount.Slew(new TelescopePosition(1.0 * TargetRASecond / 3600.0 + 1.0 * TargetRAMinute / 60.0 + TargetRAHour, 1.0 * TargetDECSecond / 3600.0 + 1.0 * TargetDECMinute / 60.0 + TargetDECDegree, Epoch.JNOW));
+			await _oatMount.Slew(new TelescopePosition(_targetRA.TotalHours, _targetDEC.TotalDegrees, Epoch.JNOW));
 		}
 
 		private async Task OnSyncToTarget()
 		{
-			await _oatMount.Sync(new TelescopePosition(1.0 * TargetRASecond / 3600.0 + 1.0 * TargetRAMinute / 60.0 + TargetRAHour, 1.0 * TargetDECSecond / 3600.0 + 1.0 * TargetDECMinute / 60.0 + TargetDECDegree, Epoch.JNOW));
+			await _oatMount.Sync(new TelescopePosition(_targetRA.TotalHours, _targetDEC.TotalDegrees, Epoch.JNOW));
 		}
 
 		private void OnSyncToCurrent()
 		{
-			TargetRAHour = CurrentRAHour;
-			TargetRAMinute = CurrentRAMinute;
-			TargetRASecond = CurrentRASecond;
-			TargetDECDegree = CurrentDECDegree;
-			TargetDECMinute = CurrentDECMinute;
-			TargetDECSecond = CurrentDECSecond;
+			_targetRA = new DayTime(_currentRA);
+			_targetDEC = new Declination(_currentDEC);
+			OnTargetChanged(0, 0);
+			UpdateCurrentDisplay();
 		}
 
 		private void FloatToHMS(double val, out int h, out int m, out int s)
@@ -1156,14 +1181,12 @@ namespace OATControl.ViewModels
 			int h, m, s;
 			var pos = await _oatMount.GetPosition();
 			FloatToHMS(pos.Declination, out h, out m, out s);
-			CurrentDECDegree = h;
-			CurrentDECMinute = m;
-			CurrentDECSecond = s;
+			_currentDEC.SetTime(h, m, s);
 
 			FloatToHMS(pos.RightAscension, out h, out m, out s);
-			CurrentRAHour = h;
-			CurrentRAMinute = m;
-			CurrentRASecond = s;
+			_currentRA.SetTime(h, m, s);
+
+			UpdateCurrentDisplay();
 		}
 
 		public void Disconnect()
@@ -1216,13 +1239,8 @@ namespace OATControl.ViewModels
 
 				Log.WriteLine("Mount: Getting current OAT position");
 				await UpdateCurrentCoordinates();
-				TargetDECDegree = CurrentDECDegree;
-				TargetDECMinute = CurrentDECMinute;
-				TargetDECSecond = CurrentDECSecond;
-
-				TargetRAHour = CurrentRAHour;
-				TargetRAMinute = CurrentRAMinute;
-				TargetRASecond = CurrentRASecond;
+				_targetRA = new DayTime(_currentRA);
+				_targetDEC = new Declination(_currentDEC);
 				Log.WriteLine("Mount: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3:000}*{4:00}'{5:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
 
 				Log.WriteLine("Mount: Getting current OAT RA steps/degree...");
@@ -1437,7 +1455,6 @@ namespace OATControl.ViewModels
 			_autoHomeRACommand.Requery();
 			_gotoDECParkBeforePowerOff.Requery();
 			_focuserResetCommand.Requery();
-
 
 			OnPropertyChanged("ConnectCommandString");
 		}
@@ -1806,16 +1823,18 @@ namespace OATControl.ViewModels
 			switch (command[0])
 			{
 				case 'R':
-					if (comp == 'H') TargetRAHour = AdjustWrap(TargetRAHour, inc, 0, 23);
-					else if (comp == 'M') TargetRAMinute = AdjustWrap(TargetRAMinute, inc, 0, 59);
-					else if (comp == 'S') TargetRASecond = AdjustWrap(TargetRASecond, inc, 0, 59);
+					if (comp == 'H') _targetRA.AddHours(inc);
+					else if (comp == 'M') _targetRA.AddMinutes(inc);
+					else if (comp == 'S') _targetRA.AddSeconds(inc);
 					else { throw new ArgumentException("Invalid RA component!"); }
+					OnTargetChanged(0, 0);
 					break;
 				case 'D':
-					if (comp == 'D') TargetDECDegree = AdjustClamp(TargetDECDegree, inc, -90, 90);
-					else if (comp == 'M') TargetDECMinute = AdjustWrap(TargetDECMinute, inc, 0, 59);
-					else if (comp == 'S') TargetDECSecond = AdjustWrap(TargetDECSecond, inc, 0, 59);
+					if (comp == 'D') _targetDEC.AddDegrees(inc);
+					else if (comp == 'M') _targetDEC.AddMinutes(inc);
+					else if (comp == 'S') _targetDEC.AddSeconds(inc);
 					else { throw new ArgumentException("Invalid DEC component!"); }
+					OnTargetChanged(0, 0);
 					break;
 			}
 		}
@@ -1904,7 +1923,7 @@ namespace OATControl.ViewModels
 
 		public double TargetRATotalHours
 		{
-			get { return _targetRAHour + _targetRAMinute / 60.0 + _targetRASecond / 3600.0; }
+			get { return _targetRA.TotalHours; }
 		}
 
 		/// <summary>
@@ -1912,8 +1931,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int TargetRAHour
 		{
-			get { return _targetRAHour; }
-			set { SetPropertyValue(ref _targetRAHour, value, OnTargetChanged); }
+			get { return _targetRA.Hours; }
+			set { SetPropertyValue(value, () => _targetRA.Hours, _targetRA.ChangeHour, OnTargetChanged); }
 		}
 
 		/// <summary>
@@ -1921,8 +1940,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int TargetRAMinute
 		{
-			get { return _targetRAMinute; }
-			set { SetPropertyValue(ref _targetRAMinute, value, OnTargetChanged); }
+			get { return _targetRA.Minutes; }
+			set { SetPropertyValue(value, () => _targetRA.Minutes, _targetRA.ChangeMinute, OnTargetChanged); }
 		}
 
 		/// <summary>
@@ -1930,8 +1949,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int TargetRASecond
 		{
-			get { return _targetRASecond; }
-			set { SetPropertyValue(ref _targetRASecond, value, OnTargetChanged); }
+			get { return _targetRA.Seconds; }
+			set { SetPropertyValue(value, () => _targetRA.Seconds, _targetRA.ChangeSecond, OnTargetChanged); }
 		}
 
 		public double RAStepperTargetHours
@@ -1953,8 +1972,8 @@ namespace OATControl.ViewModels
 
 		private void OnTargetChanged(int arg1, int arg2)
 		{
-			OnPropertyChanged("TargetDECTotalHours");
-			OnPropertyChanged("TargetRATotalHours");
+			UpdateTargetDisplay();
+
 			this.SendOatCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", TargetRATotalHours, TargetDECTotalHours), (res) =>
 			{
 				if (res.Success)
@@ -1968,7 +1987,7 @@ namespace OATControl.ViewModels
 
 		public double TargetDECTotalHours
 		{
-			get { return _targetDECDegree + _targetDECMinute / 60.0 + _targetDECSecond / 3600.0; }
+			get { return _targetDEC.TotalDegrees;  }
 		}
 
 		public double DECStepperTargetDegrees
@@ -1993,8 +2012,22 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int TargetDECDegree
 		{
-			get { return _targetDECDegree; }
-			set { SetPropertyValue(ref _targetDECDegree, value, OnTargetChanged); }
+			get { return _targetDEC.Degrees; }
+			set { SetPropertyValue(value, () => _targetDEC.Degrees, _targetDEC.ChangeDegree, OnTargetChanged); }
+		}
+
+		public string TargetDECSign
+		{
+			get {
+				return _targetDEC.TotalSeconds < 0 ? "-" : "+";
+			}
+		}
+
+		public string CurrentDECSign
+		{
+			get {
+				return _currentDEC.TotalSeconds < 0 ? "-" : "+";
+			}
 		}
 
 		/// <summary>
@@ -2002,8 +2035,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int TargetDECMinute
 		{
-			get { return _targetDECMinute; }
-			set { SetPropertyValue(ref _targetDECMinute, value, OnTargetChanged); }
+			get { return _targetDEC.Minutes; }
+			set { SetPropertyValue(value, () => _targetDEC.Minutes, _targetDEC.ChangeMinute, OnTargetChanged); }
 		}
 
 		/// <summary>
@@ -2011,18 +2044,18 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int TargetDECSecond
 		{
-			get { return _targetDECSecond; }
-			set { SetPropertyValue(ref _targetDECSecond, value, OnTargetChanged); }
+			get { return _targetDEC.Seconds; }
+			set { SetPropertyValue(value, () => _targetDEC.Seconds, _targetDEC.ChangeSecond, OnTargetChanged); }
 		}
 
 		public double CurrentRATotalHours
 		{
-			get { return CurrentRAHour + 1.0 * CurrentRAMinute / 60.0 + 1.0 * CurrentRASecond / 3600.0; }
+			get { return _currentRA.TotalHours; }
 		}
 
 		public double CurrentDECTotalHours
 		{
-			get { return CurrentDECDegree + 1.0 * CurrentDECMinute / 60.0 + 1.0 * CurrentDECSecond / 3600.0; }
+			get { return _currentDEC.TotalDegrees; }
 		}
 
 		/// <summary>
@@ -2030,14 +2063,15 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int CurrentRAHour
 		{
-			get { return _curRAHour; }
-			set { SetPropertyValue(ref _curRAHour, value, OnRaOrDecChanged); }
+			get { return _currentRA.Hours; }
+			set { SetPropertyValue(value, () => _currentRA.Hours, _currentRA.ChangeHour, OnRaOrDecChanged); }
 		}
 
 		private void OnRaOrDecChanged(int v1, int v2)
 		{
 			OnPropertyChanged("CurrentRAString");
 			OnPropertyChanged("CurrentDECString");
+			OnPropertyChanged("CurrentDECSign");
 
 			Log.WriteLine("Steppers are at {0}, {1}", RAStepper, DECStepper);
 			_pointsOfInterest.CalcDistancesFrom(CurrentRATotalHours, CurrentDECTotalHours, RAStepper, DECStepper);
@@ -2052,8 +2086,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int CurrentRAMinute
 		{
-			get { return _curRAMinute; }
-			set { SetPropertyValue(ref _curRAMinute, value, OnRaOrDecChanged); }
+			get { return _currentRA.Minutes; }
+			set { SetPropertyValue(value, () => _currentRA.Minutes, _currentRA.ChangeMinute, OnRaOrDecChanged); }
 		}
 
 		/// <summary>
@@ -2061,8 +2095,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int CurrentRASecond
 		{
-			get { return _curRASecond; }
-			set { SetPropertyValue(ref _curRASecond, value, OnRaOrDecChanged); }
+			get { return _currentRA.Seconds; }
+			set { SetPropertyValue(value, () => _currentRA.Seconds, _currentRA.ChangeSecond, OnRaOrDecChanged); }
 		}
 
 		public string CurrentRAString
@@ -2072,7 +2106,7 @@ namespace OATControl.ViewModels
 
 		public string CurrentDECString
 		{
-			get { return $"{(CurrentDECDegree < 0 ? "" : " + ")}{CurrentDECDegree:00}°{CurrentDECMinute:00}'{CurrentDECSecond:00}"; }
+			get { return $"{(_currentDEC.TotalSeconds < 0 ? "-" : "+")}{_currentDEC.Degrees:00}°{_currentDEC.Minutes:00}'{_currentDEC.Seconds:00}"; }
 		}
 
 		/// <summary>
@@ -2080,8 +2114,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int CurrentDECDegree
 		{
-			get { return _curDECDegree; }
-			set { SetPropertyValue(ref _curDECDegree, value, OnRaOrDecChanged); }
+			get { return _currentDEC.Degrees; }
+			set { SetPropertyValue(value, () => _currentDEC.Degrees, _currentDEC.ChangeDegree, OnRaOrDecChanged); }
 		}
 
 		/// <summary>
@@ -2089,8 +2123,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int CurrentDECMinute
 		{
-			get { return _curDECMinute; }
-			set { SetPropertyValue(ref _curDECMinute, value, OnRaOrDecChanged); }
+			get { return _currentDEC.Minutes; }
+			set { SetPropertyValue(value, () => _currentDEC.Minutes, _currentDEC.ChangeMinute, OnRaOrDecChanged); }
 		}
 
 		/// <summary>
@@ -2098,8 +2132,8 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public int CurrentDECSecond
 		{
-			get { return _curDECSecond; }
-			set { SetPropertyValue(ref _curDECSecond, value, OnRaOrDecChanged); }
+			get { return _currentDEC.Seconds; }
+			set { SetPropertyValue(value, () => _currentDEC.Seconds, _currentDEC.ChangeSecond, OnRaOrDecChanged); }
 		}
 
 		/// <summary>
@@ -2349,8 +2383,7 @@ namespace OATControl.ViewModels
 					Log.WriteLine($"RA Progress: {val * 100:0}% . Total is {_slewTargetRA - _slewStartRA}, current is {RAStepper - _slewStartRA}");
 					return val;
 				}
-				var currentRA = (CurrentRAHour * 60 + CurrentRAMinute) * 60 + CurrentRASecond;
-				return 1.0f * (currentRA - _slewStartRA) / (_slewTargetRA - _slewStartRA);
+				return 1.0f * (_currentRA.TotalSeconds - _slewStartRA) / (_slewTargetRA - _slewStartRA);
 			}
 		}
 
@@ -2365,8 +2398,7 @@ namespace OATControl.ViewModels
 					Log.WriteLine($"DEC Progress: {val * 100:0}% . Total is {_slewTargetDEC - _slewStartDEC}, current is {DECStepper - _slewStartDEC}");
 					return val;
 				}
-				var currentDEC = (CurrentDECDegree * 60 + CurrentDECMinute) * 60 + CurrentDECSecond;
-				return 1.0f * (currentDEC - _slewStartDEC) / (_slewTargetDEC - _slewStartDEC);
+				return 1.0f * (_currentDEC.TotalSeconds - _slewStartDEC) / (_slewTargetDEC - _slewStartDEC);
 			}
 		}
 
@@ -2844,14 +2876,11 @@ namespace OATControl.ViewModels
 			if (poi != null)
 			{
 				FloatToHMS(poi.DEC, out h, out m, out s);
-				TargetDECDegree = h;
-				TargetDECMinute = m;
-				TargetDECSecond = s;
+				_targetDEC.SetTime(h, m, s);
 
 				FloatToHMS(poi.RA, out h, out m, out s);
-				TargetRAHour = h;
-				TargetRAMinute = m;
-				TargetRASecond = s;
+				_targetRA.SetTime(h, m, s);
+				OnTargetChanged(0,0);
 			}
 		}
 
