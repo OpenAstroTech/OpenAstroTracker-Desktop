@@ -42,33 +42,13 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: ".\bin\Release\Assets\*"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs
 Source: ".\bin\Release\runtimes\*"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs
-Source: ".\bin\Release\AssimpNet.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\AssimpNet.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\Cyotek.Drawing.BitmapFont.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\Cyotek.Drawing.BitmapFont.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\HelixToolkit.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\HelixToolkit.Wpf.SharpDX.Assimp.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\HelixToolkit.Wpf.SharpDX.Assimp.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\HelixToolkit.Wpf.SharpDX.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\HelixToolkit.Wpf.SharpDX.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\HelixToolkit.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\OATSimulation.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\OATSimulation.exe.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\PropertyTools.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\PropertyTools.Wpf.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.D3DCompiler.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.D3DCompiler.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Direct2D1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Direct2D1.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Direct3D11.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Direct3D11.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Direct3D9.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Direct3D9.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.DXGI.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.DXGI.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Mathematics.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\SharpDX.Mathematics.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\runtimes\win-x64\native\assimp.dll"; DestDir: "{app}\runtimes\win-x64\native\assimp.dll"; Flags: ignoreversion recursesubdirs
+Source: ".\bin\Release\runtimes\win-x86\native\assimp.dll"; DestDir: "{app}\runtimes\win-x86\native\assimp.dll"; Flags: ignoreversion recursesubdirs
+
 
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
