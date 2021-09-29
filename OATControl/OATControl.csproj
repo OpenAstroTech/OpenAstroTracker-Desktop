@@ -80,17 +80,20 @@
     <Compile Include="Controls\ScopeCircles.cs" />
     <Compile Include="Controls\Arrow.cs" />
     <Compile Include="Controls\ScopePointer.cs" />
+    <Compile Include="Converters\AbsConverter.cs" />
     <Compile Include="Converters\BoolToBrushConverter.cs" />
     <Compile Include="Converters\BoolToIntConverter.cs" />
     <Compile Include="Converters\BoolToStringConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
-    <Compile Include="Converters\DoubleToHMSConverter.cs" />
     <Compile Include="Converters\DoubleDividerConverter.cs" />
+    <Compile Include="Converters\DoubleToHMSConverter.cs" />
     <Compile Include="Converters\IntToBoolConverter.cs" />
     <Compile Include="Converters\IntToVisibilityConverter.cs" />
     <Compile Include="Converters\OrientationToVisibilityConverter.cs" />
     <Compile Include="Converters\StretchModeConverter.cs" />
     <Compile Include="Converters\StringToVisibilityConverter.cs" />
+    <Compile Include="DayTime.cs" />
+    <Compile Include="Declination.cs" />
     <Compile Include="DlgRunPolarAlignment.xaml.cs">
       <DependentUpon>DlgRunPolarAlignment.xaml</DependentUpon>
     </Compile>
@@ -194,6 +197,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include=".editorconfig" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

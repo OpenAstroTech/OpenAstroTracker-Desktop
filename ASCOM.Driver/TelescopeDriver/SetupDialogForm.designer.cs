@@ -28,6 +28,7 @@ namespace ASCOM.OpenAstroTracker
         /// </summary>
         private void InitializeComponent()
         {
+			this.components = new System.ComponentModel.Container();
 			this.Label5 = new System.Windows.Forms.Label();
 			this.txtElevation = new System.Windows.Forms.TextBox();
 			this.Label4 = new System.Windows.Forms.Label();
@@ -53,9 +54,43 @@ namespace ASCOM.OpenAstroTracker
 			this.label12 = new System.Windows.Forms.Label();
 			this.label13 = new System.Windows.Forms.Label();
 			this.label14 = new System.Windows.Forms.Label();
+			this.btnConnect = new System.Windows.Forms.Button();
+			this.lblFirmware = new System.Windows.Forms.Label();
+			this.numRASteps = new System.Windows.Forms.NumericUpDown();
+			this.label15 = new System.Windows.Forms.Label();
+			this.label16 = new System.Windows.Forms.Label();
+			this.numDECSteps = new System.Windows.Forms.NumericUpDown();
+			this.label17 = new System.Windows.Forms.Label();
+			this.numSpeedFactor = new System.Windows.Forms.NumericUpDown();
+			this.label18 = new System.Windows.Forms.Label();
+			this.label19 = new System.Windows.Forms.Label();
+			this.label20 = new System.Windows.Forms.Label();
+			this.lblBoard = new System.Windows.Forms.Label();
+			this.label21 = new System.Windows.Forms.Label();
+			this.lblDisplay = new System.Windows.Forms.Label();
+			this.label22 = new System.Windows.Forms.Label();
+			this.lblAddons = new System.Windows.Forms.Label();
+			this.label24 = new System.Windows.Forms.Label();
+			this.lblLST = new System.Windows.Forms.Label();
+			this.btnOPenASCOMLogs = new System.Windows.Forms.Button();
+			this.label23 = new System.Windows.Forms.Label();
+			this.btnUpdate = new System.Windows.Forms.Button();
+			this.label25 = new System.Windows.Forms.Label();
+			this.btnNorth = new System.Windows.Forms.Button();
+			this.btnSouth = new System.Windows.Forms.Button();
+			this.btnEast = new System.Windows.Forms.Button();
+			this.btnWest = new System.Windows.Forms.Button();
+			this.btnUnparkDEC = new System.Windows.Forms.Button();
+			this.btnParkDEC = new System.Windows.Forms.Button();
+			this.btnGoHome = new System.Windows.Forms.Button();
+			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+			this.btnSetHome = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox1)).BeginInit();
 			this.TableLayoutPanel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.numRASteps)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.numDECSteps)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.numSpeedFactor)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// Label5
@@ -109,11 +144,11 @@ namespace ASCOM.OpenAstroTracker
 			// Label2
 			// 
 			this.Label2.AutoSize = true;
-			this.Label2.Location = new System.Drawing.Point(115, 285);
+			this.Label2.Location = new System.Drawing.Point(115, 288);
 			this.Label2.Name = "Label2";
-			this.Label2.Size = new System.Drawing.Size(117, 13);
+			this.Label2.Size = new System.Drawing.Size(153, 13);
 			this.Label2.TabIndex = 22;
-			this.Label2.Text = "ASCOM Trace Logging";
+			this.Label2.Text = "Enable ASCOM Trace Logging";
 			// 
 			// ComboBoxComPort
 			// 
@@ -122,11 +157,12 @@ namespace ASCOM.OpenAstroTracker
 			this.ComboBoxComPort.Name = "ComboBoxComPort";
 			this.ComboBoxComPort.Size = new System.Drawing.Size(84, 21);
 			this.ComboBoxComPort.TabIndex = 21;
+			this.ComboBoxComPort.SelectedValueChanged += new System.EventHandler(this.ComboBoxComPort_SelectedValueChanged);
 			// 
 			// chkTrace
 			// 
 			this.chkTrace.AutoSize = true;
-			this.chkTrace.Location = new System.Drawing.Point(94, 285);
+			this.chkTrace.Location = new System.Drawing.Point(94, 288);
 			this.chkTrace.Name = "chkTrace";
 			this.chkTrace.Size = new System.Drawing.Size(15, 14);
 			this.chkTrace.TabIndex = 20;
@@ -161,10 +197,11 @@ namespace ASCOM.OpenAstroTracker
 			this.TableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
 			this.TableLayoutPanel1.Controls.Add(this.OK_Button, 0, 0);
 			this.TableLayoutPanel1.Controls.Add(this.Cancel_Button, 1, 0);
-			this.TableLayoutPanel1.Location = new System.Drawing.Point(226, 320);
+			this.TableLayoutPanel1.Location = new System.Drawing.Point(526, 320);
 			this.TableLayoutPanel1.Name = "TableLayoutPanel1";
 			this.TableLayoutPanel1.RowCount = 1;
 			this.TableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+			this.TableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29F));
 			this.TableLayoutPanel1.Size = new System.Drawing.Size(146, 29);
 			this.TableLayoutPanel1.TabIndex = 17;
 			// 
@@ -194,7 +231,7 @@ namespace ASCOM.OpenAstroTracker
 			this.pictureBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.pictureBox2.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.pictureBox2.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.OATAscom;
-			this.pictureBox2.Location = new System.Drawing.Point(229, 12);
+			this.pictureBox2.Location = new System.Drawing.Point(544, 1);
 			this.pictureBox2.Name = "pictureBox2";
 			this.pictureBox2.Size = new System.Drawing.Size(140, 128);
 			this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -294,12 +331,405 @@ namespace ASCOM.OpenAstroTracker
 			this.label14.TabIndex = 39;
 			this.label14.Text = "Debugging";
 			// 
+			// btnConnect
+			// 
+			this.btnConnect.Location = new System.Drawing.Point(215, 36);
+			this.btnConnect.Name = "btnConnect";
+			this.btnConnect.Size = new System.Drawing.Size(78, 26);
+			this.btnConnect.TabIndex = 40;
+			this.btnConnect.Text = "Connect";
+			this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+			// 
+			// lblFirmware
+			// 
+			this.lblFirmware.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.lblFirmware.Location = new System.Drawing.Point(399, 39);
+			this.lblFirmware.Name = "lblFirmware";
+			this.lblFirmware.Size = new System.Drawing.Size(142, 17);
+			this.lblFirmware.TabIndex = 37;
+			this.lblFirmware.Text = "-";
+			this.lblFirmware.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// numRASteps
+			// 
+			this.numRASteps.DecimalPlaces = 1;
+			this.numRASteps.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+			this.numRASteps.Location = new System.Drawing.Point(408, 190);
+			this.numRASteps.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+			this.numRASteps.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.numRASteps.Name = "numRASteps";
+			this.numRASteps.Size = new System.Drawing.Size(60, 20);
+			this.numRASteps.TabIndex = 41;
+			this.numRASteps.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.numRASteps.ValueChanged += new System.EventHandler(this.numUpDown_ValueChanged);
+			// 
+			// label15
+			// 
+			this.label15.Location = new System.Drawing.Point(304, 192);
+			this.label15.Name = "label15";
+			this.label15.Size = new System.Drawing.Size(98, 13);
+			this.label15.TabIndex = 42;
+			this.label15.Text = "RA Steps/degree";
+			this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// label16
+			// 
+			this.label16.Location = new System.Drawing.Point(304, 217);
+			this.label16.Name = "label16";
+			this.label16.Size = new System.Drawing.Size(98, 13);
+			this.label16.TabIndex = 44;
+			this.label16.Text = "DEC Steps/degree";
+			this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// numDECSteps
+			// 
+			this.numDECSteps.DecimalPlaces = 1;
+			this.numDECSteps.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+			this.numDECSteps.Location = new System.Drawing.Point(408, 215);
+			this.numDECSteps.Maximum = new decimal(new int[] {
+            9999,
+            0,
+            0,
+            0});
+			this.numDECSteps.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.numDECSteps.Name = "numDECSteps";
+			this.numDECSteps.Size = new System.Drawing.Size(60, 20);
+			this.numDECSteps.TabIndex = 43;
+			this.numDECSteps.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.numDECSteps.ValueChanged += new System.EventHandler(this.numUpDown_ValueChanged);
+			// 
+			// label17
+			// 
+			this.label17.Location = new System.Drawing.Point(304, 242);
+			this.label17.Name = "label17";
+			this.label17.Size = new System.Drawing.Size(98, 13);
+			this.label17.TabIndex = 46;
+			this.label17.Text = "Speed Factor";
+			this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// numSpeedFactor
+			// 
+			this.numSpeedFactor.DecimalPlaces = 4;
+			this.numSpeedFactor.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            262144});
+			this.numSpeedFactor.Location = new System.Drawing.Point(408, 240);
+			this.numSpeedFactor.Maximum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+			this.numSpeedFactor.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            65536});
+			this.numSpeedFactor.Name = "numSpeedFactor";
+			this.numSpeedFactor.Size = new System.Drawing.Size(60, 20);
+			this.numSpeedFactor.TabIndex = 45;
+			this.numSpeedFactor.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+			this.numSpeedFactor.ValueChanged += new System.EventHandler(this.numUpDown_ValueChanged);
+			// 
+			// label18
+			// 
+			this.label18.AutoSize = true;
+			this.label18.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label18.Location = new System.Drawing.Point(303, 12);
+			this.label18.Name = "label18";
+			this.label18.Size = new System.Drawing.Size(109, 13);
+			this.label18.TabIndex = 48;
+			this.label18.Text = "Mount Information";
+			// 
+			// label19
+			// 
+			this.label19.Location = new System.Drawing.Point(295, 39);
+			this.label19.Name = "label19";
+			this.label19.Size = new System.Drawing.Size(98, 13);
+			this.label19.TabIndex = 49;
+			this.label19.Text = "Firmware";
+			this.label19.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// label20
+			// 
+			this.label20.Location = new System.Drawing.Point(295, 59);
+			this.label20.Name = "label20";
+			this.label20.Size = new System.Drawing.Size(98, 13);
+			this.label20.TabIndex = 51;
+			this.label20.Text = "Controller Board";
+			this.label20.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// lblBoard
+			// 
+			this.lblBoard.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.lblBoard.Location = new System.Drawing.Point(399, 59);
+			this.lblBoard.Name = "lblBoard";
+			this.lblBoard.Size = new System.Drawing.Size(142, 17);
+			this.lblBoard.TabIndex = 50;
+			this.lblBoard.Text = "-";
+			this.lblBoard.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// label21
+			// 
+			this.label21.Location = new System.Drawing.Point(295, 79);
+			this.label21.Name = "label21";
+			this.label21.Size = new System.Drawing.Size(98, 13);
+			this.label21.TabIndex = 53;
+			this.label21.Text = "Display";
+			this.label21.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// lblDisplay
+			// 
+			this.lblDisplay.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.lblDisplay.Location = new System.Drawing.Point(399, 79);
+			this.lblDisplay.Name = "lblDisplay";
+			this.lblDisplay.Size = new System.Drawing.Size(142, 17);
+			this.lblDisplay.TabIndex = 52;
+			this.lblDisplay.Text = "-";
+			this.lblDisplay.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// label22
+			// 
+			this.label22.Location = new System.Drawing.Point(295, 99);
+			this.label22.Name = "label22";
+			this.label22.Size = new System.Drawing.Size(98, 13);
+			this.label22.TabIndex = 55;
+			this.label22.Text = "Add-Ons";
+			this.label22.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// lblAddons
+			// 
+			this.lblAddons.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.lblAddons.Location = new System.Drawing.Point(399, 99);
+			this.lblAddons.Name = "lblAddons";
+			this.lblAddons.Size = new System.Drawing.Size(142, 17);
+			this.lblAddons.TabIndex = 54;
+			this.lblAddons.Text = "-";
+			this.lblAddons.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// label24
+			// 
+			this.label24.Location = new System.Drawing.Point(290, 127);
+			this.label24.Name = "label24";
+			this.label24.Size = new System.Drawing.Size(103, 13);
+			this.label24.TabIndex = 57;
+			this.label24.Text = "Sidereal Time (LST)";
+			this.label24.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// lblLST
+			// 
+			this.lblLST.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.lblLST.Location = new System.Drawing.Point(399, 127);
+			this.lblLST.Name = "lblLST";
+			this.lblLST.Size = new System.Drawing.Size(142, 17);
+			this.lblLST.TabIndex = 56;
+			this.lblLST.Text = "-";
+			this.lblLST.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// btnOPenASCOMLogs
+			// 
+			this.btnOPenASCOMLogs.Location = new System.Drawing.Point(93, 316);
+			this.btnOPenASCOMLogs.Name = "btnOPenASCOMLogs";
+			this.btnOPenASCOMLogs.Size = new System.Drawing.Size(159, 26);
+			this.btnOPenASCOMLogs.TabIndex = 58;
+			this.btnOPenASCOMLogs.Text = "Open ASCOM Logs folder";
+			this.btnOPenASCOMLogs.Click += new System.EventHandler(this.btnOpenASCOMLogs_Click);
+			// 
+			// label23
+			// 
+			this.label23.AutoSize = true;
+			this.label23.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label23.Location = new System.Drawing.Point(303, 168);
+			this.label23.Name = "label23";
+			this.label23.Size = new System.Drawing.Size(117, 13);
+			this.label23.TabIndex = 59;
+			this.label23.Text = "Calibration Settings";
+			// 
+			// btnUpdate
+			// 
+			this.btnUpdate.Location = new System.Drawing.Point(391, 265);
+			this.btnUpdate.Name = "btnUpdate";
+			this.btnUpdate.Size = new System.Drawing.Size(78, 26);
+			this.btnUpdate.TabIndex = 60;
+			this.btnUpdate.Text = "Update OAT";
+			this.btnUpdate.Click += new System.EventHandler(this.btnUpdate_Click);
+			// 
+			// label25
+			// 
+			this.label25.AutoSize = true;
+			this.label25.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label25.Location = new System.Drawing.Point(507, 168);
+			this.label25.Name = "label25";
+			this.label25.Size = new System.Drawing.Size(82, 13);
+			this.label25.TabIndex = 61;
+			this.label25.Text = "Mount Status";
+			// 
+			// btnNorth
+			// 
+			this.btnNorth.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_090;
+			this.btnNorth.Location = new System.Drawing.Point(556, 189);
+			this.btnNorth.Name = "btnNorth";
+			this.btnNorth.Size = new System.Drawing.Size(32, 32);
+			this.btnNorth.TabIndex = 62;
+			this.btnNorth.Tag = "N";
+			this.toolTip1.SetToolTip(this.btnNorth, "Slew DEC North");
+			this.btnNorth.UseVisualStyleBackColor = true;
+			this.btnNorth.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseDown);
+			this.btnNorth.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseUp);
+			// 
+			// btnSouth
+			// 
+			this.btnSouth.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_270;
+			this.btnSouth.Location = new System.Drawing.Point(556, 259);
+			this.btnSouth.Name = "btnSouth";
+			this.btnSouth.Size = new System.Drawing.Size(32, 32);
+			this.btnSouth.TabIndex = 63;
+			this.btnSouth.Tag = "S";
+			this.toolTip1.SetToolTip(this.btnSouth, "Slew DEC South");
+			this.btnSouth.UseVisualStyleBackColor = true;
+			this.btnSouth.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseDown);
+			this.btnSouth.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseUp);
+			// 
+			// btnEast
+			// 
+			this.btnEast.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow;
+			this.btnEast.Location = new System.Drawing.Point(591, 224);
+			this.btnEast.Name = "btnEast";
+			this.btnEast.Size = new System.Drawing.Size(32, 32);
+			this.btnEast.TabIndex = 64;
+			this.btnEast.Tag = "E";
+			this.toolTip1.SetToolTip(this.btnEast, "Slew RA East");
+			this.btnEast.UseVisualStyleBackColor = true;
+			this.btnEast.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseDown);
+			this.btnEast.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseUp);
+			// 
+			// btnWest
+			// 
+			this.btnWest.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_180;
+			this.btnWest.Location = new System.Drawing.Point(521, 224);
+			this.btnWest.Name = "btnWest";
+			this.btnWest.Size = new System.Drawing.Size(32, 32);
+			this.btnWest.TabIndex = 65;
+			this.btnWest.Tag = "W";
+			this.toolTip1.SetToolTip(this.btnWest, "Slew RA West");
+			this.btnWest.UseVisualStyleBackColor = true;
+			this.btnWest.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseDown);
+			this.btnWest.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnManualSlew_MouseUp);
+			// 
+			// btnUnparkDEC
+			// 
+			this.btnUnparkDEC.Location = new System.Drawing.Point(591, 189);
+			this.btnUnparkDEC.Name = "btnUnparkDEC";
+			this.btnUnparkDEC.Size = new System.Drawing.Size(78, 26);
+			this.btnUnparkDEC.TabIndex = 66;
+			this.btnUnparkDEC.Text = "Unpark DEC";
+			this.toolTip1.SetToolTip(this.btnUnparkDEC, "Move DEC from Park to Home position");
+			this.btnUnparkDEC.Click += new System.EventHandler(this.btnUnparkDEC_Click);
+			// 
+			// btnParkDEC
+			// 
+			this.btnParkDEC.Location = new System.Drawing.Point(591, 265);
+			this.btnParkDEC.Name = "btnParkDEC";
+			this.btnParkDEC.Size = new System.Drawing.Size(78, 26);
+			this.btnParkDEC.TabIndex = 67;
+			this.btnParkDEC.Text = "Park DEC";
+			this.toolTip1.SetToolTip(this.btnParkDEC, "Move DEC from Home to Park position");
+			this.btnParkDEC.Click += new System.EventHandler(this.btnParkDEC_Click);
+			// 
+			// btnGoHome
+			// 
+			this.btnGoHome.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.home;
+			this.btnGoHome.Location = new System.Drawing.Point(556, 224);
+			this.btnGoHome.Name = "btnGoHome";
+			this.btnGoHome.Size = new System.Drawing.Size(32, 32);
+			this.btnGoHome.TabIndex = 68;
+			this.toolTip1.SetToolTip(this.btnGoHome, "Go Home");
+			this.btnGoHome.UseVisualStyleBackColor = true;
+			this.btnGoHome.Click += new System.EventHandler(this.btnGoHome_Click);
+			// 
+			// btnSetHome
+			// 
+			this.btnSetHome.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.sethome;
+			this.btnSetHome.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.btnSetHome.Location = new System.Drawing.Point(504, 265);
+			this.btnSetHome.Name = "btnSetHome";
+			this.btnSetHome.Size = new System.Drawing.Size(49, 26);
+			this.btnSetHome.TabIndex = 69;
+			this.btnSetHome.Text = "Set";
+			this.btnSetHome.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			this.toolTip1.SetToolTip(this.btnSetHome, "Set Home position");
+			this.btnSetHome.UseVisualStyleBackColor = true;
+			this.btnSetHome.Click += new System.EventHandler(this.btnSetHome_Click);
+			// 
 			// SetupDialogForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.Control;
-			this.ClientSize = new System.Drawing.Size(384, 361);
+			this.ClientSize = new System.Drawing.Size(684, 361);
+			this.Controls.Add(this.btnSetHome);
+			this.Controls.Add(this.btnGoHome);
+			this.Controls.Add(this.btnParkDEC);
+			this.Controls.Add(this.btnUnparkDEC);
+			this.Controls.Add(this.btnWest);
+			this.Controls.Add(this.btnEast);
+			this.Controls.Add(this.btnSouth);
+			this.Controls.Add(this.btnNorth);
+			this.Controls.Add(this.label25);
+			this.Controls.Add(this.btnUpdate);
+			this.Controls.Add(this.label17);
+			this.Controls.Add(this.label23);
+			this.Controls.Add(this.numRASteps);
+			this.Controls.Add(this.btnOPenASCOMLogs);
+			this.Controls.Add(this.numSpeedFactor);
+			this.Controls.Add(this.label15);
+			this.Controls.Add(this.label24);
+			this.Controls.Add(this.label16);
+			this.Controls.Add(this.lblLST);
+			this.Controls.Add(this.numDECSteps);
+			this.Controls.Add(this.label22);
+			this.Controls.Add(this.lblAddons);
+			this.Controls.Add(this.label21);
+			this.Controls.Add(this.lblDisplay);
+			this.Controls.Add(this.label20);
+			this.Controls.Add(this.lblBoard);
+			this.Controls.Add(this.label19);
+			this.Controls.Add(this.label18);
+			this.Controls.Add(this.lblFirmware);
+			this.Controls.Add(this.btnConnect);
 			this.Controls.Add(this.label14);
 			this.Controls.Add(this.label13);
 			this.Controls.Add(this.label12);
@@ -326,7 +756,7 @@ namespace ASCOM.OpenAstroTracker
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
-			this.MinimumSize = new System.Drawing.Size(400, 400);
+			this.MinimumSize = new System.Drawing.Size(700, 400);
 			this.Name = "SetupDialogForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -335,6 +765,9 @@ namespace ASCOM.OpenAstroTracker
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox1)).EndInit();
 			this.TableLayoutPanel1.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.numRASteps)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.numDECSteps)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.numSpeedFactor)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -367,5 +800,36 @@ namespace ASCOM.OpenAstroTracker
 		internal System.Windows.Forms.Label label12;
 		internal System.Windows.Forms.Label label13;
 		internal System.Windows.Forms.Label label14;
+		internal System.Windows.Forms.Button btnConnect;
+		internal System.Windows.Forms.Label lblFirmware;
+		private System.Windows.Forms.NumericUpDown numRASteps;
+		internal System.Windows.Forms.Label label15;
+		internal System.Windows.Forms.Label label16;
+		private System.Windows.Forms.NumericUpDown numDECSteps;
+		internal System.Windows.Forms.Label label17;
+		private System.Windows.Forms.NumericUpDown numSpeedFactor;
+		internal System.Windows.Forms.Label label18;
+		internal System.Windows.Forms.Label label19;
+		internal System.Windows.Forms.Label label20;
+		internal System.Windows.Forms.Label lblBoard;
+		internal System.Windows.Forms.Label label21;
+		internal System.Windows.Forms.Label lblDisplay;
+		internal System.Windows.Forms.Label label22;
+		internal System.Windows.Forms.Label lblAddons;
+		internal System.Windows.Forms.Label label24;
+		internal System.Windows.Forms.Label lblLST;
+		internal System.Windows.Forms.Button btnOPenASCOMLogs;
+		internal System.Windows.Forms.Label label23;
+		internal System.Windows.Forms.Button btnUpdate;
+		internal System.Windows.Forms.Label label25;
+		private System.Windows.Forms.Button btnNorth;
+		private System.Windows.Forms.Button btnSouth;
+		private System.Windows.Forms.Button btnEast;
+		private System.Windows.Forms.Button btnWest;
+		internal System.Windows.Forms.Button btnUnparkDEC;
+		internal System.Windows.Forms.Button btnParkDEC;
+		private System.Windows.Forms.Button btnGoHome;
+		private System.Windows.Forms.ToolTip toolTip1;
+		private System.Windows.Forms.Button btnSetHome;
 	}
 }

@@ -4,7 +4,6 @@ OpenAstroTracker-Desktop
 This repository holds the high-level software for the OAT. Currently the main components are:
 
 - **OATControl**   - a C#/WPF application for Windows that allows control of the OAT via serial or WiFi connection.
-- **OATCommTestConsole** - a C#/Console application for Windows that tests basic connectivity of the OAT via Serial connection.
 - **ASCOM.Driver** - a .NET ASCOM driver for the OAT. Installation file for use with InnoSetup Compiler included.
 
 There are also some low-level communications libraries that the above mentioned projects use.
@@ -16,6 +15,19 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**OATControl V1.0.2.4 - Updates**
+- Added support for Hall sensor based RA auto homing.
+
+**ASCOM.Driver V6.6.5.0 - Updates**
+- Added ability to connect to OAT from the driver properties and do rudimentary operations (slew, home, set home, adjust RA steps, DEC  steps and speed factor).
+
+**OATControl V1.0.2.3 - Updates**
+- Added support for focuser reset on Settings page.
+
+**OATControl V1.0.2.2 - Updates**
+- DEC Go Home command was requiring one firmware version too high. Fixed.
+- Focuser position was being queried incorrectly. Fixed.
+
 **ASCOM.Driver V6.6.3.0 - Updates**
 - Changed pass through command to correctly handle all Meade commands that OAT implements.
 

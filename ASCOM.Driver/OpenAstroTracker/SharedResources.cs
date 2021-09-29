@@ -161,9 +161,10 @@ namespace ASCOM.OpenAstroTracker
 		public static string SendMessage(string message)
 		{
 			string retVal = string.Empty;
+			tl.LogMessage("OAT Server", $"SendMessage({message}");
 			lock (lockObject)
 			{
-				tl.LogMessage("OAT Server", "Locked Serial");
+				tl.LogMessage("OAT Server", $"SendMessage - Locked Serial");
 
 				ExpectedAnswer expect = ExpectedAnswer.None;
 
@@ -189,41 +190,41 @@ namespace ASCOM.OpenAstroTracker
 
 				if (SharedSerial.Connected && !String.IsNullOrEmpty(message))
 				{
-					tl.LogMessage("OAT Server", "Send message (expected reply : " + expect.ToString() + ") : " + message);
+					tl.LogMessage("OAT Server", "SendMessage - Expected reply : " + expect.ToString() + ") : " + message);
 					SharedSerial.ClearBuffers();
 					SharedSerial.Transmit(message);
 					switch (expect)
 					{
 						case ExpectedAnswer.Digit:
-							tl.LogMessage("OAT Server", "Wait for number reply");
+							tl.LogMessage("OAT Server", "SendMessage - Wait for number reply");
 							retVal = SharedSerial.ReceiveCounted(1);
 							break;
 						case ExpectedAnswer.HashTerminated:
-							tl.LogMessage("OAT Server", "Wait for string reply");
+							tl.LogMessage("OAT Server", "SendMessage - Wait for string reply");
 							retVal = SharedSerial.ReceiveTerminated("#");
-							tl.LogMessage("OAT Server", "Raw reply :" + retVal);
+							tl.LogMessage("OAT Server", "SendMessage - Raw reply :" + retVal);
 							retVal = retVal.TrimEnd('#');
 							break;
 						case ExpectedAnswer.DoubleHashTerminated:
-							tl.LogMessage("OAT Server", "Wait for two replies. Wait for 1st string reply");
+							tl.LogMessage("OAT Server", "SendMessage - Wait for two replies. Wait for 1st string reply");
 							retVal = SharedSerial.ReceiveTerminated("#");
-							tl.LogMessage("OAT Server", "First Raw reply :" + retVal);
+							tl.LogMessage("OAT Server", "SendMessage - First Raw reply :" + retVal);
 							retVal = retVal.TrimEnd('#');
-							tl.LogMessage("OAT Server", "Wait for 2nd string reply");
+							tl.LogMessage("OAT Server", "SendMessage - Wait for 2nd string reply");
 							retVal = SharedSerial.ReceiveTerminated("#");
-							tl.LogMessage("OAT Server", "Second Raw reply :" + retVal);
+							tl.LogMessage("OAT Server", "SendMessage - Second Raw reply :" + retVal);
 							break;
 					}
 
-					tl.LogMessage("OAT Server", "Reply: " + retVal);
+					tl.LogMessage("OAT Server", "SendMessage - Reply: " + retVal);
 				}
 				else
 				{
-					tl.LogMessage("OAT Server", "Not connected or Empty Message: " + message);
+					tl.LogMessage("OAT Server", "SendMessage - Not connected or Empty Message: " + message);
 				}
 			}
 
-			tl.LogMessage("OAT Server", "Unlocked Serial");
+			tl.LogMessage("OAT Server", "SendMessage - Unlocked Serial");
 			return retVal;
 		}
 
@@ -245,67 +246,79 @@ namespace ASCOM.OpenAstroTracker
 		{
 			set
 			{
+				tl.LogMessage("OAT Server", $"Connected Set({value})");
 				lock (lockObject)
 				{
+					tl.LogMessage("OAT Server", $"Connected Set - {value}");
 					if (value)
 					{
 						if (Connections == 0)
 						{
+							tl.LogMessage("OAT Server", "Connected Set - No connections active");
 							try
 							{
 								SharedSerial.DTREnable = false;
 								SharedSerial.PortName = ReadProfile().ComPort;
 								SharedSerial.ReceiveTimeoutMs = 2000;
 								SharedSerial.Speed = (SerialSpeed)ReadProfile().BaudRate;
+
+								tl.LogMessage("OAT Server", $"Connected Set - Attempting to connect {SharedSerial.PortName}@{SharedSerial.Speed}");
 								SharedSerial.Connected = true;
 
 								Thread.Sleep(1000);
+								tl.LogMessage("OAT Server", "Connected Set - Connection seems to have succeeded.");
+
 								SharedSerial.Transmit(":I#");
 							}
 							catch (System.IO.IOException exception)
 							{
 								MessageBox.Show("Serial port not opened for " + SharedResources.SharedSerial.PortName,
 									"Invalid port state", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								SharedResources.tl.LogMessage("Serial port not opened", exception.Message);
+								tl.LogMessage("OAT Server", "Connected Set - Serial port not opened: " + exception.Message);
 							}
 							catch (System.UnauthorizedAccessException exception)
 							{
 								MessageBox.Show("Access denied to serial port " + SharedResources.SharedSerial.PortName,
 									"Access denied", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								SharedResources.tl.LogMessage("Access denied to serial port", exception.Message);
+								tl.LogMessage("OAT Server", "Connected Set - Access denied to serial port: " + exception.Message);
 							}
 							catch (ASCOM.DriverAccessCOMException exception)
 							{
 								MessageBox.Show("ASCOM driver exception: " + exception.Message,
 									"ASCOM driver exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+								tl.LogMessage("OAT Server", "Connected Set - Driver Access failure: " + exception.Message);
 							}
 							catch (System.Runtime.InteropServices.COMException exception)
 							{
 								MessageBox.Show(
 									"Serial port read timeout for port " + SharedResources.SharedSerial.PortName,
 									"Timeout", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								SharedResources.tl.LogMessage("Serial port read timeout", exception.Message);
+								tl.LogMessage("OAT Server", "Connected Set - Serial port COM Exception: " + exception.Message);
 							}
+						}
+						else
+						{
+							tl.LogMessage("OAT Server", $"Connected Set - Already connected with {Connections} connections active");
 						}
 
 						Connections++;
-						tl.LogMessage("Connected Set", $"{value} - Connection Count is {Connections} Clients");
+						tl.LogMessage("OAT Server", $"Connected Set - Connection Count is {Connections} clients");
 					}
 					else
 					{
 						Connections--;
-						tl.LogMessage("Connected Set", $"{value} - Connection Count is {Connections} Clients");
+						tl.LogMessage("OAT Server", $"Connected Set - Connection Count is {Connections} clients");
 						if (Connections <= 0)
 						{
 							Connections = 0;
-							tl.LogMessage("Connection Set",
-								$"Connection Count is {Connections} Disconnecting From Device");
+							tl.LogMessage("OAT Server", "Connected Set - No Connections remain, soDisconnecting From Device");
 							SharedSerial.Transmit(":Qq#");
 							SharedSerial.Connected = false;
 						}
 					}
 				}
 			}
+
 			get => SharedSerial.Connected;
 		}
 

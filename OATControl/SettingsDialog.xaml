@@ -90,15 +90,6 @@
 		<TextBlock Grid.Row="0" Grid.Column="0" Text="Firmware:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
 		<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ScopeVersion}" Margin="0,12,0,2"  Style="{StaticResource TextBlockLabelValue}"/>
 
-		<StackPanel Grid.Row ="0" Grid.Column="3" Orientation="Vertical">
-			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Set DEC Home offset from power on position" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.16 or later)" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
-		</StackPanel>
-
-		<Button Grid.Row ="0" Grid.Column="4" Margin="8,12,8,4" Padding="15,0" Content="Set Home" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetDECHomeOffsetFromPowerOn}" ToolTip="Requires firwmare V1.9.16 or later." />
-		<TextBlock Grid.Row ="1" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move to DEC Home after power on" ToolTip="If the DEC axis is currently in the Power on position and a Home offset was set, use this to move it to the Home position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<Button Grid.Row ="1" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Go Home" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding GotoDECHomeFromPowerOn}"  ToolTip="Requires firwmare V1.9.16 or later."/>
-
 		<TextBlock Grid.Row="1" Grid.Column="0" Text="Controller Board:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
 		<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeBoard}"  Style="{StaticResource TextBlockLabelValue}" />
 
@@ -110,10 +101,7 @@
 
 		<TextBlock Grid.Row="4" Grid.Column="0" Text="RA Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
 		<TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ScopeRAStepper}"  Style="{StaticResource TextBlockLabelValue}" />
-		<TextBlock Grid.Row ="4" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Reset the EEPROM on the OAT to its defaults" ToolTip="If you change firmware parameters and reflash the mount, we strongly suggest clearing the EEPROM of any stored configuration." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-
-		<Button Grid.Row="4" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding FactoryResetCommand}"/>
-
+		
 		<TextBlock Grid.Row="5" Grid.Column="0" Text="RA Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}"/>
 		<Grid Grid.Row="5" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" >
 			<Grid.ColumnDefinitions>
@@ -132,8 +120,6 @@
 			<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeRASlewMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="4,0"/>
 			<TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ScopeRATrackMS}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,0"/>
 		</Grid>
-		<TextBlock Grid.Row ="5" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Open the OATControl logfile folder" ToolTip="OATControl keeps logfiles from the last 6 sessions around in case you need to check something or the devs ask for them to debug a issue yopu might have." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<Button Grid.Row="5" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Left" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 
 		<TextBlock Grid.Row="6" Grid.Column="0" Text="DEC Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"  />
 		<TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding ScopeDECStepper}"  Style="{StaticResource TextBlockLabelValue}"  />
@@ -225,6 +211,7 @@
 		<TextBlock Grid.Row="13" Grid.Column="0" Text="Local Sidereal Time:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,2.62"/>
 		<TextBlock Grid.Row="13" Grid.Column="1" Text="{Binding ScopeSiderealTime}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,4.62"/>
 
+
 		<TextBlock Grid.Row="14" Grid.Column="0" Text="Polaris HA:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,1,2.62"/>
 		<TextBlock Grid.Row="14" Grid.Column="1" Text="{Binding ScopePolarisHourAngle}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,4.62"/>
 
@@ -239,6 +226,42 @@
 
 		<TextBlock Grid.Row="18" Grid.Column="0" Text="SSID:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,2.38,1,1.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
 		<TextBlock Grid.Row="18" Grid.Column="1" Text="{Binding ScopeNetworkSSID}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,4.38,0,3.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
+
+		<StackPanel Grid.Row ="0" Grid.Column="3" Orientation="Vertical">
+			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Set DEC Home offset from power on position" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.16 or later)" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+		</StackPanel>
+		<Button Grid.Row ="0" Grid.Column="4" Margin="8,12,8,4" Padding="15,0" Content="Set DEC Home Offset " HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetDECHomeOffsetFromPowerOnCommand}" ToolTip="Requires firwmare V1.9.16 or later." />
+
+		<StackPanel Grid.Row ="1" Grid.Column="3" Orientation="Vertical">
+			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Set RA Home offset center of Hall sensor range"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.16 or later)" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+		</StackPanel>
+		<Button Grid.Row ="1" Grid.Column="4" Margin="8,12,8,4" Padding="15,0" Content="Set RA Home Offset " HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetRAHomeOffsetCommand}" ToolTip="Requires firwmare V1.9.21 or later and Hall Sensor Add-on." />
+
+		<StackPanel Grid.Row ="4" Grid.Column="3" Orientation="Vertical">
+			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Auto-center RA ring (Hall sensor)" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.21 or later and Hall Sensor Add-on)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+		</StackPanel>
+		<Button Grid.Row="4" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Auto-Home RA" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding AutoHomeRACommand}"/>
+
+		<TextBlock Grid.Row ="5" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move to DEC Home after power on" ToolTip="If the DEC axis is currently in the Power on position and a Home offset was set, use this to move it to the Home position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row ="5" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Unpark DEC" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding GotoDECHomeFromPowerOnCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
+
+		<TextBlock Grid.Row ="6" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move DEC to park before power off" ToolTip="If the DEC axis is currently in the Home position and a Home offset was set, use this to move it to the Park position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row ="6" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Park DEC" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding GotoDECParkBeforePowerOffCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
+
+		<StackPanel Grid.Row="7" Grid.Column="3" Orientation="Vertical">
+			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Reset Focuser position" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.19 or later)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+		</StackPanel>
+		<Button Grid.Row="7" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Reset Focuser" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding FocuserResetCommand}"/>
+
+		<TextBlock Grid.Row ="13" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Reset the EEPROM on the OAT to its defaults" ToolTip="If you change firmware parameters and reflash the mount, we strongly suggest clearing the EEPROM of any stored configuration." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row="13" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding FactoryResetCommand}"/>
+
+		<TextBlock Grid.Row ="14" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Open the OATControl logfile folder" ToolTip="OATControl keeps logfiles from the last 6 sessions around in case you need to check something or the devs ask for them to debug a issue yopu might have." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row="14" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 
 		<StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
 			<Button Margin="16,8" Padding="20,0" Content="Close" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" IsCancel="True"/>
