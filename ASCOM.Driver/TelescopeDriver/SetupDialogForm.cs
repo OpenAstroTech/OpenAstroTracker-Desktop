@@ -251,6 +251,11 @@ namespace ASCOM.OpenAstroTracker
 				{
 					this._oat.Connected = true;
 					string fwVersion = this._oat.Action("Serial:PassThroughCommand", ":GVN#,#");
+					if (string.IsNullOrEmpty(fwVersion))
+					{
+						MessageBox.Show("Unable to communicate with OAT, even though it says we're connected. Exit the app and use Task Manager to kill the ASCOM.OpenAstroTracker process. Then try again.");
+						return;
+					}
 					lblFirmware.Text = fwVersion;
 					string hardware = this._oat.Action("Serial:PassThroughCommand", ":XGM#,#");
 					var hwParts = hardware.Split(',');
@@ -349,6 +354,8 @@ namespace ASCOM.OpenAstroTracker
 					_profile.Latitude = latitude;
 
 					btnConnect.Text = "Disconnect";
+					btnUpdate.Enabled = false;
+					rdoRateFour.Checked = true;
 				}
 				catch (Exception ex)
 				{
@@ -470,6 +477,40 @@ namespace ASCOM.OpenAstroTracker
 		private void btnSetHome_Click(object sender, EventArgs e)
 		{
 			this._oat.Action("Serial:PassThroughCommand", ":SHP#,n");
+		}
+
+		private void btnFocus_MouseDown(object sender, MouseEventArgs e)
+		{
+			if (sender == btnFocusIn)
+			{
+
+			}
+		}
+
+		private void btnFocus_MouseUp(object sender, MouseEventArgs e)
+		{
+
+		}
+
+		private void rdoRates_CheckedChanged(object sender, EventArgs e)
+		{
+			if (sender == rdoRateFour)
+			{
+
+			}
+		}
+
+		private void btnAltAz_MouseDown(object sender, MouseEventArgs e)
+		{
+			if (sender == btnFocusIn)
+			{
+
+			}
+		}
+
+		private void btnAltAz_MouseUp(object sender, MouseEventArgs e)
+		{
+
 		}
 	}
 }
