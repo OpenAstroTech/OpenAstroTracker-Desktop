@@ -115,7 +115,7 @@ namespace ASCOM.OpenAstroTracker
 			// Label5
 			// 
 			this.Label5.AutoSize = true;
-			this.Label5.Location = new System.Drawing.Point(17, 214);
+			this.Label5.Location = new System.Drawing.Point(17, 219);
 			this.Label5.Name = "Label5";
 			this.Label5.Size = new System.Drawing.Size(72, 13);
 			this.Label5.TabIndex = 28;
@@ -123,7 +123,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// txtElevation
 			// 
-			this.txtElevation.Location = new System.Drawing.Point(94, 211);
+			this.txtElevation.Location = new System.Drawing.Point(94, 216);
 			this.txtElevation.Name = "txtElevation";
 			this.txtElevation.Size = new System.Drawing.Size(84, 20);
 			this.txtElevation.TabIndex = 27;
@@ -131,7 +131,7 @@ namespace ASCOM.OpenAstroTracker
 			// Label4
 			// 
 			this.Label4.AutoSize = true;
-			this.Label4.Location = new System.Drawing.Point(23, 162);
+			this.Label4.Location = new System.Drawing.Point(23, 167);
 			this.Label4.Name = "Label4";
 			this.Label4.Size = new System.Drawing.Size(66, 13);
 			this.Label4.TabIndex = 26;
@@ -140,7 +140,7 @@ namespace ASCOM.OpenAstroTracker
 			// Label3
 			// 
 			this.Label3.AutoSize = true;
-			this.Label3.Location = new System.Drawing.Point(14, 188);
+			this.Label3.Location = new System.Drawing.Point(14, 193);
 			this.Label3.Name = "Label3";
 			this.Label3.Size = new System.Drawing.Size(75, 13);
 			this.Label3.TabIndex = 25;
@@ -148,22 +148,23 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// txtLong
 			// 
-			this.txtLong.Location = new System.Drawing.Point(94, 185);
+			this.txtLong.Location = new System.Drawing.Point(94, 190);
 			this.txtLong.Name = "txtLong";
 			this.txtLong.Size = new System.Drawing.Size(84, 20);
 			this.txtLong.TabIndex = 24;
 			// 
 			// txtLat
 			// 
-			this.txtLat.Location = new System.Drawing.Point(94, 159);
+			this.txtLat.Location = new System.Drawing.Point(94, 164);
 			this.txtLat.Name = "txtLat";
 			this.txtLat.Size = new System.Drawing.Size(84, 20);
 			this.txtLat.TabIndex = 23;
 			// 
 			// Label2
 			// 
+			this.Label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.Label2.AutoSize = true;
-			this.Label2.Location = new System.Drawing.Point(257, 314);
+			this.Label2.Location = new System.Drawing.Point(257, 379);
 			this.Label2.Name = "Label2";
 			this.Label2.Size = new System.Drawing.Size(153, 13);
 			this.Label2.TabIndex = 22;
@@ -180,8 +181,9 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// chkTrace
 			// 
+			this.chkTrace.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.chkTrace.AutoSize = true;
-			this.chkTrace.Location = new System.Drawing.Point(236, 314);
+			this.chkTrace.Location = new System.Drawing.Point(236, 379);
 			this.chkTrace.Name = "chkTrace";
 			this.chkTrace.Size = new System.Drawing.Size(15, 14);
 			this.chkTrace.TabIndex = 20;
@@ -189,9 +191,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// PictureBox1
 			// 
+			this.PictureBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.PictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.PictureBox1.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.ASCOM;
-			this.PictureBox1.Location = new System.Drawing.Point(174, 311);
+			this.PictureBox1.Location = new System.Drawing.Point(174, 376);
 			this.PictureBox1.Name = "PictureBox1";
 			this.PictureBox1.Size = new System.Drawing.Size(48, 56);
 			this.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -216,7 +219,7 @@ namespace ASCOM.OpenAstroTracker
 			this.TableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
 			this.TableLayoutPanel1.Controls.Add(this.OK_Button, 0, 0);
 			this.TableLayoutPanel1.Controls.Add(this.Cancel_Button, 1, 0);
-			this.TableLayoutPanel1.Location = new System.Drawing.Point(731, 355);
+			this.TableLayoutPanel1.Location = new System.Drawing.Point(626, 415);
 			this.TableLayoutPanel1.Name = "TableLayoutPanel1";
 			this.TableLayoutPanel1.RowCount = 1;
 			this.TableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -247,9 +250,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// pictureBox2
 			// 
+			this.pictureBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.pictureBox2.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.pictureBox2.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.OATAscom;
-			this.pictureBox2.Location = new System.Drawing.Point(12, 251);
+			this.pictureBox2.Location = new System.Drawing.Point(12, 316);
 			this.pictureBox2.Name = "pictureBox2";
 			this.pictureBox2.Size = new System.Drawing.Size(140, 128);
 			this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -306,7 +310,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			this.label10.AutoSize = true;
 			this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label10.Location = new System.Drawing.Point(10, 139);
+			this.label10.Location = new System.Drawing.Point(10, 144);
 			this.label10.Name = "label10";
 			this.label10.Size = new System.Drawing.Size(70, 13);
 			this.label10.TabIndex = 35;
@@ -315,7 +319,7 @@ namespace ASCOM.OpenAstroTracker
 			// label11
 			// 
 			this.label11.AutoSize = true;
-			this.label11.Location = new System.Drawing.Point(182, 214);
+			this.label11.Location = new System.Drawing.Point(182, 219);
 			this.label11.Name = "label11";
 			this.label11.Size = new System.Drawing.Size(38, 13);
 			this.label11.TabIndex = 36;
@@ -324,7 +328,7 @@ namespace ASCOM.OpenAstroTracker
 			// label12
 			// 
 			this.label12.AutoSize = true;
-			this.label12.Location = new System.Drawing.Point(182, 162);
+			this.label12.Location = new System.Drawing.Point(182, 167);
 			this.label12.Name = "label12";
 			this.label12.Size = new System.Drawing.Size(45, 13);
 			this.label12.TabIndex = 37;
@@ -333,7 +337,7 @@ namespace ASCOM.OpenAstroTracker
 			// label13
 			// 
 			this.label13.AutoSize = true;
-			this.label13.Location = new System.Drawing.Point(182, 188);
+			this.label13.Location = new System.Drawing.Point(182, 193);
 			this.label13.Name = "label13";
 			this.label13.Size = new System.Drawing.Size(45, 13);
 			this.label13.TabIndex = 38;
@@ -341,9 +345,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label14
 			// 
+			this.label14.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.label14.AutoSize = true;
 			this.label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label14.Location = new System.Drawing.Point(171, 295);
+			this.label14.Location = new System.Drawing.Point(171, 360);
 			this.label14.Name = "label14";
 			this.label14.Size = new System.Drawing.Size(68, 13);
 			this.label14.TabIndex = 39;
@@ -360,10 +365,12 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblFirmware
 			// 
+			this.lblFirmware.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblFirmware.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.lblFirmware.Location = new System.Drawing.Point(399, 33);
 			this.lblFirmware.Name = "lblFirmware";
-			this.lblFirmware.Size = new System.Drawing.Size(142, 17);
+			this.lblFirmware.Size = new System.Drawing.Size(161, 17);
 			this.lblFirmware.TabIndex = 37;
 			this.lblFirmware.Text = "-";
 			this.lblFirmware.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -376,7 +383,7 @@ namespace ASCOM.OpenAstroTracker
             0,
             0,
             65536});
-			this.numRASteps.Location = new System.Drawing.Point(400, 182);
+			this.numRASteps.Location = new System.Drawing.Point(400, 223);
 			this.numRASteps.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -399,7 +406,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label15
 			// 
-			this.label15.Location = new System.Drawing.Point(296, 184);
+			this.label15.Location = new System.Drawing.Point(296, 225);
 			this.label15.Name = "label15";
 			this.label15.Size = new System.Drawing.Size(98, 13);
 			this.label15.TabIndex = 42;
@@ -408,7 +415,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label16
 			// 
-			this.label16.Location = new System.Drawing.Point(296, 209);
+			this.label16.Location = new System.Drawing.Point(296, 250);
 			this.label16.Name = "label16";
 			this.label16.Size = new System.Drawing.Size(98, 13);
 			this.label16.TabIndex = 44;
@@ -423,7 +430,7 @@ namespace ASCOM.OpenAstroTracker
             0,
             0,
             65536});
-			this.numDECSteps.Location = new System.Drawing.Point(400, 207);
+			this.numDECSteps.Location = new System.Drawing.Point(400, 248);
 			this.numDECSteps.Maximum = new decimal(new int[] {
             9999,
             0,
@@ -446,7 +453,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label17
 			// 
-			this.label17.Location = new System.Drawing.Point(296, 234);
+			this.label17.Location = new System.Drawing.Point(296, 275);
 			this.label17.Name = "label17";
 			this.label17.Size = new System.Drawing.Size(98, 13);
 			this.label17.TabIndex = 46;
@@ -461,7 +468,7 @@ namespace ASCOM.OpenAstroTracker
             0,
             0,
             262144});
-			this.numSpeedFactor.Location = new System.Drawing.Point(400, 232);
+			this.numSpeedFactor.Location = new System.Drawing.Point(400, 273);
 			this.numSpeedFactor.Maximum = new decimal(new int[] {
             2,
             0,
@@ -512,10 +519,12 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblBoard
 			// 
+			this.lblBoard.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblBoard.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.lblBoard.Location = new System.Drawing.Point(399, 53);
 			this.lblBoard.Name = "lblBoard";
-			this.lblBoard.Size = new System.Drawing.Size(142, 17);
+			this.lblBoard.Size = new System.Drawing.Size(161, 17);
 			this.lblBoard.TabIndex = 50;
 			this.lblBoard.Text = "-";
 			this.lblBoard.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -531,10 +540,12 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblDisplay
 			// 
+			this.lblDisplay.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblDisplay.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.lblDisplay.Location = new System.Drawing.Point(399, 73);
 			this.lblDisplay.Name = "lblDisplay";
-			this.lblDisplay.Size = new System.Drawing.Size(142, 17);
+			this.lblDisplay.Size = new System.Drawing.Size(161, 17);
 			this.lblDisplay.TabIndex = 52;
 			this.lblDisplay.Text = "-";
 			this.lblDisplay.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -550,17 +561,19 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblAddons
 			// 
+			this.lblAddons.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblAddons.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.lblAddons.Location = new System.Drawing.Point(399, 93);
 			this.lblAddons.Name = "lblAddons";
-			this.lblAddons.Size = new System.Drawing.Size(142, 17);
+			this.lblAddons.Size = new System.Drawing.Size(161, 59);
 			this.lblAddons.TabIndex = 54;
 			this.lblAddons.Text = "-";
 			this.lblAddons.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// label24
 			// 
-			this.label24.Location = new System.Drawing.Point(290, 116);
+			this.label24.Location = new System.Drawing.Point(290, 162);
 			this.label24.Name = "label24";
 			this.label24.Size = new System.Drawing.Size(103, 13);
 			this.label24.TabIndex = 57;
@@ -569,17 +582,20 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblLST
 			// 
+			this.lblLST.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblLST.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-			this.lblLST.Location = new System.Drawing.Point(399, 116);
+			this.lblLST.Location = new System.Drawing.Point(399, 162);
 			this.lblLST.Name = "lblLST";
-			this.lblLST.Size = new System.Drawing.Size(142, 17);
+			this.lblLST.Size = new System.Drawing.Size(161, 17);
 			this.lblLST.TabIndex = 56;
 			this.lblLST.Text = "-";
 			this.lblLST.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// btnOPenASCOMLogs
 			// 
-			this.btnOPenASCOMLogs.Location = new System.Drawing.Point(235, 342);
+			this.btnOPenASCOMLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.btnOPenASCOMLogs.Location = new System.Drawing.Point(235, 407);
 			this.btnOPenASCOMLogs.Name = "btnOPenASCOMLogs";
 			this.btnOPenASCOMLogs.Size = new System.Drawing.Size(159, 26);
 			this.btnOPenASCOMLogs.TabIndex = 58;
@@ -590,7 +606,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			this.label23.AutoSize = true;
 			this.label23.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label23.Location = new System.Drawing.Point(295, 160);
+			this.label23.Location = new System.Drawing.Point(295, 201);
 			this.label23.Name = "label23";
 			this.label23.Size = new System.Drawing.Size(117, 13);
 			this.label23.TabIndex = 59;
@@ -598,7 +614,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnUpdate
 			// 
-			this.btnUpdate.Location = new System.Drawing.Point(383, 258);
+			this.btnUpdate.Location = new System.Drawing.Point(383, 299);
 			this.btnUpdate.Name = "btnUpdate";
 			this.btnUpdate.Size = new System.Drawing.Size(78, 26);
 			this.btnUpdate.TabIndex = 60;
@@ -607,9 +623,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label25
 			// 
+			this.label25.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label25.AutoSize = true;
 			this.label25.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label25.Location = new System.Drawing.Point(584, 10);
+			this.label25.Location = new System.Drawing.Point(597, 10);
 			this.label25.Name = "label25";
 			this.label25.Size = new System.Drawing.Size(99, 13);
 			this.label25.TabIndex = 61;
@@ -617,10 +634,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnNorth
 			// 
+			this.btnNorth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnNorth.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_090;
-			this.btnNorth.Location = new System.Drawing.Point(613, 31);
+			this.btnNorth.Location = new System.Drawing.Point(625, 31);
 			this.btnNorth.Name = "btnNorth";
-			this.btnNorth.Size = new System.Drawing.Size(32, 32);
+			this.btnNorth.Size = new System.Drawing.Size(58, 50);
 			this.btnNorth.TabIndex = 62;
 			this.btnNorth.Tag = "N";
 			this.toolTip1.SetToolTip(this.btnNorth, "Slew DEC North");
@@ -630,10 +648,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnSouth
 			// 
+			this.btnSouth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnSouth.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_270;
-			this.btnSouth.Location = new System.Drawing.Point(613, 102);
+			this.btnSouth.Location = new System.Drawing.Point(625, 129);
 			this.btnSouth.Name = "btnSouth";
-			this.btnSouth.Size = new System.Drawing.Size(32, 32);
+			this.btnSouth.Size = new System.Drawing.Size(58, 50);
 			this.btnSouth.TabIndex = 63;
 			this.btnSouth.Tag = "S";
 			this.toolTip1.SetToolTip(this.btnSouth, "Slew DEC South");
@@ -643,10 +662,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnEast
 			// 
+			this.btnEast.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnEast.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow;
-			this.btnEast.Location = new System.Drawing.Point(648, 67);
+			this.btnEast.Location = new System.Drawing.Point(682, 80);
 			this.btnEast.Name = "btnEast";
-			this.btnEast.Size = new System.Drawing.Size(32, 32);
+			this.btnEast.Size = new System.Drawing.Size(58, 50);
 			this.btnEast.TabIndex = 64;
 			this.btnEast.Tag = "E";
 			this.toolTip1.SetToolTip(this.btnEast, "Slew RA East");
@@ -656,10 +676,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnWest
 			// 
+			this.btnWest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnWest.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_180;
-			this.btnWest.Location = new System.Drawing.Point(578, 67);
+			this.btnWest.Location = new System.Drawing.Point(568, 80);
 			this.btnWest.Name = "btnWest";
-			this.btnWest.Size = new System.Drawing.Size(32, 32);
+			this.btnWest.Size = new System.Drawing.Size(58, 50);
 			this.btnWest.TabIndex = 65;
 			this.btnWest.Tag = "W";
 			this.toolTip1.SetToolTip(this.btnWest, "Slew RA West");
@@ -669,7 +690,8 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnUnparkDEC
 			// 
-			this.btnUnparkDEC.Location = new System.Drawing.Point(648, 31);
+			this.btnUnparkDEC.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnUnparkDEC.Location = new System.Drawing.Point(690, 33);
 			this.btnUnparkDEC.Name = "btnUnparkDEC";
 			this.btnUnparkDEC.Size = new System.Drawing.Size(78, 26);
 			this.btnUnparkDEC.TabIndex = 66;
@@ -679,7 +701,8 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnParkDEC
 			// 
-			this.btnParkDEC.Location = new System.Drawing.Point(648, 108);
+			this.btnParkDEC.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnParkDEC.Location = new System.Drawing.Point(691, 153);
 			this.btnParkDEC.Name = "btnParkDEC";
 			this.btnParkDEC.Size = new System.Drawing.Size(78, 26);
 			this.btnParkDEC.TabIndex = 67;
@@ -689,8 +712,9 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnGoHome
 			// 
+			this.btnGoHome.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnGoHome.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.home;
-			this.btnGoHome.Location = new System.Drawing.Point(613, 67);
+			this.btnGoHome.Location = new System.Drawing.Point(638, 89);
 			this.btnGoHome.Name = "btnGoHome";
 			this.btnGoHome.Size = new System.Drawing.Size(32, 32);
 			this.btnGoHome.TabIndex = 68;
@@ -700,9 +724,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnSetHome
 			// 
+			this.btnSetHome.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnSetHome.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.sethome;
 			this.btnSetHome.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.btnSetHome.Location = new System.Drawing.Point(561, 108);
+			this.btnSetHome.Location = new System.Drawing.Point(568, 153);
 			this.btnSetHome.Name = "btnSetHome";
 			this.btnSetHome.Size = new System.Drawing.Size(49, 26);
 			this.btnSetHome.TabIndex = 69;
@@ -714,10 +739,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnAzLeft
 			// 
+			this.btnAzLeft.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnAzLeft.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_180;
-			this.btnAzLeft.Location = new System.Drawing.Point(578, 199);
+			this.btnAzLeft.Location = new System.Drawing.Point(546, 308);
 			this.btnAzLeft.Name = "btnAzLeft";
-			this.btnAzLeft.Size = new System.Drawing.Size(32, 32);
+			this.btnAzLeft.Size = new System.Drawing.Size(40, 40);
 			this.btnAzLeft.TabIndex = 74;
 			this.btnAzLeft.Tag = "W";
 			this.toolTip1.SetToolTip(this.btnAzLeft, "Slew RA West");
@@ -727,10 +753,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnAzRight
 			// 
+			this.btnAzRight.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnAzRight.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow;
-			this.btnAzRight.Location = new System.Drawing.Point(648, 199);
+			this.btnAzRight.Location = new System.Drawing.Point(626, 308);
 			this.btnAzRight.Name = "btnAzRight";
-			this.btnAzRight.Size = new System.Drawing.Size(32, 32);
+			this.btnAzRight.Size = new System.Drawing.Size(40, 40);
 			this.btnAzRight.TabIndex = 73;
 			this.btnAzRight.Tag = "E";
 			this.toolTip1.SetToolTip(this.btnAzRight, "Slew RA East");
@@ -740,10 +767,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnAltDown
 			// 
+			this.btnAltDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnAltDown.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_270;
-			this.btnAltDown.Location = new System.Drawing.Point(613, 215);
+			this.btnAltDown.Location = new System.Drawing.Point(586, 329);
 			this.btnAltDown.Name = "btnAltDown";
-			this.btnAltDown.Size = new System.Drawing.Size(32, 32);
+			this.btnAltDown.Size = new System.Drawing.Size(40, 40);
 			this.btnAltDown.TabIndex = 72;
 			this.btnAltDown.Tag = "S";
 			this.toolTip1.SetToolTip(this.btnAltDown, "Slew DEC South");
@@ -753,10 +781,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnAltUp
 			// 
+			this.btnAltUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnAltUp.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_090;
-			this.btnAltUp.Location = new System.Drawing.Point(613, 180);
+			this.btnAltUp.Location = new System.Drawing.Point(586, 289);
 			this.btnAltUp.Name = "btnAltUp";
-			this.btnAltUp.Size = new System.Drawing.Size(32, 32);
+			this.btnAltUp.Size = new System.Drawing.Size(40, 40);
 			this.btnAltUp.TabIndex = 71;
 			this.btnAltUp.Tag = "N";
 			this.toolTip1.SetToolTip(this.btnAltUp, "Slew DEC North");
@@ -766,10 +795,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnFocusOut
 			// 
+			this.btnFocusOut.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnFocusOut.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_270;
-			this.btnFocusOut.Location = new System.Drawing.Point(776, 215);
+			this.btnFocusOut.Location = new System.Drawing.Point(701, 329);
 			this.btnFocusOut.Name = "btnFocusOut";
-			this.btnFocusOut.Size = new System.Drawing.Size(32, 32);
+			this.btnFocusOut.Size = new System.Drawing.Size(40, 40);
 			this.btnFocusOut.TabIndex = 78;
 			this.btnFocusOut.Tag = "S";
 			this.toolTip1.SetToolTip(this.btnFocusOut, "Slew DEC South");
@@ -779,10 +809,11 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// btnFocusIn
 			// 
+			this.btnFocusIn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnFocusIn.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow_090;
-			this.btnFocusIn.Location = new System.Drawing.Point(776, 180);
+			this.btnFocusIn.Location = new System.Drawing.Point(701, 289);
 			this.btnFocusIn.Name = "btnFocusIn";
-			this.btnFocusIn.Size = new System.Drawing.Size(32, 32);
+			this.btnFocusIn.Size = new System.Drawing.Size(40, 40);
 			this.btnFocusIn.TabIndex = 77;
 			this.btnFocusIn.Tag = "N";
 			this.toolTip1.SetToolTip(this.btnFocusIn, "Slew DEC North");
@@ -792,9 +823,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblAzAltControl
 			// 
+			this.lblAzAltControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblAzAltControl.AutoSize = true;
 			this.lblAzAltControl.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblAzAltControl.Location = new System.Drawing.Point(584, 160);
+			this.lblAzAltControl.Location = new System.Drawing.Point(558, 269);
 			this.lblAzAltControl.Name = "lblAzAltControl";
 			this.lblAzAltControl.Size = new System.Drawing.Size(96, 13);
 			this.lblAzAltControl.TabIndex = 70;
@@ -802,9 +834,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label29
 			// 
+			this.label29.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label29.AutoSize = true;
 			this.label29.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label29.Location = new System.Drawing.Point(810, 190);
+			this.label29.Location = new System.Drawing.Point(743, 301);
 			this.label29.Name = "label29";
 			this.label29.Size = new System.Drawing.Size(16, 13);
 			this.label29.TabIndex = 79;
@@ -812,9 +845,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblFocusControl
 			// 
+			this.lblFocusControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblFocusControl.AutoSize = true;
 			this.lblFocusControl.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblFocusControl.Location = new System.Drawing.Point(750, 160);
+			this.lblFocusControl.Location = new System.Drawing.Point(683, 269);
 			this.lblFocusControl.Name = "lblFocusControl";
 			this.lblFocusControl.Size = new System.Drawing.Size(85, 13);
 			this.lblFocusControl.TabIndex = 76;
@@ -822,9 +856,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label31
 			// 
+			this.label31.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label31.AutoSize = true;
 			this.label31.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label31.Location = new System.Drawing.Point(810, 225);
+			this.label31.Location = new System.Drawing.Point(743, 336);
 			this.label31.Name = "label31";
 			this.label31.Size = new System.Drawing.Size(24, 13);
 			this.label31.TabIndex = 79;
@@ -832,9 +867,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblRateFastest
 			// 
+			this.lblRateFastest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblRateFastest.AutoSize = true;
 			this.lblRateFastest.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblRateFastest.Location = new System.Drawing.Point(804, 114);
+			this.lblRateFastest.Location = new System.Drawing.Point(711, 225);
 			this.lblRateFastest.Name = "lblRateFastest";
 			this.lblRateFastest.Size = new System.Drawing.Size(41, 13);
 			this.lblRateFastest.TabIndex = 83;
@@ -842,9 +878,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// lblRateSlowest
 			// 
+			this.lblRateSlowest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.lblRateSlowest.AutoSize = true;
 			this.lblRateSlowest.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblRateSlowest.Location = new System.Drawing.Point(804, 37);
+			this.lblRateSlowest.Location = new System.Drawing.Point(552, 225);
 			this.lblRateSlowest.Name = "lblRateSlowest";
 			this.lblRateSlowest.Size = new System.Drawing.Size(44, 13);
 			this.lblRateSlowest.TabIndex = 84;
@@ -852,9 +889,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label34
 			// 
+			this.label34.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label34.AutoSize = true;
 			this.label34.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label34.Location = new System.Drawing.Point(764, 11);
+			this.label34.Location = new System.Drawing.Point(614, 199);
 			this.label34.Name = "label34";
 			this.label34.Size = new System.Drawing.Size(78, 13);
 			this.label34.TabIndex = 80;
@@ -862,9 +900,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// rdoRateOne
 			// 
+			this.rdoRateOne.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.rdoRateOne.Appearance = System.Windows.Forms.Appearance.Button;
 			this.rdoRateOne.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.notification_counter;
-			this.rdoRateOne.Location = new System.Drawing.Point(780, 32);
+			this.rdoRateOne.Location = new System.Drawing.Point(595, 219);
 			this.rdoRateOne.Name = "rdoRateOne";
 			this.rdoRateOne.Size = new System.Drawing.Size(24, 24);
 			this.rdoRateOne.TabIndex = 86;
@@ -874,9 +913,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// rdoRateTwo
 			// 
+			this.rdoRateTwo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.rdoRateTwo.Appearance = System.Windows.Forms.Appearance.Button;
 			this.rdoRateTwo.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.notification_counter_02;
-			this.rdoRateTwo.Location = new System.Drawing.Point(780, 58);
+			this.rdoRateTwo.Location = new System.Drawing.Point(625, 219);
 			this.rdoRateTwo.Name = "rdoRateTwo";
 			this.rdoRateTwo.Size = new System.Drawing.Size(24, 24);
 			this.rdoRateTwo.TabIndex = 87;
@@ -886,9 +926,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// rdoRateThree
 			// 
+			this.rdoRateThree.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.rdoRateThree.Appearance = System.Windows.Forms.Appearance.Button;
 			this.rdoRateThree.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.notification_counter_03;
-			this.rdoRateThree.Location = new System.Drawing.Point(780, 84);
+			this.rdoRateThree.Location = new System.Drawing.Point(655, 219);
 			this.rdoRateThree.Name = "rdoRateThree";
 			this.rdoRateThree.Size = new System.Drawing.Size(24, 24);
 			this.rdoRateThree.TabIndex = 88;
@@ -898,9 +939,10 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// rdoRateFour
 			// 
+			this.rdoRateFour.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.rdoRateFour.Appearance = System.Windows.Forms.Appearance.Button;
 			this.rdoRateFour.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.notification_counter_04;
-			this.rdoRateFour.Location = new System.Drawing.Point(780, 110);
+			this.rdoRateFour.Location = new System.Drawing.Point(685, 219);
 			this.rdoRateFour.Name = "rdoRateFour";
 			this.rdoRateFour.Size = new System.Drawing.Size(24, 24);
 			this.rdoRateFour.TabIndex = 89;
@@ -910,26 +952,30 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			// label35
 			// 
-			this.label35.Location = new System.Drawing.Point(733, 252);
+			this.label35.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.label35.Location = new System.Drawing.Point(679, 373);
 			this.label35.Name = "label35";
-			this.label35.Size = new System.Drawing.Size(129, 40);
+			this.label35.Size = new System.Drawing.Size(87, 40);
 			this.label35.TabIndex = 90;
 			this.label35.Text = "Requires Focuser Add-On";
+			this.label35.TextAlign = System.Drawing.ContentAlignment.TopCenter;
 			// 
 			// label36
 			// 
-			this.label36.Location = new System.Drawing.Point(565, 252);
+			this.label36.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.label36.Location = new System.Drawing.Point(546, 373);
 			this.label36.Name = "label36";
-			this.label36.Size = new System.Drawing.Size(129, 40);
+			this.label36.Size = new System.Drawing.Size(120, 38);
 			this.label36.TabIndex = 91;
 			this.label36.Text = "Requires AutoPA Add-On";
+			this.label36.TextAlign = System.Drawing.ContentAlignment.TopCenter;
 			// 
 			// SetupDialogForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.Control;
-			this.ClientSize = new System.Drawing.Size(889, 396);
+			this.ClientSize = new System.Drawing.Size(784, 456);
 			this.Controls.Add(this.label36);
 			this.Controls.Add(this.label35);
 			this.Controls.Add(this.rdoRateFour);
@@ -1005,7 +1051,7 @@ namespace ASCOM.OpenAstroTracker
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
-			this.MinimumSize = new System.Drawing.Size(890, 430);
+			this.MinimumSize = new System.Drawing.Size(800, 495);
 			this.Name = "SetupDialogForm";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

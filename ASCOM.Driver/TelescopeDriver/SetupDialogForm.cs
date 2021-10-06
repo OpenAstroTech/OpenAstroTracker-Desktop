@@ -1,9 +1,11 @@
 using ASCOM.DeviceInterface;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -15,7 +17,7 @@ namespace ASCOM.OpenAstroTracker
 		private ProfileData _profile;
 		ITelescopeV3 _oat;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
-
+		HashSet<string> scopeFeatures;
 
 		public SetupDialogForm(ProfileData profile, ITelescopeV3 telescope)
 		{
@@ -23,10 +25,11 @@ namespace ASCOM.OpenAstroTracker
 			_oat = telescope;
 			InitializeComponent();
 			btnConnect.Visible = (_oat != null);
-			btnUnparkDEC.Visible = false;
-			btnParkDEC.Visible = false;
+			//btnUnparkDEC.Visible = false;
+			//btnParkDEC.Visible = false;
 
 			Text = $"OpenAstroTracker Setup - {Version}";
+			scopeFeatures = new HashSet<string>();
 
 			EnableAccordingToConnectState();
 		}
@@ -44,9 +47,33 @@ namespace ASCOM.OpenAstroTracker
 				btnEast.Enabled = true;
 				btnWest.Enabled = true;
 				btnGoHome.Enabled = true;
+				btnSetHome.Enabled = true;
+
+				if (scopeFeatures.Contains("Focuser"))
+				{
+					btnFocusIn.Enabled = true;
+					btnFocusOut.Enabled = true;
+				}
+
+				if (scopeFeatures.Contains("AutoPA") || scopeFeatures.Contains("MotorALT"))
+				{
+					btnAltDown.Enabled = true;
+					btnAltUp.Enabled = true;
+				}
+
+				if (scopeFeatures.Contains("AutoPA") || scopeFeatures.Contains("MotorAZ"))
+				{
+					btnAzLeft.Enabled = true;
+					btnAzRight.Enabled = true;
+				}
+
 				btnUnparkDEC.Enabled = true;
 				btnParkDEC.Enabled = true;
-				btnSetHome.Enabled = true;
+
+				rdoRateOne.Enabled = true;
+				rdoRateTwo.Enabled = true;
+				rdoRateThree.Enabled = true;
+				rdoRateFour.Enabled = true;
 			}
 			else
 			{
@@ -67,6 +94,16 @@ namespace ASCOM.OpenAstroTracker
 				btnUnparkDEC.Enabled = false;
 				btnParkDEC.Enabled = false;
 				btnSetHome.Enabled = false;
+				btnAzLeft.Enabled = false;
+				btnAzRight.Enabled = false;
+				btnAltDown.Enabled = false;
+				btnAltUp.Enabled = false;
+				btnFocusIn.Enabled = false;
+				btnFocusOut.Enabled = false;
+				rdoRateOne.Enabled = false;
+				rdoRateTwo.Enabled = false;
+				rdoRateThree.Enabled = false;
+				rdoRateFour.Enabled = false;
 			}
 		}
 
@@ -260,28 +297,28 @@ namespace ASCOM.OpenAstroTracker
 					string hardware = this._oat.Action("Serial:PassThroughCommand", ":XGM#,#");
 					var hwParts = hardware.Split(',');
 					lblBoard.Text = hwParts[0];
-					string scopeFeatures = "", scopeDisplay = "";
+					string scopeDisplay = "";
 					for (int i = 3; i < hwParts.Length; i++)
 					{
 						if (hwParts[i] == "GPS")
 						{
-							scopeFeatures += "GPS, ";
+							scopeFeatures.Add("GPS");
 						}
 						else if (hwParts[i] == "AUTO_AZ_ALT")
 						{
-							scopeFeatures += "AutoPA, ";
+							scopeFeatures.Add("AutoPA");
 						}
 						else if (hwParts[i] == "AUTO_ALT")
 						{
-							scopeFeatures += "MotorALT, ";
+							scopeFeatures.Add("MotorALT");
 						}
 						else if (hwParts[i] == "AUTO_AZ")
 						{
-							scopeFeatures += "MotorAZ, ";
+							scopeFeatures.Add("MotorAZ");
 						}
 						else if (hwParts[i] == "GYRO")
 						{
-							scopeFeatures += "Digital Level, ";
+							scopeFeatures.Add("Digital Level");
 						}
 						else if (hwParts[i] == "LCD_KEYPAD")
 						{
@@ -301,19 +338,18 @@ namespace ASCOM.OpenAstroTracker
 						}
 						else if (hwParts[i] == "FOC")
 						{
-							scopeFeatures += "Focuser, ";
+							scopeFeatures.Add("Focuser");
 						}
 					}
-					if (string.IsNullOrEmpty(scopeFeatures))
+
+					if (!scopeFeatures.Any())
 					{
-						scopeFeatures = "No addons";
+						lblAddons.Text = "No addons";
 					}
 					else
 					{
-						scopeFeatures = scopeFeatures.Substring(0, scopeFeatures.Length - 2);
+						lblAddons.Text = string.Join(", ", scopeFeatures);
 					}
-
-					lblAddons.Text = scopeFeatures;
 
 					if (string.IsNullOrEmpty(scopeDisplay))
 					{
