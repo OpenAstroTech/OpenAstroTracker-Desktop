@@ -138,6 +138,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\notification-counter-04.png" />
+    <None Include="Resources\notification-counter-03.png" />
+    <None Include="Resources\notification-counter-02.png" />
+    <None Include="Resources\notification-counter.png" />
     <None Include="Resources\sethome.png" />
     <None Include="Resources\home.png" />
     <None Include="Resources\arrow.png" />

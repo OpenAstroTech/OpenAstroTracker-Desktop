@@ -15,6 +15,9 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+**ASCOM.Driver V6.6.6.0 - Updates**
+- Added more control optionbs to the driver properties.
+
 **OATControl V1.0.2.4 - Updates**
 - Added support for Hall sensor based RA auto homing.
 

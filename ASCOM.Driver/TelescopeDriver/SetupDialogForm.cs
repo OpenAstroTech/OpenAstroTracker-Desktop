@@ -1,9 +1,11 @@
 using ASCOM.DeviceInterface;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -15,24 +17,34 @@ namespace ASCOM.OpenAstroTracker
 		private ProfileData _profile;
 		ITelescopeV3 _oat;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
+		HashSet<string> scopeFeatures;
+		Action<string> _logger;
 
-
-		public SetupDialogForm(ProfileData profile, ITelescopeV3 telescope)
+		public SetupDialogForm(ProfileData profile, ITelescopeV3 telescope, Action<string> logger)
 		{
+			_logger = logger;
 			_profile = profile;
 			_oat = telescope;
 			InitializeComponent();
 			btnConnect.Visible = (_oat != null);
+
 			btnUnparkDEC.Visible = false;
 			btnParkDEC.Visible = false;
 
+			SlewRate = 4;
+			lblStatus.Text = "Disconnected";
+
 			Text = $"OpenAstroTracker Setup - {Version}";
+			scopeFeatures = new HashSet<string>();
 
 			EnableAccordingToConnectState();
 		}
 
 		private void EnableAccordingToConnectState()
 		{
+			btnUnparkDEC.Visible = FirmwareVersion > 10933;
+			btnParkDEC.Visible = FirmwareVersion > 10933;
+
 			if ((_oat != null) && (_oat.Connected))
 			{
 				numDECSteps.Enabled = true;
@@ -44,9 +56,62 @@ namespace ASCOM.OpenAstroTracker
 				btnEast.Enabled = true;
 				btnWest.Enabled = true;
 				btnGoHome.Enabled = true;
+				btnSetHome.Enabled = true;
+
+				if (scopeFeatures.Contains("Focuser"))
+				{
+					btnFocusIn.Enabled = true;
+					btnFocusOut.Enabled = true;
+					lblFocusPosition.ForeColor = System.Drawing.SystemColors.ControlText;
+					lblFocusPosition.Enabled = true;
+					lblFocusRequired.Visible = false;
+				}
+				else
+				{
+					btnFocusIn.Enabled = false;
+					btnFocusOut.Enabled = false;
+					lblFocusPosition.Enabled = false;
+					lblFocusPosition.ForeColor = System.Drawing.SystemColors.GrayText;
+					lblFocusRequired.Visible = true;
+				}
+
+				if (scopeFeatures.Contains("AutoPA") || scopeFeatures.Contains("MotorALT"))
+				{
+					btnAltDown.Enabled = true;
+					btnAltUp.Enabled = true;
+				}
+				else
+				{
+					btnAltDown.Enabled = false;
+					btnAltUp.Enabled = false;
+				}
+
+				if (scopeFeatures.Contains("AutoPA") || scopeFeatures.Contains("MotorAZ"))
+				{
+					btnAzLeft.Enabled = true;
+					btnAzRight.Enabled = true;
+				}
+				else
+				{
+					btnAzLeft.Enabled = false;
+					btnAzRight.Enabled = false;
+				}
+
+				if (scopeFeatures.Contains("AutoPA") || scopeFeatures.Contains("MotorAZ") || scopeFeatures.Contains("MotorALT"))
+				{
+					lblAutoPARequired.Visible = false;
+				}
+				else
+				{
+					lblAutoPARequired.Visible = true;
+				}
+
 				btnUnparkDEC.Enabled = true;
 				btnParkDEC.Enabled = true;
-				btnSetHome.Enabled = true;
+				rdoRateOne.Enabled = true;
+				rdoRateTwo.Enabled = true;
+				rdoRateThree.Enabled = true;
+				rdoRateFour.Enabled = true;
 			}
 			else
 			{
@@ -55,6 +120,11 @@ namespace ASCOM.OpenAstroTracker
 				lblBoard.Text = "-";
 				lblDisplay.Text = "-";
 				lblFirmware.Text = "-";
+				lblRACoordinate.Text = "-";
+				lblDECCoordinate.Text = "-";
+				lblRAPosition.Text = "-";
+				lblDECPosition.Text = "-";
+				lblFocusPosition.Text = "-";
 				numDECSteps.Enabled = false;
 				numRASteps.Enabled = false;
 				numSpeedFactor.Enabled = false;
@@ -67,10 +137,28 @@ namespace ASCOM.OpenAstroTracker
 				btnUnparkDEC.Enabled = false;
 				btnParkDEC.Enabled = false;
 				btnSetHome.Enabled = false;
+				btnAzLeft.Enabled = false;
+				lblAutoPARequired.Visible = true;
+				lblAutoPARequired.ForeColor = System.Drawing.SystemColors.GrayText;
+				btnAzRight.Enabled = false;
+				btnAltDown.Enabled = false;
+				btnAltUp.Enabled = false;
+				btnFocusIn.Enabled = false;
+				btnFocusOut.Enabled = false;
+				lblFocusPosition.Enabled = false;
+				lblFocusPosition.ForeColor= System.Drawing.SystemColors.GrayText;
+				lblFocusRequired.Visible = true;
+				rdoRateOne.Enabled = false;
+				rdoRateTwo.Enabled = false;
+				rdoRateThree.Enabled = false;
+				rdoRateFour.Enabled = false;
 			}
 		}
 
 		private string Version => GetType().Assembly.GetName().Version.ToString();
+
+		public int SlewRate { get; private set; }
+		public long FirmwareVersion { get; private set; }
 
 		private void OK_Button_Click(System.Object sender, System.EventArgs e) // OK button event handler
 		{
@@ -243,6 +331,9 @@ namespace ASCOM.OpenAstroTracker
 
 			if (btnConnect.Text == "Connect")
 			{
+				lblStatus.Text = "Connecting...";
+				lblStatus.Update();
+
 				_profile.ComPort = (string)ComboBoxComPort.SelectedItem;
 				_profile.BaudRate = Convert.ToInt64(comboBoxBaudRate.SelectedItem);
 				SharedResources.WriteProfile(GetProfileData());
@@ -251,32 +342,41 @@ namespace ASCOM.OpenAstroTracker
 				{
 					this._oat.Connected = true;
 					string fwVersion = this._oat.Action("Serial:PassThroughCommand", ":GVN#,#");
+					if (string.IsNullOrEmpty(fwVersion))
+					{
+						MessageBox.Show("Unable to communicate with OAT, even though it says we're connected. Exit the app and use Task Manager to kill the ASCOM.OpenAstroTracker process. Then try again.");
+						return;
+					}
+
+					var versionNumbers = fwVersion.Substring(1).Split(".".ToCharArray());
+					FirmwareVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
+
 					lblFirmware.Text = fwVersion;
 					string hardware = this._oat.Action("Serial:PassThroughCommand", ":XGM#,#");
 					var hwParts = hardware.Split(',');
 					lblBoard.Text = hwParts[0];
-					string scopeFeatures = "", scopeDisplay = "";
+					string scopeDisplay = "";
 					for (int i = 3; i < hwParts.Length; i++)
 					{
 						if (hwParts[i] == "GPS")
 						{
-							scopeFeatures += "GPS, ";
+							scopeFeatures.Add("GPS");
 						}
 						else if (hwParts[i] == "AUTO_AZ_ALT")
 						{
-							scopeFeatures += "AutoPA, ";
+							scopeFeatures.Add("AutoPA");
 						}
 						else if (hwParts[i] == "AUTO_ALT")
 						{
-							scopeFeatures += "MotorALT, ";
+							scopeFeatures.Add("MotorALT");
 						}
 						else if (hwParts[i] == "AUTO_AZ")
 						{
-							scopeFeatures += "MotorAZ, ";
+							scopeFeatures.Add("MotorAZ");
 						}
 						else if (hwParts[i] == "GYRO")
 						{
-							scopeFeatures += "Digital Level, ";
+							scopeFeatures.Add("Digital Level");
 						}
 						else if (hwParts[i] == "LCD_KEYPAD")
 						{
@@ -296,19 +396,18 @@ namespace ASCOM.OpenAstroTracker
 						}
 						else if (hwParts[i] == "FOC")
 						{
-							scopeFeatures += "Focuser, ";
+							scopeFeatures.Add("Focuser");
 						}
 					}
-					if (string.IsNullOrEmpty(scopeFeatures))
+
+					if (!scopeFeatures.Any())
 					{
-						scopeFeatures = "No addons";
+						lblAddons.Text = "No addons";
 					}
 					else
 					{
-						scopeFeatures = scopeFeatures.Substring(0, scopeFeatures.Length - 2);
+						lblAddons.Text = string.Join(", ", scopeFeatures);
 					}
-
-					lblAddons.Text = scopeFeatures;
 
 					if (string.IsNullOrEmpty(scopeDisplay))
 					{
@@ -349,17 +448,27 @@ namespace ASCOM.OpenAstroTracker
 					_profile.Latitude = latitude;
 
 					btnConnect.Text = "Disconnect";
+					btnUpdate.Enabled = false;
+					rdoRateFour.Checked = true;
+					SlewRate = 4;
+					lblStatus.Text = "Connected";
+					lblStatus.Update();
+					timerMountUpdate.Start();
 				}
 				catch (Exception ex)
 				{
+					lblStatus.Text = "Connection failed";
+					lblStatus.Update();
 					MessageBox.Show("Exception:" + ex.Message);
 				}
 			}
 			else
 			{
+				timerMountUpdate.Stop();
 				this._oat.Connected = false;
 				lblFirmware.Text = "-";
 				btnConnect.Text = "Connect";
+				lblStatus.Text = "Disconnected";
 			}
 
 			EnableAccordingToConnectState();
@@ -406,19 +515,22 @@ namespace ASCOM.OpenAstroTracker
 			{
 				direction = 'n';
 			}
-			if (sender == btnSouth)
+			else if (sender == btnSouth)
 			{
 				direction = 's';
 			}
-			if (sender == btnWest)
+			else if (sender == btnWest)
 			{
 				direction = 'w';
 			}
-			if (sender == btnEast)
+			else if (sender == btnEast)
 			{
 				direction = 'e';
 			}
-
+			else
+			{
+				return;
+			}
 			this._oat.Action("Serial:PassThroughCommand", $":M{direction}#");
 		}
 
@@ -429,20 +541,85 @@ namespace ASCOM.OpenAstroTracker
 			{
 				direction = 'n';
 			}
-			if (sender == btnSouth)
+			else if (sender == btnSouth)
 			{
 				direction = 's';
 			}
-			if (sender == btnWest)
+			else if (sender == btnWest)
 			{
 				direction = 'w';
 			}
-			if (sender == btnEast)
+			else if (sender == btnEast)
 			{
 				direction = 'e';
 			}
+			else
+			{
+				return;
+			}
 
 			this._oat.Action("Serial:PassThroughCommand", $":Q{direction}#");
+		}
+
+		private void btnUnparkDEC_Click(object sender, EventArgs e)
+		{
+			_logger($"Unpark clicked");
+			string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
+			_logger($"Unpark - GX returned {status}");
+			var statusParts = status.Split(',');
+			_logger($"Unpark - DEC is {statusParts[3]}");
+			long decSteps = long.Parse(statusParts[3]);
+			if (decSteps == 0)
+			{
+				_logger($"Unpark - DEC parsed {decSteps}, getting offset");
+				status = this._oat.Action("Serial:PassThroughCommand", ":XGDP#,#");
+				_logger($"Unpark - XGDP returned {status}");
+				decSteps = long.Parse(status);
+				_logger($"Unpark - XGDP dec offset is {decSteps}");
+				if (decSteps != 0)
+				{
+					this._oat.Action("Serial:PassThroughCommand", $":MXd{decSteps}#,n");
+					MessageBox.Show("When slew has stopped, click Set Home.", "Unparking", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+				else
+				{
+					MessageBox.Show("Mount has not been configured for DEC parking. Manually slew to home position, then Shift-click Set Home to store parking offset.", "Parking", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				}
+			}
+			else
+			{
+				MessageBox.Show("Mount has moved since power on, unable to unpark.", "Unparking", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			}
+		}
+
+		private void btnParkDEC_Click(object sender, EventArgs e)
+		{
+			_logger($"Park clicked");
+			string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
+			_logger($"Park - GX returned {status}");
+			var statusParts = status.Split(',');
+			_logger($"Park - DEC is {statusParts[3]}");
+			long decSteps = long.Parse(statusParts[3]);
+			if (decSteps == 0)
+			{
+				_logger($"Park - DEC parsed {decSteps}, getting offset");
+				status = this._oat.Action("Serial:PassThroughCommand", ":XGDP#,#");
+				_logger($"Park - XGDP returned {status}");
+				decSteps = long.Parse(status);
+				_logger($"Park - XGDP dec offset is {decSteps}");
+				if (decSteps != 0)
+				{
+					this._oat.Action("Serial:PassThroughCommand", $":MXd{-decSteps}#,n");
+				}
+				else
+				{
+					MessageBox.Show("Mount has not been configured for DEC parking.", "Parking", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				}
+			}
+			else
+			{
+				MessageBox.Show("Mount is not in home position, unable to park.", "Parking", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			}
 		}
 
 		private void btnGoHome_Click(object sender, EventArgs e)
@@ -450,26 +627,127 @@ namespace ASCOM.OpenAstroTracker
 			this._oat.Action("Serial:PassThroughCommand", ":hF#");
 		}
 
-		private void btnUnparkDEC_Click(object sender, EventArgs e)
-		{
-			// Commenting this out until we can get the setting from OAT.
-			//string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
-			//var statusParts = status.Split(',');
-			//long decSteps = int.Parse(statusParts[3]);
-			//if (decSteps == 0)
-			//{
-
-			//}
-		}
-
-		private void btnParkDEC_Click(object sender, EventArgs e)
-		{
-
-		}
-
 		private void btnSetHome_Click(object sender, EventArgs e)
 		{
-			this._oat.Action("Serial:PassThroughCommand", ":SHP#,n");
+			_logger($"SetHome clicked");
+
+			if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)
+			{
+				string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
+				_logger($"GX returned {status}");
+				var statusParts = status.Split(',');
+				_logger($"DEC is {statusParts[3]}");
+				long decSteps = long.Parse(statusParts[3]);
+				if (decSteps != 0)
+				{
+					var result = MessageBox.Show($"Mount has moved {decSteps} in DEC. Is this the distance from parked position to home?", "Confirm Parking DEC offset", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+					if (result == DialogResult.Yes)
+					{
+						this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":XSDP{0}#", -decSteps));
+					}
+				}
+				else
+				{
+					MessageBox.Show("Mount reports no DEC movement. Nothing to do.", "Set Parking DEC offset", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				}
+			}
+			else
+			{
+				this._oat.Action("Serial:PassThroughCommand", ":SHP#,n");
+			}
+		}
+
+		private void btnFocus_MouseDown(object sender, MouseEventArgs e)
+		{
+			string sign = (sender == btnFocusIn) ? "+" : "-";
+			this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":F{0}#", SlewRate));
+			this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":F{0}#", sign));
+		}
+
+		private void btnFocus_MouseUp(object sender, MouseEventArgs e)
+		{
+			this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":FQ#", SlewRate));
+		}
+
+		private void rdoRates_CheckedChanged(object sender, EventArgs e)
+		{
+			if (sender == rdoRateFour)
+			{
+				SlewRate = 4;
+			}
+			else if (sender == rdoRateThree)
+			{
+				SlewRate = 3;
+			}
+			else if (sender == rdoRateTwo)
+			{
+				SlewRate = 2;
+			}
+			else if (sender == rdoRateOne)
+			{
+				SlewRate = 1;
+			}
+
+		}
+
+		private void btnAltAz_MouseDown(object sender, MouseEventArgs e)
+		{
+			float[] rateDistance = { 0, 0.25f, 2.0f, 7.5f, 30.0f };
+			float distance = rateDistance[SlewRate];
+			string sign = (sender == btnAltUp) || (sender == btnAzLeft) ? "+" : "-";
+			if ((sender == btnAltUp) || (sender == btnAltDown))
+			{
+				this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":MAL{0}{1:0.0}#", sign, distance));
+			}
+			else
+			{
+				this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":MAZ{0}{1:0.0}#", sign, distance));
+			}
+
+		}
+
+		private void btnAltAz_MouseUp(object sender, MouseEventArgs e)
+		{
+			// NOP, because ALT and AZ movement is set distance
+		}
+
+		private void lblFocusPosition_Click(object sender, EventArgs e)
+		{
+			if ((_oat != null) && (_oat.Connected))
+			{
+				if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)
+				{
+					if (FirmwareVersion > 10918)
+					{
+						this._oat.Action("Serial:PassThroughCommand", ":FP50000#,n");
+					}
+				}
+			}
+		}
+
+		private void timerMountUpdate_Tick(object sender, EventArgs e)
+		{
+			timerMountUpdate.Stop();
+			string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
+			var statusParts = status.Split(',');
+			lblStatus.Text = statusParts[0];
+
+			string lst = _oat.Action("Serial:PassThroughCommand", ":XGL#,#");
+			if (lst.Length == 6)
+			{
+				lst = $"{lst.Substring(0, 2)}:{lst.Substring(2, 2)}:{lst.Substring(4)}";
+			}
+			lblLST.Text = lst;
+			lblRACoordinate.Text = $"{statusParts[5].Substring(0, 2)}h {statusParts[5].Substring(2, 2)}m {statusParts[5].Substring(4, 2)}s";
+			lblDECCoordinate.Text = $"{statusParts[6].Substring(1, 2)}° {statusParts[6].Substring(3, 2)}\" {statusParts[6].Substring(5, 2)}'";
+			lblRAPosition.Text = statusParts[2];
+			lblDECPosition.Text = statusParts[3];
+			if (statusParts.Length > 8)
+			{
+				lblFocusPosition.Text = statusParts[7];
+			}
+
+			timerMountUpdate.Start();
 		}
 	}
 }
