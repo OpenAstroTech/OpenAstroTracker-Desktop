@@ -115,7 +115,7 @@ namespace ASCOM.OpenAstroTracker
 				MessageBox.Show("Already connected, just press OK");
 			}
 
-			using (var f = new SetupDialogForm(Profile, null))
+			using (var f = new SetupDialogForm(Profile, null, null))
 			{
 				if (f.ShowDialog() == DialogResult.OK)
 				{
