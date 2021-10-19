@@ -15,6 +15,14 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+
+**OATControl V1.0.2.6 - Updates**
+- Updated Target Chooser point positions after slewing is finished
+- Rearranged and tidied up Settings dialog
+- Fixed DEC sign for simulation
+- Refactored the way that coordinate system is handled to better cope with negative coordinates.
+- Tracking indicator is not turned off when guiding anymore.
+
 **ASCOM.Driver V6.6.6.0 - Updates**
 - Added more control optionbs to the driver properties.
 
