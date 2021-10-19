@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "OATControl"
-#define MyAppVersion "1.0.2.4"
+#define MyAppVersion "1.0.2.6"
 #define MyAppPublisher "OpenAstroTech"
 #define MyAppURL "https://wiki.openastrotech.com/"
 #define MyAppExeName "OATControl.exe"

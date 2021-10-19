@@ -699,6 +699,7 @@ namespace OATControl.ViewModels
 									else if ((MountStatus != "SlewToTarget") && (prevStatus == "SlewToTarget"))
 									{
 										DisplaySlewProgress = false;
+										await RecalculatePointsPositions(false);
 									}
 									else if (MountStatus == "SlewToTarget")
 									{
@@ -1059,6 +1060,7 @@ namespace OATControl.ViewModels
 						// Slew commands
 						_oatMount?.SendCommand($":Q{dir}#", (a) => { doneEvent.Set(); });
 					}
+					await RecalculatePointsPositions(true);
 				}
 			}
 			else
@@ -1261,7 +1263,7 @@ namespace OATControl.ViewModels
 				await UpdateCurrentCoordinates();
 				_targetRA = new DayTime(_currentRA);
 				_targetDEC = new Declination(_currentDEC);
-				Log.WriteLine("Mount: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3:000}*{4:00}'{5:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
+				Log.WriteLine("Mount: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3}{4:000}*{5:00}'{6:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECSign, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
 
 				Log.WriteLine("Mount: Getting current OAT RA steps/degree...");
 				this.SendOatCommand(":XGR#,#", (steps) =>
@@ -3003,7 +3005,7 @@ namespace OATControl.ViewModels
 			if (_oatSimComm != null && _oatSimComm.IsClientConnected == true)
 			{
 				_oatSimComm.Send($"CurrentRAString|{CurrentRAHour},{CurrentRAMinute},{CurrentRASecond}");
-				_oatSimComm.Send($"CurrentDECString|{CurrentDECDegree},{CurrentDECMinute},{CurrentDECSecond}");
+				_oatSimComm.Send($"CurrentDECString|{CurrentDECSign}{CurrentDECDegree},{CurrentDECMinute},{CurrentDECSecond}");
 				_oatSimComm.Send($"RAStepper|{RAStepper}");
 				_oatSimComm.Send($"DECStepper|{DECStepper}");
 				_oatSimComm.Send($"TrkStepper|{TrkStepper}");
