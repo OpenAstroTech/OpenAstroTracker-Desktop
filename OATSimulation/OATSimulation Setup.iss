@@ -42,10 +42,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: ".\bin\Release\Assets\*"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs
 Source: ".\bin\Release\runtimes\*"; DestDir: "{app}\Assets"; Flags: ignoreversion recursesubdirs
-Source: ".\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\HelixToolkit.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\OATSimulation.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\OATSimulation.exe.config"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\runtimes\win-x86\native\assimp.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\bin\Release\*"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\runtimes\win-x64\native\assimp.dll"; DestDir: "{app}\runtimes\win-x64\native\assimp.dll"; Flags: ignoreversion recursesubdirs
 Source: ".\bin\Release\runtimes\win-x86\native\assimp.dll"; DestDir: "{app}\runtimes\win-x86\native\assimp.dll"; Flags: ignoreversion recursesubdirs
 
