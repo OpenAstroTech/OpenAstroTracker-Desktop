@@ -9,12 +9,19 @@ This repository holds the high-level software for the OAT. Currently the main co
 There are also some low-level communications libraries that the above mentioned projects use.
 
 To install any of these, click on the latest release under Releases to the right and above this text. Then download the latest version of the package you're after. 
-- **OATControl** is an installer adn can be run after download. It will uninstall older versions, if needed.
+- **OATControl** is an installer and can be run after download. It will uninstall older versions, if needed.
 - **OATCommTester** also can simply be unzipped in a folder and the executable started.
 - **ASCOM Driver** is an installer and can be run after download. It will uninstall older versions, if needed.
 
 Change Log:
 ===========
+
+**OATControl V1.0.2.7 - Updates**
+- Added ability to define up to 4 custom commands to the Settings dialog.
+- Update Target Chooser coordinates only when it's visible (performance issue).
+- Added option to run RA Homing and DEC unparking to connection dialog.
+- Improved readability of message boxes.
+- Fixed ability to type numbers into target coordinates
 
 **OATControl V1.0.2.6 - Updates**
 - Updated Target Chooser point positions after slewing is finished
