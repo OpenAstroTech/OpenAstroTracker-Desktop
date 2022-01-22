@@ -71,12 +71,12 @@ namespace OATCommunications.Utilities
 				}
 			}
 
-			Log.WriteLine("*********************************");
-			Log.WriteLine(string.Format("*  {0} *", sTitle.PadRight(28)));
-			Log.WriteLine("*********************************");
-			Log.WriteLine("* Started : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " *");
-			Log.WriteLine(string.Format("* User    : {0} *", Environment.UserName.PadRight(19)));
-			Log.WriteLine("*********************************");
+			Log.WriteLine("SYSTEM: *********************************");
+			Log.WriteLine(string.Format("SYSTEM: *  {0} *", sTitle.PadRight(28)));
+			Log.WriteLine("SYSTEM: *********************************");
+			Log.WriteLine("SYSTEM: * Started : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " *");
+			Log.WriteLine(string.Format("SYSTEM: * User    : {0} *", Environment.UserName.PadRight(19)));
+			Log.WriteLine("SYSTEM: *********************************");
 		}
 
 		private static string FormatMessage(string message, object[] args)

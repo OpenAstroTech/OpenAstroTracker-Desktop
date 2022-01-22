@@ -94,11 +94,20 @@
     <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="DayTime.cs" />
     <Compile Include="Declination.cs" />
+    <Compile Include="DlgCustomActionSetup.xaml.cs">
+      <DependentUpon>DlgCustomActionSetup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DlgRunPolarAlignment.xaml.cs">
       <DependentUpon>DlgRunPolarAlignment.xaml</DependentUpon>
     </Compile>
     <Compile Include="DlgChooseOat.xaml.cs">
       <DependentUpon>DlgChooseOat.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DlgMessageBox.xaml.cs">
+      <DependentUpon>DlgMessageBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DlgWaitForGXState.xaml.cs">
+      <DependentUpon>DlgWaitForGXState.xaml</DependentUpon>
     </Compile>
     <Compile Include="LevelDisplay.xaml.cs">
       <DependentUpon>LevelDisplay.xaml</DependentUpon>
@@ -131,11 +140,23 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="DlgCustomActionSetup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="DlgRunPolarAlignment.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="DlgChooseOat.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DlgMessageBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DlgWaitForGXState.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

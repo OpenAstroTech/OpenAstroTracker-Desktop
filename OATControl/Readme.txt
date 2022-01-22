@@ -1,13 +1,20 @@
 Revision History
 ----------------
 
+OATControl V1.0.2.7                                              21 Jan 2021
+- Added ability to define up to 4 custom commands to the Settings dialog.
+- Update Target Chooser coordinates only when it's visible (performance issue).
+- Added option to run RA Homing and DEC unparking to connection dialog.
+- Improved readability of message boxes.
+- Fixed ability to type numbers into target coordinates
+
 OATControl V1.0.2.6                                              18 Oct 2021
-- Updated Target Chooser point positions after slewing is finished
-- Rearranged and tidied up Settings dialog
-- Fixed DEC sign for simulation
 - Refactored the way that coordinate system is handled to better cope with 
   negative coordinates.
+- Fixed DEC sign for simulation
 - Tracking indicator is not turned off when guiding anymore.
+- Updated Target Chooser point positions after slewing is finished
+- Rearranged and tidied up Settings dialog
 
 OATControl V1.0.2.4                                              18 Jul 2021
 - Fixed persistence of some settigns (ShowLimits, KeepMiniWindowOnTop,..)

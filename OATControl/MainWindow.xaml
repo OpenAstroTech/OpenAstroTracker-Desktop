@@ -195,11 +195,11 @@
             <controls:PushButton Grid.Row="1" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS+" />
 
             <TextBlock Grid.Row="2" Grid.Column="0"  Text="RA" Style="{StaticResource TextBlockHeading}" />
-            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding TargetRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RH" TabIndex="1" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+			<TextBox Grid.Row="2" Grid.Column="2" Text="{Binding TargetRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RH" TabIndex="1" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
             <TextBlock Grid.Row="2" Grid.Column="3"  Text="h" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
-            <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding TargetRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RM" TabIndex="2" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+			<TextBox Grid.Row="2" Grid.Column="4" Text="{Binding TargetRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RM" TabIndex="2" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
             <TextBlock Grid.Row="2" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBox Grid.Row="2" Grid.Column="6" Text="{Binding TargetRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RS" TabIndex="3" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+			<TextBox Grid.Row="2" Grid.Column="6" Text="{Binding TargetRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RS" TabIndex="3" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
             <TextBlock Grid.Row="2" Grid.Column="7"  Text="s" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
 
             <controls:PushButton Grid.Row="3" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH-" />
@@ -212,11 +212,11 @@
 
             <TextBlock Grid.Row="5" Grid.Column="0"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
 			<TextBlock Grid.Row="5" Grid.Column="1"  Text="{Binding TargetDECSign}" Margin="0,0,4,4" Style="{StaticResource TextBlockLabel}" HorizontalAlignment="Right" />
-			<TextBox Grid.Row="5" Grid.Column="2" Text="{Binding TargetDECDegree, StringFormat={}{0:00}, Converter={StaticResource AbsConverter}}" Style="{StaticResource TextBorder}" Tag="DD" TabIndex="4" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+			<TextBox Grid.Row="5" Grid.Column="2" Text="{Binding TargetDECDegree, StringFormat={}{0:00}, Converter={StaticResource AbsConverter}}" Style="{StaticResource TextBorder}" Tag="DD" TabIndex="4" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
             <TextBlock Grid.Row="5" Grid.Column="3"  Text="°" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}" />
-            <TextBox Grid.Row="5" Grid.Column="4" Text="{Binding TargetDECMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DM" TabIndex="5" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  />
+			<TextBox Grid.Row="5" Grid.Column="4" Text="{Binding TargetDECMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DM" TabIndex="5" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
             <TextBlock Grid.Row="5" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBox Grid.Row="5" Grid.Column="6" Text="{Binding TargetDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DS" TabIndex="6" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" />
+			<TextBox Grid.Row="5" Grid.Column="6" Text="{Binding TargetDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DS" TabIndex="6" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
             <TextBlock Grid.Row="5" Grid.Column="7"  Text="s" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
 
             <controls:PushButton Grid.Row="6" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD-" />

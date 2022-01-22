@@ -12,7 +12,7 @@ namespace OATControl.ViewModels
 	{
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public void OnPropertyChanged(string propertyName)
+		public void OnPropertyChanged([CallerMemberName] string propertyName="")
 		{
 			var handler = PropertyChanged;
 			if (handler != null)

@@ -19,6 +19,14 @@
 			<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
 			<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 		</Style>
+		<Style x:Key="ToggleLabel" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Bottom" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="Margin" Value="0,0" />
+			<Setter Property="Padding" Value="0,0" />
+			<Setter Property="Foreground" Value="#D00" />
+		</Style>
 		<ItemsPanelTemplate x:Key="ListBoxItemsPanel">
 			<StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="{StaticResource WhiteBrush}"/>
 		</ItemsPanelTemplate>
@@ -35,6 +43,7 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto" MinHeight="20"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -103,7 +112,30 @@
 		<TextBlock Grid.Row="8" Grid.Column="0" Text="Altitude" HorizontalAlignment="Right" Margin="0,10,7,10" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
 		<TextBox Grid.Row="8" Grid.Column="1" Text="{Binding Altitude}" Width="150" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentSelectedColorBrush}" Background="{StaticResource AccentColorBrush2}" Margin="5,5,0,5" HorizontalAlignment="Left" Visibility="{Binding ShowManualLocation, Converter={StaticResource CollapseOnFalse}}" />
 
-		<Grid Grid.Row="10" HorizontalAlignment="Stretch" Grid.ColumnSpan="2">
+		<!--<TextBlock Grid.Row="9" Grid.Column="0" Text="Auto Home" HorizontalAlignment="Right" Margin="0,10,7,10" Foreground="{StaticResource AccentSelectedColorBrush}" VerticalAlignment="Top"/>-->
+		<Grid Grid.Row="9" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,10,0,0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+
+			<TextBlock Grid.Row="0" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<Controls:ToggleSwitchButton Grid.Row="0" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunRAAutoHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<TextBlock Grid.Row="0" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<TextBlock Grid.Row="0" Grid.Column="2" Text="Run RA Auto-Home" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
+
+			<TextBlock Grid.Row="1" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<Controls:ToggleSwitchButton Grid.Row="1" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunDECOffsetHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<TextBlock Grid.Row="1" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<TextBlock Grid.Row="1" Grid.Column="2" Text="Run DEC Offset Homing" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+		</Grid>
+		<Grid Grid.Row="11" HorizontalAlignment="Stretch" Grid.ColumnSpan="2">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
 				<ColumnDefinition Width="*" />

@@ -26,6 +26,7 @@ namespace OATControl
 		MountVM _mount;
 		private Point _startCapturePos;
 		private Point _startWindowPos;
+		private string _lastCommand = string.Empty;
 
 		public MiniController(MountVM mount)
 		{
@@ -53,8 +54,12 @@ namespace OATControl
 
 			if (!String.IsNullOrEmpty(cmdParam))
 			{
-				Log.WriteLine("MiniCtrl: Send command "+cmdParam);
-				_mount.ChangeSlewingStateCommand.Execute(cmdParam);
+				if (_lastCommand != cmdParam)
+				{
+					Log.WriteLine("MiniCtrl: KeyDown - Send command " + cmdParam);
+					_mount.ChangeSlewingStateCommand.Execute(cmdParam);
+					_lastCommand = cmdParam;
+				}
 				e.Handled = true;
 			}
 
@@ -66,6 +71,7 @@ namespace OATControl
 			AppSettings.Instance.MiniControllerPos = new Point((int)this.Left, (int)this.Top);
 			base.OnClosing(e);
 		}
+
 		protected override void OnKeyUp(KeyEventArgs e)
 		{
 			string cmdParam = string.Empty;
@@ -92,7 +98,9 @@ namespace OATControl
 
 			if (!String.IsNullOrEmpty(cmdParam))
 			{
+				Log.WriteLine("MiniCtrl: KeyUp - Send command " + cmdParam);
 				_mount.ChangeSlewingStateCommand.Execute(cmdParam);
+				_lastCommand = string.Empty;
 				e.Handled = true;
 			}
 

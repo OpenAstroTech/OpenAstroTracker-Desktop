@@ -11,12 +11,20 @@
 	<Window.Resources>
 		<converters:IntToVisibilityConverter x:Key="V1_8_76OrLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
 		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Collapsed" />
-		
+
 		<Style x:Key="CommandButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
 			<Setter Property="Padding" Value="15,0" />
 			<Setter Property="HorizontalAlignment" Value="Center" />
 			<Setter Property="Width" Value="150" />
 			<Setter Property="Height" Value="25" />
+		</Style>
+
+		<Style x:Key="CustomCommandButtonStyle" TargetType="Button" BasedOn="{StaticResource CommandButtonStyle}">
+			<Setter Property="Padding" Value="5,0" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="Height" Value="25" />
+			<Setter Property="Width" Value="Auto" />
+			<Setter Property="MinWidth" Value="100" />
 		</Style>
 
 		<Style x:Key="SmallTextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
@@ -110,7 +118,7 @@
 
 		<TextBlock Grid.Row="4" Grid.Column="0" Text="RA Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
 		<TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ScopeRAStepper}"  Style="{StaticResource TextBlockLabelValue}" />
-		
+
 		<TextBlock Grid.Row="5" Grid.Column="0" Text="RA Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}"/>
 		<Grid Grid.Row="5" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" >
 			<Grid.ColumnDefinitions>
@@ -248,11 +256,49 @@
 		<TextBlock Grid.Row ="2" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move DEC to park before power off" ToolTip="If the DEC axis is currently in the Home position and a Home offset was set, use this to move it to the Park position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 		<Button Grid.Row ="2" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Park DEC" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding GotoDECParkBeforePowerOffCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
 
-		<StackPanel Grid.Row="5" Grid.Column="3" Orientation="Vertical">
+		<Grid Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<Button Grid.Column="0" Margin="0,4,4,4" Padding="5,0" Content="{Binding CustomAction1Text}" HorizontalAlignment="Center" Style="{StaticResource CustomCommandButtonStyle}" Command="{Binding CustomActionCommand}"  CommandParameter="0"/>
+			<Button Grid.Column="1" Margin="4,4" Padding="5,0" Content="{Binding CustomAction2Text}" HorizontalAlignment="Center" Style="{StaticResource CustomCommandButtonStyle}" Command="{Binding CustomActionCommand}"  CommandParameter="1"/>
+			<Button Grid.Column="2" Margin="4,4" Padding="5,0" Content="{Binding CustomAction3Text}" HorizontalAlignment="Center" Style="{StaticResource CustomCommandButtonStyle}" Command="{Binding CustomActionCommand}"  CommandParameter="2"/>
+			<Button Grid.Column="3" Margin="4,4,8,4" Padding="5,0" Content="{Binding CustomAction4Text}" HorizontalAlignment="Center" Style="{StaticResource CustomCommandButtonStyle}" Command="{Binding CustomActionCommand}"  CommandParameter="3"/>
+		</Grid>
+
+		<Grid Grid.Row="5" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,4,0" HorizontalAlignment="Center" VerticalAlignment="Top">
+				<TextBlock Text="{Binding CustomAction1ResultStatus}" HorizontalAlignment="Center" Style="{StaticResource TinyTextBlockLabel}" />
+				<TextBlock Text="{Binding CustomAction1ResultText}" HorizontalAlignment="Center" Style="{StaticResource SmallTextBlockLabel}" />
+			</StackPanel>
+			<StackPanel Grid.Column="1" Orientation="Vertical" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Top">
+				<TextBlock Text="{Binding CustomAction2ResultStatus}" HorizontalAlignment="Center" Style="{StaticResource TinyTextBlockLabel}" />
+				<TextBlock Text="{Binding CustomAction2ResultText}" HorizontalAlignment="Center" Style="{StaticResource SmallTextBlockLabel}" />
+			</StackPanel>
+			<StackPanel Grid.Column="2" Orientation="Vertical" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Top">
+				<TextBlock Text="{Binding CustomAction3ResultStatus}" HorizontalAlignment="Center" Style="{StaticResource TinyTextBlockLabel}" />
+				<TextBlock Text="{Binding CustomAction3ResultText}" HorizontalAlignment="Center" Style="{StaticResource SmallTextBlockLabel}" />
+			</StackPanel>
+			<StackPanel Grid.Column="3" Orientation="Vertical" Margin="4,0,8,0" HorizontalAlignment="Center" VerticalAlignment="Top">
+				<TextBlock Text="{Binding CustomAction4ResultStatus}" HorizontalAlignment="Center" Style="{StaticResource TinyTextBlockLabel}" />
+				<TextBlock Text="{Binding CustomAction4ResultText}" HorizontalAlignment="Center" Style="{StaticResource SmallTextBlockLabel}" />
+			</StackPanel>
+		</Grid>
+
+		<StackPanel Grid.Row="6" Grid.Column="3" Orientation="Vertical">
 			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Reset Focuser position" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.19 or later)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
 		</StackPanel>
-		<Button Grid.Row="5" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Reset Focuser" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FocuserResetCommand}"/>
+		<Button Grid.Row="6" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Reset Focuser" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FocuserResetCommand}"/>
 
 		<StackPanel Grid.Row ="10" Grid.Column="3" Orientation="Vertical">
 			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Set RA Home offset center of Hall sensor range"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />

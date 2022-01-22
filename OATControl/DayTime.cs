@@ -86,6 +86,7 @@ namespace OATControl
 			m = Math.Abs(m);
 			s = Math.Abs(s);
 			_totalSeconds = sgn * ((60L * h + m) * 60L + s);
+			// Do not call CheckHours() here! Virtual table is not setup yet
 		}
 
 		public DayTime(float timeInHours)
@@ -223,6 +224,7 @@ namespace OATControl
 			int hours, mins, secs;
 			GetTime(out hours, out mins, out secs);
 			var newTime = new DayTime(newHour, mins, secs);
+			newTime.CheckHours();
 			_totalSeconds = newTime._totalSeconds;
 			return tsecs != _totalSeconds;
 		}

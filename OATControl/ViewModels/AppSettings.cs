@@ -227,5 +227,27 @@ namespace OATControl.ViewModels
 			get { return Convert.ToInt32(this["RAHomeOffset"]); }
 			set { this["RAHomeOffset"] = value.ToString(); }
 		}
+
+		[DefaultValueAttribute("<CustomCommands />")]
+		public string CustomCommands
+		{
+			get { return this["CustomCommands"]; }
+			set { this["CustomCommands"] = value; }
+		}
+
+		[DefaultValueAttribute("False")]
+		public bool RunAutoHomeRAOnConnect
+		{
+			get { return Convert.ToBoolean(this["RunAutoHomeRAOnConnect"]); }
+			set { this["RunAutoHomeRAOnConnect"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("False")]
+		public bool RunDECOffsetHomingOnConnect
+		{
+			get { return Convert.ToBoolean(this["RunDECOffsetHomingOnConnect"]); }
+			set { this["RunDECOffsetHomingOnConnect"] = value.ToString(); }
+		}
+
 	}
 }

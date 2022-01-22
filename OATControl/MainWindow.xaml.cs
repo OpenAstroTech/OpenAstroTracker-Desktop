@@ -56,6 +56,16 @@ namespace OATControl
 			if (tb != null)
 			{
 				tb.SelectAll();
+				mountVm.SetFocusTarget((string)tb.Tag);
+			}
+		}
+
+		private void TextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+		{
+			TextBox tb = sender as TextBox;
+			if (tb != null)
+			{
+				mountVm.SetFocusTarget("");
 			}
 		}
 
