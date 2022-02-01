@@ -1,45 +1,51 @@
-+========================================+
-| OpenAstroTracker ASCOM Driver V6.6.6.0 |
-| Published: 16. October 2021            |
-+========================================+
++====================================================+
+| OpenAstroTracker ASCOM Driver V6.6.6.4 Pre-Release |
+| Published: 1. February 2022                        |
++====================================================+
 
 This is the latest ASCOM driver available for the OAT. It allows various 
 client programs to communicate with the OAT using both standard LX200 Meade
 protocol commands, as well as proprietary OAT extensions to that protocol.
 
-The driver also contains some very rudimentary controls for the OAT so that
-it can be unparked, homed, and parked from the driver Properties dialog.
+The driver also contains controls for the OAT so that it can be initialized,
+configured, slewed, unparked, homed, focused and parked from the driver 
+Properties dialog.
 
  * Tested on MKS Gen L V2.1, Arduino Mega and ESP32. No other variants of 
    Arduino have been tested, or are officially supported.
- * Tested with V1.9.33 firmware, which is the RECOMMENDED version (although
-   not released at this time, but coming soon).
+ * Tested with V1.10.4 firmware. V1.10.4 is the RECOMMENDED version.
  * It will probably work with earlier version (down to V1.6.32 and later).
 
 
 Support
 -------
- * For any issues or questions arising from teh use of this driver, or any
+ * For any issues or questions arising from the use of this driver, or any
    other OAT-related questions or to interact with the OAT community, please
    visit our Discord server.
 
 
 Testing
 -------
-Last Conformance Test - 2021-04-09 - All tests passed, no errors, no issues.
+Last Conformance Test - 2022-Feb-01 - All tests passed, no errors, no warnings, 4 issues.
 
 
 CAUTION
 -------
 Neither the mount nor the driver currently support setting any slew limits. 
 Thus it is quite possible the mount may be told to slew to a position that 
-causes the DEC axis to crash into the RA axis or results in an untennable 
+causes the DEC axis to crash into the RA axis or results in an untenable 
 position for your camera, or any number of other "Bad Things (tm)".  
-So... keep track of your own towel and supervise operations.
+So... keep your towel handy and supervise operations.
 
 
 Release History
 ---------------
+
+ - 6.6.6.4 : Pre-Released 2022-02-01
+   Added ability to record sync solutions in debug log
+
+ - 6.6.6.2 : Pre-Released 2021-11-05
+   Added ability to record sync solutions in debug log
 
  - 6.6.6.0 : Released 2021-10-16
    Added ability to control OAT stepper motors, unpark, park, home and set 

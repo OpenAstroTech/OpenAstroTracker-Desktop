@@ -32,15 +32,29 @@ namespace ASCOM.OpenAstroTracker
 	/// </summary>
 	public static class SharedResources
 	{
+		[Flags]
+		public enum LoggingFlags
+		{
+			None = 0,
+			Serial = 1,
+			Server = 2,
+			Scope = 4,
+			Focuser = 8,
+
+			Setup = 128,
+		}
+
 		// object used for locking to prevent multiple drivers accessing common code at the same time
 		private static readonly object lockObject = new object();
 		private static TraceLogger traceLogger;
-		private static Profile driverProfile;
 		public static string driverID = "ASCOM.OpenAstroTracker.Telescope";
+		private static long messageNumber = 1;
+		private static LoggingFlags currentLogFlags = LoggingFlags.Scope| LoggingFlags.Focuser;
 
 		private static string comPortProfileName = "COM Port";
 		private static string baudRateProfileName = "Baud Rate";
 		private static string traceStateProfileName = "Trace Level";
+		private static string traceFlagsProfileName = "Trace Flags";
 		private static string latitudeProfileName = "Latitude";
 		private static string longitudeProfileName = "Longitude";
 		private static string elevationProfileName = "Elevation";
@@ -48,10 +62,16 @@ namespace ASCOM.OpenAstroTracker
 		private static string comPortDefault = "COM5";
 		private static string baudRateDefault = "19200";
 		private static string traceStateDefault = "True";
+		private static string traceFlagsDefault = "Scope, Focuser";
 		private static double latitudeDefault = 30;
 		private static double longitudeDefault = -97;
 		private static double elevationDefault = 1;
 		private static Mutex _commandMutex;
+
+		static SharedResources()
+		{
+			EnsureLogger();
+		}
 
 		//
 		// Public access to shared resources
@@ -68,19 +88,31 @@ namespace ASCOM.OpenAstroTracker
 			}
 		}
 
-		public static TraceLogger tl
+		private static void EnsureLogger()
 		{
-			get
+			lock (lockObject)
 			{
 				if (traceLogger == null)
 				{
 					traceLogger = new TraceLogger("", "OpenAstroTracker.LocalServer");
 					traceLogger.Enabled = true;
 				}
-
-				return traceLogger;
 			}
 		}
+
+		//public static TraceLogger tl
+		//{
+		//	get
+		//	{
+		//		if (traceLogger == null)
+		//		{
+		//			traceLogger = new TraceLogger("", "OpenAstroTracker.LocalServer");
+		//			traceLogger.Enabled = true;
+		//		}
+
+		//		return traceLogger;
+		//	}
+		//}
 
 		public static ProfileData ReadProfile()
 		{
@@ -90,6 +122,7 @@ namespace ASCOM.OpenAstroTracker
 				return new ProfileData
 				{
 					TraceState = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, String.Empty, traceStateDefault)),
+					TraceFlags = (LoggingFlags)Enum.Parse(typeof(LoggingFlags), driverProfile.GetValue(driverID, traceFlagsProfileName, String.Empty, traceFlagsDefault)),
 					ComPort = driverProfile.GetValue(driverID, comPortProfileName, string.Empty, comPortDefault),
 					BaudRate = long.Parse(driverProfile.GetValue(driverID, baudRateProfileName, string.Empty, baudRateDefault)),
 					Latitude = Convert.ToDouble(driverProfile.GetValue(driverID, latitudeProfileName, string.Empty, latitudeDefault.ToString())),
@@ -105,11 +138,14 @@ namespace ASCOM.OpenAstroTracker
 			{
 				driverProfile.DeviceType = "Telescope";
 				driverProfile.WriteValue(driverID, traceStateProfileName, profile.TraceState.ToString());
+				driverProfile.WriteValue(driverID, traceFlagsProfileName, profile.TraceFlags.ToString());
 				driverProfile.WriteValue(driverID, comPortProfileName, profile.ComPort.ToString());
 				driverProfile.WriteValue(driverID, baudRateProfileName, profile.BaudRate.ToString());
 				driverProfile.WriteValue(driverID, latitudeProfileName, profile.Latitude.ToString());
 				driverProfile.WriteValue(driverID, longitudeProfileName, profile.Longitude.ToString());
 				driverProfile.WriteValue(driverID, elevationProfileName, profile.Elevation.ToString());
+
+				currentLogFlags = profile.TraceFlags;
 			}
 		}
 
@@ -161,10 +197,11 @@ namespace ASCOM.OpenAstroTracker
 		public static string SendMessage(string message)
 		{
 			string retVal = string.Empty;
-			tl.LogMessage("OAT Server", $"SendMessage({message}");
+			long messageNr = Interlocked.Increment(ref messageNumber);
+			LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} > ({message}) - awaiting lock");
 			lock (lockObject)
 			{
-				tl.LogMessage("OAT Server", $"SendMessage - Locked Serial");
+				LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} - acquired lock");
 
 				ExpectedAnswer expect = ExpectedAnswer.None;
 
@@ -190,41 +227,35 @@ namespace ASCOM.OpenAstroTracker
 
 				if (SharedSerial.Connected && !String.IsNullOrEmpty(message))
 				{
-					tl.LogMessage("OAT Server", "SendMessage - Expected reply : " + expect.ToString() + ") : " + message);
+					LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} - Sending command, expecting {expect} reply for '{message}'");
 					SharedSerial.ClearBuffers();
 					SharedSerial.Transmit(message);
 					switch (expect)
 					{
 						case ExpectedAnswer.Digit:
-							tl.LogMessage("OAT Server", "SendMessage - Wait for number reply");
 							retVal = SharedSerial.ReceiveCounted(1);
 							break;
 						case ExpectedAnswer.HashTerminated:
-							tl.LogMessage("OAT Server", "SendMessage - Wait for string reply");
 							retVal = SharedSerial.ReceiveTerminated("#");
-							tl.LogMessage("OAT Server", "SendMessage - Raw reply :" + retVal);
 							retVal = retVal.TrimEnd('#');
 							break;
 						case ExpectedAnswer.DoubleHashTerminated:
-							tl.LogMessage("OAT Server", "SendMessage - Wait for two replies. Wait for 1st string reply");
 							retVal = SharedSerial.ReceiveTerminated("#");
-							tl.LogMessage("OAT Server", "SendMessage - First Raw reply :" + retVal);
 							retVal = retVal.TrimEnd('#');
-							tl.LogMessage("OAT Server", "SendMessage - Wait for 2nd string reply");
 							retVal = SharedSerial.ReceiveTerminated("#");
-							tl.LogMessage("OAT Server", "SendMessage - Second Raw reply :" + retVal);
 							break;
 					}
 
-					tl.LogMessage("OAT Server", "SendMessage - Reply: " + retVal);
+					LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} - Reply: " + retVal);
 				}
 				else
 				{
-					tl.LogMessage("OAT Server", "SendMessage - Not connected or Empty Message: " + message);
+					LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} - Not connected or Empty Message: " + message);
 				}
+				LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} - Releasing lock");
 			}
 
-			tl.LogMessage("OAT Server", "SendMessage - Unlocked Serial");
+			LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} < Released lock");
 			return retVal;
 		}
 
@@ -246,15 +277,15 @@ namespace ASCOM.OpenAstroTracker
 		{
 			set
 			{
-				tl.LogMessage("OAT Server", $"Connected Set({value})");
+				LogMessage(LoggingFlags.Server, $"Connected Set({value})");
 				lock (lockObject)
 				{
-					tl.LogMessage("OAT Server", $"Connected Set - {value}");
+					LogMessage(LoggingFlags.Server, $"Connected Set - {value}");
 					if (value)
 					{
 						if (Connections == 0)
 						{
-							tl.LogMessage("OAT Server", "Connected Set - No connections active");
+							LogMessage(LoggingFlags.Server, $"Connected Set - No connections active");
 							try
 							{
 								SharedSerial.DTREnable = false;
@@ -262,11 +293,11 @@ namespace ASCOM.OpenAstroTracker
 								SharedSerial.ReceiveTimeoutMs = 2000;
 								SharedSerial.Speed = (SerialSpeed)ReadProfile().BaudRate;
 
-								tl.LogMessage("OAT Server", $"Connected Set - Attempting to connect {SharedSerial.PortName}@{SharedSerial.Speed}");
+								LogMessage(LoggingFlags.Server, $"Connected Set - Attempting to connect {SharedSerial.PortName}@{SharedSerial.Speed}");
 								SharedSerial.Connected = true;
 
 								Thread.Sleep(1000);
-								tl.LogMessage("OAT Server", "Connected Set - Connection seems to have succeeded.");
+								LogMessage(LoggingFlags.Server, $"Connected Set - Connection seems to have succeeded.");
 
 								SharedSerial.Transmit(":I#");
 							}
@@ -274,44 +305,44 @@ namespace ASCOM.OpenAstroTracker
 							{
 								MessageBox.Show("Serial port not opened for " + SharedResources.SharedSerial.PortName,
 									"Invalid port state", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								tl.LogMessage("OAT Server", "Connected Set - Serial port not opened: " + exception.Message);
+								LogMessage(LoggingFlags.Server, $"Connected Set - Serial port not opened: " + exception.Message);
 							}
 							catch (System.UnauthorizedAccessException exception)
 							{
 								MessageBox.Show("Access denied to serial port " + SharedResources.SharedSerial.PortName,
 									"Access denied", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								tl.LogMessage("OAT Server", "Connected Set - Access denied to serial port: " + exception.Message);
+								LogMessage(LoggingFlags.Server, $"Connected Set - Access denied to serial port: " + exception.Message);
 							}
 							catch (ASCOM.DriverAccessCOMException exception)
 							{
 								MessageBox.Show("ASCOM driver exception: " + exception.Message,
 									"ASCOM driver exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								tl.LogMessage("OAT Server", "Connected Set - Driver Access failure: " + exception.Message);
+								LogMessage(LoggingFlags.Server, $"Connected Set - Driver Access failure: " + exception.Message);
 							}
 							catch (System.Runtime.InteropServices.COMException exception)
 							{
 								MessageBox.Show(
 									"Serial port read timeout for port " + SharedResources.SharedSerial.PortName,
 									"Timeout", MessageBoxButtons.OK, MessageBoxIcon.Error);
-								tl.LogMessage("OAT Server", "Connected Set - Serial port COM Exception: " + exception.Message);
+								LogMessage(LoggingFlags.Server, $"Connected Set - Serial port COM Exception: " + exception.Message);
 							}
 						}
 						else
 						{
-							tl.LogMessage("OAT Server", $"Connected Set - Already connected with {Connections} connections active");
+							LogMessage(LoggingFlags.Server, $"Connected Set - Already connected with {Connections} connections active");
 						}
 
 						Connections++;
-						tl.LogMessage("OAT Server", $"Connected Set - Connection Count is {Connections} clients");
+						LogMessage(LoggingFlags.Server, $"Connected Set - Connection Count is {Connections} clients");
 					}
 					else
 					{
 						Connections--;
-						tl.LogMessage("OAT Server", $"Connected Set - Connection Count is {Connections} clients");
+						LogMessage(LoggingFlags.Server, $"Connected Set - Connection Count is {Connections} clients");
 						if (Connections <= 0)
 						{
 							Connections = 0;
-							tl.LogMessage("OAT Server", "Connected Set - No Connections remain, soDisconnecting From Device");
+							LogMessage(LoggingFlags.Server, $"Connected Set - No Connections remain, sedning Qq# and disconnecting device");
 							SharedSerial.Transmit(":Qq#");
 							SharedSerial.Connected = false;
 						}
@@ -368,5 +399,25 @@ namespace ASCOM.OpenAstroTracker
 				count = 0;
 			}
 		}
+
+		private static void LogMessage(LoggingFlags flag, string message)
+		{
+			LogMessageCallback(flag, message);
+		}
+
+		public static void SetTraceFlags(LoggingFlags flags)
+		{
+			currentLogFlags = flags;
+		}
+
+		public static void LogMessageCallback(LoggingFlags flag, string message)
+		{
+			if ((currentLogFlags & flag) != 0)
+			{
+				EnsureLogger();
+				traceLogger.LogMessage(flag.ToString(), $"[{Thread.CurrentThread.ManagedThreadId,0:000}] {message}");
+			}
+		}
+
 	}
 }

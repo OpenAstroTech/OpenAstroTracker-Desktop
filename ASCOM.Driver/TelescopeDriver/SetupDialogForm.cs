@@ -26,10 +26,13 @@ namespace ASCOM.OpenAstroTracker
 			_profile = profile;
 			_oat = telescope;
 			InitializeComponent();
+
+			// Focuser driver passes in null for telescope
 			btnConnect.Visible = (_oat != null);
 
 			btnUnparkDEC.Visible = false;
 			btnParkDEC.Visible = false;
+			btnAutoHomeRA.Visible = false;
 
 			SlewRate = 4;
 			lblStatus.Text = "Disconnected";
@@ -57,6 +60,8 @@ namespace ASCOM.OpenAstroTracker
 				btnWest.Enabled = true;
 				btnGoHome.Enabled = true;
 				btnSetHome.Enabled = true;
+				btnStop.Enabled = true;
+				btnSetLST.Enabled = true;
 
 				if (scopeFeatures.Contains("Focuser"))
 				{
@@ -106,6 +111,16 @@ namespace ASCOM.OpenAstroTracker
 					lblAutoPARequired.Visible = true;
 				}
 
+				if (scopeFeatures.Contains("AutoHomeRA"))
+				{
+					btnAutoHomeRA.Visible = true;
+				}
+				else
+				{
+					btnAutoHomeRA.Visible = false;
+				}
+
+
 				btnUnparkDEC.Enabled = true;
 				btnParkDEC.Enabled = true;
 				rdoRateOne.Enabled = true;
@@ -137,6 +152,8 @@ namespace ASCOM.OpenAstroTracker
 				btnUnparkDEC.Enabled = false;
 				btnParkDEC.Enabled = false;
 				btnSetHome.Enabled = false;
+				btnStop.Enabled = false;
+				btnSetLST.Enabled = false;
 				btnAzLeft.Enabled = false;
 				lblAutoPARequired.Visible = true;
 				lblAutoPARequired.ForeColor = System.Drawing.SystemColors.GrayText;
@@ -146,7 +163,7 @@ namespace ASCOM.OpenAstroTracker
 				btnFocusIn.Enabled = false;
 				btnFocusOut.Enabled = false;
 				lblFocusPosition.Enabled = false;
-				lblFocusPosition.ForeColor= System.Drawing.SystemColors.GrayText;
+				lblFocusPosition.ForeColor = System.Drawing.SystemColors.GrayText;
 				lblFocusRequired.Visible = true;
 				rdoRateOne.Enabled = false;
 				rdoRateTwo.Enabled = false;
@@ -172,7 +189,6 @@ namespace ASCOM.OpenAstroTracker
 			// Update the state variables with results from the dialogue
 			_profile.ComPort = (string)ComboBoxComPort.SelectedItem;
 			_profile.BaudRate = Convert.ToInt64(comboBoxBaudRate.SelectedItem);
-			_profile.TraceState = chkTrace.Checked;
 			_profile.Latitude = System.Convert.ToDouble(txtLat.Text);
 			_profile.Longitude = System.Convert.ToDouble(txtLong.Text);
 			_profile.Elevation = System.Convert.ToInt32(txtElevation.Text);
@@ -238,7 +254,11 @@ namespace ASCOM.OpenAstroTracker
 
 		private void InitUI()
 		{
-			chkTrace.Checked = _profile.TraceState;
+			chkSerial.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Serial) != 0;
+			chkServer.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Server) != 0;
+			chkTelescope.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Scope) != 0;
+			chkFocuser.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Focuser) != 0;
+			chkSetupDialog.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Setup) != 0;
 
 			// Set the list of com ports to those that are currently available using System.IO because it's static
 			ComboBoxComPort.Items.Clear();
@@ -276,7 +296,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 			else
 			{
-				btnConnect.Enabled = false;
+				comboBoxBaudRate.SelectedItem = 19200;
 			}
 
 			txtLat.Text = _profile.Latitude.ToString();
@@ -398,6 +418,10 @@ namespace ASCOM.OpenAstroTracker
 						{
 							scopeFeatures.Add("Focuser");
 						}
+						else if (hwParts[i] == "HSAH")
+						{
+							scopeFeatures.Add("AutoHomeRA");
+						}
 					}
 
 					if (!scopeFeatures.Any())
@@ -459,7 +483,7 @@ namespace ASCOM.OpenAstroTracker
 				{
 					lblStatus.Text = "Connection failed";
 					lblStatus.Update();
-					MessageBox.Show("Exception:" + ex.Message);
+					MessageBox.Show("Exception:" + ex.Message + ex.ToString());
 				}
 			}
 			else
@@ -643,7 +667,7 @@ namespace ASCOM.OpenAstroTracker
 					var result = MessageBox.Show($"Mount has moved {decSteps} in DEC. Is this the distance from parked position to home?", "Confirm Parking DEC offset", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 					if (result == DialogResult.Yes)
 					{
-						this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":XSDP{0}#", -decSteps));
+						this._oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":XSDP{0}#", decSteps));
 					}
 				}
 				else
@@ -748,6 +772,91 @@ namespace ASCOM.OpenAstroTracker
 			}
 
 			timerMountUpdate.Start();
+		}
+
+		private void btnStop_Click(object sender, EventArgs e)
+		{
+			_logger("Stop Clicked -> Sending Stop command to OAT");
+			_oat.Action("Serial:PassThroughCommand", ":Q#,#");
+		}
+
+		private void btnSetLST_Click(object sender, EventArgs e)
+		{
+			var utcNow = DateTime.UtcNow;
+			var now = DateTime.Now;
+			_logger(string.Format("SetLST Clicked -> Current UTC is {0}. Sending localtime to OAT. Time: {1,2:00}:{2,2:00}:{3,2:00}. Date: {4,2:00}/{5,2:00}/{6,2:00}", utcNow, now.Hour, now.Minute, now.Second, now.Month, now.Day, now.Year - 2000));
+			_oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":SL{0,2:00}:{1,2:00}:{2,2:00}#,n", now.Hour, now.Minute, now.Second));
+			_oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", now.Month, now.Day, now.Year - 2000));
+
+			var utcOffset = Math.Round((now - utcNow).TotalHours);
+			char sign = (utcOffset < 0) ? '-' : '+';
+			_logger(string.Format("SetLST Clicked -> Setting OAT timezone to {0}{1}", sign, Math.Abs(utcOffset)));
+			_oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":SG{0}{1,2:00}#,n", sign, Math.Abs(utcOffset)));
+		}
+
+		private void btnAutoHomeRA_Click(object sender, EventArgs e)
+		{
+			_logger("Auto Home RA Clicked -> Sending Auto Home command to OAT");
+			_oat.Action("Serial:PassThroughCommand", ":MHRR#,n");
+		}
+
+		private void chkTraceFlag_CheckedChanged(object sender, EventArgs e)
+		{
+			if (sender == chkSerial)
+			{
+				if (chkSerial.Checked)
+				{
+					_profile.TraceFlags |= SharedResources.LoggingFlags.Serial;
+				}
+				else
+				{
+					_profile.TraceFlags &= ~SharedResources.LoggingFlags.Serial;
+				}
+			}
+			else if (sender == chkServer)
+			{
+				if (chkServer.Checked)
+				{
+					_profile.TraceFlags |= SharedResources.LoggingFlags.Server;
+				}
+				else
+				{
+					_profile.TraceFlags &= ~SharedResources.LoggingFlags.Server;
+				}
+			}
+			else if (sender == chkTelescope)
+			{
+				if (chkTelescope.Checked)
+				{
+					_profile.TraceFlags |= SharedResources.LoggingFlags.Scope;
+				}
+				else
+				{
+					_profile.TraceFlags &= ~SharedResources.LoggingFlags.Scope;
+				}
+			}
+			else if (sender == chkFocuser)
+			{
+				if (chkFocuser.Checked)
+				{
+					_profile.TraceFlags |= SharedResources.LoggingFlags.Focuser;
+				}
+				else
+				{
+					_profile.TraceFlags &= ~SharedResources.LoggingFlags.Focuser;
+				}
+			}
+			else if (sender == chkSetupDialog)
+			{
+				if (chkSetupDialog.Checked)
+				{
+					_profile.TraceFlags |= SharedResources.LoggingFlags.Setup;
+				}
+				else
+				{
+					_profile.TraceFlags &= ~SharedResources.LoggingFlags.Setup;
+				}
+			}
 		}
 	}
 }

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Runtime.CompilerServices;
+using static ASCOM.OpenAstroTracker.SharedResources;
 
 namespace ASCOM.OpenAstroTracker
 {
@@ -30,7 +31,8 @@ namespace ASCOM.OpenAstroTracker
 
 		private Util _utilities = new Util();
 		private AstroUtils _astroUtilities = new AstroUtils();
-		private TraceLogger _tl;
+		//private TraceLogger _tl;
+		private Action<LoggingFlags, string> logMessageFunc;
 		private Transform _transform = new Transform();
 		private Transform _azAltTransform = new Transform();
 
@@ -41,6 +43,7 @@ namespace ASCOM.OpenAstroTracker
 		private bool _targetRaSet;
 		private bool _targetDecSet;
 		private bool _isConnected = false;
+		private long _fwVersion = 0;
 
 		private ProfileData Profile => SharedResources.ReadProfile();
 
@@ -51,9 +54,9 @@ namespace ASCOM.OpenAstroTracker
 		{
 			_driverId = Marshal.GenerateProgIdForType(this.GetType());
 
-			_tl = SharedResources.tl;
-			_tl.Enabled = Profile.TraceState;
-			LogMessage("OAT Scope", $"Starting initialization - v{Version}");
+			logMessageFunc = SharedResources.LogMessageCallback;
+			SharedResources.SetTraceFlags(Profile.TraceFlags);
+			LogMessage(LoggingFlags.Scope, $"Starting initialization - v{Version}");
 
 			// TODO: Implement your additional construction here
 			_transform.SetJ2000(_utilities.HMSToHours("02:31:51.12"), _utilities.DMSToDegrees("89:15:51.4"));
@@ -66,7 +69,7 @@ namespace ASCOM.OpenAstroTracker
 			_azAltTransform.SiteLatitude = SiteLatitude;
 			_azAltTransform.SiteLongitude = SiteLongitude;
 
-			LogMessage("OAT Scope", "Completed initialization");
+			LogMessage(LoggingFlags.Scope, "Completed initialization");
 		}
 
 		// 
@@ -81,18 +84,12 @@ namespace ASCOM.OpenAstroTracker
 		///     ''' </summary>
 		public void SetupDialog()
 		{
-			// consider only showing the setup dialog if not connected
-			// or call a different dialog if connected
-			if (IsConnected)
-			{
-				MessageBox.Show("Already connected, just press OK");
-			}
-
-			using (var f = new SetupDialogForm(Profile, this, (s) => this.LogMessage("SetupForm", s)))
+			using (var f = new SetupDialogForm(Profile, this, (s) => this.LogMessage(LoggingFlags.Setup, s)))
 			{
 				if (f.ShowDialog() == DialogResult.OK)
 				{
 					SharedResources.WriteProfile(f.GetProfileData()); // Persist device configuration values to the ASCOM Profile store
+					SharedResources.SetTraceFlags(Profile.TraceFlags);
 				}
 			}
 		}
@@ -105,7 +102,7 @@ namespace ASCOM.OpenAstroTracker
 				actionList.Add("Telescope:getFirmwareVer");
 				actionList.Add("Utility:JNowtoJ2000");
 				actionList.Add("Serial:PassThroughCommand");
-				LogMessage("OAT Scope", "SupportedActions Get => " + actionList.Count.ToString() + " item(s)");
+				LogMessage(LoggingFlags.Scope, "SupportedActions Get => " + actionList.Count.ToString() + " item(s)");
 				return actionList;
 			}
 		}
@@ -114,33 +111,33 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (SupportedActions.Contains(ActionName))
 			{
-				LogMessage("OAT Scope", $"Action({ActionName}, {ActionParameters}) called");
+				LogMessage(LoggingFlags.Scope, $"Action > ({ActionName}, {ActionParameters}) called");
 				string retVal = "255"; // Default error code
 				switch (ActionName)
 				{
 					case "Telescope:getFirmwareVer":
-						{
-							retVal = CommandString(":GVP#,#"); // Get firmware name
-							retVal = retVal + " " + CommandString(":GVN#,#"); // Get firmware version number
-							break;
-						}
+					{
+						retVal = CommandString(":GVP#,#"); // Get firmware name
+						retVal = retVal + " " + CommandString(":GVN#,#"); // Get firmware version number
+						break;
+					}
 
 					case "Utility:JNowtoJ2000":
-						{
-							_transform.SetTopocentric(System.Convert.ToDouble(ActionParameters.Split(',')[0]),
-								System.Convert.ToDouble(ActionParameters.Split(',')[1]));
-							retVal = _utilities.HoursToHMS(_transform.RAJ2000, ":", ":", string.Empty) + "&" +
-									 DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
-							break;
-						}
+					{
+						_transform.SetTopocentric(System.Convert.ToDouble(ActionParameters.Split(',')[0]),
+							System.Convert.ToDouble(ActionParameters.Split(',')[1]));
+						retVal = _utilities.HoursToHMS(_transform.RAJ2000, ":", ":", string.Empty) + "&" +
+								 DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
+						break;
+					}
 
 					case "Serial:PassThroughCommand":
-						{
-							retVal = SharedResources.SendPassThroughCommand(ActionParameters);
-							break;
-						}
+					{
+						retVal = SharedResources.SendPassThroughCommand(ActionParameters);
+						break;
+					}
 				}
-				LogMessage("OAT Scope", $"Action => {retVal}");
+				LogMessage(LoggingFlags.Scope, $"Action < result: {retVal}");
 
 				return retVal;
 			}
@@ -157,12 +154,11 @@ namespace ASCOM.OpenAstroTracker
 
 			try
 			{
-				LogMessage("OAT Scope", $"CommandBlind('{Command}') - Sending");
 				SharedResources.SendMessage(Command);
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OAT Scope", "CommandBlind - Error : " + ex.Message);
+				LogMessage(LoggingFlags.Scope, "CommandBlind <! Exception : " + ex.Message);
 			}
 			finally
 			{
@@ -187,14 +183,12 @@ namespace ASCOM.OpenAstroTracker
 
 			try
 			{
-				LogMessage("OAT Scope", $"CommandString({Command} - Sending");
 				var response = SharedResources.SendMessage(Command);
-				LogMessage("OAT Scope", "CommandString - Received    '" + response + "'");
 				return response;
 			}
 			catch (Exception ex)
 			{
-				LogMessage("OAT Scope", "CommandString - Exception :" + ex.Message);
+				LogMessage(LoggingFlags.Scope, "CommandString <! Exception :" + ex.Message);
 				return "255";
 			}
 			finally
@@ -220,7 +214,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "Description Get => " + driverDescription);
+				LogMessage(LoggingFlags.Scope, "Description Get => " + driverDescription);
 				return driverDescription;
 			}
 		}
@@ -230,7 +224,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				string s_driverInfo = "OpenAstroTracker ASCOM driver version: " + Version;
-				LogMessage("OAT Scope", "DriverInfo Get => " + s_driverInfo);
+				LogMessage(LoggingFlags.Scope, "DriverInfo Get => " + s_driverInfo);
 				return s_driverInfo;
 			}
 		}
@@ -239,7 +233,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "DriverVersion Get =>" + Version);
+				LogMessage(LoggingFlags.Scope, "DriverVersion Get =>" + Version);
 				return Version;
 			}
 		}
@@ -248,7 +242,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "InterfaceVersion Get => 3");
+				LogMessage(LoggingFlags.Scope, "InterfaceVersion Get => 3");
 				return 3;
 			}
 		}
@@ -258,7 +252,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				string s_name = "OAT ASCOM";
-				LogMessage("OAT Scope", "Name Get => " + s_name);
+				LogMessage(LoggingFlags.Scope, "Name Get => " + s_name);
 				return s_name;
 			}
 		}
@@ -273,7 +267,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (!AtPark)
 			{
-				LogMessage("OAT Scope", "AbortSlew - not parked, sending :Q#");
+				LogMessage(LoggingFlags.Scope, "AbortSlew - not parked, sending :Q#");
 				CommandBlind(":Q");
 			}
 			else
@@ -284,7 +278,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "AlignmentMode Get => 1 (algPolar)");
+				LogMessage(LoggingFlags.Scope, "AlignmentMode Get => 1 (algPolar)");
 				return
 					AlignmentModes.algPolar; // 1 is "Polar (equatorial) mount other than German equatorial." from AlignmentModes Enumeration
 			}
@@ -295,7 +289,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				_azAltTransform.SetApparent(RightAscension, Declination);
-				LogMessage("OAT Scope", $"Altitude Get => {_azAltTransform.ElevationTopocentric:0.00}");
+				LogMessage(LoggingFlags.Scope, $"Altitude Get => {_azAltTransform.ElevationTopocentric:0.00}");
 				return _azAltTransform.ElevationTopocentric;
 			}
 		}
@@ -304,7 +298,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "ApertureArea Get - Not implemented");
+				LogMessage(LoggingFlags.Scope, "ApertureArea Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("ApertureArea", false);
 			}
 		}
@@ -313,7 +307,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope","ApertureDiameter Get - Not implemented");
+				LogMessage(LoggingFlags.Scope, "ApertureDiameter Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("ApertureDiameter", false);
 			}
 		}
@@ -324,7 +318,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				// This property must be False if the telescope does not support homing.
 				// TODO : We'll try to implement homing later.
-				LogMessage("OAT Scope", "AtHome Get => false");
+				LogMessage(LoggingFlags.Scope, "AtHome Get => false");
 				return false;
 			}
 		}
@@ -333,14 +327,14 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", $"AtPark Get => {_isParked}");
+				LogMessage(LoggingFlags.Scope, $"AtPark Get => {_isParked}");
 				return _isParked; // Custom boolean we added to track parked state
 			}
 		}
 
 		public IAxisRates AxisRates(TelescopeAxes Axis)
 		{
-			LogMessage("OAT Scope", $"AxisRates Get for {Axis}");
+			LogMessage(LoggingFlags.Scope, $"AxisRates Get for {Axis}");
 			return new AxisRates(Axis);
 		}
 
@@ -349,7 +343,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				_azAltTransform.SetApparent(RightAscension, Declination);
-				LogMessage("OAT Scope", $"Azimuth Get => Az: {_azAltTransform.AzimuthTopocentric:0.00}");
+				LogMessage(LoggingFlags.Scope, $"Azimuth Get => Az: {_azAltTransform.AzimuthTopocentric:0.00}");
 				return _azAltTransform.AzimuthTopocentric;
 			}
 		}
@@ -360,7 +354,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				if (!IsConnected)
 					throw new ASCOM.NotConnectedException("CanFindHome");
-				LogMessage("OAT Scope", "CanFindHome Get => false");
+				LogMessage(LoggingFlags.Scope, "CanFindHome Get => false");
 				return false;
 			}
 		}
@@ -371,10 +365,10 @@ namespace ASCOM.OpenAstroTracker
 			{
 				case TelescopeAxes.axisPrimary:
 				case TelescopeAxes.axisSecondary:
-					LogMessage("OAT Scope", "CanMoveAxis(" + Axis.ToString() + ") => true");
+					LogMessage(LoggingFlags.Scope, "CanMoveAxis(" + Axis.ToString() + ") => true");
 					return true;
 				default:
-					LogMessage("OAT Scope", "CanMoveAxis(" + Axis.ToString() + ") => false");
+					LogMessage(LoggingFlags.Scope, "CanMoveAxis(" + Axis.ToString() + ") => false");
 					return false;
 			}
 		}
@@ -383,7 +377,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanPark Get => true");
+				LogMessage(LoggingFlags.Scope, "CanPark Get => true");
 				return true;
 			}
 		}
@@ -392,7 +386,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanPulseGuide Get => true");
+				LogMessage(LoggingFlags.Scope, "CanPulseGuide Get => true");
 				return true;
 			}
 		}
@@ -401,7 +395,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSetDeclinationRate Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSetDeclinationRate Get => false");
 				return false;
 			}
 		}
@@ -410,7 +404,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSetGuideRates Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSetGuideRates Get => false");
 				return false;
 			}
 		}
@@ -420,7 +414,7 @@ namespace ASCOM.OpenAstroTracker
 			// ToDo  We should allow this
 			get
 			{
-				LogMessage("OAT Scope", "CanSetPark Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSetPark Get => false");
 				return false;
 			}
 		}
@@ -429,7 +423,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSetPierSide Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSetPierSide Get => false");
 				return false;
 			}
 		}
@@ -438,7 +432,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSetRightAscensionRate Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSetRightAscensionRate Get => false");
 				return false;
 			}
 		}
@@ -447,7 +441,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSetTracking Get => true");
+				LogMessage(LoggingFlags.Scope, "CanSetTracking Get => true");
 				return true;
 			}
 		}
@@ -456,7 +450,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSlew Get => true");
+				LogMessage(LoggingFlags.Scope, "CanSlew Get => true");
 				return true;
 			}
 		}
@@ -466,7 +460,7 @@ namespace ASCOM.OpenAstroTracker
 			// TODO - AltAz slewing
 			get
 			{
-				LogMessage("OAT Scope", "CanSlewAltAz Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSlewAltAz Get => false");
 				return false;
 			}
 		}
@@ -475,7 +469,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSlewAltAzAsync Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSlewAltAzAsync Get => false");
 				return false;
 			}
 		}
@@ -484,7 +478,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSlewAsync Get => true");
+				LogMessage(LoggingFlags.Scope, "CanSlewAsync Get => true");
 				return true;
 			}
 		}
@@ -493,7 +487,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSync Get => true");
+				LogMessage(LoggingFlags.Scope, "CanSync Get => true");
 				return true;
 			}
 		}
@@ -502,7 +496,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanSyncAltAz Get => false");
+				LogMessage(LoggingFlags.Scope, "CanSyncAltAz Get => false");
 				return false;
 			}
 		}
@@ -511,7 +505,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "CanUnpark Get => true");
+				LogMessage(LoggingFlags.Scope, "CanUnpark Get => true");
 				return true;
 			}
 		}
@@ -520,10 +514,16 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
+				LogMessage(LoggingFlags.Scope, $"Declination Get");
 				double declination = 0.0;
 				string scopeDec = CommandString(":GD#,#");
 				declination = _utilities.DMSToDegrees(scopeDec);
-				LogMessage("OAT Scope", $"Declination Get => {declination:0.00}  (Raw:{scopeDec})");
+				LogMessage(LoggingFlags.Scope, $"Declination Get => {declination:0.00}  (Raw:{scopeDec})");
+				if (!_targetDecSet)
+				{
+					TargetDeclination = declination;
+				}
+
 				return declination;
 			}
 		}
@@ -533,19 +533,19 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				double declination = 0.0;
-				LogMessage("OAT Scope", $"DeclinationRate Get => {declination:0.00}");
+				LogMessage(LoggingFlags.Scope, $"DeclinationRate Get => {declination:0.00}");
 				return declination;
 			}
 			set
 			{
-				LogMessage("OAT Scope", "DeclinationRate Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "DeclinationRate Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("DeclinationRate", true);
 			}
 		}
 
 		public PierSide DestinationSideOfPier(double RightAscension, double Declination)
 		{
-			LogMessage("OAT Scope", "DestinationSideOfPier Get - Not implemented");
+			LogMessage(LoggingFlags.Scope, "DestinationSideOfPier Get - Not implemented");
 			throw new ASCOM.MethodNotImplementedException("DestinationSideOfPier");
 		}
 
@@ -553,12 +553,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "DoesRefraction Get - Not implemented");
+				LogMessage(LoggingFlags.Scope, "DoesRefraction Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("DoesRefraction", false);
 			}
 			set
 			{
-				LogMessage("OAT Scope", "DoesRefraction Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "DoesRefraction Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("DoesRefraction", true);
 			}
 		}
@@ -569,14 +569,14 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				EquatorialCoordinateType equatorialSystem = EquatorialCoordinateType.equTopocentric;
-				LogMessage("OAT Scope", $"DeclinationRate Get => Topocentric");
+				LogMessage(LoggingFlags.Scope, $"DeclinationRate Get => Topocentric");
 				return equatorialSystem;
 			}
 		}
 
 		public void FindHome()
 		{
-			LogMessage("OAT Scope", "FindHome - Not implemented");
+			LogMessage(LoggingFlags.Scope, "FindHome - Not implemented");
 			throw new ASCOM.MethodNotImplementedException("FindHome");
 		}
 
@@ -584,7 +584,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "FocalLength Get - Not implemented");
+				LogMessage(LoggingFlags.Scope, "FocalLength Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("FocalLength", false);
 			}
 		}
@@ -593,12 +593,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "GuideRateDeclination Get - Not implemented");
+				LogMessage(LoggingFlags.Scope, "GuideRateDeclination Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("GuideRateDeclination", false);
 			}
 			set
 			{
-				LogMessage("OAT Scope", "GuideRateDeclination Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "GuideRateDeclination Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("GuideRateDeclination", true);
 			}
 		}
@@ -607,12 +607,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "GuideRateRightAscension Get - Not implemented");
+				LogMessage(LoggingFlags.Scope, "GuideRateRightAscension Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("GuideRateRightAscension", false);
 			}
 			set
 			{
-				LogMessage("OAT Scope", "GuideRateRightAscension Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "GuideRateRightAscension Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("GuideRateRightAscension", true);
 			}
 		}
@@ -621,8 +621,9 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
+				LogMessage(LoggingFlags.Scope, $"IsPulseGuiding Get");
 				bool retVal = Convert.ToBoolean(System.Convert.ToInt32(CommandString(":GIG#,#")));
-				LogMessage("OAT Scope", "IsPulseGuiding Get => " + retVal.ToString());
+				LogMessage(LoggingFlags.Scope, "IsPulseGuiding Get => " + retVal.ToString());
 				return retVal;
 			}
 		}
@@ -632,23 +633,23 @@ namespace ASCOM.OpenAstroTracker
 		private double _ratePriorToMove;
 		public void MoveAxis(TelescopeAxes Axis, double Rate)
 		{
-			LogMessage("OAT Scope", $"MoveAxis({Axis}, {Rate:0.00})");
+			LogMessage(LoggingFlags.Scope, $"MoveAxis({Axis}, {Rate:0.00})");
 
 			if (Axis == TelescopeAxes.axisTertiary)
 			{
-				LogMessage("OAT Scope", "MoveAxis - Axis not supported.");
+				LogMessage(LoggingFlags.Scope, "MoveAxis - Axis not supported.");
 				throw new ASCOM.NotImplementedException("MoveAxis Tertiary Not Supported.");
 			}
 
 			if (AtPark)
 			{
-				LogMessage("OAT Scope", "MoveAxis - Scope is parked");
+				LogMessage(LoggingFlags.Scope, "MoveAxis - Scope is parked");
 				throw new ASCOM.ParkedException("MoveAxis");
 			}
 
 			if (Rate != 0 && !ValidAxisSpeed(Axis, Rate))
 			{
-				LogMessage("OAT Scope", $"MoveAxis - invalid speed {Rate:0.000} for axis {Axis}");
+				LogMessage(LoggingFlags.Scope, $"MoveAxis - invalid speed {Rate:0.000} for axis {Axis}");
 				throw new ASCOM.InvalidValueException("Invalid speed for Axis");
 			}
 
@@ -658,7 +659,7 @@ namespace ASCOM.OpenAstroTracker
 
 			if (Rate == 0)
 			{
-				LogMessage("OAT Scope", $"MoveAxis - {sAxis} Rate is zero, so stopping Slew and setting Rate S");
+				LogMessage(LoggingFlags.Scope, $"MoveAxis - {sAxis} Rate is zero, so stopping Slew and setting Rate S");
 				// if at some point we support multiple tracking rates this should set
 				// the value back to the previous rate...
 				CommandBlind($":{cmd}");
@@ -675,15 +676,15 @@ namespace ASCOM.OpenAstroTracker
 				double rate = Math.Abs(Rate);
 				string rateCommandParam = "GCMS";
 				int index = 0;
-				LogMessage("OAT Scope", $"MoveAxis - {sAxis} Finding Rate for {rate}");
+				LogMessage(LoggingFlags.Scope, $"MoveAxis - {sAxis} Finding Rate for {rate}");
 				foreach (Rate availRate in AxisRates(Axis))
 				{
-					LogMessage("OAT Scope", $"MoveAxis - {sAxis} Check rate {index} : {availRate.Minimum} -> {availRate.Maximum}");
+					LogMessage(LoggingFlags.Scope, $"MoveAxis - {sAxis} Check rate {index} : {availRate.Minimum} -> {availRate.Maximum}");
 
 					if (rate < availRate.Maximum)
 					{
 						cmd = rateCommandParam.Substring(index, 1);
-						LogMessage("OAT Scope", $"MoveAxis - {sAxis} Rate found. Using mode {cmd}");
+						LogMessage(LoggingFlags.Scope, $"MoveAxis - {sAxis} Rate found. Using mode {cmd}");
 						break;
 					}
 					index++;
@@ -702,6 +703,7 @@ namespace ASCOM.OpenAstroTracker
 				}
 
 				CommandBlind($":{cmd}");
+				LogMessage(LoggingFlags.Scope, $"MoveAxis() complete");
 			}
 		}
 
@@ -713,7 +715,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				if (absRate >= rate.Minimum && absRate <= rate.Maximum)
 				{
-			 		return true;
+					return true;
 				}
 			}
 
@@ -724,10 +726,11 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (!AtPark)
 			{
+				LogMessage(LoggingFlags.Scope, $"Park() called");
 				CommandBlind(":hP");
 				PollUntilZero(":GIS#,#");
 				_isParked = true;
-				LogMessage("OAT Scope", "Park - Parked mount");
+				LogMessage(LoggingFlags.Scope, "Park() - Parked mount");
 			}
 		}
 
@@ -737,13 +740,14 @@ namespace ASCOM.OpenAstroTracker
 			{
 				var dirString = Enum.GetName(typeof(GuideDirections), Direction);
 				var durString = Duration.ToString("0000");
-				LogMessage("OAT Scope", $"PulseGuide ({Direction}, {durString}ms)");
+				LogMessage(LoggingFlags.Scope, $"PulseGuide ({Direction}, {durString}ms)");
 				var dir = dirString.Substring(5, 1).ToLower();
 				CommandBlind($":Mg{dir}{durString}");
+				LogMessage(LoggingFlags.Scope, $"PulseGuide complete");
 			}
 			else
 			{
-				LogMessage("OAT Scope", "PulseGuide - Scope is parked");
+				LogMessage(LoggingFlags.Scope, "PulseGuide - Scope is parked");
 				throw new ASCOM.ParkedException("PulseGuide");
 			}
 		}
@@ -753,8 +757,13 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				double rightAscension = 0.0;
+				LogMessage(LoggingFlags.Scope, $"RightAscension Get");
 				rightAscension = _utilities.HMSToHours(CommandString(":GR#,#"));
-				LogMessage("OAT Scope", $"RightAscension Get => {rightAscension:0.000}");
+				LogMessage(LoggingFlags.Scope, $"RightAscension Get => {rightAscension:0.000}");
+				if (!_targetRaSet)
+				{
+					TargetRightAscension = rightAscension;
+				}
 				return rightAscension;
 			}
 		}
@@ -764,19 +773,19 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				double rightAscensionRate = 0.0;
-				LogMessage("OAT Scope", $"RightAscensionRate Get => {rightAscensionRate:0.000}");
+				LogMessage(LoggingFlags.Scope, $"RightAscensionRate Get => {rightAscensionRate:0.000}");
 				return rightAscensionRate;
 			}
 			set
 			{
-				LogMessage("OAT Scope", "RightAscensionRate Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "RightAscensionRate Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("RightAscensionRate", true);
 			}
 		}
 
 		public void SetPark()
 		{
-			LogMessage("OAT Scope", "SetPark - Not implemented");
+			LogMessage(LoggingFlags.Scope, "SetPark - Not implemented");
 			throw new ASCOM.MethodNotImplementedException("SetPark");
 		}
 
@@ -797,12 +806,12 @@ namespace ASCOM.OpenAstroTracker
 				else
 					retVal = PierSide.pierWest;
 
-				LogMessage("OAT Scope", $"SideOfPier Get => {Enum.GetName(typeof(PierSide), retVal)}");
+				LogMessage(LoggingFlags.Scope, $"SideOfPier Get => {Enum.GetName(typeof(PierSide), retVal)}");
 				return retVal;
 			}
 			set
 			{
-				LogMessage("OAT Scope", "SideOfPier Set - Not Implemented");
+				LogMessage(LoggingFlags.Scope, "SideOfPier Set - Not Implemented");
 				throw new ASCOM.PropertyNotImplementedException("SideOfPier", true);
 			}
 		}
@@ -825,7 +834,7 @@ namespace ASCOM.OpenAstroTracker
 
 				// Reduce to the range 0 to 24 hours
 				lst = _astroUtilities.ConditionRA(lst);
-				LogMessage("OAT Scope", $"SiderealTime Get => {lst:0.000}");
+				LogMessage(LoggingFlags.Scope, $"SiderealTime Get => {lst:0.000}");
 				return lst;
 			}
 		}
@@ -834,19 +843,19 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", $"SiteElevation Get => {Profile.Elevation:0.0}");
+				LogMessage(LoggingFlags.Scope, $"SiteElevation Get => {Profile.Elevation:0.0}");
 				return Profile.Elevation;
 			}
 			set
 			{
 				if (value >= -300 && value <= 10000)
 				{
-					LogMessage("OAT Scope", $"SiteElevation Set {value:0.0}");
+					LogMessage(LoggingFlags.Scope, $"SiteElevation Set {value:0.0}");
 					Profile.Elevation = value;
 				}
 				else
 				{
-					LogMessage("OAT Scope", $"SiteElevation Set {value:0.0} out of range, Atlantis or Mt Everest no supported.");
+					LogMessage(LoggingFlags.Scope, $"SiteElevation Set {value:0.0} out of range, Atlantis or Mt Everest no supported.");
 					throw new ASCOM.InvalidValueException("SiteElevation");
 				}
 			}
@@ -856,13 +865,48 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", $"SiteLatitude Get => {Profile.Latitude:0.00}");
+				LogMessage(LoggingFlags.Scope, $"SiteLatitude Get => {Profile.Latitude:0.00}");
 				return Profile.Latitude;
 			}
 			set
 			{
-				LogMessage("OAT Scope", "SiteLatitude Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "SiteLatitude Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("SiteLatitude", true);
+			}
+		}
+
+		public long FirmwareVersion
+		{
+			get
+			{
+				if (!_isConnected)
+				{
+					throw new ASCOM.NotConnectedException();
+				}
+
+				LogMessage(LoggingFlags.Scope, "FirmwareVersion Get");
+				if (_fwVersion == 0)
+				{
+					var version = CommandString(":GVN#,#");
+					var versionNumbers = version.Substring(1).Split(".".ToCharArray());
+					if (versionNumbers.Length != 3)
+					{
+						LogMessage(LoggingFlags.Scope, $"Unrecognizable firmware version '{version}'");
+					}
+					else
+					{
+						try
+						{
+							_fwVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
+						}
+						catch
+						{
+							LogMessage(LoggingFlags.Scope, $"Unable to parse firmware version '{version}'");
+						}
+					}
+				}
+				LogMessage(LoggingFlags.Scope, $"FirmwareVersion Get => {_fwVersion}");
+				return _fwVersion;
 			}
 		}
 
@@ -870,12 +914,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", $"SiteLongitude Get => {Profile.Longitude:0.00}");
+				LogMessage(LoggingFlags.Scope, $"SiteLongitude Get => {Profile.Longitude:0.00}");
 				return Profile.Longitude;
 			}
 			set
 			{
-				LogMessage("OAT Scope", "SiteLongitude Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "SiteLongitude Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("SiteLongitude", true);
 			}
 		}
@@ -884,25 +928,25 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", "SlewSettleTime Get - Not implemented");
+				LogMessage(LoggingFlags.Scope, "SlewSettleTime Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("SlewSettleTime", false);
 			}
 			set
 			{
-				LogMessage("OAT Scope", "SlewSettleTime Set - Not implemented");
+				LogMessage(LoggingFlags.Scope, "SlewSettleTime Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("SlewSettleTime", true);
 			}
 		}
 
 		public void SlewToAltAz(double Azimuth, double Altitude)
 		{
-			LogMessage("OAT Scope", "SlewToAltAz - Not implemented");
+			LogMessage(LoggingFlags.Scope, "SlewToAltAz - Not implemented");
 			throw new ASCOM.MethodNotImplementedException("SlewToAltAz");
 		}
 
 		public void SlewToAltAzAsync(double Azimuth, double Altitude)
 		{
-			LogMessage("OAT Scope", "SlewToAltAzAsync - Not implemented");
+			LogMessage(LoggingFlags.Scope, "SlewToAltAzAsync - Not implemented");
 			throw new ASCOM.MethodNotImplementedException("SlewToAltAzAsync");
 		}
 
@@ -913,13 +957,13 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (AtPark)
 			{
-				LogMessage("OAT Scope", $"{caller} - Scope is parked!");
+				LogMessage(LoggingFlags.Scope, $"{caller} - Scope is parked!");
 				throw new ASCOM.ParkedException(caller);
 			}
 
 			if (ValidateCoordinates(ra, dec))
 			{
-				LogMessage("OAT Scope", $"{caller} - RA {ra:0.000},  Dec {dec:0.000}");
+				LogMessage(LoggingFlags.Scope, $"{caller} - RA {ra:0.000},  Dec {dec:0.000}");
 				SetTargetCoordinates(ra, dec);
 				CommandString(":MS#,n");
 				if (wait)
@@ -929,7 +973,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 			else
 			{
-				LogMessage("OAT Scope", $"{caller} - Invalid coordinates RA: " + ra.ToString() + ", Dec: " + dec.ToString());
+				LogMessage(LoggingFlags.Scope, $"{caller} - Invalid coordinates RA: " + ra.ToString() + ", Dec: " + dec.ToString());
 				throw new ASCOM.InvalidValueException(caller);
 			}
 		}
@@ -938,7 +982,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			var strRAcmd = $":Sr{_utilities.HoursToHMS(rightAscension, ":", ":")}#,n";
 			var strDeccmd = $":Sd{DegreesToDmsWithSign(declination, "*", ":", "")}#,n";
-			LogMessage("OAT Scope", $"SetTargetCoordinates - RA : {rightAscension:0.000}, DEC: {declination:0.00}");
+			LogMessage(LoggingFlags.Scope, $"SetTargetCoordinates - RA : {rightAscension:0.000}, DEC: {declination:0.00}");
 
 			TargetRightAscension = rightAscension;
 			TargetDeclination = declination;
@@ -953,12 +997,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (_targetRaSet && _targetDecSet)
 			{
-				LogMessage("OAT Scope", $"SlewToTarget - RA: {TargetRightAscension:0.000}, DEC: {TargetDeclination:0.000}");
+				LogMessage(LoggingFlags.Scope, $"SlewToTarget - RA: {TargetRightAscension:0.000}, DEC: {TargetDeclination:0.000}");
 				SlewToCoordinates(TargetRightAscension, TargetDeclination);
 			}
 			else
 			{
-				LogMessage("OAT Scope", $"SlewToTarget - No Target RA, DEC set");
+				LogMessage(LoggingFlags.Scope, $"SlewToTarget - No Target RA, DEC set");
 				throw new InvalidValueException("TargetRightAscension or TargetDeclination are not set or valid");
 			}
 		}
@@ -967,7 +1011,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (_targetRaSet && _targetDecSet)
 			{
-				LogMessage("OAT Scope", $"SlewToTargetAsync - RA: {TargetRightAscension:0.000}, DEC: {TargetDeclination:0.000}");
+				LogMessage(LoggingFlags.Scope, $"SlewToTargetAsync - RA: {TargetRightAscension:0.000}, DEC: {TargetDeclination:0.000}");
 				SlewToCoordinatesAsync(TargetRightAscension, TargetDeclination);
 			}
 			else
@@ -980,15 +1024,17 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
+				LogMessage(LoggingFlags.Scope, $"Slewing Get");
+
 				bool retVal = Convert.ToBoolean(System.Convert.ToInt32(CommandString(":GIS#,#")));
-				LogMessage("OAT Scope", "Slewing Get => " + retVal.ToString());
+				LogMessage(LoggingFlags.Scope, "Slewing Get => " + retVal.ToString());
 				return retVal;
 			}
 		}
 
 		public void SyncToAltAz(double Azimuth, double Altitude)
 		{
-			LogMessage("OAT Scope", "SyncToAltAz - Not implemented");
+			LogMessage(LoggingFlags.Scope, "SyncToAltAz - Not implemented");
 			throw new ASCOM.MethodNotImplementedException("SyncToAltAz");
 		}
 
@@ -996,21 +1042,34 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (AtPark)
 			{
-				LogMessage("OAT Scope", "SyncToCoordinates - Scope is parked!");
+				LogMessage(LoggingFlags.Scope, "SyncToCoordinates - Scope is parked!");
 				throw new ASCOM.ParkedException("SyncToCoordinates");
 			}
 
 			if (ValidateCoordinates(RightAscension, Declination))
 			{
-				LogMessage("OAT Scope", $"SyncToCoordinates - RA: {TargetRightAscension:0.000}, DEC: {TargetDeclination:0.000}");
+				LogMessage(LoggingFlags.Scope, $"SyncToCoordinates - RA: {TargetRightAscension:0.000}, DEC: {TargetDeclination:0.000}");
 				SetTargetCoordinates(RightAscension, Declination);
+
+				if (FirmwareVersion > 10934)
+				{
+					var solutions = CommandString(":XGY#,#");
+					var coords = solutions.Split('|');
+					int i = 0;
+					foreach (var coord in coords)
+					{
+						LogMessage(LoggingFlags.Scope, $"SyncToCoordinates - Solution ({(i == 0 ? "used" : i.ToString()),4}): {coord}");
+						i++;
+					}
+				}
 				CommandString(":CM#,#");
 			}
 			else
 			{
-				LogMessage("OAT Scope", "SyncToCoordinates - Invalid coordinates RA: " + RightAscension.ToString() + ", Dec: " + Declination.ToString());
+				LogMessage(LoggingFlags.Scope, "SyncToCoordinates - Invalid coordinates RA: " + RightAscension.ToString() + ", Dec: " + Declination.ToString());
 				throw new ASCOM.InvalidValueException("SyncToCoordinates");
 			}
+			LogMessage(LoggingFlags.Scope, "SyncToCoordinates - complete");
 		}
 
 		private bool ValidateCoordinates(double rightAscension, double declination)
@@ -1026,19 +1085,18 @@ namespace ASCOM.OpenAstroTracker
 			}
 		}
 
-
 		public double TargetDeclination
 		{
 			get
 			{
 				if (_targetDecSet)
 				{
-					LogMessage("OAT Scope", $"TargetDeclination Get => {_targetDec:0.000}");
+					LogMessage(LoggingFlags.Scope, $"TargetDeclination Get => {_targetDec:0.000}");
 					return _targetDec;
 				}
 				else
 				{
-					LogMessage("OAT Scope", "TargetDeclination Get => Value not set");
+					LogMessage(LoggingFlags.Scope, "TargetDeclination Get => Value not set");
 					throw new ASCOM.ValueNotSetException("TargetDeclination");
 				}
 			}
@@ -1046,13 +1104,13 @@ namespace ASCOM.OpenAstroTracker
 			{
 				if (value >= -90 && value <= 90)
 				{
-					LogMessage("OAT Scope", $"TargetDeclination Set => {value:0.000}");
+					LogMessage(LoggingFlags.Scope, $"TargetDeclination Set => {value:0.000}");
 					_targetDec = value;
 					_targetDecSet = true;
 				}
 				else
 				{
-					LogMessage("OAT Scope", $"TargetDeclination Set - Invalid Value {value:0.000}");
+					LogMessage(LoggingFlags.Scope, $"TargetDeclination Set - Invalid Value {value:0.000}");
 					throw new ASCOM.InvalidValueException("TargetDeclination");
 				}
 			}
@@ -1064,12 +1122,12 @@ namespace ASCOM.OpenAstroTracker
 			{
 				if (_targetRaSet)
 				{
-					LogMessage("OAT Scope", $"TargetRightAscension Get => {_targetRa:0.000}");
+					LogMessage(LoggingFlags.Scope, $"TargetRightAscension Get => {_targetRa:0.000}");
 					return _targetRa;
 				}
 				else
 				{
-					LogMessage("OAT Scope", "TargetRightAscension Get => Value not set");
+					LogMessage(LoggingFlags.Scope, "TargetRightAscension Get => Value not set");
 					throw new ASCOM.ValueNotSetException("TargetRightAscension");
 				}
 			}
@@ -1077,13 +1135,13 @@ namespace ASCOM.OpenAstroTracker
 			{
 				if (value >= 0 && value <= 24)
 				{
-					LogMessage("OAT Scope", $"TargetRightAscension Set - {value:0.000}");
+					LogMessage(LoggingFlags.Scope, $"TargetRightAscension Set - {value:0.000}");
 					_targetRa = value;
 					_targetRaSet = true;
 				}
 				else
 				{
-					LogMessage("OAT Scope", $"TargetRightAscension Set - Invalid Value {value:0.000}");
+					LogMessage(LoggingFlags.Scope, $"TargetRightAscension Set - Invalid Value {value:0.000}");
 					throw new ASCOM.InvalidValueException("TargetRightAscension");
 				}
 			}
@@ -1093,29 +1151,32 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
+				LogMessage(LoggingFlags.Scope, "Tracking Get");
+
 				if (CommandString(":GIT#,#") == "0")
 				{
 					_isTracking = false;
-					LogMessage("OAT Scope", "Tracking Get => false");
+					LogMessage(LoggingFlags.Scope, "Tracking Get => false");
 				}
 				else
 				{
 					_isTracking = true;
-					LogMessage("OAT Scope", "Tracking Get => true");
+					LogMessage(LoggingFlags.Scope, "Tracking Get => true");
 				}
 
 				return _isTracking;
 			}
 			set
 			{
+				LogMessage(LoggingFlags.Scope, $"Tracking - Set {value}");
 				if (CommandString($":MT{Convert.ToInt32(value)}#,n") == "1")
 				{
 					_isTracking = value;
-					LogMessage("OAT Scope", $"Tracking Set - {value}");
+					LogMessage(LoggingFlags.Scope, $"Tracking Set - complete");
 				}
 				else
 				{
-					LogMessage("OAT Scope", "Tracking Set - Error, OAT returned non-1 for :MTx# command");
+					LogMessage(LoggingFlags.Scope, "Tracking Set - Error, OAT returned non-1 for :MTx# command");
 					throw new ASCOM.DriverException("Error setting tracking state");
 				}
 			}
@@ -1125,12 +1186,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage("OAT Scope", $"TrackingRate Get => {Enum.GetName(typeof(DriveRates), driveRate)}");
+				LogMessage(LoggingFlags.Scope, $"TrackingRate Get => {Enum.GetName(typeof(DriveRates), driveRate)}");
 				return driveRate;
 			}
 			set
 			{
-				LogMessage("OAT Scope", $"TrackingRate Set - Ignoring value {value}. Only sidereal supported.");
+				LogMessage(LoggingFlags.Scope, $"TrackingRate Set - Ignoring value {value}. Only sidereal supported.");
 				driveRate = DriveRates.driveSidereal;
 			}
 		}
@@ -1141,7 +1202,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				ITrackingRates trackingRates = new TrackingRates();
 				string rates = string.Join(", ", trackingRates.ToString());
-				LogMessage("OAT Scope", "TrackingRates Get => " + rates);
+				LogMessage(LoggingFlags.Scope, "TrackingRates Get => " + rates);
 				return trackingRates;
 			}
 		}
@@ -1152,7 +1213,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				DateTime utcDate = DateTime.UtcNow;
-				LogMessage("OAT Scope", $"UTCDate Get => {utcDate}");
+				LogMessage(LoggingFlags.Scope, $"UTCDate Get => {utcDate}");
 				return utcDate;
 			}
 			set { throw new ASCOM.PropertyNotImplementedException("UTCDate", true); }
@@ -1162,10 +1223,11 @@ namespace ASCOM.OpenAstroTracker
 		{
 			if (AtPark)
 			{
+				LogMessage(LoggingFlags.Scope, "Unpark() called");
 				string unprkRet = CommandString(":hU#,n");
 				if (unprkRet == "1")
 				{
-					LogMessage("OAT Scope", "Unpark - Unparked mount");
+					LogMessage(LoggingFlags.Scope, "Unpark - Unparked mount");
 				}
 				_isParked = false;
 			}
@@ -1229,10 +1291,9 @@ namespace ASCOM.OpenAstroTracker
 			return System.Convert.ToInt32(retVal);
 		}
 
-		private void LogMessage(string identifier, string message)
+		private void LogMessage(LoggingFlags flags, string message)
 		{
-			Debug.WriteLine($"{identifier} - {message}");
-			_tl.LogMessage(identifier, message);
+			logMessageFunc(flags, message);
 		}
 	}
 }
