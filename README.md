@@ -15,7 +15,18 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
-
+ 
+**ASCOM.Driver V6.6.6.4 - Updates**
+- Properties dialog: Added ability to invoke Hall sensor-based Auto Home RA
+- Properties dialog: Added ability to set LST
+- Properties dialog: Added Stop button
+- Fixed a bug that made Park DEC go in the wrong direction
+- Added finer-grained logging ability
+- Added message number to logging calls
+- Changed logging to flush at regular intervals
+- Allowed read before write of Target coords (this causes the conformance issues, but allows NINA/KSTARS to work)
+- Sync coordinates are dumped to logfiles for analysis
+ 
 **OATControl V1.0.2.7 - Updates**
 - Added ability to define up to 4 custom commands to the Settings dialog.
 - Update Target Chooser coordinates only when it's visible (performance issue).
@@ -31,7 +42,7 @@ Change Log:
 - Tracking indicator is not turned off when guiding anymore.
 
 **ASCOM.Driver V6.6.6.0 - Updates**
-- Added more control optionbs to the driver properties.
+- Added more control options to the driver properties.
 
 **OATControl V1.0.2.4 - Updates**
 - Added support for Hall sensor based RA auto homing.
