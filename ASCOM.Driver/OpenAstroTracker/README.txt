@@ -1,6 +1,6 @@
 +====================================================+
-| OpenAstroTracker ASCOM Driver V6.6.6.4 Pre-Release |
-| Published: 1. February 2022                        |
+| OpenAstroTracker ASCOM Driver V6.6.6.5 Release     |
+| Published: 17. March 2022                          |
 +====================================================+
 
 This is the latest ASCOM driver available for the OAT. It allows various 
