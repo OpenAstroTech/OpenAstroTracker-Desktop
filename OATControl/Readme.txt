@@ -1,7 +1,19 @@
 Revision History
 ----------------
 
-OATControl V1.0.2.7                                              21 Jan 2021
+OATControl V1.0.2.8                                              17 Mar 2022
+- Added error handling to the parameters that update in real-time.
+- Calculation of target marker is correct now (takes tracking into account)
+- Fixed code to support COM10 and above.
+- DEC axis is now labeled as degrees from home
+- Button to make target equal to current has been labelled Update
+- Improved logging output format.
+- Logfile is now flushed at regular intervals instead of when logs are 
+  submitted.
+- Serial job sequence numbers and result status are attached to jobs now.
+- Number of successful and failed jobs are tracked and dumped to log on exit.
+
+OATControl V1.0.2.7                                              21 Jan 2022
 - Added ability to define up to 4 custom commands to the Settings dialog.
 - Update Target Chooser coordinates only when it's visible (performance issue).
 - Added option to run RA Homing and DEC unparking to connection dialog.
