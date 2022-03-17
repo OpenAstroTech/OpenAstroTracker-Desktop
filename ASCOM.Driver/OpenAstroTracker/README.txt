@@ -1,7 +1,7 @@
-+====================================================+
-| OpenAstroTracker ASCOM Driver V6.6.6.5 Release     |
-| Published: 17. March 2022                          |
-+====================================================+
++==========================================================================+
+| OpenAstroTracker ASCOM Driver V6.6.6.5 Release                           |
+| Published: 17. March 2022                                                |
++==========================================================================+
 
 This is the latest ASCOM driver available for the OAT. It allows various 
 client programs to communicate with the OAT using both standard LX200 Meade
@@ -13,8 +13,8 @@ Properties dialog.
 
  * Tested on MKS Gen L V2.1, Arduino Mega and ESP32. No other variants of 
    Arduino have been tested, or are officially supported.
- * Tested with V1.10.4 firmware. V1.10.4 is the RECOMMENDED version.
- * Tested with V1.11.0 firmware.
+ * Tested with V1.10.4 firmware.
+ * Tested with V1.11.0 firmware (RECOMMENDED).
  * It will probably work with earlier version (down to V1.6.32 and later).
 
 
@@ -31,7 +31,7 @@ Testing
     - Telescope: All tests passed, no errors, no warnings, 4 issues. 
     - Focuser:  All tests passed, no errors, no warnings, no issues. 
 
-* 6.6.6.4 Conformance Test (2022-Feb-01)
+ * 6.6.6.4 Conformance Test (2022-Feb-01)
     - Telescope: All tests passed, no errors, no warnings, 4 issues. 
     - Focuser:  All tests passed, no errors, no warnings, no issues. 
 
@@ -55,7 +55,8 @@ Release History
    Added finer-grained logging ability
    Added message number to logging calls
    Changed logging to flush at regular intervals
-   Allowed read before write of Target coords (this causes the conformance issues, but allows NINA/KSTARS to work)
+   Allowed read before write of Target coords (this causes the conformance 
+     issues, but allows NINA/KSTARS to work)
    Now supports COM10 and higher
    Removed call to oat to get sync solutions.
       
@@ -67,7 +68,8 @@ Release History
    Added finer-grained logging ability
    Added message number to logging calls
    Changed logging to flush at regular intervals
-   Allowed read before write of Target coords (this causes the conformance issues, but allows NINA/KSTARS to work)
+   Allowed read before write of Target coords (this causes the conformance 
+     issues, but allows NINA/KSTARS to work)
 
  - 6.6.6.2 : Pre-Released 2021-11-05
    Added ability to record sync solutions in debug log
