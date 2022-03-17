@@ -15,6 +15,20 @@ To install any of these, click on the latest release under Releases to the right
 
 Change Log:
 ===========
+
+**ASCOM.Driver V6.6.6.5 - Updates**
+- Removed dumping of sync solutions 
+- Can use COM10 and higher now
+
+**OATControl V1.0.2.8 - Updates**
+- Now supports COM10 and higher
+- Calculation of target marker is correct now (takes tracking into account)
+- Job numbers and result status are attached to jobs now
+- Number of successful and failed jobs are tracked and dumped to log
+- Improved logging output
+- Logfile is now flushed at regular intervals instead of when logs are submitted
+- DEC axis is now labeled as degrees from home
+- Button to make target equal to current has been labelled Update
  
 **ASCOM.Driver V6.6.6.4 - Updates**
 - Properties dialog: Added ability to invoke Hall sensor-based Auto Home RA
