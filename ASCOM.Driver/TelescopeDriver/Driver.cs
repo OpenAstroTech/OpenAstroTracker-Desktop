@@ -1050,18 +1050,6 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage(LoggingFlags.Scope, $"SyncToCoordinates - RA: {TargetRightAscension:0.000}, DEC: {TargetDeclination:0.000}");
 				SetTargetCoordinates(RightAscension, Declination);
-
-				if (FirmwareVersion > 10934)
-				{
-					var solutions = CommandString(":XGY#,#");
-					var coords = solutions.Split('|');
-					int i = 0;
-					foreach (var coord in coords)
-					{
-						LogMessage(LoggingFlags.Scope, $"SyncToCoordinates - Solution ({(i == 0 ? "used" : i.ToString()),4}): {coord}");
-						i++;
-					}
-				}
 				CommandString(":CM#,#");
 			}
 			else

@@ -8,14 +8,19 @@ namespace OATCommunications.CommunicationHandlers
 {
 	public class Job
 	{
-		public Job(string command, ResponseType responseType, Action<CommandResponse> onFulFilled)
+		public Job(long number, string command, ResponseType responseType, Action<CommandResponse> onFulFilled)
 		{
+			Number = number;
 			Command = command;
 			ResponseType = responseType;
+			Succeeded = false;
 			OnFulFilled = onFulFilled;
 		}
 		public string Command { get; set; }
+		public long Number { get; set; }
+		public bool Succeeded { get; set; }
 		public ResponseType ResponseType { get; set; }
+
 		public Action<CommandResponse> OnFulFilled { get; set; }
 	}
 
@@ -27,11 +32,19 @@ namespace OATCommunications.CommunicationHandlers
 		private ManualResetEvent _jobsProcessorStopped = new ManualResetEvent(false);
 		private Thread _jobProcessingThread;
 		private bool _processJobs;
+		private static long jobNr = 1;
+		private static long jobsSucceeded = 0;
+		private static long jobsFailed = 0;
 #if DEBUG
 		protected bool _logJobs = true;
 #else
 		protected bool _logJobs = false;
 #endif
+
+		public void EnableLogging(bool state)
+		{
+			_logJobs = state;
+		}
 
 		protected void StartJobsProcessor()
 		{
@@ -89,8 +102,8 @@ namespace OATCommunications.CommunicationHandlers
 		{
 			lock (_jobsQueue)
 			{
-				if (_logJobs) Log.WriteLine("JOBPROC: Adding Job [{0}] to queue, {1} jobs, setting signal", command, _jobs.Count + 1);
-				_jobs.Enqueue(new Job(command, needsResponse, onFullFilledAction));
+				if (_logJobs) Log.WriteLine("JOBPROC: Job {2:0000} [{0}] added to queue, {1} jobs, setting signal", command, _jobs.Count + 1, jobNr);
+				_jobs.Enqueue(new Job(jobNr++, command, needsResponse, onFullFilledAction));
 				_jobsAvailable.Set();
 			}
 		}
@@ -113,8 +126,8 @@ namespace OATCommunications.CommunicationHandlers
 
 				lock (_jobsQueue)
 				{
-					if (_logJobs) Log.WriteLine("JOBPROC: {0} Jobs available, getting Job", _jobs.Count);
 					job = _jobs.Dequeue();
+					if (_logJobs) Log.WriteLine("JOBPROC: There are {0} Jobs available, getting Job {1:0000}", _jobs.Count + 1, job.Number);
 					if (!_jobs.Any())
 					{
 						if (_logJobs) Log.WriteLine("JOBPROC: No more Jobs available, resetting signal.");
@@ -122,12 +135,13 @@ namespace OATCommunications.CommunicationHandlers
 					}
 				}
 
-				if (_logJobs) Log.WriteLine("JOBPROC: Running job [{0}]", job.Command);
+				if (_logJobs) Log.WriteLine("JOBPROC: Job {1:0000} [{0}] to be run now", job.Command, job.Number);
 				RunJob(job);
-				if (_logJobs) Log.WriteLine("JOBPROC: Completed job [{0}]", job.Command);
+				if (job.Succeeded) jobsSucceeded++; else jobsFailed++;
+				if (_logJobs) Log.WriteLine("JOBPROC: Job {1:0000} [{0}] completed {2}", job.Command, job.Number, job.Succeeded ? "successfully" : "with failure");
 			}
 			while (_processJobs);
-			if (_logJobs) Log.WriteLine("JOBPROC: End Jobs thread");
+			if (_logJobs) Log.WriteLine("JOBPROC: End Jobs thread. Processed {0} jobs, {1} failures", jobsSucceeded + jobsFailed, jobsFailed);
 			_jobsProcessorStopped.Set();
 		}
 

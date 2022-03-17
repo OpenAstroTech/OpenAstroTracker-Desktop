@@ -17,8 +17,8 @@ namespace OATCommunications.Utilities
 		private static string sPath;
 
 		private static List<string> lstBuffer = new List<string>();
-		private static DateTime dtLastUpdate = DateTime.Now.AddSeconds(5.0);
 		private static int maxBuffered = 0;
+		private static Timer _flushTimer;
 #if DEBUG
 		private static bool logging = true;
 #else
@@ -71,12 +71,27 @@ namespace OATCommunications.Utilities
 				}
 			}
 
+			_flushTimer = new Timer(OnFlushTimer, null, 5000, 1000);
+
 			Log.WriteLine("SYSTEM: *********************************");
 			Log.WriteLine(string.Format("SYSTEM: *  {0} *", sTitle.PadRight(28)));
 			Log.WriteLine("SYSTEM: *********************************");
 			Log.WriteLine("SYSTEM: * Started : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " *");
 			Log.WriteLine(string.Format("SYSTEM: * User    : {0} *", Environment.UserName.PadRight(19)));
 			Log.WriteLine("SYSTEM: *********************************");
+			Log.Flush();
+
+		}
+
+		private static void OnFlushTimer(object state)
+		{
+			lock (Log.oLock)
+			{
+				if (IsLoggingEnabled && Log.lstBuffer.Any())
+				{
+					Log.Flush();
+				}
+			}
 		}
 
 		private static string FormatMessage(string message, object[] args)
@@ -112,12 +127,6 @@ namespace OATCommunications.Utilities
 		{
 			if (logging)
 			{
-				if ((DateTime.UtcNow - Log.dtLastUpdate).TotalMilliseconds > 1000.0)
-				{
-					Log.Flush();
-					Log.dtLastUpdate = DateTime.UtcNow;
-				}
-
 				string sLine = FormatMessage(message, args);
 
 				lock (Log.oLock)
@@ -134,15 +143,15 @@ namespace OATCommunications.Utilities
 
 		public static void Quit()
 		{
+			_flushTimer.Dispose();
 			logging = false;
-			if (Log.lstBuffer.Any())
+
+			lock (Log.oLock)
 			{
-				lock (Log.oLock)
-				{
-					Log.lstBuffer.Add(Log.FormatMessage("Shutdown logging. Maximum of {0} lines buffered.", new Object[] { (object)Log.maxBuffered }));
-					File.AppendAllText(Log.sPath, string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n");
-					Log.lstBuffer.Clear();
-				}
+				Log.lstBuffer.Add(Log.FormatMessage("Shutdown logging. Maximum of {0} lines buffered.", new Object[] { (object)Log.maxBuffered }));
+				// Flush it.
+				File.AppendAllText(Log.sPath, string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n");
+				Log.lstBuffer.Clear();
 			}
 		}
 	}

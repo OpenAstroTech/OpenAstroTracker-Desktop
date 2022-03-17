@@ -40,9 +40,27 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
-
+ - 6.6.6.5 : Released 2022-03-17
+   Properties dialog: Added ability to invoke Hall sensor-based Auto Home RA
+   Properties dialog: Added ability to set LST
+   Properties dialog: Added Stop button
+   Fixed a bug that made Park DEC go in the wrong direction
+   Added finer-grained logging ability
+   Added message number to logging calls
+   Changed logging to flush at regular intervals
+   Allowed read before write of Target coords (this causes the conformance issues, but allows NINA/KSTARS to work)
+   Now supports COM10 and higher
+   Removed call to oat to get sync solutions.
+      
  - 6.6.6.4 : Pre-Released 2022-02-01
-   Added ability to record sync solutions in debug log
+   Properties dialog: Added ability to invoke Hall sensor-based Auto Home RA
+   Properties dialog: Added ability to set LST
+   Properties dialog: Added Stop button
+   Fixed a bug that made Park DEC go in the wrong direction
+   Added finer-grained logging ability
+   Added message number to logging calls
+   Changed logging to flush at regular intervals
+   Allowed read before write of Target coords (this causes the conformance issues, but allows NINA/KSTARS to work)
 
  - 6.6.6.2 : Pre-Released 2021-11-05
    Added ability to record sync solutions in debug log

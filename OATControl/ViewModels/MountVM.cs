@@ -179,19 +179,19 @@ namespace OATControl.ViewModels
 		}
 		public MountVM()
 		{
-			Log.WriteLine("Mount: Initialization starting...");
+			Log.WriteLine("MOUNT: Initialization starting...");
 
-			Log.WriteLine("Mount: Initializing communication handler factory...");
+			Log.WriteLine("MOUNT: Initializing communication handler factory...");
 			CommunicationHandlerFactory.Initialize();
 
-			Log.WriteLine("Mount: Checking whether ASCOM driver is present...");
+			Log.WriteLine("MOUNT: Checking whether ASCOM driver is present...");
 			string location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 			string ascomDriver = Path.Combine(location, "OATCommunications.ASCOM.dll");
 			if (File.Exists(ascomDriver))
 			{
 				try
 				{
-					Log.WriteLine("Mount: Loading ASCOM driver ...");
+					Log.WriteLine("MOUNT: Loading ASCOM driver ...");
 					var ascom = Assembly.LoadFrom(ascomDriver);
 					//ascom.GetExportedTypes().FirstOrDefault((t) => t.;
 					var types = ascom.GetTypes();
@@ -204,24 +204,24 @@ namespace OATControl.ViewModels
 							if (obj != null)
 							{
 								CommunicationHandlerFactory.AddHandler(obj as ICommunicationHandler);
-								Log.WriteLine("Mount: ASCOM driver successfully added...");
+								Log.WriteLine("MOUNT: ASCOM driver successfully added...");
 							}
 						}
 					}
 				}
 				catch (Exception ex)
 				{
-					Log.WriteLine("Mount: Failed to load ASCOM driver. " + ex.Message);
+					Log.WriteLine("MOUNT: Failed to load ASCOM driver. " + ex.Message);
 				}
 			}
 			else
 			{
-				Log.WriteLine("Mount: ASCOM driver is not present. Expected at " + ascomDriver);
+				Log.WriteLine("MOUNT: ASCOM driver is not present. Expected at " + ascomDriver);
 			}
 
-			Log.WriteLine("Mount: Initiating communication device discovery...");
+			Log.WriteLine("MOUNT: Initiating communication device discovery...");
 			CommunicationHandlerFactory.DiscoverDevices();
-			Log.WriteLine("Mount: Device discovery started...");
+			Log.WriteLine("MOUNT: Device discovery started...");
 
 			_startTime = DateTime.UtcNow;
 			_timerStatus = new DispatcherTimer(TimeSpan.FromMilliseconds(500), DispatcherPriority.Normal, async (s, e) => await OnTimer(s, e), Application.Current.Dispatcher);
@@ -254,18 +254,18 @@ namespace OATControl.ViewModels
 			_customActionCommand = new DelegateCommand((p) => OnCustomAction(p as string), () => MountConnected);
 
 			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
-			Log.WriteLine("Mount: Attempting to read Point of Interest from {0}...", poiFile);
+			Log.WriteLine("MOUNT: Attempting to read Point of Interest from {0}...", poiFile);
 			if (File.Exists(poiFile))
 			{
 				_pointsOfInterest = new PointsOfInterest();
 				_pointsOfInterest.ReadFromXml(poiFile);
 				_selectedPointOfInterest = null;
 				_pointsOfInterest.CalcDistancesFrom(CurrentRATotalHours, CurrentDECTotalHours, 0, 0);
-				Log.WriteLine("Mount: Successfully read {0} Points of Interest.", _pointsOfInterest.Count - 1);
+				Log.WriteLine("MOUNT: Successfully read {0} Points of Interest.", _pointsOfInterest.Count - 1);
 			}
 
 			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
-			Log.WriteLine("Mount: Initialization of OATControl {0} complete...", this.Version);
+			Log.WriteLine("MOUNT: Initialization of OATControl {0} complete...", this.Version);
 
 			AppSettings.Instance.UpgradeVersion += OnUpgradeSettings;
 			AppSettings.Instance.Load();
@@ -809,7 +809,7 @@ namespace OATControl.ViewModels
 				AppSettings.Instance.Save();
 			}
 
-			Log.WriteLine("Mount: Setting Home...");
+			Log.WriteLine("MOUNT: Setting Home...");
 			this.SendOatCommand(":SHP#,n", (a) => { });
 			await ReadHA();
 			await RecalculatePointsPositions(true);
@@ -851,7 +851,7 @@ namespace OATControl.ViewModels
 
 		private async Task ReadHA()
 		{
-			Log.WriteLine("Mount: Reading HA");
+			Log.WriteLine("MOUNT: Reading HA");
 			var waiter = new AsyncAutoResetEvent();
 			this.SendOatCommand(":XGH#,#", (ha) =>
 			{
@@ -900,6 +900,7 @@ namespace OATControl.ViewModels
 
 			if (MountConnected)
 			{
+				Log.WriteLine("UPDATE: Starting update");
 				await UpdateSiderealTime();
 				// We can have a disconnect occur during the await of the call above.
 				if (_oatMount != null)
@@ -911,6 +912,8 @@ namespace OATControl.ViewModels
 							//   0   1  2 3 4    5      6     7
 							// Idle,--T,0,0,31,080300,+900000,50000,#
 							string status = result.Data;
+							Log.WriteLine("UPDATE: Received GX reply: [{0}]", status);
+
 							if (result.Success && !string.IsNullOrWhiteSpace(status))
 							{
 								try
@@ -921,6 +924,8 @@ namespace OATControl.ViewModels
 									MountStatus = parts[0];
 									if ((MountStatus == "SlewToTarget") && (prevStatus != "SlewToTarget"))
 									{
+										Log.WriteLine("UPDATE: Slewing started. Current is RA: {0} ({2}), DEC: {1} ({3})", _currentRA.ToString(), _currentDEC.ToString(), RAStepper, DECStepper);
+
 										AsyncAutoResetEvent waitForTarget = new AsyncAutoResetEvent();
 										this.SendOatCommand(":Gr#,#", (raRes) =>
 										{
@@ -954,7 +959,7 @@ namespace OATControl.ViewModels
 													var posParts = posRes.Data.Split('|');
 													_slewTargetRA = long.Parse(posParts[0], _oatCulture);
 													_slewTargetDEC = long.Parse(posParts[1], _oatCulture);
-													Log.WriteLine("Mount: Slew Target stepper pos is {0}, {1}", _slewTargetRA, _slewTargetDEC);
+													Log.WriteLine("UPDATE: Slewing. Target is RA: {0} ({2}), DEC: {1} ({3})", _targetRA.ToString(), _targetDEC.ToString(), _slewTargetRA, _slewTargetDEC);
 													_slewTargetValid = true;
 												}
 												waitForTarget.Set();
@@ -963,10 +968,10 @@ namespace OATControl.ViewModels
 
 											_slewStartRA = RAStepper;
 											_slewStartDEC = DECStepper;
-											Log.WriteLine("Mount: Slewing stepper from {0}, {1} to {2}, {3}", _slewStartRA, _slewStartDEC, _slewTargetRA, _slewTargetDEC);
 										}
 										else
 										{
+											Log.WriteLine("UPDATE: Slewing. Target is RA: {0}, DEC: {1}", _targetRA.ToString(), _targetDEC.ToString());
 											_slewStartRA = _currentRA.TotalSeconds;
 											_slewStartDEC = _currentDEC.TotalSeconds;
 										}
@@ -977,6 +982,7 @@ namespace OATControl.ViewModels
 									}
 									else if ((MountStatus != "SlewToTarget") && (prevStatus == "SlewToTarget"))
 									{
+										Log.WriteLine("UPDATE: Slewing completed. Current is RA: {0} ({2}), DEC: {1} ({3})", _targetRA.ToString(), _targetDEC.ToString(), RAStepper, DECStepper);
 										DisplaySlewProgress = false;
 										await RecalculatePointsPositions(false);
 									}
@@ -984,6 +990,7 @@ namespace OATControl.ViewModels
 									{
 										OnPropertyChanged("RASlewProgress");
 										OnPropertyChanged("DECSlewProgress");
+										Log.WriteLine($"UPDATE: Slewing progress RA: {RASlewProgress * 100:0}%, DEC:{DECSlewProgress * 100.0}%.  RA {RAStepper - _slewStartRA}/{_slewTargetRA - _slewStartRA},   DEC {DECStepper - _slewStartDEC}/{_slewTargetDEC - _slewStartDEC}");
 									}
 									else if (MountStatus == "Guiding")
 									{
@@ -1036,18 +1043,15 @@ namespace OATControl.ViewModels
 											FocStepper = focusStepper;
 										}
 									}
-
-
-
 								}
 								catch (Exception ex)
 								{
-									Log.WriteLine("UpdateStatus: Failed to process GX reply [{0}]", status);
+									Log.WriteLine("UPDATE: Failed to process GX reply [{0}]", status);
 								}
 							}
 							else
 							{
-								Log.WriteLine("UpdateStatus: OAT command GX returned empty string");
+								Log.WriteLine("UPDATE: OAT command GX returned empty string");
 							}
 						}
 						doneEvent.Set();
@@ -1059,6 +1063,7 @@ namespace OATControl.ViewModels
 				}
 
 				await doneEvent.WaitAsync();
+				Log.WriteLine("UPDATE: Completed update");
 			}
 		}
 
@@ -1156,97 +1161,104 @@ namespace OATControl.ViewModels
 
 				if (!failed)
 				{
-					if (localTime.Length == 8)
+					try
 					{
-						ScopeTime = localTime;
-						if (utcOffset.Length != 0)
+						if (localTime.Length == 8)
 						{
-							ScopeTime += " T" + utcOffset + ":00";
-						}
-					}
-					else
-					{
-						ScopeTime = "-";
-					}
-
-					if (localDate.Length == 8)
-					{
-						ScopeDate = localDate;
-					}
-					else
-					{
-						ScopeDate = "-";
-					}
-
-					if (siderealTime.Length == 6)
-					{
-						ScopeSiderealTime = $"{siderealTime.Substring(0, 2)}:{siderealTime.Substring(2, 2)}:{siderealTime.Substring(4)}";
-					}
-					else
-					{
-						ScopeSiderealTime = "-";
-					}
-
-					if (ha.Length == 6)
-					{
-						ScopePolarisHourAngle = $"{ha.Substring(0, 2)}:{ha.Substring(2, 2)}:{ha.Substring(4)}";
-					}
-
-					if (speed.Length > 0)
-					{
-						TrackingSpeed = float.Parse(speed, _oatCulture);
-					}
-
-					if (temperature != "0")
-					{
-						float temp = float.Parse(temperature, _oatCulture);
-						int fahrenheit = (int)Math.Round(32.0 + (9.0 * temp / 5.0));
-						ScopeTemperature = $"{temp:0.0}°C ({fahrenheit:0}°F)";
-					}
-					else
-					{
-						ScopeTemperature = "-";
-					}
-
-					if (network == "0,")
-					{
-						ScopeNetworkState = "Disabled";
-						ScopeNetworkIPAddress = "N/A";
-						ScopeNetworkSSID = "N/A";
-					}
-					else
-					{
-						var parts = network.Split(',');
-						if (_firmwareVersion < 10873)
-						{
-							if (parts.Length > 4)
+							ScopeTime = localTime;
+							if (utcOffset.Length != 0)
 							{
-								ScopeNetworkState = parts[1];
-								ScopeNetworkIPAddress = parts[3];
-								ScopeNetworkSSID = parts[4];
-							}
-							else
-							{
-								ScopeNetworkState = "-";
-								ScopeNetworkIPAddress = "-";
-								ScopeNetworkSSID = "-";
+								ScopeTime += " T" + utcOffset + ":00";
 							}
 						}
 						else
 						{
-							if (parts.Length > 5)
+							ScopeTime = "-";
+						}
+
+						if (localDate.Length == 8)
+						{
+							ScopeDate = localDate;
+						}
+						else
+						{
+							ScopeDate = "-";
+						}
+
+						if (siderealTime.Length == 6)
+						{
+							ScopeSiderealTime = $"{siderealTime.Substring(0, 2)}:{siderealTime.Substring(2, 2)}:{siderealTime.Substring(4)}";
+						}
+						else
+						{
+							ScopeSiderealTime = "-";
+						}
+
+						if (ha.Length == 6)
+						{
+							ScopePolarisHourAngle = $"{ha.Substring(0, 2)}:{ha.Substring(2, 2)}:{ha.Substring(4)}";
+						}
+
+						if (speed.Length > 0)
+						{
+							TrackingSpeed = float.Parse(speed, _oatCulture);
+						}
+
+						if (temperature != "0")
+						{
+							float temp = float.Parse(temperature, _oatCulture);
+							int fahrenheit = (int)Math.Round(32.0 + (9.0 * temp / 5.0));
+							ScopeTemperature = $"{temp:0.0}°C ({fahrenheit:0}°F)";
+						}
+						else
+						{
+							ScopeTemperature = "-";
+						}
+
+						if (network == "0,")
+						{
+							ScopeNetworkState = "Disabled";
+							ScopeNetworkIPAddress = "N/A";
+							ScopeNetworkSSID = "N/A";
+						}
+						else
+						{
+							var parts = network.Split(',');
+							if (_firmwareVersion < 10873)
 							{
-								ScopeNetworkState = parts[1] + ", " + parts[2];
-								ScopeNetworkIPAddress = parts[4];
-								ScopeNetworkSSID = parts[5];
+								if (parts.Length > 4)
+								{
+									ScopeNetworkState = parts[1];
+									ScopeNetworkIPAddress = parts[3];
+									ScopeNetworkSSID = parts[4];
+								}
+								else
+								{
+									ScopeNetworkState = "-";
+									ScopeNetworkIPAddress = "-";
+									ScopeNetworkSSID = "-";
+								}
 							}
 							else
 							{
-								ScopeNetworkState = "-";
-								ScopeNetworkIPAddress = "-";
-								ScopeNetworkSSID = "-";
+								if (parts.Length > 5)
+								{
+									ScopeNetworkState = parts[1] + ", " + parts[2];
+									ScopeNetworkIPAddress = parts[4];
+									ScopeNetworkSSID = parts[5];
+								}
+								else
+								{
+									ScopeNetworkState = "-";
+									ScopeNetworkIPAddress = "-";
+									ScopeNetworkSSID = "-";
+								}
 							}
 						}
+					}
+					catch (Exception ex)
+					{
+						Log.WriteLine("EXCEPTION: Updating real-time parameters threw. {0}", ex.Message);
 					}
 				}
 			}
@@ -1263,7 +1275,7 @@ namespace OATControl.ViewModels
 
 		private async Task OnHome()
 		{
-			Log.WriteLine("Mount: Home requested");
+			Log.WriteLine("MOUNT: Home requested");
 			this.SendOatCommand(":hF#", (a) => { });
 
 			// The next call actually blocks because Homeing is synchronous
@@ -1276,7 +1288,7 @@ namespace OATControl.ViewModels
 		{
 			if (ParkCommandString == "Park")
 			{
-				Log.WriteLine("Mount: Parking requested");
+				Log.WriteLine("MOUNT: Parking requested");
 				this.SendOatCommand(":hP#", (a) =>
 				{
 					ParkCommandString = "Unpark";
@@ -1284,7 +1296,7 @@ namespace OATControl.ViewModels
 			}
 			else
 			{
-				Log.WriteLine("Mount: Unparking requested");
+				Log.WriteLine("MOUNT: Unparking requested");
 				this.SendOatCommand(":hU#,n", (a) =>
 				{
 					ParkCommandString = "Park";
@@ -1553,26 +1565,26 @@ namespace OATControl.ViewModels
 				// Calculate current Local Sidereal Time
 				await SetMountTimeData();
 
-				Log.WriteLine("Mount: Getting current OAT position");
+				Log.WriteLine("MOUNT: Getting current OAT position");
 				await UpdateCurrentCoordinates();
 				_targetRA = new DayTime(_currentRA);
 				_targetDEC = new Declination(_currentDEC);
-				Log.WriteLine("Mount: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3}{4:000}*{5:00}'{6:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECSign, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
+				Log.WriteLine("MOUNT: Current OAT position is RA: {0:00}:{1:00}:{2:00} and DEC: {3}{4:000}*{5:00}'{6:00}", CurrentRAHour, CurrentRAMinute, CurrentRASecond, CurrentDECSign, CurrentDECDegree, CurrentDECMinute, CurrentDECSecond);
 
-				Log.WriteLine("Mount: Getting current OAT RA steps/degree...");
+				Log.WriteLine("MOUNT: Getting current OAT RA steps/degree...");
 				this.SendOatCommand(":XGR#,#", (steps) =>
 				{
-					Log.WriteLine("Mount: Current RA steps/degree is {0}.", steps.Data);
+					Log.WriteLine("MOUNT: Current RA steps/degree is {0}.", steps.Data);
 					if (steps.Success)
 					{
 						RAStepsPerDegree = Math.Max(1, float.Parse(steps.Data, _oatCulture));
 					}
 				});
 
-				Log.WriteLine("Mount: Getting current OAT DEC steps/degree...");
+				Log.WriteLine("MOUNT: Getting current OAT DEC steps/degree...");
 				this.SendOatCommand(":XGD#,#", (steps) =>
 				{
-					Log.WriteLine("Mount: Current DEC steps/degree is {0}. ", steps.Data);
+					Log.WriteLine("MOUNT: Current DEC steps/degree is {0}. ", steps.Data);
 					if (steps.Success)
 					{
 						SetDECStepsPerDegree(Math.Max(1, float.Parse(steps.Data, _oatCulture)));
@@ -1580,13 +1592,13 @@ namespace OATControl.ViewModels
 				});
 
 				// We want this command to execute before we wait for the last one, since commands are executed sequentially.
-				Log.WriteLine("Mount: Reading Current OAT HA...");
+				Log.WriteLine("MOUNT: Reading Current OAT HA...");
 				await ReadHA();
 
-				Log.WriteLine("Mount: Getting current OAT speed factor...");
+				Log.WriteLine("MOUNT: Getting current OAT speed factor...");
 				this.SendOatCommand(":XGS#,#", (speed) =>
 				{
-					Log.WriteLine("Mount: Current Speed factor is {0}...", speed.Data);
+					Log.WriteLine("MOUNT: Current Speed factor is {0}...", speed.Data);
 					if (speed.Success)
 					{
 
@@ -1599,10 +1611,10 @@ namespace OATControl.ViewModels
 
 				// Wait for RA Steps to be set before getting Tracking speed (it's used in remaining time calculation)
 				await doneEvent.WaitAsync();
-				Log.WriteLine("Mount: Getting current OAT tracking speed ...");
+				Log.WriteLine("MOUNT: Getting current OAT tracking speed ...");
 				this.SendOatCommand(":XGT#,#", (speed) =>
 				{
-					Log.WriteLine("Mount: Current Tracking Speed is {0}...", speed.Data);
+					Log.WriteLine("MOUNT: Current Tracking Speed is {0}...", speed.Data);
 					if (speed.Success)
 					{
 						TrackingSpeed = float.Parse(speed.Data, _oatCulture);
@@ -1620,14 +1632,14 @@ namespace OATControl.ViewModels
 
 				_connectedAt = DateTime.UtcNow;
 				MountConnected = true;
-				Log.WriteLine("Mount: Successfully connected and configured!");
+				Log.WriteLine("MOUNT: Successfully connected and configured!");
 			}
 			catch (FormatException fex)
 			{
 				ScopeName = string.Empty;
 				ScopeHardware = string.Empty;
 				ConnectionState = string.Empty;
-				Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", fex.Message);
+				Log.WriteLine("MOUNT: Failed to connect and configure OAT! {0}", fex.Message);
 				MessageBox.Show("Connected to OpenAstroTracker, but protocol could not be established.\n\nIs the firmware compiled with DEBUG_LEVEL set to DEBUG_NONE?", "Protocol Error", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 			catch (Exception ex)
@@ -1635,7 +1647,7 @@ namespace OATControl.ViewModels
 				ScopeName = string.Empty;
 				ScopeHardware = string.Empty;
 				ConnectionState = string.Empty;
-				Log.WriteLine("Mount: Failed to connect and configure OAT! {0}", ex.Message);
+				Log.WriteLine("MOUNT: Failed to connect and configure OAT! {0}", ex.Message);
 				MessageBox.Show("Error trying to connect to OpenAstroTracker.\n\n" + ex.Message, "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 		}
@@ -1650,7 +1662,7 @@ namespace OATControl.ViewModels
 			{
 				RequeryCommands();
 
-				Log.WriteLine("Mount: Connect to OAT requested");
+				Log.WriteLine("MOUNT: Connect to OAT requested");
 
 				if (await this.ChooseTelescope())
 				{
@@ -1666,7 +1678,7 @@ namespace OATControl.ViewModels
 			var now = DateTime.Now;
 			if (_firmwareVersion >= 10864)
 			{
-				Log.WriteLine("Mount: New FW: Current UTC is {0}. Sending to OAT.", utcNow);
+				Log.WriteLine("MOUNT: New FW: Current UTC is {0}. Sending to OAT.", utcNow);
 				this.SendOatCommand(string.Format(_oatCulture, ":SL{0,2:00}:{1,2:00}:{2,2:00}#,n", now.Hour, now.Minute, now.Second), (a) => { });
 				this.SendOatCommand(string.Format(_oatCulture, ":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", now.Month, now.Day, now.Year - 2000), (a) => { });
 
@@ -1683,24 +1695,24 @@ namespace OATControl.ViewModels
 				var lst = LM_Sidereal_Time(jd, SiteLongitude);
 				var lstS = doubleToHMS(lst, "", "", "");
 
-				Log.WriteLine("Mount: Old FW: Current LST is {0}. Sending to OAT.", doubleToHMS(lst, "h", "m", "s"));
+				Log.WriteLine("MOUNT: Old FW: Current LST is {0}. Sending to OAT.", doubleToHMS(lst, "h", "m", "s"));
 				this.SendOatCommand($":SHL{doubleToHMS(lst, "", "", "")}#,n", (a) => { });
 			}
 		}
 
 		private void OnRunPolarAlignment()
 		{
-			Log.WriteLine("Mount: Running Polar Alignment Wizard");
+			Log.WriteLine("MOUNT: Running Polar Alignment Wizard");
 			DlgRunPolarAlignment dlg = new DlgRunPolarAlignment(this.SendOatCommand) { Owner = Application.Current.MainWindow, WindowStartupLocation = WindowStartupLocation.CenterOwner }; ;
 			dlg.ShowDialog();
-			Log.WriteLine("Mount: Polar Alignment Wizard completed");
+			Log.WriteLine("MOUNT: Polar Alignment Wizard completed");
 		}
 
 		private async Task OnRunDriftAlignment(int driftDuration)
 		{
 			_timerStatus.Stop();
 
-			Log.WriteLine("Mount: Running Drift Alignment");
+			Log.WriteLine("MOUNT: Running Drift Alignment");
 
 			DriftAlignStatus = "Drift Alignment running...";
 			bool wasTracking = false;
@@ -1744,7 +1756,7 @@ namespace OATControl.ViewModels
 			IsTracking = wasTracking;
 			RequeryCommands();
 			_timerStatus.Start();
-			Log.WriteLine("Mount: Completed Drift Alignment");
+			Log.WriteLine("MOUNT: Completed Drift Alignment");
 		}
 
 		private void RequeryCommands()
@@ -1797,29 +1809,29 @@ namespace OATControl.ViewModels
 
 					for (int attempts = 0; attempts < 4; attempts++)
 					{
-						Log.WriteLine("Mount: Request OAT Firmware version (Attempt #{0})", attempts + 1);
+						Log.WriteLine("MOUNT: Request OAT Firmware version (Attempt #{0})", attempts + 1);
 
 						this.SendOatCommand("GVP#,#", (result) =>
 						{
 							if (!result.Success)
 							{
 								message = "Unable to communicate with OAT.";
-								Log.WriteLine("Mount: {0} ({1})", message, result.StatusMessage);
+								Log.WriteLine("MOUNT: {0} ({1})", message, result.StatusMessage);
 								failed = true;
 							}
 							else
 							{
 								failed = false;
 								resultName = result.Data;
-								Log.WriteLine("Mount: Successfully communicated with OAT");
+								Log.WriteLine("MOUNT: Successfully communicated with OAT");
 							}
-							Log.WriteLine("Mount: Setting signal");
+							Log.WriteLine("MOUNT: Setting signal");
 							doneEvent.Set();
 						});
 
-						Log.WriteLine("Mount: Request Sent. Awaiting signal. (Attempt #{0})", attempts + 1);
+						Log.WriteLine("MOUNT: Request Sent. Awaiting signal. (Attempt #{0})", attempts + 1);
 						await doneEvent.WaitAsync();
-						Log.WriteLine("Mount: Signal received. (Attempt #{0})", attempts + 1);
+						Log.WriteLine("MOUNT: Signal received. (Attempt #{0})", attempts + 1);
 						if (!failed)
 						{
 							break;
@@ -1851,7 +1863,7 @@ namespace OATControl.ViewModels
 
 			await Task.Delay(200);
 
-			Log.WriteLine("Mount: Connected to OAT. Requesting firmware version..");
+			Log.WriteLine("MOUNT: Connected to OAT. Requesting firmware version..");
 			this.SendOatCommand("GVN#,#", (resultNr) =>
 			{
 				if (resultNr.Success)
@@ -1859,7 +1871,7 @@ namespace OATControl.ViewModels
 					if (resultNr.Data.StartsWith("["))
 					{
 						message = "OAT likely has debug logging enabled. Check firmware.";
-						Log.WriteLine("Mount: {0} {1}", message, resultNr.Data);
+						Log.WriteLine("MOUNT: {0} {1}", message, resultNr.Data);
 						failed = true;
 					}
 					else
@@ -1870,7 +1882,7 @@ namespace OATControl.ViewModels
 						if (versionNumbers.Length != 3)
 						{
 							message = $"Unrecognizable firmware version '{resultNr.Data}'";
-							Log.WriteLine("Mount: {0}", message);
+							Log.WriteLine("MOUNT: {0}", message);
 							failed = true;
 						}
 						else
@@ -1882,7 +1894,7 @@ namespace OATControl.ViewModels
 							catch
 							{
 								message = $"Unable to parse firmware version '{resultNr.Data}'";
-								Log.WriteLine("Mount: {0}", message);
+								Log.WriteLine("MOUNT: {0}", message);
 								failed = true;
 							}
 						}
@@ -1908,7 +1920,7 @@ namespace OATControl.ViewModels
 
 			this.SendOatCommand("XGM#,#", (hardware) =>
 			{
-				Log.WriteLine("Mount: Hardware is {0}", hardware.Data);
+				Log.WriteLine("MOUNT: Hardware is {0}", hardware.Data);
 				hwData = hardware.Data;
 				failed |= !hardware.Success;
 				doneEvent2.Set();
@@ -1940,7 +1952,7 @@ namespace OATControl.ViewModels
 				string stepperData = string.Empty;
 				this.SendOatCommand("XGMS#,#", (stepper) =>
 				{
-					Log.WriteLine("Mount: Stepper info is {0}", stepper.Data);
+					Log.WriteLine("MOUNT: Stepper info is {0}", stepper.Data);
 					failed |= !stepper.Success;
 					stepperData = stepper.Data;
 					doneEvent3.Set();
@@ -2061,7 +2073,7 @@ namespace OATControl.ViewModels
 
 			var dlg = new DlgChooseOat(this, SendOatCommand) { Owner = Application.Current.MainWindow, WindowStartupLocation = WindowStartupLocation.CenterOwner };
 
-			Log.WriteLine("Mount: Showing OAT comms Chooser Wizard");
+			Log.WriteLine("MOUNT: Showing OAT comms Chooser Wizard");
 			dlg.ShowDialog();
 
 			_timerStatus.Stop();
@@ -2078,7 +2090,7 @@ namespace OATControl.ViewModels
 
 				if (dlg.RunDECOffsetHoming && (AppSettings.Instance.DECHomeOffset != 0))
 				{
-					Log.WriteLine("DEC unparking starting");
+					Log.WriteLine("MOUNT: DEC unparking starting");
 					var doneEvent = new AsyncAutoResetEvent();
 					_oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
@@ -2086,7 +2098,7 @@ namespace OATControl.ViewModels
 					var dlgWait = new DlgWaitForGXState("Unparking DEC...", this, SendOatCommand, (s) =>
 					{
 						if (s == null) return false;
-						Log.WriteLine("DEC Unpark state: ", s[0]);
+						Log.WriteLine("MOUNT: DEC Unpark state: ", s[0]);
 						return (s[0] != "Idle") && (s[0] != "Tracking");
 					})
 					{
@@ -2095,7 +2107,7 @@ namespace OATControl.ViewModels
 					};
 
 					dlgWait.ShowDialog();
-					Log.WriteLine("DEC unparking complete");
+					Log.WriteLine("MOUNT: DEC unparking complete");
 					setHome = dlgWait.DialogResult.Value;
 					abortHoming = !dlgWait.DialogResult.Value;
 					if (!dlgWait.DialogResult.Value)
@@ -2106,7 +2118,7 @@ namespace OATControl.ViewModels
 
 				if ((FirmwareVersion > 10935) && dlg.RunRAAutoHoming && ScopeHasHSAH && !abortHoming)
 				{
-					Log.WriteLine("RA Auto Home starting");
+					Log.WriteLine("MOUNT: RA Auto Home starting");
 					var statuses = new List<string>();
 					var doneEvent = new AsyncAutoResetEvent();
 					// The MHRR command actually returns 0 or 1, but we ignore it, so that we can monitor progress
@@ -2127,7 +2139,7 @@ namespace OATControl.ViewModels
 					};
 
 					dlgWait.ShowDialog();
-					Log.WriteLine("RA Homing complete. Statuses: " + string.Join(", ", statuses));
+					Log.WriteLine("MOUNT: RA Homing complete. Statuses: " + string.Join(", ", statuses));
 					setHome = dlgWait.DialogResult.Value;
 					if (!dlgWait.DialogResult.Value)
 					{
@@ -2147,7 +2159,7 @@ namespace OATControl.ViewModels
 			}
 			else if (dlg.Result == null)
 			{
-				Log.WriteLine("Mount: Unable to connect");
+				Log.WriteLine("MOUNT: Unable to connect");
 				string extraMessage = "Is something else connected?";
 				if (Process.GetProcesses().FirstOrDefault(d => d.ProcessName.Contains("ASCOM.OpenAstroTracker")) != null)
 				{
@@ -2158,7 +2170,7 @@ namespace OATControl.ViewModels
 			}
 
 			RequeryCommands();
-			Log.WriteLine("Mount: Chooser cancelled");
+			Log.WriteLine("MOUNT: Chooser cancelled");
 			ScopeName = string.Empty;
 			ScopeHardware = string.Empty;
 			_oatAddonStates.Clear();
@@ -2288,7 +2300,7 @@ namespace OATControl.ViewModels
 		public void SetFocusTarget(string uiElement)
 		{
 			_keyboardFocus = uiElement;
-			Log.WriteLine("Keyboard focus is {0}", _keyboardFocus);
+			Log.WriteLine("MOUNT: Keyboard focus is {0}", _keyboardFocus);
 		}
 
 		public ICommand ArrowCommand { get { return _arrowCommand; } }
@@ -2376,7 +2388,9 @@ namespace OATControl.ViewModels
 				if (res.Success)
 				{
 					var parts = res.Data.Split('|');
-					RAStepperTargetHours = long.Parse(parts[0]) / RAStepsPerDegree / 15.0;
+					var raSteps = long.Parse(parts[0]);
+					raSteps += TrkStepper * long.Parse(ScopeRASlewMS) / long.Parse(this.ScopeRATrackMS);
+					RAStepperTargetHours = raSteps / RAStepsPerDegree / 15.0;
 					DECStepperTargetDegrees = long.Parse(parts[1]) / DECStepsPerDegree;
 				}
 			});
@@ -2466,7 +2480,7 @@ namespace OATControl.ViewModels
 			OnPropertyChanged("CurrentDECString");
 			OnPropertyChanged("CurrentDECSign");
 
-			Log.WriteLine("Mount: Steppers are at {0}, {1}", RAStepper, DECStepper);
+			Log.WriteLine("MOUNT: Steppers are at {0}, {1}", RAStepper, DECStepper);
 			_pointsOfInterest.CalcDistancesFrom(CurrentRATotalHours, CurrentDECTotalHours, RAStepper, DECStepper);
 
 			_pointsOfInterest.SortBy("Distance");
@@ -2773,7 +2787,6 @@ namespace OATControl.ViewModels
 				if (_firmwareVersion > 10900)
 				{
 					float val = 1.0f * Math.Abs(RAStepper - _slewStartRA) / Math.Abs(_slewTargetRA - _slewStartRA);
-					Log.WriteLine($"RA Progress: {val * 100:0}% . Total is {_slewTargetRA - _slewStartRA}, current is {RAStepper - _slewStartRA}");
 					return val;
 				}
 				return 1.0f * (_currentRA.TotalSeconds - _slewStartRA) / (_slewTargetRA - _slewStartRA);
@@ -2788,7 +2801,6 @@ namespace OATControl.ViewModels
 				if (_firmwareVersion > 10900)
 				{
 					var val = 1.0f * Math.Abs(DECStepper - _slewStartDEC) / Math.Abs(_slewTargetDEC - _slewStartDEC);
-					Log.WriteLine($"DEC Progress: {val * 100:0}% . Total is {_slewTargetDEC - _slewStartDEC}, current is {DECStepper - _slewStartDEC}");
 					return val;
 				}
 				return 1.0f * (_currentDEC.TotalSeconds - _slewStartDEC) / (_slewTargetDEC - _slewStartDEC);
