@@ -180,7 +180,7 @@ namespace OATCommunications.CommunicationHandlers
 
 				Log.WriteLine("TCP: Port is open, sending shutdown command [:Qq#]");
 				ManualResetEvent waitQuit = new ManualResetEvent(false);
-				var quitJob = new Job(":Qq#", ResponseType.NoResponse, (s) => { waitQuit.Set(); });
+				var quitJob = new Job(99999, ":Qq#", ResponseType.NoResponse, (s) => { waitQuit.Set(); });
 				RunJob(quitJob);
 				waitQuit.WaitOne();
 

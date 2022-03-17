@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using static ASCOM.OpenAstroTracker.SharedResources;
 
 namespace ASCOM.OpenAstroTracker
 {
@@ -51,6 +52,12 @@ namespace ASCOM.OpenAstroTracker
 		/// The DeviceID is used by ASCOM applications to load the driver at runtime.
 		/// </summary>
 		internal string _driverId = "ASCOM.OpenAstroTracker.Focuser";
+		
+		/// <summary>
+		/// Logging callback for focuser
+		/// </summary>
+		private Action<SharedResources.LoggingFlags, string> logMessage;
+
 		/// <summary>
 		/// Driver description that displays in the ASCOM Chooser.
 		/// </summary>
@@ -69,9 +76,8 @@ namespace ASCOM.OpenAstroTracker
 		private AstroUtils astroUtilities;
 
 		/// <summary>
-		/// Variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
+		/// Variable to whether we are connected
 		/// </summary>
-		internal TraceLogger _tl;
 		private bool _isConnected;
 
 		/// <summary>
@@ -82,15 +88,14 @@ namespace ASCOM.OpenAstroTracker
 		{
 			_driverId = Marshal.GenerateProgIdForType(this.GetType());
 
-			_tl = SharedResources.tl;
-			_tl.Enabled = Profile.TraceState;
+			logMessage = SharedResources.LogMessageCallback;
 
-			_tl.LogMessage("OAT Focuser", "Starting initialisation");
+			logMessage(LoggingFlags.Focuser, "Starting initialisation");
 
 			utilities = new Util(); //Initialise util object
 			astroUtilities = new AstroUtils(); // Initialise astro-utilities object
 
-			_tl.LogMessage("OAT Focuser", "Completed initialisation");
+			logMessage(LoggingFlags.Focuser, "Completed initialisation");
 		}
 
 
@@ -112,7 +117,7 @@ namespace ASCOM.OpenAstroTracker
 			// or call a different dialog if connected
 			if (IsConnected)
 			{
-				MessageBox.Show("Already connected, just press OK");
+				MessageBox.Show("OAT is connected, use Telescope driver to control focuser manually.");
 			}
 
 			using (var f = new SetupDialogForm(Profile, null, null))
@@ -128,14 +133,14 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", "SupportedActions Get => empty arraylist");
+				logMessage(LoggingFlags.Focuser, "SupportedActions Get => empty arraylist");
 				return new ArrayList();
 			}
 		}
 
 		public string Action(string actionName, string actionParameters)
 		{
-			_tl.LogMessage("OAT Focuser", "Action() - Not implemented");
+			logMessage(LoggingFlags.Focuser, "Action() - Not implemented");
 			throw new ASCOM.ActionNotImplementedException("Action " + actionName + " is not implemented by this driver");
 		}
 
@@ -145,12 +150,11 @@ namespace ASCOM.OpenAstroTracker
 
 			try
 			{
-				_tl.LogMessage("OAT Focuser", $"CommandBlind({command}) - Sending");
 				SharedResources.SendMessage(command);
 			}
 			catch (Exception ex)
 			{
-				_tl.LogMessage("OAT Focuser", $"CommandBlind - Exception{ex.Message}");
+				logMessage(LoggingFlags.Focuser, $"CommandBlind - Exception{ex.Message}");
 			}
 			finally
 			{
@@ -169,14 +173,12 @@ namespace ASCOM.OpenAstroTracker
 
 			try
 			{
-				_tl.LogMessage("OAT Focuser", $"CommandString({command}) - sending");
 				var response = SharedResources.SendMessage(command);
-				_tl.LogMessage("OAT Focuser", $"CommandString => {response}");
 				return response;
 			}
 			catch (Exception ex)
 			{
-				_tl.LogMessage("OAT Focuser", $"CommandString({command}) => Exception {ex.Message}");
+				logMessage(LoggingFlags.Focuser, $"CommandString({command}) => Exception {ex.Message}");
 				return "255";
 			}
 			finally
@@ -202,7 +204,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", $"Description Get => {_driverDescription}");
+				logMessage(LoggingFlags.Focuser, $"Description Get => {_driverDescription}");
 				return _driverDescription;
 			}
 		}
@@ -213,7 +215,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 				string driverInfo = "OpenAstroTracker ASCOM driver version: " + Version;
-				_tl.LogMessage("OAT Focuser", $"DriverInfo Get => {driverInfo}");
+				logMessage(LoggingFlags.Focuser, $"DriverInfo Get => {driverInfo}");
 				return driverInfo;
 			}
 		}
@@ -222,7 +224,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", $"DriverVersion Get => {Version}");
+				logMessage(LoggingFlags.Focuser, $"DriverVersion Get => {Version}");
 				return Version;
 			}
 		}
@@ -232,7 +234,7 @@ namespace ASCOM.OpenAstroTracker
 			// set by the driver wizard
 			get
 			{
-				_tl.LogMessage("OAT Focuser", "InterfaceVersion Get => 3");
+				logMessage(LoggingFlags.Focuser, "InterfaceVersion Get => 3");
 				return 3;
 			}
 		}
@@ -242,7 +244,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				string name = "OAT Focuser ASCOM";
-				_tl.LogMessage("OAT Focuser", $"Name Get => {name}");
+				logMessage(LoggingFlags.Focuser, $"Name Get => {name}");
 				return name;
 			}
 		}
@@ -251,8 +253,8 @@ namespace ASCOM.OpenAstroTracker
 		{
 			// Clean up the trace logger and util objects
 			Connected = false;
-
-			_tl = null;
+						
+			logMessage = null;
 			utilities.Dispose();
 			utilities = null;
 			astroUtilities.Dispose();
@@ -272,25 +274,27 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", "Absolute Get => true");
+				logMessage(LoggingFlags.Focuser, "Absolute Get => true");
 				return true; // This is an absolute focuser
 			}
 		}
 
 		public void Halt()
 		{
-			_tl.LogMessage("OAT Focuser", "Halt - stopping focuser");
+			logMessage(LoggingFlags.Focuser, "Halt - stopping focuser");
 			CommandBlind(":FQ#", false);
+			logMessage(LoggingFlags.Focuser, "Halt - complete");
 		}
 
 		public bool IsMoving
 		{
 			get
 			{
+				logMessage(LoggingFlags.Focuser, $"IsMoving Get");
 				var response = CommandString(":FB#,n", false);
 				bool moving = response == "1";
-				_tl.LogMessage("OAT Focuser", $"IsMoving Get => {moving}");
-				return moving; // This focuser always moves instantaneously so no need for IsMoving ever to be True
+				logMessage(LoggingFlags.Focuser, $"IsMoving Get => {moving}");
+				return moving;
 			}
 		}
 
@@ -298,12 +302,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", $"Link Get => {this.Connected}");
+				logMessage(LoggingFlags.Focuser, $"Link Get => {this.Connected}");
 				return this.Connected; // Direct function to the connected method, the Link method is just here for backwards compatibility
 			}
 			set
 			{
-				_tl.LogMessage("OAT Focuser", $"Link Set - {value}");
+				logMessage(LoggingFlags.Focuser, $"Link Set - {value}");
 				this.Connected = value; // Direct function to the connected method, the Link method is just here for backwards compatibility
 			}
 		}
@@ -312,7 +316,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", $"MaxIncrement Get => {focuserSteps}");
+				logMessage(LoggingFlags.Focuser, $"MaxIncrement Get => {focuserSteps}");
 				return focuserSteps; // Maximum change in one move
 			}
 		}
@@ -321,25 +325,27 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", $"MaxStep Get => {focuserMaxRange}");
+				logMessage(LoggingFlags.Focuser, $"MaxStep Get => {focuserMaxRange}");
 				return focuserMaxRange; // Maximum extent of the focuser, so position range is 0 to this number
 			}
 		}
 
 		public void Move(int newPosition)
 		{
-			_tl.LogMessage("OAT Focuser", $"MoveAbs To({newPosition})");
+			logMessage(LoggingFlags.Focuser, $"MoveAbs To({newPosition})");
 			int currentPosition = Convert.ToInt32(CommandString($":Fp#,#", false));
 			int moveBy = newPosition - currentPosition;
 			CommandBlind($":FM{moveBy}#", false);
+			logMessage(LoggingFlags.Focuser, $"MoveAbs To({newPosition}) - complete");
 		}
 
 		public int Position
 		{
 			get
 			{
+				logMessage(LoggingFlags.Focuser, $"Position Get");
 				var response = CommandString(":Fp#,#", false);
-				_tl.LogMessage("OAT Focuser", $"Position Get => {response}");
+				logMessage(LoggingFlags.Focuser, $"Position Get => {response}");
 				return Convert.ToInt32(response); // Return the focuser position
 			}
 		}
@@ -349,7 +355,7 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				// We don't know the microns for each step
-				_tl.LogMessage("OAT Focuser", "StepSize Get - Not implemented");
+				logMessage(LoggingFlags.Focuser, "StepSize Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("StepSize", false);
 			}
 		}
@@ -358,12 +364,12 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", "TempComp Get => false");
+				logMessage(LoggingFlags.Focuser, "TempComp Get => false");
 				return false;
 			}
 			set
 			{
-				_tl.LogMessage("OAT Focuser", "TempComp Set - Not implemented");
+				logMessage(LoggingFlags.Focuser, "TempComp Set - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("TempComp", false);
 			}
 		}
@@ -372,7 +378,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", "TempCompAvailable Get => false");
+				logMessage(LoggingFlags.Focuser, "TempCompAvailable Get => false");
 				return false; // Temperature compensation is not available in this driver
 			}
 		}
@@ -381,7 +387,7 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				_tl.LogMessage("OAT Focuser", "Temperature Get - Not implemented");
+				logMessage(LoggingFlags.Focuser, "Temperature Get - Not implemented");
 				throw new ASCOM.PropertyNotImplementedException("Temperature", false);
 			}
 		}
