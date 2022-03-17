@@ -14,6 +14,7 @@ Properties dialog.
  * Tested on MKS Gen L V2.1, Arduino Mega and ESP32. No other variants of 
    Arduino have been tested, or are officially supported.
  * Tested with V1.10.4 firmware. V1.10.4 is the RECOMMENDED version.
+ * Tested with V1.11.0 firmware.
  * It will probably work with earlier version (down to V1.6.32 and later).
 
 
@@ -26,7 +27,13 @@ Support
 
 Testing
 -------
-Last Conformance Test - 2022-Feb-01 - All tests passed, no errors, no warnings, 4 issues.
+ * 6.6.6.5 Conformance Test (2022-Mar-16) 
+    - Telescope: All tests passed, no errors, no warnings, 4 issues. 
+    - Focuser:  All tests passed, no errors, no warnings, no issues. 
+
+* 6.6.6.4 Conformance Test (2022-Feb-01)
+    - Telescope: All tests passed, no errors, no warnings, 4 issues. 
+    - Focuser:  All tests passed, no errors, no warnings, no issues. 
 
 
 CAUTION
