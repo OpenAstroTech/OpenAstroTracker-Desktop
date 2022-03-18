@@ -151,6 +151,7 @@ namespace ASCOM.OpenAstroTracker
 				btnGoHome.Enabled = false;
 				btnUnparkDEC.Enabled = false;
 				btnParkDEC.Enabled = false;
+				btnAutoHomeRA.Enabled = false;
 				btnSetHome.Enabled = false;
 				btnStop.Enabled = false;
 				btnSetLST.Enabled = false;
@@ -200,12 +201,18 @@ namespace ASCOM.OpenAstroTracker
 
 		private void Cancel_Button_Click(System.Object sender, System.EventArgs e) // Cancel button event handler
 		{
-			if ((this._oat != null) && (this._oat.Connected))
+			try
 			{
-				this._oat.Connected = false;
+				if ((this._oat != null) && (this._oat.Connected))
+				{
+					this._oat.Connected = false;
+					this._oat = null;
+				}
+			}
+			catch (Exception ex)
+			{
 				this._oat = null;
 			}
-
 			this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
 			this.Close();
 		}
@@ -481,9 +488,12 @@ namespace ASCOM.OpenAstroTracker
 				}
 				catch (Exception ex)
 				{
+					scopeFeatures.Clear();
+					this._oat.Connected = false;
+					btnConnect.Text = "Connect";
 					lblStatus.Text = "Connection failed";
 					lblStatus.Update();
-					MessageBox.Show("Exception:" + ex.Message + ex.ToString());
+					MessageBox.Show("OATControl was unable to connect to OAT.\n\nMessage: " + ex.Message + "\n\nIf this was the first connection attempt after connecting, please try again.", "Connection failed!", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				}
 			}
 			else
