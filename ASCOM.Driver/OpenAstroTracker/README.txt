@@ -58,7 +58,10 @@ Release History
    Allowed read before write of Target coords (this causes the conformance 
      issues, but allows NINA/KSTARS to work)
    Now supports COM10 and higher
-   Removed call to oat to get sync solutions.
+   Removed call to oat to get sync solutions
+   Support switching initial direction for RA Auto Home (Shift key)
+   Improve tooltips throughout Setup dialog
+   Improved error handling and messaging on connection issues
       
  - 6.6.6.4 : Pre-Released 2022-02-01
    Properties dialog: Added ability to invoke Hall sensor-based Auto Home RA
