@@ -369,6 +369,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblFirmware.TabIndex = 37;
 			this.lblFirmware.Text = "-";
 			this.lblFirmware.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblFirmware, "Displays the version number of the firmware that the OAT is using");
 			// 
 			// numRASteps
 			// 
@@ -523,6 +524,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblBoard.TabIndex = 50;
 			this.lblBoard.Text = "-";
 			this.lblBoard.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblBoard, "Displays what type of board the OAT is using");
 			// 
 			// label21
 			// 
@@ -544,6 +546,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblDisplay.TabIndex = 52;
 			this.lblDisplay.Text = "-";
 			this.lblDisplay.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblDisplay, "Shows what type of display the OAT is using");
 			// 
 			// label22
 			// 
@@ -565,6 +568,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblAddons.TabIndex = 54;
 			this.lblAddons.Text = "-";
 			this.lblAddons.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblAddons, "DIsplays any addons that have been enabled on OAT");
 			// 
 			// label24
 			// 
@@ -586,6 +590,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblLST.TabIndex = 56;
 			this.lblLST.Text = "-";
 			this.lblLST.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblLST, "The Local Sidereal Time (LST) for your location.");
 			// 
 			// btnOPenASCOMLogs
 			// 
@@ -746,7 +751,7 @@ namespace ASCOM.OpenAstroTracker
 			this.btnAzLeft.Size = new System.Drawing.Size(40, 40);
 			this.btnAzLeft.TabIndex = 74;
 			this.btnAzLeft.Tag = "W";
-			this.toolTip1.SetToolTip(this.btnAzLeft, "Move mount the left");
+			this.toolTip1.SetToolTip(this.btnAzLeft, "Swivel mount such that the scope/camera points further left");
 			this.btnAzLeft.UseVisualStyleBackColor = true;
 			this.btnAzLeft.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseDown);
 			this.btnAzLeft.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseUp);
@@ -760,7 +765,7 @@ namespace ASCOM.OpenAstroTracker
 			this.btnAzRight.Size = new System.Drawing.Size(40, 40);
 			this.btnAzRight.TabIndex = 73;
 			this.btnAzRight.Tag = "E";
-			this.toolTip1.SetToolTip(this.btnAzRight, "Move mount to the right");
+			this.toolTip1.SetToolTip(this.btnAzRight, "Swivel mount such that the scope/camera points further right");
 			this.btnAzRight.UseVisualStyleBackColor = true;
 			this.btnAzRight.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseDown);
 			this.btnAzRight.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseUp);
@@ -774,7 +779,7 @@ namespace ASCOM.OpenAstroTracker
 			this.btnAltDown.Size = new System.Drawing.Size(40, 40);
 			this.btnAltDown.TabIndex = 72;
 			this.btnAltDown.Tag = "S";
-			this.toolTip1.SetToolTip(this.btnAltDown, "Tilt mount down");
+			this.toolTip1.SetToolTip(this.btnAltDown, "Tilt mount such that scope/camera points down");
 			this.btnAltDown.UseVisualStyleBackColor = true;
 			this.btnAltDown.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseDown);
 			this.btnAltDown.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseUp);
@@ -788,7 +793,7 @@ namespace ASCOM.OpenAstroTracker
 			this.btnAltUp.Size = new System.Drawing.Size(40, 40);
 			this.btnAltUp.TabIndex = 71;
 			this.btnAltUp.Tag = "N";
-			this.toolTip1.SetToolTip(this.btnAltUp, "Tilt mount up");
+			this.toolTip1.SetToolTip(this.btnAltUp, "Tilt mount such that scope/camera points up");
 			this.btnAltUp.UseVisualStyleBackColor = true;
 			this.btnAltUp.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseDown);
 			this.btnAltUp.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btnAltAz_MouseUp);
@@ -902,7 +907,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblRAPosition.TabIndex = 95;
 			this.lblRAPosition.Text = "-";
 			this.lblRAPosition.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			this.toolTip1.SetToolTip(this.lblRAPosition, "Focuser position (Shift click to reset)");
+			this.toolTip1.SetToolTip(this.lblRAPosition, "RA stepper position");
 			// 
 			// lblDECPosition
 			// 
@@ -915,7 +920,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblDECPosition.TabIndex = 97;
 			this.lblDECPosition.Text = "-";
 			this.lblDECPosition.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			this.toolTip1.SetToolTip(this.lblDECPosition, "Focuser position (Shift click to reset)");
+			this.toolTip1.SetToolTip(this.lblDECPosition, "DEC stepper position");
 			// 
 			// btnSetLST
 			// 
@@ -928,7 +933,7 @@ namespace ASCOM.OpenAstroTracker
 			this.btnSetLST.TabIndex = 107;
 			this.btnSetLST.Text = "Set";
 			this.btnSetLST.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.toolTip1.SetToolTip(this.btnSetLST, "Set LST on OAT from PC");
+			this.toolTip1.SetToolTip(this.btnSetLST, "Set the LST on OAT from this PC, according to your location");
 			this.btnSetLST.UseVisualStyleBackColor = true;
 			this.btnSetLST.Click += new System.EventHandler(this.btnSetLST_Click);
 			// 
@@ -943,7 +948,7 @@ namespace ASCOM.OpenAstroTracker
 			this.btnStop.TabIndex = 108;
 			this.btnStop.Text = "Stop";
 			this.btnStop.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.toolTip1.SetToolTip(this.btnStop, "Go Home");
+			this.toolTip1.SetToolTip(this.btnStop, "Stop all movement immediately");
 			this.btnStop.UseVisualStyleBackColor = true;
 			this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
 			// 
@@ -955,7 +960,8 @@ namespace ASCOM.OpenAstroTracker
 			this.btnAutoHomeRA.Size = new System.Drawing.Size(84, 22);
 			this.btnAutoHomeRA.TabIndex = 109;
 			this.btnAutoHomeRA.Text = "AutoHome RA";
-			this.toolTip1.SetToolTip(this.btnAutoHomeRA, "Run the Hall-sensor based auto homing for RA");
+			this.toolTip1.SetToolTip(this.btnAutoHomeRA, "Run the Hall-sensor based auto homing for RA. Starts Westwards. Press Shift to st" +
+        "art Eastwards.");
 			this.btnAutoHomeRA.Click += new System.EventHandler(this.btnAutoHomeRA_Click);
 			// 
 			// lblAzAltControl
@@ -1127,6 +1133,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblRACoordinate.TabIndex = 102;
 			this.lblRACoordinate.Text = "-";
 			this.lblRACoordinate.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblRACoordinate, "The current RA coordinate the scope/camera is pointing at");
 			// 
 			// label33
 			// 
@@ -1158,6 +1165,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblDECCoordinate.TabIndex = 99;
 			this.lblDECCoordinate.Text = "-";
 			this.lblDECCoordinate.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblDECCoordinate, "The current DEC coordinate the scope/camera is pointing at");
 			// 
 			// chkSerial
 			// 

@@ -114,12 +114,13 @@ namespace ASCOM.OpenAstroTracker
 				if (scopeFeatures.Contains("AutoHomeRA"))
 				{
 					btnAutoHomeRA.Visible = true;
+					btnAutoHomeRA.Enabled = true;
 				}
 				else
 				{
+					btnAutoHomeRA.Enabled = false;
 					btnAutoHomeRA.Visible = false;
 				}
-
 
 				btnUnparkDEC.Enabled = true;
 				btnParkDEC.Enabled = true;
@@ -806,8 +807,16 @@ namespace ASCOM.OpenAstroTracker
 
 		private void btnAutoHomeRA_Click(object sender, EventArgs e)
 		{
-			_logger("Auto Home RA Clicked -> Sending Auto Home command to OAT");
-			_oat.Action("Serial:PassThroughCommand", ":MHRR#,n");
+			if (Control.ModifierKeys == Keys.Shift)
+			{
+				_logger("Auto Home RA Clicked (w/ Shift) -> Sending Auto Home Left command to OAT");
+				_oat.Action("Serial:PassThroughCommand", ":MHRL#,n");
+			}
+			else
+			{
+				_logger("Auto Home RA Clicked -> Sending Auto Home Right command to OAT");
+				_oat.Action("Serial:PassThroughCommand", ":MHRR#,n");
+			}
 		}
 
 		private void chkTraceFlag_CheckedChanged(object sender, EventArgs e)
