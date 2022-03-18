@@ -20,7 +20,8 @@ Change Log:
 - Removed dumping of sync solutions 
 - Can use COM10 and higher now
 - Support switching initial direction for RA Auto Home
-- Improve tooltips throughout Setup dialog.
+- Improve tooltips throughout Setup dialog
+- Improved error handling and messaging on connection issues
 
 **OATControl V1.0.2.8 - Updates**
 - Now supports COM10 and higher
