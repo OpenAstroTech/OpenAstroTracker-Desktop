@@ -402,8 +402,15 @@ namespace OATControl
 
 		protected bool TryParseLatLong(string latlong, ref float fLatLong)
 		{
-			var parts = latlong.Split('*', '\'');
-			fLatLong = 1.0f * int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0f;
+			var parts = latlong.Split('*', '\'', ':');
+			if (parts[0][0] == '-')
+			{
+				fLatLong = -1.0f * (int.Parse(parts[0].Substring(1)) + int.Parse(parts[1]) / 60.0f);
+			}
+			else
+			{
+				fLatLong = 1.0f * int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0f;
+			}
 			return true;
 		}
 
@@ -478,7 +485,14 @@ namespace OATControl
 					if (gotLoc)
 					{
 						Latitude = lat;
-						Longitude = 180.0f - lng;
+						if (_mountViewModel.FirmwareVersion < 11105)
+						{
+							Longitude = 180.0f - lng;
+						}
+						else
+						{
+							Longitude = -lng;
+						}
 					}
 					break;
 
@@ -583,7 +597,14 @@ namespace OATControl
 						if (gotLoc)
 						{
 							Latitude = lat;
-							Longitude = 180.0f - lng;
+							if (_mountViewModel.FirmwareVersion < 11105)
+							{
+								Longitude = 180.0f - lng;
+							}
+							else
+							{
+								Longitude = -lng;
+							}
 						}
 						if ((_mountViewModel.ScopeHasHSAH) || (_mountViewModel.DECStepperLowerLimit != 0))
 						{
@@ -690,7 +711,14 @@ namespace OATControl
 						doneEventLatLong.WaitOne();
 						if (gotLoc)
 						{
-							longitude = 180 - longitude;
+							if (_mountViewModel.FirmwareVersion < 11105)
+							{
+								longitude = 180.0f - longitude;
+							}
+							else
+							{
+								longitude = -longitude;
+							}
 
 							GPSStatus = "Sync'd! Setting OAT location...";
 							await _mountViewModel.SetSiteLatitude(latitude);

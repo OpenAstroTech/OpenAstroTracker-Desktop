@@ -1,5 +1,8 @@
 Revision History
 ----------------
+OATControl V1.0.3.0                                              27 Mar 2022
+- Added support for firmware V1.11.5 that fixes the Meade longitude and UTC
+  offset bugs.
 
 OATControl V1.0.2.8                                              17 Mar 2022
 - Added error handling to the parameters that update in real-time.

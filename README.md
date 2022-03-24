@@ -1,20 +1,37 @@
 OpenAstroTracker-Desktop
 ========================
 
-This repository holds the high-level software for the OAT. Currently the main components are:
+This repository holds the high-level software for the OAT. Currently the main
+components are:
 
-- **OATControl**   - a C#/WPF application for Windows that allows control of the OAT via serial or WiFi connection.
-- **ASCOM.Driver** - a .NET ASCOM driver for the OAT. Installation file for use with InnoSetup Compiler included.
+- **OATControl**   - a C#/WPF application for Windows that allows control of 
+                     the OAT via serial or WiFi connection.
+- **ASCOM.Driver** - a .NET ASCOM driver for the OAT. Installation file for 
+                     use with InnoSetup Compiler included.
 
-There are also some low-level communications libraries that the above mentioned projects use.
+There are also some low-level communications libraries that the above 
+mentioned projects use.
 
-To install any of these, click on the latest release under Releases to the right and above this text. Then download the latest version of the package you're after. 
-- **OATControl** is an installer and can be run after download. It will uninstall older versions, if needed.
-- **OATCommTester** also can simply be unzipped in a folder and the executable started.
-- **ASCOM Driver** is an installer and can be run after download. It will uninstall older versions, if needed.
+To install any of these, click on the latest release under Releases to the
+right and above this text. Then download the latest version of the package 
+you're after. 
+- **OATControl** is an installer and can be run after download. It will 
+                 uninstall older versions, if needed.
+- **OATCommTester** also can simply be unzipped in a folder and the 
+                    executable started.
+- **ASCOM Driver** is an installer and can be run after download. It will 
+                   uninstall older versions, if needed.
 
 Change Log:
 ===========
+
+**OATControl V1.0.3.0 - Updates**
+- Added support for firmware V1.11.5 that fixes the Meade longitude and UTC
+  offset bugs.
+
+**ASCOM.Driver V6.6.6.6 - Updates**
+- Added support for firmware V1.11.5 that fixes the Meade longitude and UTC
+  offset bugs.
 
 **ASCOM.Driver V6.6.6.5 - Updates**
 - Removed dumping of sync solutions 
@@ -41,7 +58,8 @@ Change Log:
 - Added finer-grained logging ability
 - Added message number to logging calls
 - Changed logging to flush at regular intervals
-- Allowed read before write of Target coords (this causes the conformance issues, but allows NINA/KSTARS to work)
+- Allowed read before write of Target coords (this causes the conformance 
+  issues, but allows NINA/KSTARS to work)
 - Sync coordinates are dumped to logfiles for analysis
  
 **OATControl V1.0.2.7 - Updates**
@@ -55,7 +73,8 @@ Change Log:
 - Updated Target Chooser point positions after slewing is finished
 - Rearranged and tidied up Settings dialog
 - Fixed DEC sign for simulation
-- Refactored the way that coordinate system is handled to better cope with negative coordinates.
+- Refactored the way that coordinate system is handled to better cope with negative 
+  coordinates.
 - Tracking indicator is not turned off when guiding anymore.
 
 **ASCOM.Driver V6.6.6.0 - Updates**
@@ -65,7 +84,8 @@ Change Log:
 - Added support for Hall sensor based RA auto homing.
 
 **ASCOM.Driver V6.6.5.0 - Updates**
-- Added ability to connect to OAT from the driver properties and do rudimentary operations (slew, home, set home, adjust RA steps, DEC  steps and speed factor).
+- Added ability to connect to OAT from the driver properties and do rudimentary 
+  operations (slew, home, set home, adjust RA steps, DEC  steps and speed factor).
 
 **OATControl V1.0.2.3 - Updates**
 - Added support for focuser reset on Settings page.
@@ -75,7 +95,8 @@ Change Log:
 - Focuser position was being queried incorrectly. Fixed.
 
 **ASCOM.Driver V6.6.3.0 - Updates**
-- Changed pass through command to correctly handle all Meade commands that OAT implements.
+- Changed pass through command to correctly handle all Meade commands that OAT
+  implements.
 
 **OATControl V1.0.2.1 - Updates**
 - Enabled OATControl to use ASCOM driver.

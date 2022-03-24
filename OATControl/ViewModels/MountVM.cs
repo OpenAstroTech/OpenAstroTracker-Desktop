@@ -1168,6 +1168,12 @@ namespace OATControl.ViewModels
 							ScopeTime = localTime;
 							if (utcOffset.Length != 0)
 							{
+								if (FirmwareVersion >= 11105)
+								{
+									// UTC offset bug was corrected in V1.11.5
+									int offset = -int.Parse(utcOffset);
+									utcOffset = string.Format("{0}{1:00}", offset < 0 ? '-' : '+', Math.Abs(offset));
+								}
 								ScopeTime += " T" + utcOffset + ":00";
 							}
 						}
@@ -1683,7 +1689,16 @@ namespace OATControl.ViewModels
 				this.SendOatCommand(string.Format(_oatCulture, ":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", now.Month, now.Day, now.Year - 2000), (a) => { });
 
 				var utcOffset = Math.Round((now - utcNow).TotalHours);
-				char sign = (utcOffset < 0) ? '-' : '+';
+				char sign;
+				if (FirmwareVersion > 11104)
+				{
+					// UTC inversion bug corrected im firmware V1.11.5
+					sign = (utcOffset < 0) ? '+' : '-';
+				}
+				else
+				{
+					sign = (utcOffset < 0) ? '-' : '+';
+				}
 				this.SendOatCommand(string.Format(_oatCulture, ":SG{0}{1,2:00}#,n", sign, Math.Abs(utcOffset)), (a) => { });
 			}
 			else
@@ -1914,6 +1929,8 @@ namespace OATControl.ViewModels
 			{
 				return Tuple.Create(false, message);
 			}
+
+			_oatMount.SetFirmwareVersion(FirmwareVersion);
 
 			var doneEvent2 = new AsyncAutoResetEvent();
 			string hwData = string.Empty;

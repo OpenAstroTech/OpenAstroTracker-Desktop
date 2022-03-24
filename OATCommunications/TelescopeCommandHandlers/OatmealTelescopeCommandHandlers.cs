@@ -16,6 +16,7 @@ namespace OATCommunications
 		private readonly ICommunicationHandler _commHandler;
 
 		private int _moveState = 0;
+		private long _firmwareVersion;
 
 		public MountState MountState { get; } = new MountState();
 
@@ -132,7 +133,14 @@ namespace OATCommunications
 				if (lat.Success && TryParseDec(lat.Data, out longitude))
 				{
 					success = true;
-					longitude = 180 - longitude;
+					if (_firmwareVersion < 11105)
+					{
+						longitude = 180 - longitude;
+					}
+					else
+					{
+						longitude = -longitude;
+					}
 				}
 				doneEvent.Set();
 			});
@@ -160,15 +168,36 @@ namespace OATCommunications
 		}
 
 		// Input is -180 (W) to +180 (E)
-		// This needs to be mapped to 360..0
+		// For Firmware V1.11.04 and earlier this needs to be mapped to 360..0
+		// For Firmware V1.11.05 and later this needs to be inverted (because Meade)
 		public async Task<string> SetSiteLongitude(float longitude)
 		{
 			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
 			bool success = false;
-			longitude = 180 - longitude;
+			if (_firmwareVersion < 11105)
+			{
+				longitude = 180 - longitude;
+			}
+			else
+			{
+				longitude = -longitude;
+			}
+
+			char sgn = longitude < 0 ? '-' : '+';
+			longitude = Math.Abs(longitude);
 			int lonInt = (int)longitude;
 			int lonMin = (int)((longitude - lonInt) * 60.0f);
-			SendCommand($":Sg{lonInt:000}*{lonMin:00}#,n", (result) =>
+			string command;
+			if (_firmwareVersion < 11105)
+			{
+				command = $":Sg{lonInt:000}*{lonMin:00}#,n";
+			}
+			else
+			{
+				command = $":Sg{sgn}{lonInt:000}*{lonMin:00}#,n";
+			}
+
+			SendCommand(command, (result) =>
 			{
 				success = result.Success;
 				doneEvent.Set();
@@ -208,7 +237,14 @@ namespace OATCommunications
 			try
 			{
 				var parts = dec.Split('*', '\'');
-				dDec = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0;
+				if (parts[0][0] == '-')
+				{
+					dDec = -(int.Parse(parts[0].Substring(1)) + int.Parse(parts[1]) / 60.0);
+				}
+				else
+				{
+					dDec = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0;
+				}
 				if (parts.Length > 2)
 				{
 					dDec += int.Parse(parts[2]) / 3600.0;
@@ -369,24 +405,21 @@ namespace OATCommunications
 			bool success = false;
 			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
 
-			// Longitude
-			lon = 180 - lon;
 
-			int lonFront = (int)lon;
-			int lonBack = (int)((lon - lonFront) * 60);
-			var lonCmd = $":Sg{lonFront:000}*{lonBack:00}#,n";
-			SendCommand(lonCmd, (status) => success = status.Success);
+			await doneEvent.WaitAsync();
+			// Longitude
+			success = await SetSiteLongitude((float)lon) == "1";
 
 			// Latitude
-			var latSign = lat > 0 ? '+' : '-';
-			var absLat = Math.Abs(lat);
-			int latFront = (int)absLat;
-			int latBack = (int)((absLat - latFront) * 60.0);
-			var latCmd = $":St{latSign}{latFront:00}*{latBack:00}#,n";
-			SendCommand(latCmd, (status) => success = success && status.Success);
+			success = success && await SetSiteLatitude((float)lat) == "1";
 
 			// GMT Offset
 			var offsetSign = DateTimeOffset.Now.Offset.TotalHours > 0 ? "+" : "-";
+			if (_firmwareVersion >= 11105)
+			{
+				// UTC offset inversion bug was fixed in V1.11.5
+				offsetSign = DateTimeOffset.Now.Offset.TotalHours > 0 ? "-" : "+";
+			}
 			var offset = Math.Abs(DateTimeOffset.Now.Offset.TotalHours);
 			SendCommand($":SG{offsetSign}{offset:00}#,n", (status) => success = success && status.Success);
 
@@ -426,6 +459,11 @@ namespace OATCommunications
 				}
 				_commHandler.SendBlind(cmd, onFulFilled);
 			}
+		}
+
+		public void SetFirmwareVersion(long firmwareVersion)
+		{
+			_firmwareVersion = firmwareVersion;
 		}
 	}
 }
