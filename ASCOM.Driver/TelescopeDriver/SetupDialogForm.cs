@@ -62,6 +62,10 @@ namespace ASCOM.OpenAstroTracker
 				btnSetHome.Enabled = true;
 				btnStop.Enabled = true;
 				btnSetLST.Enabled = true;
+				btnUpdateLoc.Enabled = true;
+				txtLat.Enabled = true;
+				txtLong.Enabled = true;
+				txtElevation.Enabled = true;
 
 				if (scopeFeatures.Contains("Focuser"))
 				{
@@ -171,6 +175,15 @@ namespace ASCOM.OpenAstroTracker
 				rdoRateTwo.Enabled = false;
 				rdoRateThree.Enabled = false;
 				rdoRateFour.Enabled = false;
+
+				btnUpdateLoc.Enabled = false;
+				txtLat.Text = "-";
+				txtLong.Text = "-";
+				txtElevation.Text = "-";
+				txtLat.Enabled = false;
+				txtLong.Enabled = false;
+				txtElevation.Enabled = false;
+
 			}
 		}
 
@@ -191,9 +204,6 @@ namespace ASCOM.OpenAstroTracker
 			// Update the state variables with results from the dialogue
 			_profile.ComPort = (string)ComboBoxComPort.SelectedItem;
 			_profile.BaudRate = Convert.ToInt64(comboBoxBaudRate.SelectedItem);
-			_profile.Latitude = System.Convert.ToDouble(txtLat.Text);
-			_profile.Longitude = System.Convert.ToDouble(txtLong.Text);
-			_profile.Elevation = System.Convert.ToInt32(txtElevation.Text);
 			this.DialogResult = System.Windows.Forms.DialogResult.OK;
 			this.Close();
 		}
@@ -366,6 +376,10 @@ namespace ASCOM.OpenAstroTracker
 				_profile.BaudRate = Convert.ToInt64(comboBoxBaudRate.SelectedItem);
 				SharedResources.WriteProfile(GetProfileData());
 
+				txtLat.Text = _profile.Latitude.ToString();
+				txtLong.Text = _profile.Longitude.ToString();
+				txtElevation.Text = _profile.Elevation.ToString();
+
 				try
 				{
 					this._oat.Connected = true;
@@ -468,7 +482,14 @@ namespace ASCOM.OpenAstroTracker
 					double longitude;
 					if (TryParseDec(lon, out longitude))
 					{
-						longitude = 180 - longitude;
+						if (FirmwareVersion < 11105)
+						{
+							longitude = 180 - longitude;
+						}
+						else
+						{
+							longitude = -longitude;
+						}
 					}
 					txtLong.Text = longitude.ToString("0.00");
 					_profile.Longitude = longitude;
@@ -800,8 +821,19 @@ namespace ASCOM.OpenAstroTracker
 			_oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", now.Month, now.Day, now.Year - 2000));
 
 			var utcOffset = Math.Round((now - utcNow).TotalHours);
-			char sign = (utcOffset < 0) ? '-' : '+';
-			_logger(string.Format("SetLST Clicked -> Setting OAT timezone to {0}{1}", sign, Math.Abs(utcOffset)));
+
+			char sign;
+			if (FirmwareVersion < 11105)
+			{
+				// In older firmware the UTC offset was sent verbatim
+				sign = (utcOffset < 0) ? '-' : '+';
+				_logger(string.Format("SetLST Clicked -> Setting OAT timezone to {0}{1}", sign, Math.Abs(utcOffset)));
+			}
+			else
+			{
+				sign = (utcOffset > 0) ? '-' : '+';
+				_logger(string.Format("SetLST Clicked -> Setting OAT offset from local to UTC {0}{1}", sign, Math.Abs(utcOffset)));
+			}
 			_oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":SG{0}{1,2:00}#,n", sign, Math.Abs(utcOffset)));
 		}
 
@@ -876,6 +908,51 @@ namespace ASCOM.OpenAstroTracker
 					_profile.TraceFlags &= ~SharedResources.LoggingFlags.Setup;
 				}
 			}
+		}
+
+		private void btnUpdateLoc_Click(object sender, EventArgs e)
+		{
+			Cursor.Current = Cursors.WaitCursor;
+
+			try
+			{
+				_profile.Latitude = System.Convert.ToDouble(txtLat.Text);
+				_profile.Longitude = System.Convert.ToDouble(txtLong.Text);
+				_profile.Elevation = System.Convert.ToInt32(txtElevation.Text);
+
+				// convert to degs/mins
+				long secs = (long)Math.Floor(Math.Abs(_profile.Longitude * 3600));
+				// Meade protocol has inverted sign
+				string sgn;
+				if (FirmwareVersion < 11105)
+				{
+					// In older firmware the UTC offset was sent as 0-360
+					sgn = "";
+					secs = (long)Math.Floor(Math.Abs((180 - _profile.Longitude) * 3600));
+				}
+				else
+				{
+					// In newer Firmware, longitude is sent negated
+					sgn = _profile.Longitude < 0 ? "+" : "-";
+				}
+				long degs = secs / 3600;
+				secs -= degs * 3600;
+				long mins = secs / 60;
+				_oat.Action("Serial:PassThroughCommand", string.Format(_oatCulture, ":Sg{0}{1}*{2}#,n", sgn, degs, mins));
+
+				sgn = _profile.Latitude < 0 ? "-" : "+";
+				int latInt = (int)Math.Abs(_profile.Latitude);
+				int latMin = (int)((Math.Abs(_profile.Latitude) - latInt) * 60.0f);
+				_oat.Action("Serial:PassThroughCommand", $":St{sgn}{latInt:00}*{latMin:00}#,n");
+			}
+			catch (Exception ex)
+			{
+				// Ignore exceptions during conversion and don't send
+				Cursor.Current = Cursors.Arrow;
+				MessageBox.Show("Unable to update location on OAT. " + ex.Message, "Location Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+
+			Cursor.Current = Cursors.Arrow;
 		}
 	}
 }
