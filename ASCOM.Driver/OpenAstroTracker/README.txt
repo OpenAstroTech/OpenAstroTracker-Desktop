@@ -47,6 +47,10 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
+ - 6.6.6.6 : Released 2022-03-27
+   Adapted to use Firmware V1.11.5 and later. This firmware fixes the Longitude 
+     and UTC offset bugs.
+
  - 6.6.6.5 : Released 2022-03-17
    Properties dialog: Added ability to invoke Hall sensor-based Auto Home RA
    Properties dialog: Added ability to set LST
