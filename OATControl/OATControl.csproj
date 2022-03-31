@@ -68,6 +68,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\Stopsign.cs" />
+    <Compile Include="Controls\StopButton.xaml.cs">
+      <DependentUpon>StopButton.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\PushButton.xaml.cs">
       <DependentUpon>PushButton.xaml</DependentUpon>
     </Compile>
@@ -122,12 +126,15 @@
       <DependentUpon>TargetChooser.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\AppSettings.cs" />
-    <Compile Include="ViewModels\DelegateCommand.cs" />
     <Compile Include="ViewModels\MountVM.cs" />
     <Compile Include="ViewModels\PointOfInterest.cs" />
     <Compile Include="ViewModels\PointsOfInterest.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Converters\WpfBitmapConverter.cs" />
+    <Page Include="Controls\StopButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\PushButton.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

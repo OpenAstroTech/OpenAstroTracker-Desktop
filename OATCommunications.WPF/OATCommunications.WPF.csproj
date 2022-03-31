@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="CommunicationHandlers\CommunicationHandlerFactory.cs" />
     <Compile Include="CommunicationHandlers\SerialCommunicationHandler.cs" />
+    <Compile Include="DelegateCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WpfUtilities.cs" />
   </ItemGroup>

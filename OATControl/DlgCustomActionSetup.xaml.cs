@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using MahApps.Metro.Controls;
+using OATCommunications.WPF;
 using OATControl.ViewModels;
 
 namespace OATControl

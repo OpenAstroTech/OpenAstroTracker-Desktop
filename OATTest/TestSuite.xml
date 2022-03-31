@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestSuites>
+	<TestSuite>
+		<Test Description="Get Product">
+			<Command>:GVP#</Command>
+			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
+		</Test>
+
+		<Test Description="Set UTC offset" MinFirmware="11105">
+			<Command>:SG+07#></Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set UTC offset" MaxFirmware="11104">
+			<Command>:SG-07#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Latitude">
+			<Command>:St47*44#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Longitude"  MinFirmware="11105">
+			<Command>:Sg+121*58#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Longitude"  MaxFirmware="11104">
+			<Command>:Sg301*58#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Time">
+			<Command>:SL{Time,HH:mm:ss}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Date">
+			<Command>:SC{Time,MM/dd/yy}#</Command>
+			<ExpectedReply Type="n">Updating planetary... </ExpectedReply>
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Start Tracking">
+			<Command>:MT1#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get UTC offset" MinFirmware="11105">
+			<Command>:GG#</Command>
+			<ExpectedReply Type="#">+07</ExpectedReply>
+		</Test>
+
+		<Test Description="Get UTC offset" MaxFirmware="11104">
+			<Command>:GG#</Command>
+			<ExpectedReply Type="#">-07</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Local Time">
+			<Command>:GL#</Command>
+			<ExpectedReply Type="#">{Time+4s,HH:mm:ss}</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Local Date">
+			<Command>:GC#</Command>
+			<ExpectedReply Type="#">{Time,MM/dd/yy}</ExpectedReply>
+		</Test>
+
+		<Test Description="Get LST">
+			<Command>:XGL#</Command>
+			<ExpectedReply Type="#">101442</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Local Time">
+			<Command>:XGH#</Command>
+			<ExpectedReply Type="#">071435</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+</TestSuites>

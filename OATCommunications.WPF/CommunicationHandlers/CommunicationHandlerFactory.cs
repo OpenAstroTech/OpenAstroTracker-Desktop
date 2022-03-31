@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using OATCommunications.CommunicationHandlers;
 using System.Collections.ObjectModel;
-using OATCommuncations.WPF;
+using OATCommunications.WPF;
 using OATCommunications.Utilities;
 using System.Linq;
 

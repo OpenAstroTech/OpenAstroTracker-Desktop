@@ -1,5 +1,5 @@
 ﻿using MahApps.Metro.Controls;
-using OATCommuncations.WPF;
+using OATCommunications.WPF;
 using OATCommunications;
 using OATCommunications.Model;
 using OATCommunications.WPF.CommunicationHandlers;

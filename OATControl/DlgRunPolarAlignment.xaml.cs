@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using OATCommunications.CommunicationHandlers;
 using OATCommunications.Model;
+using OATCommunications.WPF;
 using OATCommunications.WPF.CommunicationHandlers;
 using OATControl.Properties;
 using OATControl.ViewModels;
