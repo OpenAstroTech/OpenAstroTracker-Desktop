@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OATTest"
         mc:Ignorable="d"
-        Title="MainWindow" Height="850" Width="900" Background="#EEF">
+        Title="MainWindow" Height="870" Width="900" Background="#EEF">
 	<Window.Resources>
 		<Style x:Key="CommandHeaderStyle" TargetType="TextBlock">
 			<Setter Property="FontWeight" Value="Bold"/>
@@ -15,6 +15,7 @@
 	</Window.Resources>
 	<Grid Grid.IsSharedSizeScope="True">
 		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
@@ -36,24 +37,29 @@
 
 		<TextBlock Grid.Row="0" Text="Command Port" HorizontalAlignment="Right" Margin="0,6,0,5" VerticalAlignment="Center" />
 		<ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding AvailableDevices}" SelectedValue="{Binding CommandPort}"/>
-		<TextBlock Grid.Row="0" Grid.Column="2" Text="Set Date To:" HorizontalAlignment="Right" Margin="30,6,5,5" VerticalAlignment="Center" />
-		<TextBox Grid.Row="0" Grid.Column="3" HorizontalAlignment="Stretch" Width="120" Margin="4,6,4,3" Text="{Binding UseDate}" VerticalAlignment="Center" />
-		<Button Grid.Row="0" Grid.Column="4" Grid.RowSpan="2" HorizontalAlignment="Stretch" Padding="5,12,5,16" Width="50" Margin="4,5,4,3" Content="Now" VerticalAlignment="Center" Command="{Binding SetDateTimeToNowCommand}"/>
+		<ComboBox Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" Margin="10,5,10,0" VerticalAlignment="Top" Width="90" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding CommandBaudRate}" />
+		<TextBlock Grid.Row="0" Grid.Column="3" Text="Set Date To:" HorizontalAlignment="Right" Margin="30,6,5,5" VerticalAlignment="Center" />
+		<TextBox Grid.Row="0" Grid.Column="4" HorizontalAlignment="Stretch" Width="120" Margin="4,6,4,3" Text="{Binding UseDate}" VerticalAlignment="Center" />
+		<Button Grid.Row="0" Grid.Column="5" Grid.RowSpan="2" HorizontalAlignment="Stretch" Padding="5,12,5,16" Width="50" Margin="4,5,4,3" Content="Now" VerticalAlignment="Center" Command="{Binding SetDateTimeToNowCommand}"/>
+		<Button Grid.Row="0" Grid.Column="56" Grid.RowSpan="2" HorizontalAlignment="Left" Padding="5,12,5,16" Width="50" Margin="4,5,4,3" Content="Preset" VerticalAlignment="Center" Command="{Binding SetDateTimeToPresetCommand}"/>
 
-		<CheckBox Grid.Row="1" Content="Seperate Debug Port" HorizontalAlignment="Right" Margin="0,6,0,6" VerticalAlignment="Center" x:Name="seperatePort" IsChecked="{Binding IsDebugPortSeperate}"/>
+		<CheckBox Grid.Row="1" Content="Seperate Debug Port" HorizontalAlignment="Right" Margin="0,6,0,6" VerticalAlignment="Center" x:Name="seperatePort" IsChecked="{Binding IsDebugPortSeperate}" IsEnabled="False"/>
 		<ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding AvailableDevices}" SelectedValue="{Binding DebugPort}" IsEnabled="{Binding IsChecked,ElementName=seperatePort}"/>
-		<TextBlock Grid.Row="1" Grid.Column="2" Text="Set Time To:" HorizontalAlignment="Right" Margin="0,5,5,5" VerticalAlignment="Center" />
-		<TextBox Grid.Row="1" Grid.Column="3" HorizontalAlignment="Stretch" Height="Auto" Margin="4,5,4,3" Text="{Binding UseTime}" VerticalAlignment="Center" />
+		<ComboBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" Margin="10,5,10,0" VerticalAlignment="Top" Width="90" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding DebugBaudRate}" IsEnabled="{Binding IsChecked,ElementName=seperatePort}"/>
+		<TextBlock Grid.Row="1" Grid.Column="3" Text="Set Time To:" HorizontalAlignment="Right" Margin="30,6,5,5" VerticalAlignment="Center" />
+		<TextBox Grid.Row="1" Grid.Column="4" HorizontalAlignment="Stretch" Height="Auto" Margin="4,6,4,3" Text="{Binding UseTime}" VerticalAlignment="Center" />
 
 		<CheckBox Grid.Row="2" Grid.Column="0" Content="stepper-lib-integration Branch" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top"/>
 
-		<Button Grid.Row="3" Content="Run Integration Test" HorizontalAlignment="Left" Margin="5,15,0,0" VerticalAlignment="Top" Padding="25,2" />
+		<Button Grid.Row="3" Content="Run Integration Test" HorizontalAlignment="Left" Margin="5,15,0,20" VerticalAlignment="Top" Padding="25,2" Command="{Binding RunTestsCommand}" IsEnabled="{Binding CanRun}"/>
+		<TextBlock Grid.Row="3" Grid.ColumnSpan="7" Text="{Binding AppStatus}" VerticalAlignment="Bottom" Margin="5,0" FontWeight="Bold" Foreground="Navy"/>
+		<Button Grid.Row="3" Grid.Column="1" Content="Reset" HorizontalAlignment="Left" Margin="5,15,0,0" VerticalAlignment="Top" Padding="10,2" Command="{Binding ResetTestsCommand}" IsEnabled="{Binding CanReset}"/>
 
 		<TextBlock Grid.Row="4" HorizontalAlignment="Left" Margin="5,15,0,0" Text="Test Results" FontSize="11" FontWeight="Bold" />
-		<Grid Grid.Row="5" Grid.ColumnSpan="6" Margin="5,2,5,2" Background="LightBlue">
+		<Grid Grid.Row="5" Grid.ColumnSpan="7" Margin="5,2,5,2" Background="LightBlue">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="28" SharedSizeGroup="icon"/>
-				<ColumnDefinition Width="60" SharedSizeGroup="state"/>
+				<ColumnDefinition Width="66" SharedSizeGroup="state"/>
 				<ColumnDefinition Width="*" SharedSizeGroup="desc" />
 				<ColumnDefinition Width="120" SharedSizeGroup="command"/>
 				<ColumnDefinition Width="*" SharedSizeGroup="expect"/>
@@ -65,7 +71,7 @@
 			<TextBlock Grid.Column="4" Text="Expected"  Style="{StaticResource CommandHeaderStyle}"/>
 			<TextBlock Grid.Column="5" Text="Received"  Style="{StaticResource CommandHeaderStyle}"/>
 		</Grid>
-		<ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" Margin="5,2,5,17" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ItemsSource="{Binding Tests}" >
+		<ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="7" Margin="5,2,5,18" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ItemsSource="{Binding Tests}" >
 			<ListView.Resources>
 				<e:SwitchConverter x:Key="StatusIcons">
 					<e:SwitchConverterCase When="Ready" Then="Images/clock.png" />
@@ -73,6 +79,7 @@
 					<e:SwitchConverterCase When="Failed" Then="Images/cross-button.png" />
 					<e:SwitchConverterCase When="Success" Then="Images/tick-button.png" />
 					<e:SwitchConverterCase When="Complete" Then="Images/tick-white.png" />
+					<e:SwitchConverterCase When="Skipped" Then="Images/arrow-step-over.png" />
 				</e:SwitchConverter>
 			</ListView.Resources>
 			<ListView.ItemTemplate>
@@ -114,9 +121,9 @@
 			</ListView.View>-->
 		</ListView>
 
-		<TextBlock Grid.Row="7" HorizontalAlignment="Left" Margin="5,0,0,2" Text="Debug Output" VerticalAlignment="Bottom" FontSize="11" FontWeight="Bold" />
+		<TextBlock Grid.Row="7" HorizontalAlignment="Left" Margin="5,0,0,1.63" Text="Debug Output" VerticalAlignment="Bottom" FontSize="11" FontWeight="Bold" />
 
-		<ListBox Grid.Row="8" Grid.ColumnSpan="6" Margin="5,2.37,5,4.63" FontFamily="Consolas" FontSize="10" ItemsSource="{Binding DebugOutput}" />
+		<ListBox Grid.Row="8" Grid.ColumnSpan="7" Margin="5,2.37,5,4.63" FontFamily="Consolas" FontSize="10" ItemsSource="{Binding DebugOutput}" />
 
 	</Grid>
 </Window>

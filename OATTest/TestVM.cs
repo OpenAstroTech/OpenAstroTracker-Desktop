@@ -9,31 +9,43 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using OATCommunications;
+using OATCommunications.Model;
 using OATCommunications.WPF;
 using OATCommunications.WPF.CommunicationHandlers;
 
 namespace OATTest
 {
-	public class TestVM : INotifyPropertyChanged
+	public class TestVM : NotifyPropertyChanged
 	{
 		TestManager _testManager;
 		ObservableCollection<string> _debugOutput;
-		SerialCommunicationHandler _handler;
+		ICommunicationHandler _handler;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
 		string _commandPort;
 		string _debugPort;
 		bool _seperateDebugPort;
 		DateTime _useDateTime;
+		DateTime _presetTime;
+		DelegateCommand _setDateTimePresetCommand;
 		DelegateCommand _setDateTimeCommand;
 		DelegateCommand _runTestsCommand;
+		DelegateCommand _resetTestsCommand;
+		private bool _failed;
+		private string _debugBaudRate;
+		private string _commandBaudRate;
+		private List<string> _baudRates;
+		private string _appStatus;
 
-		public ICommand SetDateTimeToNowCommand { get{ return _setDateTimeCommand; } }
-
-		public event PropertyChangedEventHandler PropertyChanged;
+		public ICommand SetDateTimeToPresetCommand { get { return _setDateTimePresetCommand; } }
+		public ICommand SetDateTimeToNowCommand { get { return _setDateTimeCommand; } }
+		public ICommand RunTestsCommand { get { return _runTestsCommand; } }
+		public ICommand ResetTestsCommand { get { return _resetTestsCommand; } }
 
 		public TestVM()
 		{
 			_useDateTime = DateTime.Parse("03/28/22 23:00:00");
+			_presetTime = _useDateTime;
 			CommunicationHandlerFactory.Initialize();
 			_testManager = new TestManager();
 			_seperateDebugPort = false;
@@ -42,30 +54,137 @@ namespace OATTest
 			OnPropertyChanged("Tests");
 			_debugOutput.Add("Welcome to TestManager V1.0");
 			_debugOutput.Add("Test suite loaded");
-			_setDateTimeCommand = new DelegateCommand(s => OnSetDateTime());
-			_runTestsCommand = new DelegateCommand(s => OnStartTests());
+			_setDateTimeCommand = new DelegateCommand(s => OnSetDateTime(true));
+			_setDateTimePresetCommand = new DelegateCommand(s => OnSetDateTime(false));
+			_runTestsCommand = new DelegateCommand(async (s) => await OnStartTests());
+			_resetTestsCommand = new DelegateCommand(() => OnResetTests());
+			_commandBaudRate = "19200";
+			_debugBaudRate = "57600";
 
 			AvailableDevices = new ObservableCollection<string>();
+			AvailableBaudRates = new List<string>() { "9600", "19200", "28800", "38400", "57600", "115200" };
 
 			CommunicationHandlerFactory.DiscoverDevices();
 
 			Task.Run(async () => { await OnDiscoverDevices(); });
 		}
 
-		private void OnStartTests()
+		void Debug(string line)
 		{
-			_testManager.ResetAllTests();
-			//_testManager.RunAllTests(() => { });
+			WpfUtilities.RunOnUiThread(() => _debugOutput.Add(line), Application.Current.Dispatcher);
 		}
 
-		private void OnSetDateTime()
+		public void OnResetTests()
 		{
-			_useDateTime = DateTime.Now;
+			_testManager.ResetAllTests();
+			AppStatus = string.Empty;
+		}
+
+		private async Task OnStartTests()
+		{
+			AppStatus = "Preparing tests...";
+			_testManager.UseDate = _useDateTime;
+			_testManager.ResetAllTests();
+			_testManager.PrepareForRun();
+
+			AsyncAutoResetEvent asyncAutoResetEvent = new AsyncAutoResetEvent();
+			_failed = true;
+			try
+			{
+				string port = CommandPort + "@" + _commandBaudRate;
+				Debug($"Connecting to OAT on {port}...");
+				AppStatus = "Connecting to OAT ...";
+				_handler = CommunicationHandlerFactory.ConnectToDevice(port);
+				_handler.Connect();
+				await Task.Delay(3000);
+				_handler.SendCommand(":GVN#", (resultNr) =>
+				{
+					if (resultNr.Success)
+					{
+						var versionNumbers = resultNr.Data.Substring(1).Split(".".ToCharArray());
+						if (versionNumbers.Length != 3)
+						{
+							Debug($"Unrecognizable firmware version '{resultNr.Data}'");
+						}
+						else
+						{
+							try
+							{
+								FirmwareVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
+								_testManager.FirmwareVersion = FirmwareVersion;
+
+								AppStatus = $"Connected to OAT {resultNr.Data}, running tests...";
+
+								Debug($"OAT is running firmware version '{resultNr.Data}' => {FirmwareVersion}");
+								_failed = false;
+							}
+							catch
+							{
+								Debug($"Unable to parse firmware version '{resultNr.Data}'");
+							}
+						}
+					}
+					asyncAutoResetEvent.Set();
+				});
+
+				await asyncAutoResetEvent.WaitAsync();
+			}
+			catch (Exception ex)
+			{
+				Debug("Failed to connect. " + ex.Message);
+			}
+
+			if (!_failed)
+			{
+				Debug($"Connected to OAT with V{FirmwareVersion}, running tests...");
+				await _testManager.RunAllTests(_handler, (s) => Debug(s));
+
+				Debug($"Tests complete, disconnecting...");
+			}
+			else
+			{
+				Debug($"Failed to connect to OAT, no tests run.");
+			}
+
+			AppStatus = $"Disconnecting...";
+
+			if (_handler.Connected)
+			{
+				_handler.Disconnect();
+			}
+
+			Debug($"Finished.");
+			long failed = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Failed ? 1 : 0);
+			long succeeded = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Success ? 1 : 0);
+
+			AppStatus = $"Tests completed. {failed} failed, {succeeded} succeeded.";
+		}
+
+		private void OnSetDateTime(bool useNow)
+		{
+			_useDateTime = useNow ? DateTime.Now : _presetTime;
 			OnPropertyChanged("UseTime");
 			OnPropertyChanged("UseDate");
 		}
 
 		public ObservableCollection<string> AvailableDevices { get; private set; }
+		public List<string> AvailableBaudRates { get { return _baudRates; } set { _baudRates = value; } }
+
+		public bool CanRun
+		{
+			get
+			{
+				return !string.IsNullOrEmpty(CommandPort) && !string.IsNullOrEmpty(_commandBaudRate);
+			}
+		}
+
+		public bool CanReset
+		{
+			get
+			{
+				return true;
+			}
+		}
 
 		public async Task OnDiscoverDevices()
 		{
@@ -81,16 +200,6 @@ namespace OATTest
 				WpfUtilities.RunOnUiThread(() => { AvailableDevices.Add(device); }, Application.Current.Dispatcher);
 			}
 		}
-
-		void OnPropertyChanged([CallerMemberName] string prop = "")
-		{
-			var handler = this.PropertyChanged;
-			if (handler != null)
-			{
-				handler(this, new PropertyChangedEventArgs(prop));
-			}
-		}
-
 
 		public IList<CommandTest> Tests
 		{
@@ -118,6 +227,7 @@ namespace OATTest
 						DebugPort = value;
 					}
 					OnPropertyChanged();
+					OnPropertyChanged("CanRun");
 				}
 			}
 		}
@@ -176,5 +286,50 @@ namespace OATTest
 				}
 			}
 		}
+
+		public string DebugBaudRate
+		{
+			get { return _debugBaudRate; }
+			set
+			{
+				if (_debugBaudRate != value)
+				{
+					_debugBaudRate = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public string CommandBaudRate
+		{
+			get { return _commandBaudRate; }
+			set
+			{
+				if (_commandBaudRate != value)
+				{
+					_commandBaudRate = value;
+					OnPropertyChanged();
+					OnPropertyChanged("CanRun");
+				}
+			}
+		}
+
+		public string AppStatus
+		{
+			get { return _appStatus; }
+			set
+			{
+				if (_appStatus != value)
+				{
+					_appStatus = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+
+
+		public long FirmwareVersion { get; private set; }
 	}
 }
+

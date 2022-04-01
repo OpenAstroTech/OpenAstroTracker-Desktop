@@ -6,8 +6,13 @@
 			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
 		</Test>
 
+		<Test Description="Get Firmware Version">
+			<Command>:GVN#</Command>
+			<ExpectedReply Type="#" />
+		</Test>
+
 		<Test Description="Set UTC offset" MinFirmware="11105">
-			<Command>:SG+07#></Command>
+			<Command>:SG+07#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
@@ -38,7 +43,7 @@
 
 		<Test Description="Set Date">
 			<Command>:SC{Time,MM/dd/yy}#</Command>
-			<ExpectedReply Type="n">Updating planetary... </ExpectedReply>
+			<ExpectedReply Type="##">1Updating Planetary Data</ExpectedReply>
 		</Test>
 
 		<Test Description="Set Home Position">
@@ -61,6 +66,10 @@
 			<ExpectedReply Type="#">-07</ExpectedReply>
 		</Test>
 
+		<Test Description="Delay 4s">
+			<Command Type="Builtin">Delay,4s</Command>
+		</Test>
+
 		<Test Description="Get Local Time">
 			<Command>:GL#</Command>
 			<ExpectedReply Type="#">{Time+4s,HH:mm:ss}</ExpectedReply>
@@ -73,12 +82,12 @@
 
 		<Test Description="Get LST">
 			<Command>:XGL#</Command>
-			<ExpectedReply Type="#">101442</ExpectedReply>
+			<ExpectedReply Type="#">101441</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Local Time">
 			<Command>:XGH#</Command>
-			<ExpectedReply Type="#">071435</ExpectedReply>
+			<ExpectedReply Type="#">071433</ExpectedReply>
 		</Test>
 
 	</TestSuite>
