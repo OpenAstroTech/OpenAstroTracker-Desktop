@@ -90,5 +90,34 @@
 			<ExpectedReply Type="#">071433</ExpectedReply>
 		</Test>
 
+		<!--<Test Description="Set Target RA to Capella">
+			<Command>:Sr05:18:22#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>-->
+
+		<Test Description="Set Target DEC to Capella">
+			<Command>:Sd+46*01:12#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew to Capella">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">05:18:22</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+46*01'12</ExpectedReply>
+		</Test>
+
 	</TestSuite>
 </TestSuites>

@@ -67,15 +67,18 @@ namespace OATTest
 				{
 					if (FirmwareVersion < test.MinFirmwareVersion)
 					{
+						debugOut($"Skipping test '{test.Description}' because firmware too old");
 						test.Status = CommandTest.StatusType.Skipped;
 						continue;
 					}
 					if ((test.MaxFirmwareVersion != -1) && FirmwareVersion > test.MaxFirmwareVersion)
 					{
+						debugOut($"Skipping test '{test.Description}' because firmware too new");
 						test.Status = CommandTest.StatusType.Skipped;
 						continue;
 					}
 
+					debugOut($"Running test '{test.Description}'...");
 					var commandCompleteEvent = new AsyncAutoResetEvent();
 					test.Status = CommandTest.StatusType.Running;
 					var command = ReplaceMacros(test.Command);
@@ -86,6 +89,7 @@ namespace OATTest
 						switch (test.ExpectedReplyType)
 						{
 							case CommandTest.ReplyType.Number:
+								debugOut($"Sending command '{command}', expecting number reply...");
 								handler.SendCommandConfirm(command, (data) =>
 								{
 									success = data.Success;
@@ -95,6 +99,7 @@ namespace OATTest
 								break;
 
 							case CommandTest.ReplyType.HashDelimited:
+								debugOut($"Sending command '{command}', expecting delimited reply...");
 								handler.SendCommand(command, (data) =>
 								{
 									success = data.Success;
@@ -105,6 +110,7 @@ namespace OATTest
 
 
 							case CommandTest.ReplyType.DoubleHashDelimited:
+								debugOut($"Sending command '{command}', expecting double delimited reply...");
 								handler.SendCommandDoubleResponse(command, (data) =>
 								{
 									success = data.Success;
@@ -114,6 +120,7 @@ namespace OATTest
 								break;
 
 							case CommandTest.ReplyType.None:
+								debugOut($"Sending command '{command}', expecting no reply...");
 								handler.SendBlind(command, (data) =>
 								{
 									success = data.Success;
@@ -126,19 +133,45 @@ namespace OATTest
 					}
 					else if (test.CommandType == "Builtin")
 					{
-						string pattern = @"^(\w+),(\d+)(\w{1})$";
+						string pattern = @"^(\w+)(?:,(\d+)(\w{1}))*$";
 						var match = Regex.Match(command, pattern, RegexOptions.Singleline);
 						if (match.Success)
 						{
-							long num;
-							long.TryParse(match.Groups[2].Value, out num);
-							long factor = GetTimeFactorFromUnit(match.Groups[3].Value);
+							long num =0;
+							long factor = 1;
+							if (!string.IsNullOrEmpty(match.Groups[2].Value))
+							{
+								long.TryParse(match.Groups[2].Value, out num);
+								factor = GetTimeFactorFromUnit(match.Groups[3].Value);
+							}
+
 							switch (match.Groups[1].Value.ToUpper())
 							{
 								case "DELAY":
 								{
+									debugOut($"Executing built in 'Delay' command for {num * factor}s ...");
 									await Task.Delay(TimeSpan.FromSeconds(num * factor));
 									success = true;
+									reply = string.Empty;
+									break;
+								}
+								case "WAITFORIDLE":
+								{
+									debugOut($"Executing built in 'WaitForIdle' command...");
+									do
+									{
+										await Task.Delay(TimeSpan.FromSeconds(0.5));
+										handler.SendCommandConfirm(":GIS#", (data) =>
+										{
+											success = data.Success;
+											reply = data.Data;
+											commandCompleteEvent.Set();
+										});
+										await commandCompleteEvent.WaitAsync();
+										if ((reply == "0") || !success)
+											break;
+									}
+									while (true);
 									reply = string.Empty;
 									break;
 								}
@@ -153,6 +186,7 @@ namespace OATTest
 						// Did we get a reply?
 						if (!string.IsNullOrEmpty(reply))
 						{
+							debugOut($"Command completed successfully. Reply was '{reply}'.");
 							// Yes, so set it
 							test.ReceivedReply = reply;
 							// Did we expect a reply?
@@ -169,12 +203,14 @@ namespace OATTest
 						}
 						else
 						{
+							debugOut($"Command completed successfully. No reply was received.");
 							// No reply. If that's expected, set complete (or success?), otherwise it's failed.
 							test.Status = test.ExpectedReplyType == CommandTest.ReplyType.None ? CommandTest.StatusType.Complete : CommandTest.StatusType.Failed;
 						}
 					}
 					else
 					{
+						debugOut($"Command failed.");
 						test.Status = CommandTest.StatusType.Failed;
 					}
 				}
