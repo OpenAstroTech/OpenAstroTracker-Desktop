@@ -16,6 +16,8 @@ namespace OATTest
 		// Yeah, I know I'm mixing Models and ViewModels.... not true MVVM, more like VVM
 		ObservableCollection<CommandTest> _tests;
 		string _testSuiteFile;
+		private bool _abortTestRun;
+		AsyncAutoResetEvent _commandCompleteEvent = new AsyncAutoResetEvent();
 
 		public TestManager()
 		{
@@ -40,6 +42,8 @@ namespace OATTest
 
 		public ObservableCollection<CommandTest> Tests { get { return _tests; } }
 
+		public bool AreTestsRunning { get; internal set; }
+
 		internal void ResetAllTests()
 		{
 			LoadTestSuite(_testSuiteFile);
@@ -55,14 +59,21 @@ namespace OATTest
 			foreach (var test in _tests)
 			{
 				test.Command = ReplaceMacros(test.Command);
-				test.ExpectedReply = ReplaceMacros(test.ExpectedReply);
+				test.ExpectedReply = ReplaceMacros(test.GetExpectedReply(FirmwareVersion));
 			}
 		}
 
 		public async Task RunAllTests(ICommunicationHandler handler, Action<string> debugOut)
 		{
+			AreTestsRunning = true;
 			foreach (var test in _tests)
 			{
+				if (_abortTestRun)
+				{
+					test.Status = CommandTest.StatusType.Skipped;
+					continue;
+				}
+
 				try
 				{
 					if (FirmwareVersion < test.MinFirmwareVersion)
@@ -79,7 +90,6 @@ namespace OATTest
 					}
 
 					debugOut($"Running test '{test.Description}'...");
-					var commandCompleteEvent = new AsyncAutoResetEvent();
 					test.Status = CommandTest.StatusType.Running;
 					var command = ReplaceMacros(test.Command);
 					bool success = false;
@@ -94,7 +104,7 @@ namespace OATTest
 								{
 									success = data.Success;
 									reply = data.Data;
-									commandCompleteEvent.Set();
+									_commandCompleteEvent.Set();
 								});
 								break;
 
@@ -104,7 +114,7 @@ namespace OATTest
 								{
 									success = data.Success;
 									reply = data.Data;
-									commandCompleteEvent.Set();
+									_commandCompleteEvent.Set();
 								});
 								break;
 
@@ -115,7 +125,7 @@ namespace OATTest
 								{
 									success = data.Success;
 									reply = data.Data;
-									commandCompleteEvent.Set();
+									_commandCompleteEvent.Set();
 								});
 								break;
 
@@ -124,12 +134,12 @@ namespace OATTest
 								handler.SendBlind(command, (data) =>
 								{
 									success = data.Success;
-									commandCompleteEvent.Set();
+									_commandCompleteEvent.Set();
 								});
 								break;
 						}
 
-						await commandCompleteEvent.WaitAsync();
+						await _commandCompleteEvent.WaitAsync();
 					}
 					else if (test.CommandType == "Builtin")
 					{
@@ -137,7 +147,7 @@ namespace OATTest
 						var match = Regex.Match(command, pattern, RegexOptions.Singleline);
 						if (match.Success)
 						{
-							long num =0;
+							long num = 0;
 							long factor = 1;
 							if (!string.IsNullOrEmpty(match.Groups[2].Value))
 							{
@@ -165,10 +175,10 @@ namespace OATTest
 										{
 											success = data.Success;
 											reply = data.Data;
-											commandCompleteEvent.Set();
+											_commandCompleteEvent.Set();
 										});
-										await commandCompleteEvent.WaitAsync();
-										if ((reply == "0") || !success)
+										await _commandCompleteEvent.WaitAsync();
+										if ((reply == "0") || !success || _abortTestRun)
 											break;
 									}
 									while (true);
@@ -219,6 +229,12 @@ namespace OATTest
 					debugOut($"Exception caught in Test '{test.Description}': {ex.Message}");
 				}
 			}
+			AreTestsRunning = false;
+		}
+
+		internal void AbortRun()
+		{
+			_abortTestRun = true;
 		}
 
 		private long GetTimeFactorFromUnit(string unit)

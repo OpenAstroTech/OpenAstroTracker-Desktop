@@ -56,14 +56,10 @@
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
-		<Test Description="Get UTC offset" MinFirmware="11105">
+		<Test Description="Get UTC offset">
 			<Command>:GG#</Command>
-			<ExpectedReply Type="#">+07</ExpectedReply>
-		</Test>
-
-		<Test Description="Get UTC offset" MaxFirmware="11104">
-			<Command>:GG#</Command>
-			<ExpectedReply Type="#">-07</ExpectedReply>
+			<ExpectedReply MinFirmware="11105" Type="#">+07</ExpectedReply>
+			<ExpectedReply MaxFirmware="11104" Type="#">-07</ExpectedReply>
 		</Test>
 
 		<Test Description="Delay 4s">
@@ -100,7 +96,7 @@
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
-		<Test Description="Slew to Capella">
+		<!--<Test Description="Slew to Capella">
 			<Command>:MS#</Command>
 			<ExpectedReply Type="n">0</ExpectedReply>
 		</Test>
@@ -117,7 +113,80 @@
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
 			<ExpectedReply Type="#">+46*01'12</ExpectedReply>
+		</Test>-->
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Send Guide Pulse N">
+			<Command>:MGN0750#</Command>
+		</Test>
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 1s">
+			<Command Type="Builtin">Delay,1s</Command>
+		</Test>
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Send Guide Pulse E">
+			<Command>:MGE0750#</Command>
+		</Test>
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 1s">
+			<Command Type="Builtin">Delay,1s</Command>
+		</Test>
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Send Guide Pulse S">
+			<Command>:MGS0750#</Command>
+		</Test>
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 1s">
+			<Command Type="Builtin">Delay,1s</Command>
+		</Test>
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Send Guide Pulse W">
+			<Command>:MGW0750#</Command>
+		</Test>
+
+		<Test Description="Get Guiding">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 1s">
+			<Command Type="Builtin">Delay,1s</Command>
 		</Test>
 
 	</TestSuite>
 </TestSuites>
+

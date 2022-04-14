@@ -21,6 +21,7 @@ namespace OATTest
 		TestManager _testManager;
 		ObservableCollection<string> _debugOutput;
 		ICommunicationHandler _handler;
+		AsyncAutoResetEvent _asyncAutoResetEvent = new AsyncAutoResetEvent();
 		CultureInfo _oatCulture = new CultureInfo("en-US");
 		string _commandPort;
 		string _debugPort;
@@ -36,6 +37,7 @@ namespace OATTest
 		private string _commandBaudRate;
 		private List<string> _baudRates;
 		private string _appStatus;
+		private string _runButtonText = "Run Test Suite";
 
 		public ICommand SetDateTimeToPresetCommand { get { return _setDateTimePresetCommand; } }
 		public ICommand SetDateTimeToNowCommand { get { return _setDateTimeCommand; } }
@@ -82,12 +84,21 @@ namespace OATTest
 
 		private async Task OnStartTests()
 		{
+			if (_testManager.AreTestsRunning)
+			{
+				AppStatus = "Aborting tests...";
+				RunButtonText = "Waiting...";
+				_testManager.AbortRun();
+				_asyncAutoResetEvent.Set();
+				return;
+			}
+
+			RunButtonText = "Abort";
 			AppStatus = "Preparing tests...";
 			_testManager.UseDate = _useDateTime;
 			_testManager.ResetAllTests();
 			_testManager.PrepareForRun();
 
-			AsyncAutoResetEvent asyncAutoResetEvent = new AsyncAutoResetEvent();
 			_failed = true;
 			try
 			{
@@ -124,10 +135,10 @@ namespace OATTest
 							}
 						}
 					}
-					asyncAutoResetEvent.Set();
+					_asyncAutoResetEvent.Set();
 				});
 
-				await asyncAutoResetEvent.WaitAsync();
+				await _asyncAutoResetEvent.WaitAsync();
 			}
 			catch (Exception ex)
 			{
@@ -137,6 +148,7 @@ namespace OATTest
 			if (!_failed)
 			{
 				Debug($"Connected to OAT with V{FirmwareVersion}, running tests...");
+				_testManager.PrepareForRun();
 				await _testManager.RunAllTests(_handler, (s) => Debug(s));
 
 				Debug($"Tests complete, disconnecting...");
@@ -156,8 +168,11 @@ namespace OATTest
 			Debug($"Finished.");
 			long failed = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Failed ? 1 : 0);
 			long succeeded = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Success ? 1 : 0);
+			long skipped = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Skipped ? 1 : 0);
 
-			AppStatus = $"Tests completed. {failed} failed, {succeeded} succeeded.";
+			AppStatus = $"{_testManager.Tests.Count} Tests completed. {failed} failed, {succeeded} succeeded. {skipped} skipped.";
+
+			RunButtonText = "Run Test Suite";
 		}
 
 		private void OnSetDateTime(bool useNow)
@@ -286,7 +301,19 @@ namespace OATTest
 				}
 			}
 		}
-
+		
+		public string RunButtonText
+		{
+			get { return _runButtonText; }
+			set
+			{
+				if (_runButtonText != value)
+				{
+					_runButtonText = value;
+					OnPropertyChanged();
+				}
+			}
+		}
 		public string DebugBaudRate
 		{
 			get { return _debugBaudRate; }

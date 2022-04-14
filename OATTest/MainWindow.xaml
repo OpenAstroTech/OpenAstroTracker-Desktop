@@ -51,7 +51,7 @@
 
 		<CheckBox Grid.Row="2" Grid.Column="0" Content="stepper-lib-integration Branch" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top"/>
 
-		<Button Grid.Row="3" Content="Run Integration Test" HorizontalAlignment="Left" Margin="5,15,0,20" VerticalAlignment="Top" Padding="25,2" Command="{Binding RunTestsCommand}" IsEnabled="{Binding CanRun}"/>
+		<Button Grid.Row="3" Content="{Binding RunButtonText}" HorizontalAlignment="Left" Margin="5,15,0,20" VerticalAlignment="Top" Padding="25,2" Command="{Binding RunTestsCommand}" IsEnabled="{Binding CanRun}"/>
 		<TextBlock Grid.Row="3" Grid.ColumnSpan="7" Text="{Binding AppStatus}" VerticalAlignment="Bottom" Margin="5,0" FontWeight="Bold" Foreground="Navy"/>
 		<Button Grid.Row="3" Grid.Column="1" Content="Reset" HorizontalAlignment="Left" Margin="5,15,0,0" VerticalAlignment="Top" Padding="10,2" Command="{Binding ResetTestsCommand}" IsEnabled="{Binding CanReset}"/>
 

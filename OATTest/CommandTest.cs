@@ -28,12 +28,37 @@ namespace OATTest
 			DoubleHashDelimited
 		};
 
+		private class Reply
+		{
+			string _expected = string.Empty;
+			long _minVersion = -1;
+			long _maxVersion = -1;
+			ReplyType _replyType;
+
+			public Reply(XElement node)
+			{
+				var reply = node.Attribute("Type").Value ?? "None";
+				if (reply == "n") reply = "Number";
+				if (reply == "#") reply = "HashDelimited";
+				if (reply == "##") reply = "DoubleHashDelimited";
+				_replyType = (ReplyType)Enum.Parse(typeof(ReplyType), reply);
+				_expected = node.Value ?? string.Empty;
+				_minVersion = long.Parse(node.Attribute("MinFirmware")?.Value ?? "-1");
+				_maxVersion = long.Parse(node.Attribute("MaxFirmware")?.Value ?? "-1");
+			}
+
+			public string Expected { get { return _expected; } }
+			public ReplyType ReplyType { get { return _replyType; } }
+			public long MinVersion { get { return _minVersion; } }
+			public long MaxVersion { get { return _maxVersion; } }
+		}
+
 		string _command = string.Empty;
 		string _expected = string.Empty;
 		string _received = string.Empty;
 		string _label = string.Empty;
 		StatusType _status;
-		ReplyType _replyType;
+		List<Reply> _replies;
 
 		long _minVersion;
 		long _maxVersion;
@@ -41,14 +66,15 @@ namespace OATTest
 
 		public CommandTest(XElement testElem)
 		{
+			_replies = new List<Reply>();
 			_command = testElem.Element("Command").Value;
 			_commandType = testElem.Element("Command").Attribute("Type")?.Value ?? "Mount";
-			var reply = testElem.Element("ExpectedReply")?.Attribute("Type").Value ?? "None";
-			if (reply == "n") reply = "Number";
-			if (reply == "#") reply = "HashDelimited";
-			if (reply == "##") reply = "DoubleHashDelimited";
-			_replyType = (ReplyType)Enum.Parse(typeof(ReplyType), reply);
-			_expected = testElem.Element("ExpectedReply")?.Value ?? string.Empty;
+			var reply = testElem.Elements("ExpectedReply");
+			if (reply.Any())
+			{
+				_replies.AddRange(reply.Select(n => new Reply(n)));
+			}
+			_expected = string.Empty;
 			_label = testElem.Attribute("Description").Value;
 			_status = StatusType.Ready;
 			_minVersion = long.Parse(testElem.Attribute("MinFirmware")?.Value ?? "-1");
@@ -59,6 +85,7 @@ namespace OATTest
 		{
 			Status = StatusType.Ready;
 			ReceivedReply = string.Empty;
+			ExpectedReply = string.Empty;
 		}
 
 		public StatusType Status
@@ -75,6 +102,40 @@ namespace OATTest
 		}
 
 		public string Description { get { return _label; } }
+
+		internal string GetExpectedReply(long version)
+		{
+			// If we only have one, return it
+			if (_replies.Count == 1)
+			{
+				return _replies[0].Expected;
+			}
+
+			// If we have multiple, find the first one that can run on the given firmware
+			foreach (var reply in _replies)
+			{
+				bool canRun = true;
+				if (reply.MinVersion != -1)
+				{
+					if (version < reply.MinVersion)
+					{
+						canRun = false;
+					}
+				}
+				if (reply.MaxVersion != -1)
+				{
+					if (version > reply.MaxVersion)
+					{
+						canRun = false;
+					}
+				}
+				if (canRun)
+				{
+					return reply.Expected;
+				}
+			}
+			return string.Empty;
+		}
 
 		public string ExpectedReply
 		{
@@ -111,6 +172,6 @@ namespace OATTest
 		public long MinFirmwareVersion { get { return _minVersion; } }
 		public long MaxFirmwareVersion { get { return _maxVersion; } }
 
-		public ReplyType ExpectedReplyType { get { return _replyType; } }
+		public ReplyType ExpectedReplyType { get { return _replies.FirstOrDefault()?.ReplyType ?? ReplyType.None; } }
 	}
 }
