@@ -115,9 +115,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="TestSuite.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\OATCommunications.WPF\OATCommunications.WPF.csproj">
       <Project>{33d73b16-4c06-4fb0-95ef-350929570f03}</Project>
       <Name>OATCommunications.WPF</Name>
@@ -151,6 +148,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Tests\StepperLib.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

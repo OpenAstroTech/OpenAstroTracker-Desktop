@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,42 +13,81 @@ using OATCommunications.Model;
 
 namespace OATTest
 {
+	public class TestSuite
+	{
+		private string _testSuiteFile;
+
+		public string Name { get; private set; }
+		public string Description { get; private set; }
+		public DateTime FixedDateTime { get; private set; }
+		public List<CommandTest> Tests { get; private set; }
+
+		public TestSuite(string testXmlFile)
+		{
+			_testSuiteFile = testXmlFile;
+			Tests = new List<CommandTest>();
+			XDocument doc = XDocument.Load(testXmlFile);
+			Name = doc.Element("TestSuite").Attribute("Name").Value;
+			Description = doc.Element("TestSuite").Attribute("Description").Value;
+			FixedDateTime = DateTime.Parse(doc.Element("TestSuite").Attribute("FixedDateTime")?.Value ?? "03/28/22 23:00:00");
+			foreach (var testXml in doc.Element("TestSuite").Elements("Test"))
+			{
+				var test = new CommandTest(testXml);
+				Tests.Add(test);
+			}
+		}
+
+		public override string ToString()
+		{
+			return $"{Name} - {Description}";
+		}
+	}
+
 	public class TestManager
 	{
 		// Yeah, I know I'm mixing Models and ViewModels.... not true MVVM, more like VVM
+		ObservableCollection<TestSuite> _testSuites;
 		ObservableCollection<CommandTest> _tests;
 		string _testSuiteFile;
 		private bool _abortTestRun;
+		private string _testFolder;
 		AsyncAutoResetEvent _commandCompleteEvent = new AsyncAutoResetEvent();
 
 		public TestManager()
 		{
+			_testSuites = new ObservableCollection<TestSuite>();
 			_tests = new ObservableCollection<CommandTest>();
+
+			string location = Assembly.GetExecutingAssembly().Location;
+			_testFolder = Path.Combine(location, "Tests");
+
+			while (!Directory.Exists(_testFolder))
+			{
+				location = Path.GetDirectoryName(location);
+				if (location == null)
+				{
+					throw new ApplicationException("Installation corrupt. No Tests folder found.");
+				}
+				_testFolder = Path.Combine(location, "Tests");
+			}
+			foreach (var file in Directory.GetFiles(_testFolder, "*.xml"))
+			{
+				_testSuites.Add(new TestSuite(file));
+			}
 		}
 
 		public long FirmwareVersion { get; set; }
 		public DateTime UseDate { get; set; }
 		public DateTime UseTime { get; set; }
 
-		public void LoadTestSuite(string testXmlFile)
-		{
-			_testSuiteFile = testXmlFile;
-			_tests.Clear();
-			XDocument doc = XDocument.Load(testXmlFile);
-			foreach (var testXml in doc.Element("TestSuites").Element("TestSuite").Elements("Test"))
-			{
-				var test = new CommandTest(testXml);
-				_tests.Add(test);
-			}
-		}
-
 		public ObservableCollection<CommandTest> Tests { get { return _tests; } }
 
 		public bool AreTestsRunning { get; internal set; }
+		public IList<TestSuite> TestSuites { get { return _testSuites; } }
 
 		internal void ResetAllTests()
 		{
-			LoadTestSuite(_testSuiteFile);
+			//LoadTestSuite(_testSuiteFile);
 
 			foreach (var test in _tests)
 			{

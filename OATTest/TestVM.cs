@@ -13,6 +13,7 @@ using OATCommunications;
 using OATCommunications.Model;
 using OATCommunications.WPF;
 using OATCommunications.WPF.CommunicationHandlers;
+using OATTest.Properties;
 
 namespace OATTest
 {
@@ -37,7 +38,8 @@ namespace OATTest
 		private string _commandBaudRate;
 		private List<string> _baudRates;
 		private string _appStatus;
-		private string _runButtonText = "Run Test Suite";
+		private string _runButtonText = "Run";
+		private TestSuite _selectedTestSuite;
 
 		public ICommand SetDateTimeToPresetCommand { get { return _setDateTimePresetCommand; } }
 		public ICommand SetDateTimeToNowCommand { get { return _setDateTimeCommand; } }
@@ -48,14 +50,14 @@ namespace OATTest
 		{
 			_useDateTime = DateTime.Parse("03/28/22 23:00:00");
 			_presetTime = _useDateTime;
+			TestSuites = new ObservableCollection<TestSuite>();
+
 			CommunicationHandlerFactory.Initialize();
 			_testManager = new TestManager();
 			_seperateDebugPort = false;
-			_testManager.LoadTestSuite(@"c:\Users\Lutz.KRETZSCHMAR.000\Source\OpenAstroTracker-Desktop\OATTest\TestSuite.xml");
 			_debugOutput = new ObservableCollection<string>();
 			OnPropertyChanged("Tests");
 			_debugOutput.Add("Welcome to TestManager V1.0");
-			_debugOutput.Add("Test suite loaded");
 			_setDateTimeCommand = new DelegateCommand(s => OnSetDateTime(true));
 			_setDateTimePresetCommand = new DelegateCommand(s => OnSetDateTime(false));
 			_runTestsCommand = new DelegateCommand(async (s) => await OnStartTests());
@@ -66,9 +68,21 @@ namespace OATTest
 			AvailableDevices = new ObservableCollection<string>();
 			AvailableBaudRates = new List<string>() { "9600", "19200", "28800", "38400", "57600", "115200" };
 
-			CommunicationHandlerFactory.DiscoverDevices();
-
 			Task.Run(async () => { await OnDiscoverDevices(); });
+
+			_commandPort = Settings.Default.COMPort ?? _commandPort;
+			_commandBaudRate = string.IsNullOrEmpty(Settings.Default.COMBaud) ? _commandBaudRate : Settings.Default.COMBaud;
+			_debugPort = Settings.Default.DebugPort ?? _debugPort;
+			_debugBaudRate = string.IsNullOrEmpty(Settings.Default.DebugBaud) ? _debugBaudRate : Settings.Default.DebugBaud;
+
+			foreach (var testSuite in _testManager.TestSuites)
+			{
+				TestSuites.Add(testSuite);
+				if (testSuite.Name == Settings.Default.Suite)
+				{
+					SelectedTestSuite = testSuite;
+				}
+			}
 		}
 
 		void Debug(string line)
@@ -78,6 +92,8 @@ namespace OATTest
 
 		public void OnResetTests()
 		{
+			Task.Run(async () => { await OnDiscoverDevices(); });
+
 			_testManager.ResetAllTests();
 			AppStatus = string.Empty;
 		}
@@ -172,7 +188,7 @@ namespace OATTest
 
 			AppStatus = $"{_testManager.Tests.Count} Tests completed. {failed} failed, {succeeded} succeeded. {skipped} skipped.";
 
-			RunButtonText = "Run Test Suite";
+			RunButtonText = "Run";
 		}
 
 		private void OnSetDateTime(bool useNow)
@@ -189,7 +205,7 @@ namespace OATTest
 		{
 			get
 			{
-				return !string.IsNullOrEmpty(CommandPort) && !string.IsNullOrEmpty(_commandBaudRate);
+				return !string.IsNullOrEmpty(CommandPort) && !string.IsNullOrEmpty(_commandBaudRate) && Tests.Any();
 			}
 		}
 
@@ -213,6 +229,29 @@ namespace OATTest
 				//var handler = CommunicationHandlerFactory.AvailableHandlers.First(h => h.IsDriverForDevice(device));
 				//var driver = new DeviceDriver(device, handler.SupportsSetupDialog, new DelegateCommand((p) => OnRunDeviceHandlerSetup(handler, p)));
 				WpfUtilities.RunOnUiThread(() => { AvailableDevices.Add(device); }, Application.Current.Dispatcher);
+			}
+		}
+
+		public ObservableCollection<TestSuite> TestSuites { get; private set; }
+		public TestSuite SelectedTestSuite
+		{
+			get { return _selectedTestSuite; }
+			set
+			{
+				if (_selectedTestSuite != value)
+				{
+					_selectedTestSuite = value;
+
+					Tests.Clear();
+					foreach (var test in _selectedTestSuite.Tests)
+					{
+						Tests.Add(test);
+					}
+
+					SaveSettings();
+					OnPropertyChanged();
+					OnPropertyChanged("CanRun");
+				}
 			}
 		}
 
@@ -241,10 +280,21 @@ namespace OATTest
 					{
 						DebugPort = value;
 					}
+					SaveSettings();
 					OnPropertyChanged();
 					OnPropertyChanged("CanRun");
 				}
 			}
+		}
+
+		private void SaveSettings()
+		{
+			Settings.Default.COMPort = CommandPort;
+			Settings.Default.COMBaud = CommandBaudRate;
+			Settings.Default.DebugPort = DebugPort;
+			Settings.Default.DebugBaud = DebugBaudRate;
+			Settings.Default.Suite = SelectedTestSuite?.Name ?? string.Empty;
+			Settings.Default.Save();
 		}
 
 		public string DebugPort
@@ -255,6 +305,7 @@ namespace OATTest
 				if (_debugPort != value)
 				{
 					_debugPort = value;
+					SaveSettings();
 					OnPropertyChanged();
 				}
 			}
@@ -301,7 +352,7 @@ namespace OATTest
 				}
 			}
 		}
-		
+
 		public string RunButtonText
 		{
 			get { return _runButtonText; }
@@ -323,6 +374,7 @@ namespace OATTest
 				{
 					_debugBaudRate = value;
 					OnPropertyChanged();
+					SaveSettings();
 				}
 			}
 		}
@@ -337,6 +389,7 @@ namespace OATTest
 					_commandBaudRate = value;
 					OnPropertyChanged();
 					OnPropertyChanged("CanRun");
+					SaveSettings();
 				}
 			}
 		}
