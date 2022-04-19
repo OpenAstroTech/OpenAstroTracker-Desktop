@@ -12,6 +12,13 @@
 			<Setter Property="FontWeight" Value="Bold"/>
 			<Setter Property="Margin" Value="10,0"/>
 		</Style>
+		<Style x:Key="StatusButtonStyle" TargetType="Border">
+			<Setter Property="BorderThickness" Value ="1" />
+			<Setter Property="CornerRadius" Value ="3"  />
+			<Setter Property="Width" Value ="140"  />
+			<Setter Property="HorizontalAlignment" Value ="Left"  />
+			<Setter Property="Margin" Value ="0,0,10,0" />
+		</Style>
 	</Window.Resources>
 	<Grid Grid.IsSharedSizeScope="True">
 		<Grid.ColumnDefinitions>
@@ -64,10 +71,27 @@
 			<ComboBox Grid.Column="0" Margin="0" ItemsSource="{Binding TestSuites}" SelectedItem="{Binding SelectedTestSuite}" />
 			<Button Grid.Column="1" Content="{Binding RunButtonText}" Padding="15,2" Margin="10,0" VerticalAlignment="Center" Command="{Binding RunTestsCommand}" IsEnabled="{Binding CanRun}"/>
 			<Button Grid.Column="2" Content="Reset" Padding="15,2" Margin="0" VerticalAlignment="Center" Command="{Binding ResetTestsCommand}" IsEnabled="{Binding CanReset}" />
-			<TextBlock Grid.Row="1" Text="{Binding AppStatus}" VerticalAlignment="Bottom" Margin="5,10,0,0" FontWeight="Bold" Foreground="Navy"/>
+			
+			<TextBlock Grid.Row="1" Text="{Binding AppStatus}" VerticalAlignment="Top" Margin="5,3,0,0" FontWeight="Bold" Foreground="Navy"/>
+
+			<StackPanel Grid.Row="1" Margin="0,24,0,10" Orientation="Horizontal">
+				<Border Background="#888" BorderBrush="#222" Style="{StaticResource StatusButtonStyle}">
+					<TextBlock Text="{Binding CompletedTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
+				</Border>
+				<Border Background="#2A2" BorderBrush="#151" Style="{StaticResource StatusButtonStyle}">
+					<TextBlock Text="{Binding SucceededTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
+				</Border>
+				<Border Background="#F33" BorderBrush="#161" Style="{StaticResource StatusButtonStyle}">
+					<TextBlock Text="{Binding FailedTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
+				</Border>
+				<Border Background="#66F" BorderBrush="#112" Style="{StaticResource StatusButtonStyle}">
+					<TextBlock Text="{Binding SkippedTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
+				</Border>
+			</StackPanel>
+
 		</Grid>
 
-		<TextBlock Grid.Row="4" HorizontalAlignment="Left" Margin="5,5,0,0" Text="Test Results" FontSize="11" FontWeight="Bold" />
+		<!--<TextBlock Grid.Row="4" HorizontalAlignment="Left" Margin="5,5,0,0" Text="Test Results" FontSize="12" FontWeight="Bold" />-->
 		<Grid Grid.Row="5" Grid.ColumnSpan="7" Margin="5,2,5,2" Background="LightBlue">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="28" SharedSizeGroup="icon"/>

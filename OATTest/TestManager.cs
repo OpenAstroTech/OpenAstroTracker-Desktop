@@ -15,22 +15,18 @@ namespace OATTest
 {
 	public class TestSuite
 	{
-		private string _testSuiteFile;
-
 		public string Name { get; private set; }
 		public string Description { get; private set; }
 		public DateTime FixedDateTime { get; private set; }
 		public List<CommandTest> Tests { get; private set; }
 
-		public TestSuite(string testXmlFile)
+		public TestSuite(XElement suite)
 		{
-			_testSuiteFile = testXmlFile;
 			Tests = new List<CommandTest>();
-			XDocument doc = XDocument.Load(testXmlFile);
-			Name = doc.Element("TestSuite").Attribute("Name").Value;
-			Description = doc.Element("TestSuite").Attribute("Description").Value;
-			FixedDateTime = DateTime.Parse(doc.Element("TestSuite").Attribute("FixedDateTime")?.Value ?? "03/28/22 23:00:00");
-			foreach (var testXml in doc.Element("TestSuite").Elements("Test"))
+			Name = suite.Attribute("Name").Value;
+			Description = suite.Attribute("Description").Value;
+			FixedDateTime = DateTime.Parse(suite.Attribute("FixedDateTime")?.Value ?? "03/28/22 23:00:00");
+			foreach (var testXml in suite.Elements("Test"))
 			{
 				var test = new CommandTest(testXml);
 				Tests.Add(test);
@@ -48,7 +44,7 @@ namespace OATTest
 		// Yeah, I know I'm mixing Models and ViewModels.... not true MVVM, more like VVM
 		ObservableCollection<TestSuite> _testSuites;
 		ObservableCollection<CommandTest> _tests;
-		string _testSuiteFile;
+		string _activeSuite = string.Empty;
 		private bool _abortTestRun;
 		private string _testFolder;
 		AsyncAutoResetEvent _commandCompleteEvent = new AsyncAutoResetEvent();
@@ -58,6 +54,11 @@ namespace OATTest
 			_testSuites = new ObservableCollection<TestSuite>();
 			_tests = new ObservableCollection<CommandTest>();
 
+			LoadAllTests();
+		}
+
+		public void LoadAllTests()
+		{
 			string location = Assembly.GetExecutingAssembly().Location;
 			_testFolder = Path.Combine(location, "Tests");
 
@@ -70,9 +71,15 @@ namespace OATTest
 				}
 				_testFolder = Path.Combine(location, "Tests");
 			}
+			_testSuites.Clear();
 			foreach (var file in Directory.GetFiles(_testFolder, "*.xml"))
 			{
-				_testSuites.Add(new TestSuite(file));
+				XDocument doc = XDocument.Load(file);
+				var suites = doc.Element("TestSuites");
+				foreach (var suite in suites.Elements("TestSuite"))
+				{
+					_testSuites.Add(new TestSuite(suite));
+				}
 			}
 		}
 
@@ -85,13 +92,32 @@ namespace OATTest
 		public bool AreTestsRunning { get; internal set; }
 		public IList<TestSuite> TestSuites { get { return _testSuites; } }
 
+		public void SetActiveTestSuite(string name)
+		{
+			_activeSuite = name;
+			_tests.Clear();
+			var suite = _testSuites.First(ts => ts.Name == name);
+			foreach (var test in suite.Tests)
+			{
+				_tests.Add(test);
+			}
+		}
+
 		internal void ResetAllTests()
 		{
-			//LoadTestSuite(_testSuiteFile);
-
-			foreach (var test in _tests)
+			LoadAllTests();
+			if (_testSuites.FirstOrDefault(ts => ts.Name == _activeSuite) != null)
 			{
-				test.Reset();
+				SetActiveTestSuite(_activeSuite);
+
+				foreach (var test in _tests)
+				{
+					test.Reset();
+				}
+			}
+			else
+			{
+				_tests.Clear();
 			}
 		}
 
@@ -104,7 +130,7 @@ namespace OATTest
 			}
 		}
 
-		public async Task RunAllTests(ICommunicationHandler handler, Action<string> debugOut)
+		public async Task RunAllTests(ICommunicationHandler handler, Action<CommandTest.StatusType> testResult, Action<string> debugOut)
 		{
 			AreTestsRunning = true;
 			foreach (var test in _tests)
@@ -112,6 +138,7 @@ namespace OATTest
 				if (_abortTestRun)
 				{
 					test.Status = CommandTest.StatusType.Skipped;
+					testResult(0);
 					continue;
 				}
 
@@ -121,12 +148,14 @@ namespace OATTest
 					{
 						debugOut($"Skipping test '{test.Description}' because firmware too old");
 						test.Status = CommandTest.StatusType.Skipped;
+						testResult(CommandTest.StatusType.Skipped);
 						continue;
 					}
 					if ((test.MaxFirmwareVersion != -1) && FirmwareVersion > test.MaxFirmwareVersion)
 					{
 						debugOut($"Skipping test '{test.Description}' because firmware too new");
 						test.Status = CommandTest.StatusType.Skipped;
+						testResult(CommandTest.StatusType.Skipped);
 						continue;
 					}
 
@@ -184,24 +213,24 @@ namespace OATTest
 					}
 					else if (test.CommandType == "Builtin")
 					{
-						string pattern = @"^(\w+)(?:,(\d+)(\w{1}))*$";
+						string pattern = @"^(\w+)(?:,(\d+)(\w{1,2}))*$";
 						var match = Regex.Match(command, pattern, RegexOptions.Singleline);
 						if (match.Success)
 						{
 							long num = 0;
-							long factor = 1;
+							long factor = 1000;
 							if (!string.IsNullOrEmpty(match.Groups[2].Value))
 							{
 								long.TryParse(match.Groups[2].Value, out num);
-								factor = GetTimeFactorFromUnit(match.Groups[3].Value);
+								factor = GetMsFactorFromUnit(match.Groups[3].Value);
 							}
 
 							switch (match.Groups[1].Value.ToUpper())
 							{
 								case "DELAY":
 								{
-									debugOut($"Executing built in 'Delay' command for {num * factor}s ...");
-									await Task.Delay(TimeSpan.FromSeconds(num * factor));
+									debugOut($"Executing built in 'Delay' command for {num * factor}ms ...");
+									await Task.Delay(TimeSpan.FromMilliseconds(num * factor));
 									success = true;
 									reply = string.Empty;
 									break;
@@ -264,6 +293,7 @@ namespace OATTest
 						debugOut($"Command failed.");
 						test.Status = CommandTest.StatusType.Failed;
 					}
+					testResult(test.Status);
 				}
 				catch (Exception ex)
 				{
@@ -278,15 +308,16 @@ namespace OATTest
 			_abortTestRun = true;
 		}
 
-		private long GetTimeFactorFromUnit(string unit)
+		private long GetMsFactorFromUnit(string unit)
 		{
-			long ret = 0;
+			long ret;
 			switch (unit.ToUpper())
 			{
-				case "S": ret = 1; break;
-				case "M": ret = 60; break;
-				case "H": ret = 3600; break;
-				case "D": ret = 24 * 3600; break;
+				case "MS": ret = 1; break;
+				case "S": ret = 1000; break;
+				case "M": ret = 60 * 1000; break;
+				case "H": ret = 60 * 60 * 1000; break;
+				case "D": ret = 24 * 60 * 60 * 1000; break;
 				default:
 					throw new ArgumentException("Unknown unit '" + unit + "'.");
 			}
@@ -320,8 +351,8 @@ namespace OATTest
 
 					long num;
 					long.TryParse(mathMatch.Groups[3].Value, out num);
-					long seconds = GetTimeFactorFromUnit(mathMatch.Groups[4].Value);
-					offset = TimeSpan.FromSeconds(sign * seconds * num);
+					long milliSeconds = GetMsFactorFromUnit(mathMatch.Groups[4].Value);
+					offset = TimeSpan.FromMilliseconds(sign * milliSeconds * num);
 					macro = mathMatch.Groups[1].Value;
 				}
 

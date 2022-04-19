@@ -33,13 +33,21 @@ namespace OATTest
 		DelegateCommand _setDateTimeCommand;
 		DelegateCommand _runTestsCommand;
 		DelegateCommand _resetTestsCommand;
-		private bool _failed;
+		private bool _failedToConnect;
 		private string _debugBaudRate;
 		private string _commandBaudRate;
 		private List<string> _baudRates;
 		private string _appStatus;
 		private string _runButtonText = "Run";
 		private TestSuite _selectedTestSuite;
+		private int _succeeded;
+		private int _failed;
+		private int _skipped;
+		private int _completed;
+		private string _succeededTests;
+		private string _failedTests;
+		private string _skippedTests;
+		private string _completedTests;
 
 		public ICommand SetDateTimeToPresetCommand { get { return _setDateTimePresetCommand; } }
 		public ICommand SetDateTimeToNowCommand { get { return _setDateTimeCommand; } }
@@ -96,6 +104,10 @@ namespace OATTest
 
 			_testManager.ResetAllTests();
 			AppStatus = string.Empty;
+			SkippedTests = "-";
+			SucceededTests = "-";
+			FailedTests = "-";
+			CompletedTests = "-";
 		}
 
 		private async Task OnStartTests()
@@ -114,8 +126,13 @@ namespace OATTest
 			_testManager.UseDate = _useDateTime;
 			_testManager.ResetAllTests();
 			_testManager.PrepareForRun();
+			_succeeded = 0;
+			_failed = 0;
+			_skipped = 0;
+			_completed = 0;
+			UpdateResults(CommandTest.StatusType.Ready);
 
-			_failed = true;
+			_failedToConnect = true;
 			try
 			{
 				string port = CommandPort + "@" + _commandBaudRate;
@@ -143,7 +160,7 @@ namespace OATTest
 								AppStatus = $"Connected to OAT {resultNr.Data}, running tests...";
 
 								Debug($"OAT is running firmware version '{resultNr.Data}' => {FirmwareVersion}");
-								_failed = false;
+								_failedToConnect = false;
 							}
 							catch
 							{
@@ -161,11 +178,11 @@ namespace OATTest
 				Debug("Failed to connect. " + ex.Message);
 			}
 
-			if (!_failed)
+			if (!_failedToConnect)
 			{
 				Debug($"Connected to OAT with V{FirmwareVersion}, running tests...");
 				_testManager.PrepareForRun();
-				await _testManager.RunAllTests(_handler, (s) => Debug(s));
+				await _testManager.RunAllTests(_handler, (result) => UpdateResults(result), (s) => Debug(s));
 
 				Debug($"Tests complete, disconnecting...");
 			}
@@ -182,13 +199,41 @@ namespace OATTest
 			}
 
 			Debug($"Finished.");
-			long failed = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Failed ? 1 : 0);
-			long succeeded = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Success ? 1 : 0);
-			long skipped = _testManager.Tests.Sum(t => t.Status == CommandTest.StatusType.Skipped ? 1 : 0);
 
-			AppStatus = $"{_testManager.Tests.Count} Tests completed. {failed} failed, {succeeded} succeeded. {skipped} skipped.";
+			AppStatus = $"Tests complete.";
+
+			UpdateResults(CommandTest.StatusType.Ready);
 
 			RunButtonText = "Run";
+		}
+
+		private void UpdateResults(CommandTest.StatusType result)
+		{
+			if (result == CommandTest.StatusType.Failed)
+			{
+				_failed++;
+				_completed++;
+			}
+			if (result == CommandTest.StatusType.Skipped)
+			{
+				_skipped++;
+				_completed++;
+			}
+			if (result == CommandTest.StatusType.Success)
+			{
+				_succeeded++;
+				_completed++;
+			}
+			if (result == CommandTest.StatusType.Complete)
+			{
+				_succeeded++;
+				_completed++;
+			}
+
+			CompletedTests = $"{_completed}/{_testManager.Tests.Count} completed";
+			FailedTests = $"{_failed} failed";
+			SkippedTests = $"{_skipped} skipped";
+			SucceededTests = $"{_succeeded} succeeded";
 		}
 
 		private void OnSetDateTime(bool useNow)
@@ -242,11 +287,7 @@ namespace OATTest
 				{
 					_selectedTestSuite = value;
 
-					Tests.Clear();
-					foreach (var test in _selectedTestSuite.Tests)
-					{
-						Tests.Add(test);
-					}
+					_testManager.SetActiveTestSuite(_selectedTestSuite.Name);
 
 					SaveSettings();
 					OnPropertyChanged();
@@ -402,6 +443,58 @@ namespace OATTest
 				if (_appStatus != value)
 				{
 					_appStatus = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public string SucceededTests
+		{
+			get { return _succeededTests; }
+			set
+			{
+				if (_succeededTests != value)
+				{
+					_succeededTests = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public string FailedTests
+		{
+			get { return _failedTests; }
+			set
+			{
+				if (_failedTests != value)
+				{
+					_failedTests = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public string SkippedTests
+		{
+			get { return _skippedTests; }
+			set
+			{
+				if (_skippedTests != value)
+				{
+					_skippedTests = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public string CompletedTests
+		{
+			get { return _completedTests; }
+			set
+			{
+				if (_completedTests != value)
+				{
+					_completedTests = value;
 					OnPropertyChanged();
 				}
 			}
