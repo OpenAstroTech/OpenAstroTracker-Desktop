@@ -74,20 +74,31 @@
 			
 			<TextBlock Grid.Row="1" Text="{Binding AppStatus}" VerticalAlignment="Top" Margin="5,3,0,0" FontWeight="Bold" Foreground="Navy"/>
 
-			<StackPanel Grid.Row="1" Margin="0,24,0,10" Orientation="Horizontal">
-				<Border Background="#888" BorderBrush="#222" Style="{StaticResource StatusButtonStyle}">
+			<Grid Grid.Row="1" Margin="0,24,0,10" VerticalAlignment="Top">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<Border Grid.Column="0" Background="#888" BorderBrush="#222" Style="{StaticResource StatusButtonStyle}">
 					<TextBlock Text="{Binding CompletedTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
 				</Border>
-				<Border Background="#2A2" BorderBrush="#151" Style="{StaticResource StatusButtonStyle}">
+				<Border Grid.Column="1" Background="#2A2" BorderBrush="#151" Style="{StaticResource StatusButtonStyle}">
 					<TextBlock Text="{Binding SucceededTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
 				</Border>
-				<Border Background="#F33" BorderBrush="#161" Style="{StaticResource StatusButtonStyle}">
+				<Border Grid.Column="2" Background="#F33" BorderBrush="#161" Style="{StaticResource StatusButtonStyle}">
 					<TextBlock Text="{Binding FailedTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
 				</Border>
-				<Border Background="#66F" BorderBrush="#112" Style="{StaticResource StatusButtonStyle}">
-					<TextBlock Text="{Binding SkippedTests}" Padding="10,5" Foreground="White" FontWeight="Bold"/>
+				<Border Grid.Column="3" Background="#66F" BorderBrush="#112" Style="{StaticResource StatusButtonStyle}" Margin="0">
+					<TextBlock Text="{Binding SkippedTests}" Padding="10,5,0,5" Foreground="White" FontWeight="Bold"/>
 				</Border>
-			</StackPanel>
+				<ProgressBar Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,5,0,0" VerticalAlignment="Bottom" Height="10" Value="{Binding TestsCompleted,Mode=OneWay}" Maximum="{Binding NumTests,Mode=OneWay}"/>
+			</Grid>
 
 		</Grid>
 

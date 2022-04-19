@@ -127,6 +127,16 @@
 			<ExpectedReply Type="#">071433</ExpectedReply>
 		</Test>
 
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
 		<!--<Test Description="Set Target RA to Capella">
 			<Command>:Sr05:18:22#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
@@ -238,6 +248,20 @@
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
 
+		<Test Description="Sync to Capella">
+			<Command>:SY+75*45:15.11:30:45#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:30:45</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+75*45'11</ExpectedReply>
+		</Test>
 
 	</TestSuite>
 

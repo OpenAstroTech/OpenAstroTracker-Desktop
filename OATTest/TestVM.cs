@@ -103,6 +103,8 @@ namespace OATTest
 			Task.Run(async () => { await OnDiscoverDevices(); });
 
 			_testManager.ResetAllTests();
+			_completed = 0;
+			OnPropertyChanged("NumTests");
 			AppStatus = string.Empty;
 			SkippedTests = "-";
 			SucceededTests = "-";
@@ -130,6 +132,7 @@ namespace OATTest
 			_failed = 0;
 			_skipped = 0;
 			_completed = 0;
+
 			UpdateResults(CommandTest.StatusType.Ready);
 
 			_failedToConnect = true;
@@ -292,6 +295,7 @@ namespace OATTest
 					SaveSettings();
 					OnPropertyChanged();
 					OnPropertyChanged("CanRun");
+					OnPropertyChanged("NumTests");
 				}
 			}
 		}
@@ -444,6 +448,7 @@ namespace OATTest
 				{
 					_appStatus = value;
 					OnPropertyChanged();
+					OnPropertyChanged("NumTests");
 				}
 			}
 		}
@@ -496,8 +501,19 @@ namespace OATTest
 				{
 					_completedTests = value;
 					OnPropertyChanged();
+					OnPropertyChanged("TestsCompleted");
 				}
 			}
+		}
+
+		public long TestsCompleted
+		{
+			get { return _completed; }
+		}
+
+		public long NumTests
+		{
+			get { return Tests.Count; }
 		}
 
 
