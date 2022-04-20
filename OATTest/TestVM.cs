@@ -22,6 +22,7 @@ namespace OATTest
 		TestManager _testManager;
 		ObservableCollection<string> _debugOutput;
 		ICommunicationHandler _handler;
+		SerialListener _debugHandler;
 		AsyncAutoResetEvent _asyncAutoResetEvent = new AsyncAutoResetEvent();
 		CultureInfo _oatCulture = new CultureInfo("en-US");
 		string _commandPort;
@@ -138,12 +139,22 @@ namespace OATTest
 			_failedToConnect = true;
 			try
 			{
+				if (IsDebugPortSeperate)
+				{
+					string debugPort = DebugPort + "@" + DebugBaudRate;
+					Debug($"Connecting Debug channel to OAT on {debugPort}...");
+					AppStatus = "Connecting debug channel to OAT ...";
+					_debugHandler = new SerialListener(debugPort, this.Debug);
+					_debugHandler.Connect();
+					await Task.Delay(500);
+				}
 				string port = CommandPort + "@" + _commandBaudRate;
 				Debug($"Connecting to OAT on {port}...");
 				AppStatus = "Connecting to OAT ...";
 				_handler = CommunicationHandlerFactory.ConnectToDevice(port);
 				_handler.Connect();
 				await Task.Delay(3000);
+
 				_handler.SendCommand(":GVN#", (resultNr) =>
 				{
 					if (resultNr.Success)
@@ -196,9 +207,16 @@ namespace OATTest
 
 			AppStatus = $"Disconnecting...";
 
+			if (_debugHandler != null && _debugHandler.Connected)
+			{
+				_debugHandler.Disconnect();
+				_debugHandler = null;
+			}
+
 			if (_handler.Connected)
 			{
 				_handler.Disconnect();
+				_handler = null;
 			}
 
 			Debug($"Finished.");
@@ -364,7 +382,10 @@ namespace OATTest
 				if (_seperateDebugPort != value)
 				{
 					_seperateDebugPort = value;
-					DebugPort = CommandPort;
+					if (string.IsNullOrEmpty(DebugPort))
+					{
+						DebugPort = CommandPort;
+					}
 					OnPropertyChanged();
 				}
 			}

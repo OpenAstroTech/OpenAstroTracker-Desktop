@@ -54,7 +54,7 @@
 		<Test Description="Get Longitude">
 			<Command>:Gg#</Command>
 			<ExpectedReply Type="#" MinFirmware="11105">121*58</ExpectedReply>
-			<ExpectedReply Type="#" MaxFirmware="11104">121*58</ExpectedReply>
+			<ExpectedReply Type="#" MaxFirmware="11104">301*58</ExpectedReply>
 		</Test>
 
 		<Test Description="Set Time">
@@ -177,7 +177,7 @@
 		</Test>
 
 		<Test Description="Send Guide Pulse N">
-			<Command>:MGN0750#</Command>
+			<Command>:MGN0500#</Command>
 		</Test>
 
 		<Test Description="Get Guiding">
@@ -195,7 +195,7 @@
 		</Test>
 
 		<Test Description="Send Guide Pulse E">
-			<Command>:MGE0750#</Command>
+			<Command>:MGE0500#</Command>
 		</Test>
 
 		<Test Description="Get Guiding">
@@ -213,7 +213,7 @@
 		</Test>
 
 		<Test Description="Send Guide Pulse S">
-			<Command>:MGS0750#</Command>
+			<Command>:MGS0500#</Command>
 		</Test>
 
 		<Test Description="Get Guiding">
@@ -231,7 +231,7 @@
 		</Test>
 
 		<Test Description="Send Guide Pulse W">
-			<Command>:MGW0750#</Command>
+			<Command>:MGW0500#</Command>
 		</Test>
 
 		<Test Description="Get Guiding">
@@ -243,7 +243,7 @@
 			<Command Type="Builtin">Delay,750ms</Command>
 		</Test>
 
-	<Test Description="Get Guiding">
+		<Test Description="Get Guiding">
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
@@ -252,7 +252,7 @@
 			<Command>:SY+75*45:15.11:30:45#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
-		
+
 		<Test Description="Get Current RA">
 			<Command>:GR#</Command>
 			<ExpectedReply Type="#">11:30:45</ExpectedReply>
@@ -261,6 +261,96 @@
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
 			<ExpectedReply Type="#">+75*45'11</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Target RA">
+			<Command>:Sr12:30:45#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 1 hour">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">12:30:45</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Tracking">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+
+
+
+
+		<Test Description="Set Target DEC">
+			<Command>:Sd+65:10:20#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew DEC 25degs">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+65*10'20</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Tracking">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
 		</Test>
 
 	</TestSuite>

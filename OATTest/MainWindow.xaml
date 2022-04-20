@@ -20,7 +20,7 @@
 			<Setter Property="Margin" Value ="0,0,10,0" />
 		</Style>
 	</Window.Resources>
-	<Grid Grid.IsSharedSizeScope="True">
+	<Grid Grid.IsSharedSizeScope="False">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
@@ -50,7 +50,7 @@
 		<Button Grid.Row="0" Grid.Column="5" Grid.RowSpan="2" HorizontalAlignment="Stretch" Padding="5,12,5,16" Width="50" Margin="4,5,4,3" Content="Now" VerticalAlignment="Center" Command="{Binding SetDateTimeToNowCommand}"/>
 		<Button Grid.Row="0" Grid.Column="56" Grid.RowSpan="2" HorizontalAlignment="Left" Padding="5,12,5,16" Width="50" Margin="4,5,4,3" Content="Preset" VerticalAlignment="Center" Command="{Binding SetDateTimeToPresetCommand}"/>
 
-		<CheckBox Grid.Row="1" Content="Seperate Debug Port" HorizontalAlignment="Right" Margin="0,6,0,6" VerticalAlignment="Center" x:Name="seperatePort" IsChecked="{Binding IsDebugPortSeperate}" IsEnabled="False"/>
+		<CheckBox Grid.Row="1" Content="Seperate Debug Port" HorizontalAlignment="Right" Margin="0,6,0,6" VerticalAlignment="Center" x:Name="seperatePort" IsChecked="{Binding IsDebugPortSeperate}" />
 		<ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding AvailableDevices}" SelectedValue="{Binding DebugPort}" IsEnabled="{Binding IsChecked,ElementName=seperatePort}"/>
 		<ComboBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" Margin="10,5,10,0" VerticalAlignment="Top" Width="90" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding DebugBaudRate}" IsEnabled="{Binding IsChecked,ElementName=seperatePort}"/>
 		<TextBlock Grid.Row="1" Grid.Column="3" Text="Set Time To:" HorizontalAlignment="Right" Margin="30,6,5,5" VerticalAlignment="Center" />
@@ -103,12 +103,12 @@
 		</Grid>
 
 		<!--<TextBlock Grid.Row="4" HorizontalAlignment="Left" Margin="5,5,0,0" Text="Test Results" FontSize="12" FontWeight="Bold" />-->
-		<Grid Grid.Row="5" Grid.ColumnSpan="7" Margin="5,2,5,2" Background="LightBlue">
+		<Grid Grid.Row="5" Grid.ColumnSpan="7" Margin="5,2,5,2" Background="LightBlue" HorizontalAlignment="Stretch" >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="28" SharedSizeGroup="icon"/>
-				<ColumnDefinition Width="66" SharedSizeGroup="state"/>
-				<ColumnDefinition Width="*" SharedSizeGroup="desc" />
-				<ColumnDefinition Width="120" SharedSizeGroup="command"/>
+				<ColumnDefinition Width="68" SharedSizeGroup="state"/>
+				<ColumnDefinition Width="160" SharedSizeGroup="desc" />
+				<ColumnDefinition Width="150" SharedSizeGroup="command"/>
 				<ColumnDefinition Width="*" SharedSizeGroup="expect"/>
 				<ColumnDefinition Width="*" SharedSizeGroup="rcvd" />
 			</Grid.ColumnDefinitions>
@@ -116,9 +116,9 @@
 			<TextBlock Grid.Column="2" Text="Description"  Style="{StaticResource CommandHeaderStyle}"/>
 			<TextBlock Grid.Column="3" Text="Command"  Style="{StaticResource CommandHeaderStyle}"/>
 			<TextBlock Grid.Column="4" Text="Expected"  Style="{StaticResource CommandHeaderStyle}"/>
-			<TextBlock Grid.Column="5" Text="Received"  Style="{StaticResource CommandHeaderStyle}"/>
+			<TextBlock Grid.Column="5" Text="Received"  Style="{StaticResource CommandHeaderStyle}" Margin="-5,0,0,0"/>
 		</Grid>
-		<ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="7" Margin="5,2,5,18" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ItemsSource="{Binding Tests}" >
+		<ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="7" Margin="5,2,5,18" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ItemsSource="{Binding Tests}" >
 			<ListView.Resources>
 				<e:SwitchConverter x:Key="StatusIcons">
 					<e:SwitchConverterCase When="Ready" Then="Images/clock.png" />
@@ -131,12 +131,12 @@
 			</ListView.Resources>
 			<ListView.ItemTemplate>
 				<DataTemplate>
-					<Grid >
+					<Grid HorizontalAlignment="Stretch" >
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="28" SharedSizeGroup="icon"/>
-							<ColumnDefinition Width="60" SharedSizeGroup="state"/>
-							<ColumnDefinition Width="*" SharedSizeGroup="desc" />
-							<ColumnDefinition Width="120" SharedSizeGroup="command"/>
+							<ColumnDefinition Width="66" SharedSizeGroup="state"/>
+							<ColumnDefinition Width="160" SharedSizeGroup="desc" />
+							<ColumnDefinition Width="150" SharedSizeGroup="command"/>
 							<ColumnDefinition Width="*" SharedSizeGroup="expect"/>
 							<ColumnDefinition Width="*" SharedSizeGroup="rcvd" />
 						</Grid.ColumnDefinitions>
