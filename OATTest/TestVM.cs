@@ -34,6 +34,7 @@ namespace OATTest
 		DelegateCommand _setDateTimeCommand;
 		DelegateCommand _runTestsCommand;
 		DelegateCommand _resetTestsCommand;
+		DelegateCommand _resetScanDevicesCommand;
 		private bool _failedToConnect;
 		private string _debugBaudRate;
 		private string _commandBaudRate;
@@ -54,6 +55,7 @@ namespace OATTest
 		public ICommand SetDateTimeToNowCommand { get { return _setDateTimeCommand; } }
 		public ICommand RunTestsCommand { get { return _runTestsCommand; } }
 		public ICommand ResetTestsCommand { get { return _resetTestsCommand; } }
+		public ICommand ResetScanDevicesCommand { get { return _resetScanDevicesCommand; } }
 
 		public TestVM()
 		{
@@ -71,6 +73,7 @@ namespace OATTest
 			_setDateTimePresetCommand = new DelegateCommand(s => OnSetDateTime(false));
 			_runTestsCommand = new DelegateCommand(async (s) => await OnStartTests());
 			_resetTestsCommand = new DelegateCommand(() => OnResetTests());
+			_resetScanDevicesCommand = new DelegateCommand(() => OnRescanDevices());
 			_commandBaudRate = "19200";
 			_debugBaudRate = "57600";
 
@@ -99,11 +102,24 @@ namespace OATTest
 			WpfUtilities.RunOnUiThread(() => _debugOutput.Add(line), Application.Current.Dispatcher);
 		}
 
-		public void OnResetTests()
+		public void OnRescanDevices()
 		{
 			Task.Run(async () => { await OnDiscoverDevices(); });
+		}
 
+		public void OnResetTests()
+		{
 			_testManager.ResetAllTests();
+			TestSuites.Clear();
+			foreach (var testSuite in _testManager.TestSuites)
+			{
+				TestSuites.Add(testSuite);
+				if (testSuite.Name == Settings.Default.Suite)
+				{
+					SelectedTestSuite = testSuite;
+				}
+			}
+
 			_completed = 0;
 			OnPropertyChanged("NumTests");
 			AppStatus = string.Empty;
@@ -111,6 +127,7 @@ namespace OATTest
 			SucceededTests = "-";
 			FailedTests = "-";
 			CompletedTests = "-";
+			_debugOutput.Clear();
 		}
 
 		private async Task OnStartTests()
@@ -133,6 +150,7 @@ namespace OATTest
 			_failed = 0;
 			_skipped = 0;
 			_completed = 0;
+			_debugOutput.Clear();
 
 			UpdateResults(CommandTest.StatusType.Ready);
 

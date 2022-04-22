@@ -6,9 +6,360 @@
 			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
 		</Test>
 		<Test Description="Get FirmwareVersion">
-			<Command>:GVN#</Command>
+			<Command Type="#">:GVN#</Command>
 		</Test>
 	</TestSuite>
+
+	<!-- ===================== RA Slewing ============================== -->
+	<TestSuite Name="RA Movement Check" Description="Moves RA back and forth">
+		<Test Description="Get Product">
+			<Command>:GVP#</Command>
+			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
+		</Test>
+		<Test Description="Get FirmwareVersion">
+			<Command >:GVN#</Command>
+			<ExpectedReply Type="#" />
+		</Test>
+
+		<Test Description="Set UTC offset" MinFirmware="11105">
+			<Command>:SG+07#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Latitude">
+			<Command>:St47*44#</Command>
+			<!-- South is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Longitude">
+			<Command>:Sg+121*58#</Command>
+			<!-- East is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Date">
+			<Command>:SC{Time,MM/dd/yy}#</Command>
+			<ExpectedReply Type="##">1Updating Planetary Data</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Time">
+			<Command>:SL{Time,HH:mm:ss}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Time">
+			<Command>:GL#</Command>
+			<ExpectedReply Type="#">23:00:00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get LST">
+			<Command>:XGH#</Command>
+			<ExpectedReply Type="#">071428</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+		<!-- Slew West 30m -->
+		<Test Description="Set Target RA">
+			<Command>:Sr10:44:36#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 30m West">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:44:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<!-- Slew East -->
+		<Test Description="Set Target RA">
+			<Command>:Sr10:14:36#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 30m East">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 200ms">
+			<Command Type="Builtin">Delay,200ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<!-- Slew West 5s -->
+		<Test Description="Set Target RA">
+			<Command>:Sr10:14:51#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 15s West">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:51</ExpectedReply>
+		</Test>
+
+		<!-- Slew East 15s -->
+		<Test Description="Set Target RA">
+			<Command>:Sr10:14:36#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 15s East">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+
+	<!-- ===================== Guiding Tests ============================== -->
+	<TestSuite Name="Guiding Tests" Description="Tests guiding functionality">
+		<Test Description="Get Product">
+			<Command>:GVP#</Command>
+			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
+		</Test>
+		<Test Description="Get FirmwareVersion">
+			<Command >:GVN#</Command>
+			<ExpectedReply Type="#" />
+		</Test>
+
+		<Test Description="Set UTC offset" MinFirmware="11105">
+			<Command>:SG+07#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Latitude">
+			<Command>:St47*44#</Command>
+			<!-- South is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Longitude">
+			<Command>:Sg+121*58#</Command>
+			<!-- East is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Date">
+			<Command>:SC{Time,MM/dd/yy}#</Command>
+			<ExpectedReply Type="##">1Updating Planetary Data</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Time">
+			<Command>:SL{Time,HH:mm:ss}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Time">
+			<Command>:GL#</Command>
+			<ExpectedReply Type="#">23:00:00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get LST">
+			<Command>:XGH#</Command>
+			<ExpectedReply Type="#">071428</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+		<!-- Check Tracking -->>
+		<Test Description="Enable Tracking">
+			<Command>:MT1#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 15s">
+			<Command Type="Builtin">Delay,15s</Command>
+		</Test>
+
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+		<!-- Check coordinates are still correct. -->
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<!-- Guide West  -->
+		<Test Description="Check Guiding off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Guide Pulse 9.5s West">
+			<Command>:Mgw9500#</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding Off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+		<!-- Check coordinates are still correct. -->
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<!-- Guide EAST  -->
+		<Test Description="Check Guiding off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Guide Pulse 9.5s East">
+			<Command>:Mge9500#</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding Off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+		<!-- Check coordinates are still correct. -->
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+
+	<!-- ===================== All movements ============================== -->
 
 	<TestSuite Name="StepperLib Integration" Description="Tests to check Stepper-lib Firmware functionality with original Firmware" FixedDateTime="03/28/22 23:00:00">
 		<Test Description="Get Product">
@@ -171,7 +522,8 @@
 			<ExpectedReply Type="#">+46*01'12</ExpectedReply>
 		</Test>-->
 
-		<Test Description="Get Guiding">
+		<!-- ============== GUIDE NORTH =============== -->
+		<!--<Test Description="Get Guiding">
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
@@ -192,9 +544,10 @@
 		<Test Description="Get Guiding">
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
-		</Test>
+		</Test>-->
 
-		<Test Description="Send Guide Pulse E">
+		<!-- ============== GUIDE EAST =============== -->
+		<!--<Test Description="Send Guide Pulse E">
 			<Command>:MGE0500#</Command>
 		</Test>
 
@@ -210,9 +563,10 @@
 		<Test Description="Get Guiding">
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
-		</Test>
+		</Test>-->
 
-		<Test Description="Send Guide Pulse S">
+		<!-- ============== GUIDE SOUTH =============== -->
+		<!--<Test Description="Send Guide Pulse S">
 			<Command>:MGS0500#</Command>
 		</Test>
 
@@ -228,9 +582,10 @@
 		<Test Description="Get Guiding">
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
-		</Test>
+		</Test>-->
 
-		<Test Description="Send Guide Pulse W">
+		<!-- ============== GUIDE WEST =============== -->
+		<!--<Test Description="Send Guide Pulse W">
 			<Command>:MGW0500#</Command>
 		</Test>
 
@@ -246,9 +601,10 @@
 		<Test Description="Get Guiding">
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
-		</Test>
+		</Test>-->
 
-		<Test Description="Sync to Capella">
+		<!-- ============== SYNC =============== -->
+		<Test Description="Sync to Location">
 			<Command>:SY+75*45:15.11:30:45#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
@@ -260,7 +616,7 @@
 
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
-			<ExpectedReply Type="#">+75*45'11</ExpectedReply>
+			<ExpectedReply Type="#">+75*45'15</ExpectedReply>
 		</Test>
 
 		<Test Description="Set Target RA">
@@ -273,7 +629,7 @@
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
 
-		<Test Description="Slew RA 1 hour">
+		<Test Description="Slew RA 1hr">
 			<Command>:MS#</Command>
 			<ExpectedReply Type="n">0</ExpectedReply>
 		</Test>
