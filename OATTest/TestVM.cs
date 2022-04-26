@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Input;
 using OATCommunications;
 using OATCommunications.Model;
+using OATCommunications.Utilities;
 using OATCommunications.WPF;
 using OATCommunications.WPF.CommunicationHandlers;
 using OATTest.Properties;
@@ -99,6 +100,7 @@ namespace OATTest
 
 		void Debug(string line)
 		{
+			Log.WriteLine(line);
 			WpfUtilities.RunOnUiThread(() => _debugOutput.Add(line), Application.Current.Dispatcher);
 		}
 
@@ -326,7 +328,7 @@ namespace OATTest
 				{
 					_selectedTestSuite = value;
 
-					_testManager.SetActiveTestSuite(_selectedTestSuite.Name);
+					_testManager.SetActiveTestSuite(_selectedTestSuite?.Name ?? string.Empty);
 
 					SaveSettings();
 					OnPropertyChanged();

@@ -96,10 +96,13 @@ namespace OATTest
 		{
 			_activeSuite = name;
 			_tests.Clear();
-			var suite = _testSuites.First(ts => ts.Name == name);
-			foreach (var test in suite.Tests)
+			if (!string.IsNullOrEmpty(_activeSuite))
 			{
-				_tests.Add(test);
+				var suite = _testSuites.First(ts => ts.Name == name);
+				foreach (var test in suite.Tests)
+				{
+					_tests.Add(test);
+				}
 			}
 		}
 

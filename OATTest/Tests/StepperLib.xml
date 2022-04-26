@@ -280,7 +280,11 @@
 			<Command>:GR#</Command>
 			<ExpectedReply Type="#">10:14:36</ExpectedReply>
 		</Test>
-
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+		
 		<!-- Guide West  -->
 		<Test Description="Check Guiding off">
 			<Command>:GIG#</Command>
@@ -313,6 +317,7 @@
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
+		
 		<!-- Check coordinates are still correct. -->
 		<Test Description="Get Current RA">
 			<Command>:GR#</Command>
@@ -320,6 +325,7 @@
 		</Test>
 
 		<!-- Guide EAST  -->
+
 		<Test Description="Check Guiding off">
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
@@ -351,12 +357,89 @@
 			<Command>:GIG#</Command>
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
+	
 		<!-- Check coordinates are still correct. -->
 		<Test Description="Get Current RA">
 			<Command>:GR#</Command>
 			<ExpectedReply Type="#">10:14:36</ExpectedReply>
 		</Test>
 
+		<!-- Guide NORTH-->
+		<Test Description="Check Guiding off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Guide Pulse 9.5s North">
+			<Command>:Mgn9500#</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding Off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+				<!-- Check coordinates are still correct. -->
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+		<!-- Guide SOUTH -->
+		<Test Description="Check Guiding off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Guide Pulse 9.5s South">
+			<Command>:Mgs9500#</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 5s">
+			<Command Type="Builtin">Delay,5s</Command>
+		</Test>
+
+		<Test Description="Check Guiding Off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+				<!-- Check coordinates are still correct. -->
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+	
 	</TestSuite>
 
 	<!-- ===================== All movements ============================== -->
