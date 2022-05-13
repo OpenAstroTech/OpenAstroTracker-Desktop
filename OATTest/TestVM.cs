@@ -177,6 +177,7 @@ namespace OATTest
 
 				_handler.SendCommand(":GVN#", (resultNr) =>
 				{
+					Debug($"OAT Version command replied ...");
 					if (resultNr.Success)
 					{
 						var versionNumbers = resultNr.Data.Substring(1).Split(".".ToCharArray());
@@ -202,9 +203,12 @@ namespace OATTest
 							}
 						}
 					}
+
+					Debug($"Signalling OAT Version is done...");
 					_asyncAutoResetEvent.Set();
 				});
 
+				Debug($"Await OAT Version...");
 				await _asyncAutoResetEvent.WaitAsync();
 			}
 			catch (Exception ex)

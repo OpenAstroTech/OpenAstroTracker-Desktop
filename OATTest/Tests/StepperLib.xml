@@ -443,6 +443,79 @@
 	
 	</TestSuite>
 
+	<TestSuite Name="DEC Guiding Test" Description="Tests DEC Guiding functionality">
+		<Test Description="Get FirmwareVersion">
+			<Command >:GVN#</Command>
+			<ExpectedReply Type="#" />
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+		<!-- Guide NORTH-->
+		<Test Description="Check Guiding off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Guide Pulse 9.5s North">
+			<Command>:Mgn9500#</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 11s">
+			<Command Type="Builtin">Delay,11s</Command>
+		</Test>
+
+		<Test Description="Check Guiding Off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<!-- Check coordinates are still correct. -->
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+		<!-- Guide SOUTH -->
+		<Test Description="Guide Pulse 9.5s South">
+			<Command>:Mgs9500#</Command>
+		</Test>
+
+		<Test Description="Check Guiding On">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 1s">
+			<Command Type="Builtin">Delay,11s</Command>
+		</Test>
+
+		<Test Description="Check Guiding Off">
+			<Command>:GIG#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<!-- Check coordinates are still correct. -->
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+
 	<!-- ===================== All movements ============================== -->
 
 	<TestSuite Name="StepperLib Integration" Description="Tests to check Stepper-lib Firmware functionality with original Firmware" FixedDateTime="03/28/22 23:00:00">
