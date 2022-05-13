@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace OATControl.ViewModels
+namespace OATCommunications.WPF
 { 
 
     public class DelegateCommand : ICommand
@@ -49,7 +49,7 @@ namespace OATControl.ViewModels
             commandAction(parameter);
         }
 
-        internal void Requery()
+        public void Requery()
         {
             if (this.CanExecuteChanged != null)
             {

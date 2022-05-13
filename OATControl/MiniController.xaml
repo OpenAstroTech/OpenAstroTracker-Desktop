@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Controls"
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="510" MaxWidth="510" MinWidth="350" WindowStyle="None" >
+		Background="#600"
+        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="Auto" MaxWidth="600" MinWidth="250" WindowStyle="None" SizeToContent="Width">
 	<Window.Resources>
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
@@ -104,6 +105,7 @@
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="65"/>
 		</Grid.ColumnDefinitions>
 		<TextBlock Grid.Row="0" Grid.Column="0" Text="RA:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove"  Cursor="SizeAll" />
 		<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentRAString}" Style="{StaticResource TextBlockLabelValue}" />
@@ -188,6 +190,14 @@
 							 Command="{Binding ChangeSlewingStateCommand}" 
 							 CommandParameter="G" 
 							 Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
+	
+		<controls:StopButton Grid.Row="0" Grid.Column="11" Grid.RowSpan="2" 
+							 IsEnabled="{Binding MountConnected}"
+							 Command="{Binding StopSlewingCommand}"
+							 Foreground="#A20"
+							 FrameWidth="3"
+							 Margin="2"
+							 />
 
 	</Grid>
 </Window>

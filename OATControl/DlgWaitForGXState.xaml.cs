@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using MahApps.Metro.Controls;
-using OATCommuncations.WPF;
+using OATCommunications.WPF;
 using OATCommunications.CommunicationHandlers;
 using OATCommunications.Model;
 using OATControl.ViewModels;

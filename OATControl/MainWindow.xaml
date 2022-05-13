@@ -11,7 +11,7 @@
 		Title="{Binding Version, StringFormat={} OpenAstroTracker Control V{0}}" MinHeight="767" MinWidth="720" Height="767" Width="720">
     <Window.Resources>
 		<converters:AbsConverter x:Key="AbsConverter" />
-		<converters:BoolToStringConverter x:Key="SlewModeConverter" TrueString="Pulsed" FalseString="Continuous" />
+		<converters:BoolToStringConverter x:Key="SlewModeConverter" TrueString="pulsed" FalseString="continuous" />
 		<converters:BoolToVisibilityConverter x:Key="TrueBoolToHidden" Collapse="False" IsReversed="True"/>
         <converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
         <converters:BoolToVisibilityConverter x:Key="CollapseIfFalse" Collapse="True" IsReversed="False" />

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-namespace OATCommuncations.WPF
+namespace OATCommunications.WPF
 {
 	public class WpfUtilities
 	{
