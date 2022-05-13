@@ -6,7 +6,8 @@
 			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
 		</Test>
 		<Test Description="Get FirmwareVersion">
-			<Command Type="#">:GVN#</Command>
+			<Command>:GVN#</Command>
+			<ExpectedReply Type="#"></ExpectedReply>
 		</Test>
 	</TestSuite>
 

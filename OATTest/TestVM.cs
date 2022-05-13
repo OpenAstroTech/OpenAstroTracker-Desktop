@@ -227,17 +227,20 @@ namespace OATTest
 
 			AppStatus = $"Disconnecting...";
 
+			await Task.Delay(500);
 			if (_debugHandler != null && _debugHandler.Connected)
 			{
 				_debugHandler.Disconnect();
 				_debugHandler = null;
 			}
+			await Task.Delay(250);
 
 			if (_handler.Connected)
 			{
 				_handler.Disconnect();
 				_handler = null;
 			}
+			await Task.Delay(250);
 
 			Debug($"Finished.");
 
