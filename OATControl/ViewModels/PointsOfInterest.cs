@@ -40,7 +40,7 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		public void CalcDistancesFrom(double ra, double dec, long raPos, long decPos)
+		public void CalcDistancesFrom(double ra, double dec, float raPos, float decPos)
 		{
 			foreach (var point in this)
 			{

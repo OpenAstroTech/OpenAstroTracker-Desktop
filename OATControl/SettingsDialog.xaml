@@ -299,7 +299,13 @@
 		</StackPanel>
 		<Button Grid.Row="6" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Reset Focuser" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FocuserResetCommand}"/>
 
-		<StackPanel Grid.Row ="10" Grid.Column="3" Orientation="Vertical">
+        <StackPanel Grid.Row ="8" Grid.Column="3" Orientation="Vertical">
+            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Run Steps Calibration procedure"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+            <!--<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="If your slews are a" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />-->
+        </StackPanel>
+        <Button Grid.Row ="8" Grid.Column="4" Margin="8,12,8,4" Padding="15,0" Content="Run Step Calibration" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding RunStepCalibrationCommand}" />
+
+        <StackPanel Grid.Row ="10" Grid.Column="3" Orientation="Vertical">
 			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Set RA Home offset center of Hall sensor range"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.16 or later)" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
 		</StackPanel>

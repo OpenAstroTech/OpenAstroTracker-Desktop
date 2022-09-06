@@ -50,7 +50,7 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		internal void CalcDistancesFrom(double ra, double dec, long raPos, long decPos)
+		internal void CalcDistancesFrom(double ra, double dec, float raPos, float decPos)
 		{
 			RADistance = Math.Abs((RA % 12) - (ra % 12));
 			if (RADistance > 6)

@@ -388,6 +388,7 @@ namespace OATControl
 				RequeryCommands();
 			}
 		}
+
 		private void RequeryCommands()
 		{
 			_rescanCommand.Requery();
@@ -620,8 +621,16 @@ namespace OATControl
 							{
 								// 'SlewToTarget,-dT---,0,13919,1861,034107,+454030,50000,'
 								var gxSplit = gxValue.Split(",".ToCharArray());
-								if (long.Parse(gxSplit[3]) != 0) { RunDECOffsetHoming = false; }
+								if (_mountViewModel.FirmwareVersion >= 20000)
+								{
+									if (float.Parse(gxSplit[3]) != 0.0) { RunDECOffsetHoming = false; }
+								}
+								else
+								{
+									if (long.Parse(gxSplit[3]) != 0) { RunDECOffsetHoming = false; }
+								}
 							}
+
 						}
 						break;
 					}

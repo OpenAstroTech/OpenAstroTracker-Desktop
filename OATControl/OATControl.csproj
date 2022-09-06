@@ -110,6 +110,9 @@
     <Compile Include="DlgMessageBox.xaml.cs">
       <DependentUpon>DlgMessageBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DlgStepCalibration.xaml.cs">
+      <DependentUpon>DlgStepCalibration.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DlgWaitForGXState.xaml.cs">
       <DependentUpon>DlgWaitForGXState.xaml</DependentUpon>
     </Compile>
@@ -162,6 +165,10 @@
     <Page Include="DlgMessageBox.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DlgStepCalibration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DlgWaitForGXState.xaml">
       <SubType>Designer</SubType>
