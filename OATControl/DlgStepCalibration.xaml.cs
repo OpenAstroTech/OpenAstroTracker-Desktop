@@ -435,15 +435,15 @@ namespace OATControl
 					RaStepsAfter = (float)(Math.Round(_raStepsBefore * raRatio * 10.0) / 10.0);
 
 					Log.WriteLine("STEPCALIBRATION: RA Calculation");
-					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.000}h ({1:0:000}deg)", 3, 3 * 15);
-					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.000}h ({1:0:000}deg)", actualRaHours, actualRaHours * 15);
+					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}h ({1:0.0000}deg)", 3, 3 * 15);
+					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}h ({1:0.0000}deg)", actualRaHours, actualRaHours * 15);
 					Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", raRatio);
 					Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", RaStepsBefore);
 					Log.WriteLine("STEPCALIBRATION:       New Steps : {0:0.0}", RaStepsAfter);
 
 					Log.WriteLine("STEPCALIBRATION: DEC Calculation");
-					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.000}deg", 45);
-					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0:000}deg)", actualDecDegrees);
+					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}deg", 45);
+					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}deg)", actualDecDegrees);
 					Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", decRatio);
 					Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", DecStepsBefore);
 					Log.WriteLine("STEPCALIBRATION:       New Steps : {0:0.0}", DecStepsAfter);

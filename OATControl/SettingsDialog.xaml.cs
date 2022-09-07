@@ -26,7 +26,7 @@ namespace OATControl
 		MountVM _mount;
 		public SettingsDialog(MountVM mount)
 		{
-			dispatchTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(333), DispatcherPriority.Normal, OnTimer, Dispatcher.CurrentDispatcher);
+			dispatchTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(5000), DispatcherPriority.Normal, OnTimer, Dispatcher.CurrentDispatcher);
 			_mount = mount;
 			this.DataContext = _mount;
 			if ((_mount.RAStepsPerDegree < 10) || (_mount.DECStepsPerDegree < 10))
