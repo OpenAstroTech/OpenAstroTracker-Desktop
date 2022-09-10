@@ -73,9 +73,11 @@ namespace OATControl
 		private bool _showBaudRate = false;
 		private bool _showNextButton = false;
 		private bool _showLevelDisplay = false;
-		private bool _showRAHoming = false;
+		private bool _showRAAutoHoming = false;
+		private bool _showDECAutoHoming = false;
 		private bool _showDECHoming = false;
 		private bool _runRAAutoHoming = false;
+		private bool _runDECAutoHoming = false;
 		private bool _runDECOffsetHoming = false;
 		private double _rollOffset;
 		private double _pitchOffset;
@@ -108,6 +110,7 @@ namespace OATControl
 			_longitude = AppSettings.Instance.SiteLongitude;
 			_altitude = AppSettings.Instance.SiteAltitude;
 			_runRAAutoHoming = AppSettings.Instance.RunAutoHomeRAOnConnect;
+			_runDECAutoHoming = AppSettings.Instance.RunAutoHomeDECOnConnect;
 			_runDECOffsetHoming = AppSettings.Instance.RunDECOffsetHomingOnConnect;
 
 			CurrentStep = Steps.Idle;
@@ -257,6 +260,19 @@ namespace OATControl
 			}
 		}
 
+		public bool RunDECAutoHoming
+		{
+			get { return _runDECAutoHoming; }
+			set
+			{
+				if (value != _runDECAutoHoming)
+				{
+					_runDECAutoHoming = value;
+					OnPropertyChanged("RunDECAutoHoming");
+				}
+			}
+		}
+
 		public bool RunDECOffsetHoming
 		{
 			get { return _runDECOffsetHoming; }
@@ -296,18 +312,34 @@ namespace OATControl
 			}
 		}
 
-		public bool ShowRAHoming
+		public bool ShowRAAutoHoming
 		{
 			get
 			{
-				return _showRAHoming;
+				return _showRAAutoHoming;
 			}
 			set
 			{
-				if (value != _showRAHoming)
+				if (value != _showRAAutoHoming)
 				{
-					_showRAHoming = value;
-					OnPropertyChanged("ShowRAHoming");
+					_showRAAutoHoming = value;
+					OnPropertyChanged("ShowAutoRAHoming");
+				}
+			}
+		}
+
+		public bool ShowDECAutoHoming
+		{
+			get
+			{
+				return _showDECAutoHoming;
+			}
+			set
+			{
+				if (value != _showDECAutoHoming)
+				{
+					_showDECAutoHoming = value;
+					OnPropertyChanged("ShowAutoDECHoming");
 				}
 			}
 		}
@@ -608,7 +640,8 @@ namespace OATControl
 						}
 						if ((_mountViewModel.ScopeHasHSAH) || (_mountViewModel.DECStepperLowerLimit != 0))
 						{
-							ShowRAHoming = _mountViewModel.ScopeHasHSAH;
+							ShowRAAutoHoming = _mountViewModel.ScopeHasHSAH;
+							ShowDECAutoHoming = _mountViewModel.ScopeHasHSAH;
 							ShowDECHoming = _mountViewModel.DECStepperLowerLimit != 0;
 
 							var gxDoneEvent = new AutoResetEvent(false);
@@ -731,7 +764,7 @@ namespace OATControl
 						AppSettings.Instance.Save();
 						if ((_mountViewModel.ScopeHasHSAH) || (_mountViewModel.DECStepperLowerLimit != 0))
 						{
-							ShowRAHoming = _mountViewModel.ScopeHasHSAH;
+							ShowRAAutoHoming = _mountViewModel.ScopeHasHSAH;
 							ShowDECHoming = _mountViewModel.DECStepperLowerLimit != 0;
 							CurrentStep = Steps.ConfirmStartupActions;
 						}

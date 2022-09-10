@@ -122,18 +122,25 @@
 			</Grid.ColumnDefinitions>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto" />
-				<RowDefinition Height="Auto" />
-			</Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-			<TextBlock Grid.Row="0" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
-			<Controls:ToggleSwitchButton Grid.Row="0" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunRAAutoHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
-			<TextBlock Grid.Row="0" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
-			<TextBlock Grid.Row="0" Grid.Column="2" Text="Run RA Auto-Home" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowRAHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowRAAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <Controls:ToggleSwitchButton Grid.Row="0" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunRAAutoHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowRAAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowRAAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="Run RA Auto-Home" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowRAAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
 
-			<TextBlock Grid.Row="1" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
-			<Controls:ToggleSwitchButton Grid.Row="1" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunDECOffsetHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
-			<TextBlock Grid.Row="1" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
-			<TextBlock Grid.Row="1" Grid.Column="2" Text="Run DEC Offset Homing" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <Controls:ToggleSwitchButton Grid.Row="1" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunDECAutoHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowDECAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="Run RA Auto-Home" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowDECAutoHoming, Converter={StaticResource CollapseOnFalse}}" />
+
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<Controls:ToggleSwitchButton Grid.Row="2" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunDECOffsetHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<TextBlock Grid.Row="2" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<TextBlock Grid.Row="2" Grid.Column="2" Text="Run DEC Offset Homing" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
 		</Grid>
 		<Grid Grid.Row="11" HorizontalAlignment="Stretch" Grid.ColumnSpan="2">
 			<Grid.ColumnDefinitions>

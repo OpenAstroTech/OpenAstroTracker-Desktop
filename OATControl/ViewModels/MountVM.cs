@@ -2165,6 +2165,37 @@ namespace OATControl.ViewModels
 					}
 				}
 
+				if ((FirmwareVersion > 10935) && dlg.RunDECAutoHoming && ScopeHasHSAH && !abortHoming)
+				{
+					Log.WriteLine("MOUNT: DEC Auto Home starting");
+					var statuses = new List<string>();
+					var doneEvent = new AsyncAutoResetEvent();
+					// The MHRR command actually returns 0 or 1, but we ignore it, so that we can monitor progress
+					_oatMount.SendCommand($":MHDR#", (a) => { doneEvent.Set(); });
+					await doneEvent.WaitAsync();
+
+					// Open the GX monitoring dialog
+					var dlgWait = new DlgWaitForGXState("Homing DEC...", this, SendOatCommand, (s) =>
+					{
+						if (s == null) return false;
+						statuses.Add(s[0]);
+						//Log.WriteLine("RA Homing state: ", s[0]);
+						return (s[0] != "Idle") && (s[0] != "Tracking");
+					})
+					{
+						Owner = Application.Current.MainWindow,
+						WindowStartupLocation = WindowStartupLocation.CenterOwner
+					};
+
+					dlgWait.ShowDialog();
+					Log.WriteLine("MOUNT: DEC Homing complete. Statuses: " + string.Join(", ", statuses));
+					setHome = dlgWait.DialogResult.Value;
+					if (!dlgWait.DialogResult.Value)
+					{
+						_oatMount.SendCommand(":Q#", _ => { });
+					}
+				}
+
 				if (setHome)
 				{
 					await OnSetHome();
