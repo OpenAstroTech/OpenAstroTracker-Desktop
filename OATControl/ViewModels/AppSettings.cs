@@ -243,13 +243,6 @@ namespace OATControl.ViewModels
 		}
 
 		[DefaultValueAttribute("False")]
-		public bool RunAutoHomeDECOnConnect
-		{
-			get { return Convert.ToBoolean(this["RunAutoHomeDECOnConnect"]); }
-			set { this["RunAutoHomeDECOnConnect"] = value.ToString(); }
-		}
-
-		[DefaultValueAttribute("False")]
 		public bool RunDECOffsetHomingOnConnect
 		{
 			get { return Convert.ToBoolean(this["RunDECOffsetHomingOnConnect"]); }
