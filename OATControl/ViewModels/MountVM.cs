@@ -84,6 +84,7 @@ namespace OATControl.ViewModels
 		bool _scopeHasALT = false;
 		bool _scopeHasFOC = false;
 		bool _scopeHasHSAH = false;
+		bool _scopeHasHSAV = false;
 		string _scopeBoard = string.Empty;
 		string _scopeDisplay = string.Empty;
 		string _scopeFeatures = string.Empty;
@@ -130,6 +131,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _setRAHomeOffsetCommand;
 		DelegateCommand _gotoDECHomeFromPowerOn;
 		DelegateCommand _autoHomeRACommand;
+		DelegateCommand _autoHomeDECCommand;
 		DelegateCommand _gotoDECParkBeforePowerOff;
 		DelegateCommand _focuserResetCommand;
 		DelegateCommand _customActionCommand;
@@ -250,6 +252,7 @@ namespace OATControl.ViewModels
 			_setRAHomeOffsetCommand = new DelegateCommand((p) => OnSetRAHomeOffset(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAH);
 			_gotoDECHomeFromPowerOn = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10915));
 			_autoHomeRACommand = new DelegateCommand((p) => OnAutoHomeRA(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAH);
+			_autoHomeDECCommand = new DelegateCommand((p) => OnAutoHomeDEC(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAV);
 			_gotoDECParkBeforePowerOff = new DelegateCommand((p) => OnGotoDECParkBeforePowerOff(), () => MountConnected && (FirmwareVersion > 10915));
 			_focuserResetCommand = new DelegateCommand((p) => OnResetFocuserPosition(), () => MountConnected && (FirmwareVersion > 10918));
 			_customActionCommand = new DelegateCommand((p) => OnCustomAction(p as string), () => MountConnected);
@@ -566,6 +569,11 @@ namespace OATControl.ViewModels
 		public void OnAutoHomeRA()
 		{
 			_oatMount.SendCommand($":MHRR#,n", (a) => { });
+		}
+
+		public void OnAutoHomeDEC()
+		{
+			_oatMount.SendCommand($":MHDU#,n", (a) => { });
 		}
 
 		public void OnGotoDECHomeFromPowerOn()
@@ -1797,6 +1805,7 @@ namespace OATControl.ViewModels
 			_setRAHomeOffsetCommand.Requery();
 			_gotoDECHomeFromPowerOn.Requery();
 			_autoHomeRACommand.Requery();
+			_autoHomeDECCommand.Requery();
 			_gotoDECParkBeforePowerOff.Requery();
 			_focuserResetCommand.Requery();
 			_customActionCommand.Requery();
@@ -1961,6 +1970,7 @@ namespace OATControl.ViewModels
 			ScopeHasAZ = false;
 			ScopeHasFOC = false;
 			ScopeHasHSAH = false;
+			ScopeHasHSAV = false;
 			ScopeFeatures = "";
 			ScopeDisplay = "None";
 
@@ -2058,6 +2068,11 @@ namespace OATControl.ViewModels
 				{
 					ScopeHasHSAH = true;
 					ScopeFeatures += "RA Auto Home, ";
+				}
+				else if (hwParts[i] == "HSAV")
+				{
+					ScopeHasHSAV = true;
+					ScopeFeatures += "DEC Auto Home, ";
 				}
 			}
 			if (string.IsNullOrEmpty(ScopeFeatures))
@@ -2158,6 +2173,37 @@ namespace OATControl.ViewModels
 
 					dlgWait.ShowDialog();
 					Log.WriteLine("MOUNT: RA Homing complete. Statuses: " + string.Join(", ", statuses));
+					setHome = dlgWait.DialogResult.Value;
+					if (!dlgWait.DialogResult.Value)
+					{
+						_oatMount.SendCommand(":Q#", _ => { });
+					}
+				}
+
+				if ((FirmwareVersion > 10935) && dlg.RunDECAutoHoming && ScopeHasHSAV && !abortHoming)
+				{
+					Log.WriteLine("MOUNT: DEC Auto Home starting");
+					var statuses = new List<string>();
+					var doneEvent = new AsyncAutoResetEvent();
+					// The MHRR command actually returns 0 or 1, but we ignore it, so that we can monitor progress
+					_oatMount.SendCommand($":MHDU#", (a) => { doneEvent.Set(); });
+					await doneEvent.WaitAsync();
+
+					// Open the GX monitoring dialog
+					var dlgWait = new DlgWaitForGXState("Homing DEC...", this, SendOatCommand, (s) =>
+					{
+						if (s == null) return false;
+						statuses.Add(s[0]);
+						//Log.WriteLine("DEC Homing state: ", s[0]);
+						return (s[0] != "Idle") && (s[0] != "Tracking");
+					})
+					{
+						Owner = Application.Current.MainWindow,
+						WindowStartupLocation = WindowStartupLocation.CenterOwner
+					};
+
+					dlgWait.ShowDialog();
+					Log.WriteLine("MOUNT: DEC Homing complete. Statuses: " + string.Join(", ", statuses));
 					setHome = dlgWait.DialogResult.Value;
 					if (!dlgWait.DialogResult.Value)
 					{
@@ -2344,6 +2390,7 @@ namespace OATControl.ViewModels
 		public ICommand SetRAHomeOffsetCommand { get { return _setRAHomeOffsetCommand; } }
 		public ICommand GotoDECHomeFromPowerOnCommand { get { return _gotoDECHomeFromPowerOn; } }
 		public ICommand AutoHomeRACommand { get { return _autoHomeRACommand; } }
+		public ICommand AutoHomeDECCommand { get { return _autoHomeDECCommand; } }
 		public ICommand GotoDECParkBeforePowerOffCommand { get { return _gotoDECParkBeforePowerOff; } }
 		public ICommand FocuserResetCommand { get { return _focuserResetCommand; } }
 		public ICommand CustomActionCommand { get { return _customActionCommand; } }
@@ -2973,6 +3020,12 @@ namespace OATControl.ViewModels
 		{
 			get { return _scopeHasHSAH; }
 			set { SetPropertyValue(ref _scopeHasHSAH, value); }
+		}
+
+		public bool ScopeHasHSAV
+		{
+			get { return _scopeHasHSAV; }
+			set { SetPropertyValue(ref _scopeHasHSAV, value); }
 		}
 
 		public string ScopeLatitude
