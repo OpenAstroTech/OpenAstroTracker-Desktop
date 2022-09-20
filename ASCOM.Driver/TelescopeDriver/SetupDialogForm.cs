@@ -916,9 +916,9 @@ namespace ASCOM.OpenAstroTracker
 
 			try
 			{
-				_profile.Latitude = System.Convert.ToDouble(txtLat.Text);
-				_profile.Longitude = System.Convert.ToDouble(txtLong.Text);
-				_profile.Elevation = System.Convert.ToInt32(txtElevation.Text);
+				_profile.Latitude = System.Convert.ToDouble(txtLat.Text, _oatCulture);
+				_profile.Longitude = System.Convert.ToDouble(txtLong.Text, _oatCulture);
+				_profile.Elevation = System.Convert.ToInt32(txtElevation.Text, _oatCulture);
 
 				// convert to degs/mins
 				long secs = (long)Math.Floor(Math.Abs(_profile.Longitude * 3600));
