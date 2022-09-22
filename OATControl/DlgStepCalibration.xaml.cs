@@ -47,6 +47,10 @@ namespace OATControl
 
 		private float _raStepsAfter;
 		private float _decStepsAfter;
+		private float _degreesToOne = 15f;
+		private float _degreesToTwo = 45f;
+		private float _degreesToThree = -22.5f;
+		private float _degreesToFour = 45f;
 
 		public float _decSolvedStart;
 		private string _inputCoordinate;
@@ -124,6 +128,58 @@ namespace OATControl
 				if (value != _inputCoordinate)
 				{
 					_inputCoordinate = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public float DegreesToOne
+		{
+			get { return _degreesToOne; }
+			set
+			{
+				if (value != _degreesToOne)
+				{
+					_degreesToOne = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public float DegreesToTwo
+		{
+			get { return _degreesToTwo; }
+			set
+			{
+				if (value != _degreesToTwo)
+				{
+					_degreesToTwo = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public float DegreesToThree
+		{
+			get { return _degreesToThree; }
+			set
+			{
+				if (value != _degreesToThree)
+				{
+					_degreesToThree = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public float DegreesToFour
+		{
+			get { return _degreesToFour; }
+			set
+			{
+				if (value != _degreesToFour)
+				{
+					_degreesToFour = value;
 					OnPropertyChanged();
 				}
 			}
@@ -275,9 +331,10 @@ namespace OATControl
 			{
 				case CalibrationState.WaitToStart:
 					// Initiate slew 15 deg up, display status
-					Log.WriteLine("STEPCALIBRATION: Moving mount up 15deg.");
+					Log.WriteLine("STEPCALIBRATION: Moving mount up {0} deg.", _degreesToOne);
 					await _mountVM.MoveMount(0, (long)(_decStepsBefore * 15));
 					DisplayStatus = true;
+					await Task.Delay(500);
 					_calibrationState = CalibrationState.SlewToDecStart;
 					_timer.Start();
 					break;
@@ -301,9 +358,11 @@ namespace OATControl
 						Log.WriteLine("STEPCALIBRATION: Platesolved DEC is, {0}, syncing mount to that.", _decSolvedStart, Coord(_decSolvedStart));
 						await _mountVM.SyncMountTo(_mountVM.CurrentRATotalHours, _decSolvedStart);
 
-						Log.WriteLine("STEPCALIBRATION: Moving DEC up 45deg.");
-						await _mountVM.MoveMount(0, (long)(_decStepsBefore * 45));
+						Log.WriteLine("STEPCALIBRATION: Moving DEC up {0}deg.", _degreesToTwo);
+						await _mountVM.MoveMount(0, (long)(_decStepsBefore * _degreesToTwo));
 						DisplayStatus = true;
+						await Task.Delay(500);
+
 						_calibrationState = CalibrationState.Slew45DecDegrees;
 						_timer.Start();
 					}
@@ -330,9 +389,10 @@ namespace OATControl
 					{
 						// Store end dec coords and stepper pos
 						// Initiate 15 deg slew back using steps, display status
+						Log.WriteLine("STEPCALIBRATION: Platesolved DEC end is, {0}. Moving down 15deg and east 1.5h.", _decSolvedStart, Coord(_decSolvedEnd));
+						await _mountVM.MoveMount((long)(_raStepsBefore * _degreesToThree), (long)(-_decStepsBefore * _degreesToOne));
 						DisplayStatus = true;
-						Log.WriteLine("STEPCALIBRATION: Platesolved DEC end is, {0}. Moving down 15deg.", _decSolvedStart, Coord(_decSolvedEnd));
-						await _mountVM.MoveMount(0, (long)(-_decStepsBefore * 15));
+						await Task.Delay(500);
 						_calibrationState = CalibrationState.SlewBack15DecDegrees;
 						_timer.Start();
 					}
@@ -363,9 +423,11 @@ namespace OATControl
 
 						// Initiate 3h deg slew using steps, display status
 						Log.WriteLine("STEPCALIBRATION: Moving RA 45deg.");
-						await _mountVM.MoveMount((long)(_raStepsBefore * 45), 0);
-
+						await _mountVM.MoveMount((long)(_raStepsBefore * _degreesToFour), 0);
 						DisplayStatus = true;
+						await Task.Delay(500);
+
+
 						_calibrationState = CalibrationState.Slew45RaDegrees;
 						_timer.Start();
 
@@ -394,9 +456,11 @@ namespace OATControl
 						// Store end coordinates and pos
 						// Initiate slew back in RA. display status
 						Log.WriteLine("STEPCALIBRATION: Platesolved RA end is, {0}. Moving RA back to start by -45deg.", _raSolvedEnd, Coord(_raSolvedEnd));
-						await _mountVM.MoveMount((long)(-_raStepsBefore * 45), 0);
+						await _mountVM.MoveMount((long)(-_raStepsBefore * (_degreesToThree + _degreesToFour)), 0);
 
 						DisplayStatus = true;
+						await Task.Delay(500);
+
 						_calibrationState = CalibrationState.SlewBack45RaDegrees;
 						_timer.Start();
 
@@ -426,23 +490,23 @@ namespace OATControl
 
 					// DEC
 					double actualDecDegrees = _decSolvedStart - _decSolvedEnd;
-					double decRatio = 45.0 / actualDecDegrees;
+					double decRatio = _degreesToTwo / actualDecDegrees;
 					DecStepsAfter = (float)(Math.Round(_decStepsBefore * decRatio * 10.0) / 10.0);
 
 					// RA
 					double actualRaHours = _raSolvedStart - _raSolvedEnd;
-					double raRatio = 3.0 / actualRaHours;
+					double raRatio = _degreesToFour / 15.0f / actualRaHours;
 					RaStepsAfter = (float)(Math.Round(_raStepsBefore * raRatio * 10.0) / 10.0);
 
 					Log.WriteLine("STEPCALIBRATION: RA Calculation");
-					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}h ({1:0.0000}deg)", 3, 3 * 15);
+					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}h ({1:0.0000}deg)", _degreesToFour/15.0, _degreesToFour);
 					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}h ({1:0.0000}deg)", actualRaHours, actualRaHours * 15);
 					Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", raRatio);
 					Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", RaStepsBefore);
 					Log.WriteLine("STEPCALIBRATION:       New Steps : {0:0.0}", RaStepsAfter);
 
 					Log.WriteLine("STEPCALIBRATION: DEC Calculation");
-					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}deg", 45);
+					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}deg", _degreesToTwo);
 					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}deg)", actualDecDegrees);
 					Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", decRatio);
 					Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", DecStepsBefore);
@@ -455,6 +519,7 @@ namespace OATControl
 					DisplayStatus = true;
 					_calibrationState = CalibrationState.SlewBackToHomeAndSet;
 					_mountVM.HomeCommand.Execute(null);
+					await Task.Delay(500);
 					_timer.Start();
 					break;
 
