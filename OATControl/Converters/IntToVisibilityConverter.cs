@@ -33,29 +33,42 @@ namespace OATControl.Converters
         {
             long val = value is long ? (long)value : (long)(int)value;
             Visibility visualState = UseCollapse ? Visibility.Collapsed : Visibility.Hidden;
-            if (Operator.Equals(">"))
+			long visibleVal = this.VisibleValue;
+			if (parameter != null && parameter is string)
+			{
+				long.TryParse((string)parameter, out visibleVal);
+			}
+			if (parameter != null && parameter is long)
+			{
+				visibleVal = (long)parameter;
+			}
+			if (parameter != null && parameter is int)
+			{
+				visibleVal = (long)(int)parameter;
+			}
+			if (Operator.Equals(">"))
             {
-                if (val > this.VisibleValue) visualState = Visibility.Visible;
+                if (val > visibleVal) visualState = Visibility.Visible;
             }
             if (Operator.Equals(">="))
             {
-                if (val >= this.VisibleValue) visualState = Visibility.Visible;
+                if (val >= visibleVal) visualState = Visibility.Visible;
             }
             if (Operator.Equals("<"))
             {
-                if (val < this.VisibleValue) visualState = Visibility.Visible;
+                if (val < visibleVal) visualState = Visibility.Visible;
             }
             if (Operator.Equals("<="))
             {
-                if (val <= this.VisibleValue) visualState = Visibility.Visible;
+                if (val <= visibleVal) visualState = Visibility.Visible;
             }
             if (Operator.Equals("=="))
             {
-                if (val == this.VisibleValue) visualState = Visibility.Visible;
+                if (val == visibleVal) visualState = Visibility.Visible;
             }
             if (Operator.Equals("!="))
             {
-                if (val != this.VisibleValue) visualState = Visibility.Visible;
+                if (val != visibleVal) visualState = Visibility.Visible;
             }
 
             return visualState;

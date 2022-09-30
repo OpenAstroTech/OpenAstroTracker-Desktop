@@ -133,7 +133,7 @@
 			<TextBlock Grid.Row="1" Grid.Column="0" Text="No" HorizontalAlignment="Right" Margin="0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
 			<Controls:ToggleSwitchButton Grid.Row="1" Grid.Column="1" Content="" Margin="-4,0,0,0" IsChecked="{Binding RunDECOffsetHoming}" ThumbIndicatorBrush="#E00" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
 			<TextBlock Grid.Row="1" Grid.Column="2" Text="Yes" HorizontalAlignment="Left" Margin="-4,0,0,0" Style="{StaticResource ToggleLabel}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
-			<TextBlock Grid.Row="1" Grid.Column="2" Text="Run DEC Offset Homing" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
+			<TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding DECHomingMethod}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="32,0" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowDECHoming, Converter={StaticResource CollapseOnFalse}}" />
 		</Grid>
 		<Grid Grid.Row="11" HorizontalAlignment="Stretch" Grid.ColumnSpan="2">
 			<Grid.ColumnDefinitions>

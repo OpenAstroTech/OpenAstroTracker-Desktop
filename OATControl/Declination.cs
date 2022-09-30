@@ -137,7 +137,7 @@ namespace OATControl
 			//return s;
 		}
 
-		public Declination ParseFromMeade(String s)
+		public static new Declination ParseFromMeade(String s)
 		{
 			Declination result = new Declination();
 			// LOGV2(DEBUG_GENERAL, F("Declination.Parse(%s)"), s.c_str());

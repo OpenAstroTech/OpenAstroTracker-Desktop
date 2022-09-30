@@ -12,4 +12,10 @@
     <PackageReference Include="PropertyChanged.Fody" Version="3.2.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="WindowsBase">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\WindowsBase.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

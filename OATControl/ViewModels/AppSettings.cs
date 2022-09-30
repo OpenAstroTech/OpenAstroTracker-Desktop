@@ -215,16 +215,16 @@ namespace OATControl.ViewModels
 		}
 
 		[DefaultValueAttribute("0")]
-		public long DECHomeOffset
+		public Single DECHomeOffset
 		{
-			get { return Convert.ToInt32(this["DECHomeOffset"]); }
+			get { return Convert.ToSingle(this["DECHomeOffset"]); }
 			set { this["DECHomeOffset"] = value.ToString(); }
 		}
 
 		[DefaultValueAttribute("0")]
-		public long RAHomeOffset
+		public Single RAHomeOffset
 		{
-			get { return Convert.ToInt32(this["RAHomeOffset"]); }
+			get { return Convert.ToSingle(this["RAHomeOffset"]); }
 			set { this["RAHomeOffset"] = value.ToString(); }
 		}
 
@@ -240,6 +240,13 @@ namespace OATControl.ViewModels
 		{
 			get { return Convert.ToBoolean(this["RunAutoHomeRAOnConnect"]); }
 			set { this["RunAutoHomeRAOnConnect"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("False")]
+		public bool RunAutoHomeDECOnConnect
+		{
+			get { return Convert.ToBoolean(this["RunAutoHomeDECOnConnect"]); }
+			set { this["RunAutoHomeDECOnConnect"] = value.ToString(); }
 		}
 
 		[DefaultValueAttribute("False")]

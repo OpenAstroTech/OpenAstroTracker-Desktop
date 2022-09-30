@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestSuites>
+	<TestSuite Name="EEPROM Storage" Description="Tests the ability to store and retrieve EEPROM settings">
+		<Test Description="Get Current RA Steps">
+			<Command>:XGR#</Command>
+			<ExpectedReply Type="#" StoreAs="RASteps"></ExpectedReply>
+		</Test>
+
+		<Test Description="Set RA Steps">
+			<Command>:XSR123.4#</Command>
+		</Test>
+
+		<Test Description="Get New RA Steps">
+			<Command>:XGR#</Command>
+			<ExpectedReply Type="#">123.4</ExpectedReply>
+		</Test>
+
+		<Test Description="Restore RA Steps">
+			<Command>:XSR{Var,RASteps}#</Command>
+		</Test>
+
+		<Test Description="Check RA Steps">
+			<Command>:XGR#</Command>
+			<ExpectedReply Type="#">{Var,RASteps}</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC Steps">
+			<Command>:XGD#</Command>
+			<ExpectedReply Type="#" StoreAs="DECSteps"></ExpectedReply>
+		</Test>
+
+		<Test Description="Set DEC Steps">
+			<Command>:XSD234.5#</Command>
+		</Test>
+
+		<Test Description="Get New DEC Steps">
+			<Command>:XGD#</Command>
+			<ExpectedReply Type="#">234.5</ExpectedReply>
+		</Test>
+
+		<Test Description="Restore DEC Steps">
+			<Command>:XSD{Var,DECSteps}#</Command>
+		</Test>
+
+		<Test Description="Check DEC Steps">
+			<Command>:XGD#</Command>
+			<ExpectedReply Type="#">{Var,DECSteps}</ExpectedReply>
+		</Test>
+	</TestSuite>
+</TestSuites>

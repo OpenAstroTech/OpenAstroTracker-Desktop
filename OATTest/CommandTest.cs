@@ -31,6 +31,7 @@ namespace OATTest
 		private class Reply
 		{
 			string _expected = string.Empty;
+			string _storeAs = string.Empty;
 			long _minVersion = -1;
 			long _maxVersion = -1;
 			ReplyType _replyType;
@@ -45,12 +46,14 @@ namespace OATTest
 				_expected = node.Value ?? string.Empty;
 				_minVersion = long.Parse(node.Attribute("MinFirmware")?.Value ?? "-1");
 				_maxVersion = long.Parse(node.Attribute("MaxFirmware")?.Value ?? "-1");
+				_storeAs = node.Attribute("StoreAs")?.Value ?? string.Empty;
 			}
 
 			public string Expected { get { return _expected; } }
 			public ReplyType ReplyType { get { return _replyType; } }
 			public long MinVersion { get { return _minVersion; } }
 			public long MaxVersion { get { return _maxVersion; } }
+			public string StoreAs { get { return _storeAs; } }
 		}
 
 		string _command = string.Empty;
@@ -173,5 +176,20 @@ namespace OATTest
 		public long MaxFirmwareVersion { get { return _maxVersion; } }
 
 		public ReplyType ExpectedReplyType { get { return _replies.FirstOrDefault()?.ReplyType ?? ReplyType.None; } }
+
+		public IEnumerable<string> StoreAs
+		{
+			get
+			{
+				foreach (var reply in _replies)
+				{
+					if (!string.IsNullOrWhiteSpace(reply.StoreAs))
+					{
+						yield return reply.StoreAs;
+					}
+				}
+
+			}
+		}
 	}
 }

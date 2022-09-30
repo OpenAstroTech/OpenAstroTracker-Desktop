@@ -245,15 +245,21 @@
 
 		<StackPanel Grid.Row ="0" Grid.Column="3" Orientation="Vertical">
 			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Auto-center RA ring (Hall sensor)" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.21 or later and Hall Sensor Add-on)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.21 or later and RA Hall Sensor Add-on)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
 		</StackPanel>
 		<Button Grid.Row="0" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Auto-Home RA" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding AutoHomeRACommand}"/>
+        
+        <StackPanel Grid.Row ="1" Grid.Column="3" Orientation="Vertical">
+            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Auto-center DEC ring (Hall sensor)" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+            <TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.12.1 or later and DEC Hall Sensor Add-on)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+        </StackPanel>
+        <Button Grid.Row="1" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Auto-Home DEC" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding AutoHomeDECCommand}"/>
 
-		<TextBlock Grid.Row ="1" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move to DEC Home after power on" ToolTip="If the DEC axis is currently in the Power on position and a Home offset was set, use this to move it to the Home position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<Button Grid.Row ="1" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Unpark DEC" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding GotoDECHomeFromPowerOnCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
+        <TextBlock Grid.Row ="2" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move to DEC Home after power on" ToolTip="If the DEC axis is currently in the Power on position and a Home offset was set, use this to move it to the Home position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row ="2" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Unpark DEC" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding GotoDECHomeFromPowerOnCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
 
-		<TextBlock Grid.Row ="2" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move DEC to park before power off" ToolTip="If the DEC axis is currently in the Home position and a Home offset was set, use this to move it to the Park position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<Button Grid.Row ="2" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Park DEC" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding GotoDECParkBeforePowerOffCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
+		<TextBlock Grid.Row ="3" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move DEC to park before power off" ToolTip="If the DEC axis is currently in the Home position and a Home offset was set, use this to move it to the Park position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row ="3" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Park DEC" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding GotoDECParkBeforePowerOffCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
 
 		<Grid Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="-2,0,6,0">
 			<Grid.ColumnDefinitions>
@@ -299,7 +305,13 @@
 		</StackPanel>
 		<Button Grid.Row="6" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Reset Focuser" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FocuserResetCommand}"/>
 
-		<StackPanel Grid.Row ="10" Grid.Column="3" Orientation="Vertical">
+        <StackPanel Grid.Row ="8" Grid.Column="3" Orientation="Vertical">
+            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Run Steps Calibration procedure"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+            <TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="Use Platesolving to calibrate RA and DEC steps" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+        </StackPanel>
+        <Button Grid.Row ="8" Grid.Column="4" Margin="8,8,8,4" Padding="15,0" Content="Run Step Calibration" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding RunStepCalibrationCommand}" />
+
+        <StackPanel Grid.Row ="10" Grid.Column="3" Orientation="Vertical">
 			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Set RA Home offset center of Hall sensor range"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.16 or later)" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
 		</StackPanel>

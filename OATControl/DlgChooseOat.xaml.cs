@@ -76,6 +76,7 @@ namespace OATControl
 		private bool _showRAHoming = false;
 		private bool _showDECHoming = false;
 		private bool _runRAAutoHoming = false;
+		private bool _runDECAutoHoming = false;
 		private bool _runDECOffsetHoming = false;
 		private double _rollOffset;
 		private double _pitchOffset;
@@ -91,6 +92,8 @@ namespace OATControl
 		const float MaxWaitForGPS = 30;
 		DateTime _startedGPSWaitAt;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
+		private bool _decAutoHoming;
+
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		public DlgChooseOat(MountVM mountViewModel, Action<string, Action<CommandResponse>> sendCommand)
@@ -108,6 +111,7 @@ namespace OATControl
 			_longitude = AppSettings.Instance.SiteLongitude;
 			_altitude = AppSettings.Instance.SiteAltitude;
 			_runRAAutoHoming = AppSettings.Instance.RunAutoHomeRAOnConnect;
+			_runDECAutoHoming = AppSettings.Instance.RunAutoHomeDECOnConnect;
 			_runDECOffsetHoming = AppSettings.Instance.RunDECOffsetHomingOnConnect;
 
 			CurrentStep = Steps.Idle;
@@ -257,6 +261,19 @@ namespace OATControl
 			}
 		}
 
+		public bool RunDECAutoHoming
+		{
+			get { return _runDECAutoHoming; }
+			set
+			{
+				if (value != _runDECAutoHoming)
+				{
+					_runDECAutoHoming = value;
+					OnPropertyChanged("RunDECAutoHoming");
+				}
+			}
+		}
+
 		public bool RunDECOffsetHoming
 		{
 			get { return _runDECOffsetHoming; }
@@ -312,6 +329,21 @@ namespace OATControl
 			}
 		}
 
+		public string DECHomingMethod
+		{
+			get
+			{
+				if (_decAutoHoming)
+				{
+					return "Run DEC Auto-Home";
+				}
+				else
+				{
+					return "Run DEC Offset Homing";
+				}
+			}
+		}
+
 		public bool ShowDECHoming
 		{
 			get
@@ -324,6 +356,7 @@ namespace OATControl
 				{
 					_showDECHoming = value;
 					OnPropertyChanged("ShowDECHoming");
+					OnPropertyChanged("DECHomingMethod");
 				}
 			}
 		}
@@ -388,6 +421,7 @@ namespace OATControl
 				RequeryCommands();
 			}
 		}
+
 		private void RequeryCommands()
 		{
 			_rescanCommand.Requery();
@@ -505,6 +539,7 @@ namespace OATControl
 					AppSettings.Instance.SiteLongitude = Longitude;
 					AppSettings.Instance.SiteAltitude = Altitude;
 					AppSettings.Instance.RunAutoHomeRAOnConnect = RunRAAutoHoming;
+					AppSettings.Instance.RunAutoHomeDECOnConnect = RunDECAutoHoming;
 					AppSettings.Instance.RunDECOffsetHomingOnConnect = RunDECOffsetHoming;
 					AppSettings.Instance.Save();
 					CurrentStep = Steps.Completed;
@@ -512,6 +547,7 @@ namespace OATControl
 
 				case Steps.ConfirmStartupActions:
 					AppSettings.Instance.RunAutoHomeRAOnConnect = RunRAAutoHoming;
+					AppSettings.Instance.RunAutoHomeDECOnConnect = RunDECAutoHoming;
 					AppSettings.Instance.RunDECOffsetHomingOnConnect = RunDECOffsetHoming;
 					AppSettings.Instance.Save();
 					CurrentStep = Steps.Completed;
@@ -606,21 +642,40 @@ namespace OATControl
 								Longitude = -lng;
 							}
 						}
-						if ((_mountViewModel.ScopeHasHSAH) || (_mountViewModel.DECStepperLowerLimit != 0))
+						if (_mountViewModel.ScopeHasHSAH || _mountViewModel.ScopeHasHSAV || (_mountViewModel.DECStepperLowerLimit != 0))
 						{
 							ShowRAHoming = _mountViewModel.ScopeHasHSAH;
-							ShowDECHoming = _mountViewModel.DECStepperLowerLimit != 0;
+							ShowDECHoming = _mountViewModel.ScopeHasHSAV || _mountViewModel.DECStepperLowerLimit != 0;
+							if (_mountViewModel.ScopeHasHSAV)
+							{
+								_decAutoHoming = true;
+								OnPropertyChanged("DECHomingMethod");
+							}
 
 							var gxDoneEvent = new AutoResetEvent(false);
 							var gotGX = false;
+							int loopCount = 0;
 							string gxValue = string.Empty;
-							_sendCommand(":GX#,#", (a) => { gotGX = a.Success; gxValue = a.Data; gxDoneEvent.Set(); });
-							gxDoneEvent.WaitOne();
+							do
+							{
+								loopCount++;
+								gotGX = false;
+								_sendCommand(":GX#,#", (a) => { gotGX = a.Success; gxValue = a.Data; gxDoneEvent.Set(); });
+								gxDoneEvent.WaitOne();
+							}
+							while (!gotGX && loopCount < 3);
 							if (gotGX)
 							{
 								// 'SlewToTarget,-dT---,0,13919,1861,034107,+454030,50000,'
 								var gxSplit = gxValue.Split(",".ToCharArray());
-								if (long.Parse(gxSplit[3]) != 0) { RunDECOffsetHoming = false; }
+								if (_mountViewModel.FirmwareVersion >= 20000)
+								{
+									if (float.Parse(gxSplit[3]) != 0.0) { RunDECOffsetHoming = false; }
+								}
+								else
+								{
+									if (long.Parse(gxSplit[3]) != 0) { RunDECOffsetHoming = false; }
+								}
 							}
 						}
 						break;
@@ -729,10 +784,15 @@ namespace OATControl
 						AppSettings.Instance.SiteLatitude = latitude;
 						AppSettings.Instance.SiteLongitude = longitude;
 						AppSettings.Instance.Save();
-						if ((_mountViewModel.ScopeHasHSAH) || (_mountViewModel.DECStepperLowerLimit != 0))
+						if (_mountViewModel.ScopeHasHSAH || _mountViewModel.ScopeHasHSAV || (_mountViewModel.DECStepperLowerLimit != 0))
 						{
 							ShowRAHoming = _mountViewModel.ScopeHasHSAH;
-							ShowDECHoming = _mountViewModel.DECStepperLowerLimit != 0;
+							ShowDECHoming = _mountViewModel.ScopeHasHSAV || _mountViewModel.DECStepperLowerLimit != 0;
+							if (_mountViewModel.ScopeHasHSAV)
+							{
+								_decAutoHoming = true;
+								OnPropertyChanged("DECHomingMethod");
+							}
 							CurrentStep = Steps.ConfirmStartupActions;
 						}
 						else

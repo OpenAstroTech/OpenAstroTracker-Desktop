@@ -1,0 +1,262 @@
+﻿<Controls:MetroWindow x:Class="OATControl.DlgStepCalibration"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ 		xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OATControl" xmlns:converters="clr-namespace:OATControl.Converters"
+        mc:Ignorable="d"
+        Title=" Stepper Motor Step Calibration" MinHeight="360" Width="520" MinWidth="520" Height="360" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
+            <Setter Property="Margin" Value="10,4" />
+            <Setter Property="Background" Value="#440000" />
+            <Setter Property="Foreground" Value="#F00" />
+        </Style>
+        <Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+        <Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="TextBlockListItem" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="24,5,0,5" />
+        </Style>
+        <Style x:Key="TextBlockValuePrompts" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="5,3,5,0" />
+        </Style>
+        <Style x:Key="TextBlockLabelSmall" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="4,4" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="TextBlockLabelResult" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+            <Setter Property="Foreground" Value="#F22" />
+            <Setter Property="Padding" Value="18,4" />
+            <Setter Property="Margin" Value="2,2" />
+            <Setter Property="Background" Value="#811" />
+        </Style>
+        <Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+            <Setter Property="Padding" Value="12,2" />
+            <Setter Property="Margin" Value="0,4" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
+            <Setter Property="Foreground" Value="#F00" />
+            <Setter Property="MaxWidth"  Value="250" />
+        </Style>
+        <Style x:Key="TextBorder" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+            <Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="MinWidth" Value="50" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+        <Style x:Key="TextBorderSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+            <Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="Margin" Value="0,5,10,0" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+        <converters:IntToVisibilityConverter x:Key="VisibleIfPageEquals"  Operator="==" />
+        <converters:BoolToVisibilityConverter x:Key="VisibleIfDIsplayOn"   />
+    </Window.Resources>
+    <Grid>
+        <!-- PAGE 1 -->
+        <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=1}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="To perform stepper motor Step Calibration for RA and DEC, the following is needed:" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="1" Text="· Clear view of the sky above you that extends 3h (45°) in RA and 45° in DEC." Style="{StaticResource TextBlockListItem}"/>
+            <TextBlock Grid.Row="2" Text="· Ability to capture and plate solve image when prompted." Style="{StaticResource TextBlockListItem}"/>
+            <TextBlock Grid.Row="4" Text="· Mount is polar-aligned and in Home position to start." Style="{StaticResource TextBlockListItem}"/>
+            <Grid Grid.Row="5" Grid.RowSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="DEC Move to 1st location" Style="{StaticResource TextBlockValuePrompts}" />
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding DegreesToOne}" Style="{StaticResource TextBorderSmall}"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="DEC Move to 2nd location" Style="{StaticResource TextBlockValuePrompts}" />
+                <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding DegreesToTwo}" Style="{StaticResource TextBorderSmall}"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="RA Move to 3rd location" Style="{StaticResource TextBlockValuePrompts}" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DegreesToThree}" Style="{StaticResource TextBorderSmall}"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="RA Move to 4th location" Style="{StaticResource TextBlockValuePrompts}" />
+                <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding DegreesToFour}" Style="{StaticResource TextBorderSmall}"/>
+            </Grid>
+
+            <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}" IsEnabled="{Binding CanContinue}"/>
+                <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+            </StackPanel>
+            <TextBlock Grid.Row="8" Text="Slewing DEC 15° up from Home..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,30,0,0" Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+        </Grid>
+        <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=2}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Step 1: DEC Step Calibration" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="1" Text="Take an image and plate solve it. Type the DEC coordinates below, three numbers with spaces:" Style="{StaticResource TextBlockListItem}"/>
+            <TextBlock Grid.Row="2" Text="DEC:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
+            <TextBox Grid.Row="2" Text="{Binding InputCoordinate}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
+                <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+            </StackPanel>
+            <TextBlock Grid.Row="4" Text="Slewing DEC up 45° ..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0" Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+        </Grid>
+
+        <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=3}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Step 2: DEC Step Calibration" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="1" Text="Take another image and plate solve it. Type the coordinates below, three numbers with spaces:" Style="{StaticResource TextBlockListItem}"/>
+            <TextBlock Grid.Row="2" Text="DEC:" Style="{StaticResource TextBlockHeading}" Margin="40,0" />
+            <TextBox Grid.Row="2" Text="{Binding InputCoordinate}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
+                <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+            </StackPanel>
+            <TextBlock Grid.Row="4" Text="Slewing DEC down 15° and RA west 1.5h..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+        </Grid>
+
+        <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=4}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Step 3: RA Step Calibration" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="1" Text="Take another image and plate solve it. Type the RA coordinates below, three numbers with spaces:" Style="{StaticResource TextBlockListItem}"/>
+            <TextBlock Grid.Row="2" Text="RA:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
+            <TextBox Grid.Row="2" Text="{Binding InputCoordinate}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
+                <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+            </StackPanel>
+            <TextBlock Grid.Row="4" Text="Slewing RA 3h east ..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+        </Grid>
+
+        <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=5}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Step 4: RA Step Calibration" Margin="10" Style="{StaticResource TextBlockHeading}" />
+            <TextBlock Grid.Row="1" Text="Take another image and plate solve it. Type the RA coordinates below, three numbers with spaces:" Style="{StaticResource TextBlockListItem}"/>
+            <TextBlock Grid.Row="2" Text="RA:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
+            <TextBox Grid.Row="2" Text="{Binding InputCoordinate}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
+                <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+            </StackPanel>
+            <TextBlock Grid.Row="4" Text="Slewing RA east 1.5h ..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+        </Grid>
+
+        <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=6}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Calibration complete." Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="RA and DEC steps have been re-calculated as follows:" Style="{StaticResource TextBlockListItem}"/>
+            <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="50,20" Width="250" HorizontalAlignment="Left">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="Before" Style="{StaticResource TextBlockLabelSmall}"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="After" Style="{StaticResource TextBlockLabelSmall}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="RA" Style="{StaticResource TextBlockLabelSmall}"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="DEC" Style="{StaticResource TextBlockLabelSmall}"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding RaStepsBefore,StringFormat={}{0:0.0}}" Style="{StaticResource TextBlockLabelResult}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DecStepsBefore,StringFormat={}{0:0.0}}" Style="{StaticResource TextBlockLabelResult}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RaStepsAfter,StringFormat={}{0:0.0}}" Style="{StaticResource TextBlockLabelResult}" />
+                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding DecStepsAfter,StringFormat={}{0:0.0}}" Style="{StaticResource TextBlockLabelResult}" />
+            </Grid>
+            <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="Please confirm whether you want to update the settings in the firmware:" Style="{StaticResource TextBlockListItem}"/>
+            <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Confirm" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
+                <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+            </StackPanel>
+            <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="Slewing back home and storing changes..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,16,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+        </Grid>
+
+    </Grid>
+</Controls:MetroWindow>
+    
