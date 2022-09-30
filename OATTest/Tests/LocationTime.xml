@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TestSuites>
+	<TestSuite Name="Location, Time Check" Description="Checks location updates and LST">
+		<Test Description="Get Product">
+			<Command>:GVP#</Command>
+			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
+		</Test>
+		<Test Description="Get FirmwareVersion">
+			<Command >:GVN#</Command>
+			<ExpectedReply Type="#" />
+		</Test>
+
+		<Test Description="Set UTC offset" MinFirmware="11105">
+			<Command>:SG+07#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Latitude">
+			<Command>:St47*44#</Command>
+			<!-- South is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Longitude">
+			<Command>:Sg+121*58#</Command>
+			<!-- East is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Latitude">
+			<Command>:Gt#</Command>
+			<!-- South is negative! -->
+			<ExpectedReply Type="#">+47*44</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Longitude">
+			<Command>:Gg#</Command>
+			<!-- East is negative! -->
+			<ExpectedReply Type="#">+121*58</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Date">
+			<Command>:SC{Time,MM/dd/yy}#</Command>
+			<ExpectedReply Type="##">1Updating Planetary Data</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Time">
+			<Command>:SL{Time,HH:mm:ss}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Time">
+			<Command>:GL#</Command>
+			<ExpectedReply Type="#">23:00:00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get HA">
+			<Command>:XGH#</Command>
+			<ExpectedReply Type="#">071428</ExpectedReply>
+		</Test>
+
+		<Test Description="Get LST">
+			<Command>:XGL#</Command>
+			<ExpectedReply Type="#">101436</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+</TestSuites>

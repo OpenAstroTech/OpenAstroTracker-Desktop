@@ -51,6 +51,7 @@ namespace OATTest
 		private string _failedTests;
 		private string _skippedTests;
 		private string _completedTests;
+		private bool _stopOnError;
 
 		public ICommand SetDateTimeToPresetCommand { get { return _setDateTimePresetCommand; } }
 		public ICommand SetDateTimeToNowCommand { get { return _setDateTimeCommand; } }
@@ -87,6 +88,7 @@ namespace OATTest
 			_commandBaudRate = string.IsNullOrEmpty(Settings.Default.COMBaud) ? _commandBaudRate : Settings.Default.COMBaud;
 			_debugPort = Settings.Default.DebugPort ?? _debugPort;
 			_debugBaudRate = string.IsNullOrEmpty(Settings.Default.DebugBaud) ? _debugBaudRate : Settings.Default.DebugBaud;
+			_stopOnError = Settings.Default.StopOnError;
 
 			foreach (var testSuite in _testManager.TestSuites)
 			{
@@ -220,6 +222,7 @@ namespace OATTest
 			{
 				Debug($"Connected to OAT with V{FirmwareVersion}, running tests...");
 				_testManager.PrepareForRun();
+				_testManager.StopOnError = StopOnError;
 				await _testManager.RunAllTests(_handler, (result) => UpdateResults(result), (s) => Debug(s));
 
 				Debug($"Tests complete, disconnecting...");
@@ -255,12 +258,17 @@ namespace OATTest
 			RunButtonText = "Run";
 		}
 
-		private void UpdateResults(CommandTest.StatusType result)
+		private bool UpdateResults(CommandTest.StatusType result)
 		{
+			bool ret = true;
 			if (result == CommandTest.StatusType.Failed)
 			{
 				_failed++;
 				_completed++;
+				if (StopOnError)
+				{
+					ret = false;
+				}
 			}
 			if (result == CommandTest.StatusType.Skipped)
 			{
@@ -282,6 +290,7 @@ namespace OATTest
 			FailedTests = $"{_failed} failed";
 			SkippedTests = $"{_skipped} skipped";
 			SucceededTests = $"{_succeeded} succeeded";
+			return ret;
 		}
 
 		private void OnSetDateTime(bool useNow)
@@ -383,6 +392,7 @@ namespace OATTest
 			Settings.Default.COMBaud = CommandBaudRate;
 			Settings.Default.DebugPort = DebugPort;
 			Settings.Default.DebugBaud = DebugBaudRate;
+			Settings.Default.StopOnError = StopOnError;
 			Settings.Default.Suite = SelectedTestSuite?.Name ?? string.Empty;
 			Settings.Default.Save();
 		}
@@ -395,6 +405,20 @@ namespace OATTest
 				if (_debugPort != value)
 				{
 					_debugPort = value;
+					SaveSettings();
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool StopOnError
+		{
+			get { return _stopOnError; }
+			set
+			{
+				if (_stopOnError != value)
+				{
+					_stopOnError = value;
 					SaveSettings();
 					OnPropertyChanged();
 				}
