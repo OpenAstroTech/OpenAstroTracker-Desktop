@@ -152,5 +152,11 @@
   <ItemGroup>
     <Resource Include="Tests\StepperLib.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Tests\EEPROM Checks.xml" />
+    <Resource Include="Tests\Guiding.xml" />
+    <Resource Include="Tests\LocationTime.xml" />
+    <Resource Include="Tests\VersionCheck.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
