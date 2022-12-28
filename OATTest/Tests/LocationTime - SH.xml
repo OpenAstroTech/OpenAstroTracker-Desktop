@@ -1,39 +1,39 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <TestSuites>
-	<TestSuite Name="Location, Time Check" Description="Checks location updates and LST">
+	<TestSuite Name="SH - Location, Time Check" Description="Checks location updates and LST in southern hemisphere">
 
-		<Test Description="Set Northern Hemisphere" MinFirmware="11113">
-			<Command>:XSHSN#</Command>
+		<Test Description="Set Southern Hemisphere" MinFirmware="11113">
+			<Command>:XSHSS#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
 		<Test Description="Set Latitude">
-			<Command>:St47*44#</Command>
+			<Command>:St-30*00#</Command>
 			<!-- South is negative! -->
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
 		<Test Description="Set Longitude">
-			<Command>:Sg+121*58#</Command>
+			<Command>:Sg-30*00#</Command>
 			<!-- East is negative! -->
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
 		<Test Description="Set UTC offset" MinFirmware="11105">
-			<Command>:SG+07#</Command>
+			<Command>:SG-02#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Latitude">
 			<Command>:Gt#</Command>
 			<!-- South is negative! -->
-			<ExpectedReply Type="#">+47*44</ExpectedReply>
+			<ExpectedReply Type="#">-30*00</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Longitude">
 			<Command>:Gg#</Command>
 			<!-- East is negative! -->
-			<ExpectedReply Type="#">+121*58</ExpectedReply>
+			<ExpectedReply Type="#">-30*00</ExpectedReply>
 		</Test>
 
 		<Test Description="Set Date">
@@ -58,22 +58,22 @@
 
 		<Test Description="Get HA">
 			<Command>:XGH#</Command>
-			<ExpectedReply Type="#">071428</ExpectedReply>
+			<ExpectedReply Type="#">082448</ExpectedReply>
 		</Test>
 
 		<Test Description="Get LST">
 			<Command>:XGL#</Command>
-			<ExpectedReply Type="#">101436</ExpectedReply>
+			<ExpectedReply Type="#">112456</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Current RA">
 			<Command>:GR#</Command>
-			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+			<ExpectedReply Type="#">11:24:56</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
-			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+			<ExpectedReply Type="#">-90*00'00</ExpectedReply>
 		</Test>
 
 	</TestSuite>

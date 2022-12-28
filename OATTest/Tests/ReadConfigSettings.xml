@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestSuites>
+	<TestSuite Name="Read OAT Settings" Description="Reads Firmware configuration into variables">
+		<Test Description="Get RA Steps/deg">
+			<Command>:XGR#</Command>
+			<ExpectedReply Type="#" StoreAs="RASteps"></ExpectedReply>
+		</Test>
+		<Test Description="Get DEC Steps/deg">
+			<Command>:XGD#</Command>
+			<ExpectedReply Type="#" StoreAs="DECSteps"></ExpectedReply>
+		</Test>
+		<Test Description="Get TRK Steps/sec">
+			<Command>:XGT#</Command>
+			<ExpectedReply Type="#" StoreAs="TRKSpeed"></ExpectedReply>
+		</Test>
+	</TestSuite>
+</TestSuites>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -36,6 +37,7 @@ namespace OATTest
 		DelegateCommand _runTestsCommand;
 		DelegateCommand _resetTestsCommand;
 		DelegateCommand _resetScanDevicesCommand;
+		DelegateCommand _openLogsCommand;
 		private bool _failedToConnect;
 		private string _debugBaudRate;
 		private string _commandBaudRate;
@@ -58,6 +60,8 @@ namespace OATTest
 		public ICommand RunTestsCommand { get { return _runTestsCommand; } }
 		public ICommand ResetTestsCommand { get { return _resetTestsCommand; } }
 		public ICommand ResetScanDevicesCommand { get { return _resetScanDevicesCommand; } }
+		public ICommand OpenLogsCommand { get { return _openLogsCommand; } }
+
 
 		public TestVM()
 		{
@@ -76,6 +80,8 @@ namespace OATTest
 			_runTestsCommand = new DelegateCommand(async (s) => await OnStartTests());
 			_resetTestsCommand = new DelegateCommand(() => OnResetTests());
 			_resetScanDevicesCommand = new DelegateCommand(() => OnRescanDevices());
+			_openLogsCommand = new DelegateCommand(() => OnOpenLogsFolder());
+
 			_commandBaudRate = "19200";
 			_debugBaudRate = "57600";
 
@@ -92,10 +98,13 @@ namespace OATTest
 
 			foreach (var testSuite in _testManager.TestSuites)
 			{
-				TestSuites.Add(testSuite);
-				if (testSuite.Name == Settings.Default.Suite)
+				if (TestSuites.FirstOrDefault(t => t.Name == testSuite.Name) == null)
 				{
-					SelectedTestSuite = testSuite;
+					TestSuites.Add(testSuite);
+					if (testSuite.Name == Settings.Default.Suite)
+					{
+						SelectedTestSuite = testSuite;
+					}
 				}
 			}
 		}
@@ -104,6 +113,12 @@ namespace OATTest
 		{
 			Log.WriteLine(line);
 			WpfUtilities.RunOnUiThread(() => _debugOutput.Add(line), Application.Current.Dispatcher);
+		}
+
+		public void OnOpenLogsFolder()
+		{
+			string sFolder = string.Format("{0}\\OpenAstroTracker", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+			Process.Start(sFolder);
 		}
 
 		public void OnRescanDevices()
@@ -117,10 +132,13 @@ namespace OATTest
 			TestSuites.Clear();
 			foreach (var testSuite in _testManager.TestSuites)
 			{
-				TestSuites.Add(testSuite);
-				if (testSuite.Name == Settings.Default.Suite)
+				if (TestSuites.FirstOrDefault(t => t.Name == testSuite.Name) == null)
 				{
-					SelectedTestSuite = testSuite;
+					TestSuites.Add(testSuite);
+					if (testSuite.Name == Settings.Default.Suite)
+					{
+						SelectedTestSuite = testSuite;
+					}
 				}
 			}
 
@@ -145,6 +163,7 @@ namespace OATTest
 				return;
 			}
 
+			Log.ReInit("OatTest");
 			RunButtonText = "Abort";
 			AppStatus = "Preparing tests...";
 			_testManager.UseDate = _useDateTime;
@@ -155,6 +174,7 @@ namespace OATTest
 			_skipped = 0;
 			_completed = 0;
 			_debugOutput.Clear();
+			_asyncAutoResetEvent = new AsyncAutoResetEvent();
 
 			UpdateResults(CommandTest.StatusType.Ready);
 

@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TestSuites>
 	<TestSuite Name="EEPROM Storage" Description="Tests the ability to store and retrieve EEPROM settings">
+
+		<!-- RA Steps -->
 		<Test Description="Get Current RA Steps">
 			<Command>:XGR#</Command>
 			<ExpectedReply Type="#" StoreAs="RASteps"></ExpectedReply>
@@ -24,6 +26,7 @@
 			<ExpectedReply Type="#">{Var,RASteps}</ExpectedReply>
 		</Test>
 
+		<!-- DEC Steps -->
 		<Test Description="Get Current DEC Steps">
 			<Command>:XGD#</Command>
 			<ExpectedReply Type="#" StoreAs="DECSteps"></ExpectedReply>
@@ -46,5 +49,57 @@
 			<Command>:XGD#</Command>
 			<ExpectedReply Type="#">{Var,DECSteps}</ExpectedReply>
 		</Test>
+
+		<!-- DEC limits -->
+		<Test Description="Get Current DEC Low Limit">
+			<Command>:XGDLL#</Command>
+			<ExpectedReply Type="#" StoreAs="DECLowerLimit"></ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC Upper Limit">
+			<Command>:XGDLU#</Command>
+			<ExpectedReply Type="#" StoreAs="DECUpperLimit"></ExpectedReply>
+		</Test>
+
+		<Test Description="Set DEC Low Limit">
+			<Command>:XSDLL34.5#</Command>
+		</Test>
+
+		<Test Description="Set DEC Upper Limit">
+			<Command>:XSDLU123.4#</Command>
+		</Test>
+
+		<Test Description="Get New DEC Low Limit">
+			<Command>:XGDLL#</Command>
+			<ExpectedReply Type="#">34.5</ExpectedReply>
+		</Test>
+
+		<Test Description="Get New DEC Upper Limit">
+			<Command>:XGDLU#</Command>
+			<ExpectedReply Type="#">123.4</ExpectedReply>
+		</Test>
+
+		<Test Description="Check DEC Limits">
+			<Command>:XGDL#</Command>
+			<ExpectedReply Type="#">{Var,DECLowerLimit}|{Var,DECUpperLimit}</ExpectedReply>
+		</Test>
+
+		<Test Description="Restore DEC Low Limit">
+			<Command>:XSDLL{Var,DECLowerLimit}#</Command>
+		</Test>
+		<Test Description="Restore DEC Upper Limit">
+			<Command>:XSDLU{Var,DECUpperLimit}#</Command>
+		</Test>
+
+		<Test Description="Check DEC Low Limit">
+			<Command>:XGDLL#</Command>
+			<ExpectedReply Type="#">{Var,DECLowerLimit}</ExpectedReply>
+		</Test>
+
+		<Test Description="Check DEC Upper Limit">
+			<Command>:XGDLU#</Command>
+			<ExpectedReply Type="#">{Var,DECUpperLimit}</ExpectedReply>
+		</Test>
+		
 	</TestSuite>
 </TestSuites>

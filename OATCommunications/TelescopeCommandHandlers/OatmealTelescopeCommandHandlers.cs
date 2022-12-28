@@ -157,6 +157,13 @@ namespace OATCommunications
 			char sgn = latitude < 0 ? '-' : '+';
 			int latInt = (int)Math.Abs(latitude);
 			int latMin = (int)((Math.Abs(latitude) - latInt) * 60.0f);
+			char hemisphere = latitude < 0 ? 'S' : 'N';
+			SendCommand($":XSHS{hemisphere}#,n", (result) =>
+			{
+				doneEvent.Set();
+			});
+
+			await doneEvent.WaitAsync();
 			SendCommand($":St{sgn}{latInt:00}*{latMin:00}#,n", (result) =>
 			{
 				success = result.Success;

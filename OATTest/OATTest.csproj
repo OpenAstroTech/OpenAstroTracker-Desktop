@@ -71,6 +71,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CommandTest.cs" />
+    <Compile Include="ExpressionEvaluator.cs" />
     <Compile Include="SwitchConverter.cs" />
     <Compile Include="TestManager.cs" />
     <Compile Include="TestVM.cs" />
@@ -127,6 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\tick-white.png" />
+    <Resource Include="Tests\VersionCheck.xml" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\clock.png" />
@@ -156,7 +158,15 @@
     <Resource Include="Tests\EEPROM Checks.xml" />
     <Resource Include="Tests\Guiding.xml" />
     <Resource Include="Tests\LocationTime.xml" />
-    <Resource Include="Tests\VersionCheck.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Tests\LocationTime - SH.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Tests\StepperLib - SH.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Tests\ReadConfigSettings.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

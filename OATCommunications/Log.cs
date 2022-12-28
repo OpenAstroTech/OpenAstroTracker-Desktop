@@ -9,152 +9,159 @@ using System.Threading.Tasks;
 
 namespace OATCommunications.Utilities
 {
-	public class Log
-	{
-		private static DateTime appStartTime = DateTime.UtcNow;
-		private static object oLock = new object();
-		private static string sFolder;
-		private static string sPath;
+    public class Log
+    {
+        private static DateTime appStartTime = DateTime.UtcNow;
+        private static object oLock = new object();
+        private static string sFolder;
+        private static string sPath;
 
-		private static List<string> lstBuffer = new List<string>();
-		private static int maxBuffered = 0;
-		private static Timer _flushTimer;
+        private static List<string> lstBuffer = new List<string>();
+        private static int maxBuffered = 0;
+        private static Timer _flushTimer;
 #if DEBUG
-		private static bool logging = true;
+        private static bool logging = true;
 #else
 		private static bool logging = false;
 #endif
 
 
-		public static void EnableLogging(bool state = true)
-		{
-			logging = state;
-		}
+        public static void EnableLogging(bool state = true)
+        {
+            logging = state;
+        }
 
-		public static bool IsLoggingEnabled
-		{
-			get { return logging; }
-		}
+        public static bool IsLoggingEnabled
+        {
+            get { return logging; }
+        }
 
-		public static string Filename
-		{
-			get
-			{
-				return Log.sPath;
-			}
-		}
+        public static string Filename
+        {
+            get
+            {
+                return Log.sPath;
+            }
+        }
+        public static void ReInit(string sTitle)
+        {
+            _flushTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _flushTimer.Dispose();
+            Log.Flush();
+            Log.maxBuffered = 0;
+            Init(sTitle, false);
+        }
 
-		public static void Init(string sTitle)
-		{
-			// Create our logfile folder in AppData/Roaming
-			sFolder = string.Format("{0}\\OpenAstroTracker", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
-			Directory.CreateDirectory(sFolder);
+        public static void Init(string sTitle, bool deleteOlder = true)
+        {
+            // Create our logfile folder in AppData/Roaming
+            sFolder = string.Format("{0}\\OpenAstroTracker", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            Directory.CreateDirectory(sFolder);
 
-			// Create this session logfile
-			sPath = string.Format("{0}\\OATControl_{1}-{2}.log", sFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"), Environment.UserName);
+            // Create this session logfile
+            sPath = string.Format("{0}\\OATControl_{1}-{2}.log", sFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"), Environment.UserName);
 
-			// Find old logfiles and keep the latest 5 around.
-			var oldLogFiles = Directory.GetFiles(sFolder, "OATControl*.log").OrderByDescending(s => s).Skip(5).ToList();
+            if (deleteOlder)
+            {
+                // Find old logfiles and keep the latest 5 around.
+                var oldLogFiles = Directory.GetFiles(sFolder, "OATControl*.log").OrderByDescending(s => s).Skip(5).ToList();
 
-			// Probably should run this by the user.... for now they can jhust manually delete them
-			// oldLogFiles.AddRange(Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "oat_*.log"));
+                foreach (var logFile in oldLogFiles)
+                {
+                    try
+                    {
+                        File.Delete(logFile);
+                    }
+                    catch
+                    {
+                        // Oh well....
+                    }
+                }
+            }
 
-			foreach (var logFile in oldLogFiles)
-			{
-				try
-				{
-					File.Delete(logFile);
-				}
-				catch
-				{
-					// Oh well....
-				}
-			}
+            _flushTimer = new Timer(OnFlushTimer, null, 5000, 1000);
 
-			_flushTimer = new Timer(OnFlushTimer, null, 5000, 1000);
+            Log.WriteLine("SYSTEM: *********************************");
+            Log.WriteLine(string.Format("SYSTEM: *  {0} *", sTitle.PadRight(28)));
+            Log.WriteLine("SYSTEM: *********************************");
+            Log.WriteLine("SYSTEM: * Started : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " *");
+            Log.WriteLine(string.Format("SYSTEM: * User    : {0} *", Environment.UserName.PadRight(19)));
+            Log.WriteLine("SYSTEM: *********************************");
+            Log.Flush();
+        }
 
-			Log.WriteLine("SYSTEM: *********************************");
-			Log.WriteLine(string.Format("SYSTEM: *  {0} *", sTitle.PadRight(28)));
-			Log.WriteLine("SYSTEM: *********************************");
-			Log.WriteLine("SYSTEM: * Started : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " *");
-			Log.WriteLine(string.Format("SYSTEM: * User    : {0} *", Environment.UserName.PadRight(19)));
-			Log.WriteLine("SYSTEM: *********************************");
-			Log.Flush();
+        private static void OnFlushTimer(object state)
+        {
+            lock (Log.oLock)
+            {
+                if (IsLoggingEnabled && Log.lstBuffer.Any())
+                {
+                    Log.Flush();
+                }
+            }
+        }
 
-		}
+        private static string FormatMessage(string message, object[] args)
+        {
+            var sb = new StringBuilder(message.Length + 64);
 
-		private static void OnFlushTimer(object state)
-		{
-			lock (Log.oLock)
-			{
-				if (IsLoggingEnabled && Log.lstBuffer.Any())
-				{
-					Log.Flush();
-				}
-			}
-		}
+            TimeSpan elapsed = DateTime.UtcNow - Log.appStartTime;
+            sb.AppendFormat("[{0}] [{1:00}]: ", elapsed.ToString("hh\\:mm\\:ss\\.fff"), Thread.CurrentThread.ManagedThreadId);
 
-		private static string FormatMessage(string message, object[] args)
-		{
-			var sb = new StringBuilder(message.Length + 64);
+            if (args != null && args.Length > 0)
+            {
+                sb.AppendFormat(message, args);
+            }
+            else
+            {
+                sb.Append(message);
+            }
 
-			TimeSpan elapsed = DateTime.UtcNow - Log.appStartTime;
-			sb.AppendFormat("[{0}] [{1:00}]: ", elapsed.ToString("hh\\:mm\\:ss\\.fff"), Thread.CurrentThread.ManagedThreadId);
+            return sb.ToString();
+        }
 
-			if (args != null && args.Length > 0)
-			{
-				sb.AppendFormat(message, args);
-			}
-			else
-			{
-				sb.Append(message);
-			}
+        protected static void Flush()
+        {
+            lock (Log.oLock)
+            {
+                var lines = string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n";
+                File.AppendAllText(Log.sPath, lines);
+                Log.lstBuffer.Clear();
+            }
+        }
 
-			return sb.ToString();
-		}
+        public static void WriteLine(string message, params object[] args)
+        {
+            if (logging)
+            {
+                string sLine = FormatMessage(message, args);
 
-		protected static void Flush()
-		{
-			lock (Log.oLock)
-			{
-				var lines = string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n";
-				File.AppendAllText(Log.sPath, lines);
-				Log.lstBuffer.Clear();
-			}
-		}
+                lock (Log.oLock)
+                {
+                    Log.lstBuffer.Add(sLine);
+                    Debug.WriteLine(sLine);
+                    if (Log.lstBuffer.Count > Log.maxBuffered)
+                    {
+                        Log.maxBuffered = Log.lstBuffer.Count;
+                    }
+                }
+            }
+        }
 
-		public static void WriteLine(string message, params object[] args)
-		{
-			if (logging)
-			{
-				string sLine = FormatMessage(message, args);
+        public static void Quit()
+        {
+            _flushTimer.Dispose();
+            logging = false;
 
-				lock (Log.oLock)
-				{
-					Log.lstBuffer.Add(sLine);
-					Debug.WriteLine(sLine);
-					if (Log.lstBuffer.Count > Log.maxBuffered)
-					{
-						Log.maxBuffered = Log.lstBuffer.Count;
-					}
-				}
-			}
-		}
-
-		public static void Quit()
-		{
-			_flushTimer.Dispose();
-			logging = false;
-
-			lock (Log.oLock)
-			{
-				Log.lstBuffer.Add(Log.FormatMessage("Shutdown logging. Maximum of {0} lines buffered.", new Object[] { (object)Log.maxBuffered }));
-				// Flush it.
-				File.AppendAllText(Log.sPath, string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n");
-				Log.lstBuffer.Clear();
-			}
-		}
-	}
+            lock (Log.oLock)
+            {
+                Log.lstBuffer.Add(Log.FormatMessage("Shutdown logging. Maximum of {0} lines buffered.", new Object[] { (object)Log.maxBuffered }));
+                // Flush it.
+                File.AppendAllText(Log.sPath, string.Join("\r\n", Log.lstBuffer.ToArray()) + "\r\n");
+                Log.lstBuffer.Clear();
+            }
+        }
+    }
 }
 
 

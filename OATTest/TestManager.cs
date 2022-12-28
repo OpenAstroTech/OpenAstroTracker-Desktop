@@ -22,7 +22,7 @@ namespace OATTest
 		public List<CommandTest> Tests { get; private set; }
 		public string SetupWarning { get; internal set; }
 
-		public TestSuite(XElement suite)
+		public TestSuite(TestManager manager, XElement suite)
 		{
 			Tests = new List<CommandTest>();
 			Name = suite.Attribute("Name").Value;
@@ -31,8 +31,16 @@ namespace OATTest
 			SetupWarning = suite.Attribute("SetupWarning")?.Value ?? string.Empty;
 			foreach (var testXml in suite.Elements("Test"))
 			{
-				var test = new CommandTest(testXml);
-				Tests.Add(test);
+				if (testXml.Attribute("IncludedName") != null)
+				{
+					var incSuite = manager.TestSuites.FirstOrDefault(ts => ts.Name == testXml.Attribute("IncludedName").Value);
+					incSuite.Tests.ForEach(tst => Tests.Add(tst));
+				}
+				else
+				{
+					var test = new CommandTest(testXml);
+					Tests.Add(test);
+				}
 			}
 		}
 
@@ -48,6 +56,7 @@ namespace OATTest
 		ObservableCollection<TestSuite> _testSuites;
 		ObservableCollection<CommandTest> _tests;
 		Dictionary<string, string> _variables;
+		HashSet<string> _loadedFilenames;
 		string _activeSuite = string.Empty;
 		private bool _abortTestRun;
 		private string _testFolder;
@@ -58,6 +67,7 @@ namespace OATTest
 			_testSuites = new ObservableCollection<TestSuite>();
 			_tests = new ObservableCollection<CommandTest>();
 			_variables = new Dictionary<string, string>();
+			_loadedFilenames = new HashSet<string>();
 
 			LoadAllTests();
 		}
@@ -66,17 +76,21 @@ namespace OATTest
 		{
 			XDocument doc = XDocument.Load(file);
 			var suites = doc.Element("TestSuites");
-			foreach (var suite in suites.Elements("TestSuite"))
-			{
-				_testSuites.Add(new TestSuite(suite));
-			}
 			foreach (var include in suites.Elements("IncludeSuite"))
 			{
 				var filename = Path.Combine(_testFolder, include.Attribute("Filename").Value);
 				if (File.Exists(filename))
 				{
-					LoadTestSuitesFile(filename);
+					if (!_loadedFilenames.Contains(filename))
+					{
+						_loadedFilenames.Add(filename);
+						LoadTestSuitesFile(filename);
+					}
 				}
+			}
+			foreach (var suite in suites.Elements("TestSuite"))
+			{
+				_testSuites.Add(new TestSuite(this, suite));
 			}
 		}
 
@@ -95,6 +109,7 @@ namespace OATTest
 				_testFolder = Path.Combine(location, "Tests");
 			}
 			_testSuites.Clear();
+			_loadedFilenames.Clear();
 			foreach (var file in Directory.GetFiles(_testFolder, "*.xml"))
 			{
 				LoadTestSuitesFile(file);
@@ -371,12 +386,12 @@ namespace OATTest
 		private string ReplaceMacros(string command)
 		{
 			// Look for opening curly, macro (maybe with math) and comma and more
-			string pattern = @"(^:?\w*)\{(.*)}(.*)$";
+			string pattern = @"(^:?\w*)\{(.*?)}(.*)$";
 			RegexOptions options = RegexOptions.Multiline;
 
-			var match = Regex.Match(command, pattern, options);
-
-			if (match.Success)
+			Match match;
+			string initialCommand = command;
+			while ((match = Regex.Match(command, pattern, options)).Success)
 			{
 				// Pre macro text
 				command = match.Groups[1].Value ?? string.Empty;
@@ -427,6 +442,22 @@ namespace OATTest
 						}
 						break;
 
+					case "CALC":
+						{
+							string expr = parts[1];
+
+							try
+							{
+								var result = ExpressionEvaluator.Evaluate(parts[1], (vname) => _variables[vname]);
+								command += result.ToString();
+							}
+							catch
+							{
+								command += '{' + match.Groups[2].Value + '}';
+							}
+						}
+						break;
+
 					default:
 						{
 
@@ -435,6 +466,9 @@ namespace OATTest
 				}
 				// Post macro text
 				command += match.Groups[3]?.Value ?? string.Empty;
+
+				if (command == initialCommand)
+					break;
 			}
 			return command;
 		}
