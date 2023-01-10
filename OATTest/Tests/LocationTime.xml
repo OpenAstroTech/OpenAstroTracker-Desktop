@@ -2,11 +2,6 @@
 <TestSuites>
 	<TestSuite Name="Location, Time Check" Description="Checks location updates and LST">
 
-		<Test Description="Set Northern Hemisphere" MinFirmware="11113">
-			<Command>:XSHSN#</Command>
-			<ExpectedReply Type="n">1</ExpectedReply>
-		</Test>
-
 		<Test Description="Set Latitude">
 			<Command>:St47*44#</Command>
 			<!-- South is negative! -->

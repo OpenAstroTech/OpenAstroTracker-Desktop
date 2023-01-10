@@ -9,6 +9,31 @@
 	<TestSuite Name="RA Movement Check" Description="Moves RA back and forth">
 		<Test IncludedName="Version Check" />
 		<Test IncludedName="Location, Time Check" />
+		<Test IncludedName="Read OAT Settings" />
+
+		<Test Description="Move DEC up 1 deg">
+			<Command>:MXd{Calc,1.0 * $DECSteps}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#" Fuzzy="Degrees">+89*00'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Target DEC to current">
+			<Command>:Sd+89*00:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
 
 		<!-- Slew West 30m -->
 		<Test Description="Set Target RA">
@@ -142,8 +167,8 @@
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
 
-		<Test Description="Slew Up 1024 steps">
-			<Command>:MXd{Calc,3.5*$DECSteps}#</Command>
+		<Test Description="Slew Up 4.5deg">
+			<Command>:MXd{Calc,4.5 * $DECSteps}#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
@@ -162,7 +187,7 @@
 
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
-			<ExpectedReply Type="#">+86*30'00</ExpectedReply>
+			<ExpectedReply Type="#" Fuzzy="Degrees">+85*30'00</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -175,8 +200,8 @@
 			<ExpectedReply Type="#">0</ExpectedReply>
 		</Test>
 
-		<Test Description="Slew Down 2048 steps">
-			<Command>:MXd-2048#</Command>
+		<Test Description="Slew Down 9deg">
+			<Command>:MXd{Calc,-9.0 * $DECSteps}#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
@@ -195,7 +220,7 @@
 
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
-			<ExpectedReply Type="#">+86*44'27</ExpectedReply>
+			<ExpectedReply Type="#" Fuzzy="Degrees">+85*30'00</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -217,13 +242,13 @@
 		<Test IncludedName="Location, Time Check" />
 		<!-- Mount is at 10:14:36 -->
 
-		<!-- Slew West 1.5h and 30 degrees up -->
+		<!-- Slew West 1.5h and 15 degrees up -->
 		<Test Description="Set Target RA 1.5h ahead">
 			<Command>:Sr11:44:36#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
-		<Test Description="Set Target DEC 30 deg up">
-			<Command>:Sd+60:00:00#</Command>
+		<Test Description="Set Target DEC 15 deg up">
+			<Command>:Sd+75*00:00#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
@@ -243,7 +268,7 @@
 
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
-			<ExpectedReply Type="#">+60*00'00</ExpectedReply>
+			<ExpectedReply Type="#" Fuzzy="Degrees">+75*00'00</ExpectedReply>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -256,8 +281,8 @@
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
-		<Test Description="Set Target DEC to 50">
-			<Command>:Sd+50:00:00#</Command>
+		<Test Description="Set Target DEC to 65">
+			<Command>:Sd+65*00:00#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 
@@ -273,7 +298,7 @@
 
 		<Test Description="Get Current DEC">
 			<Command>:GD#</Command>
-			<ExpectedReply Type="#">+50*00'00</ExpectedReply>
+			<ExpectedReply Type="#" Fuzzy="Degrees">+65*00'00</ExpectedReply>
 		</Test>
 
 		<Test Description="Go Home">
@@ -294,8 +319,51 @@
 			<ExpectedReply Type="#">09:44:36</ExpectedReply>
 		</Test>
 
+		<Test Description="Set Target RA to 30mins forward">
+			<Command>:Sr10:14:36#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Target DEC to 85">
+			<Command>:Sd+85*00:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Sync mount">
+			<Command>:CM#</Command>
+			<ExpectedReply Type="#">NONE</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#" Fuzzy="Degrees">+85*00'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Go Home">
+			<Command>:hF#</Command>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+85*00'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#" Fuzzy="Time">10:14:36</ExpectedReply>
+		</Test>
+
 	</TestSuite>
-	
+
 	<!-- ===================== All movements ============================== -->
 
 	<TestSuite Name="StepperLib Integration" Description="Tests to check Stepper-lib Firmware functionality with original Firmware" FixedDateTime="03/28/22 23:00:00" SetupWarning="Make sure OAT is homed!">
@@ -601,7 +669,7 @@
 
 
 		<Test Description="Set Target DEC">
-			<Command>:Sd+77:45:15#</Command>
+			<Command>:Sd+77*45:15#</Command>
 			<ExpectedReply Type="n">1</ExpectedReply>
 		</Test>
 

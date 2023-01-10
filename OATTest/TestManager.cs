@@ -170,7 +170,7 @@ namespace OATTest
 			}
 		}
 
-		public async Task RunAllTests(ICommunicationHandler handler, Func<CommandTest.StatusType, bool> testResult, Action<string> debugOut)
+		public async Task RunAllTests(ICommunicationHandler handler, Func<CommandTest, CommandTest.StatusType, Task<bool>> testResult, Action<string> debugOut)
 		{
 			var suite = _testSuites.FirstOrDefault(ts => ts.Name == _activeSuite);
 			if (!string.IsNullOrEmpty(suite.SetupWarning))
@@ -178,7 +178,7 @@ namespace OATTest
 				var dialogResult = MessageBox.Show(suite.SetupWarning + "\n\nDo you want to continue with the test?", "Pre-run warning", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
 				if (dialogResult == MessageBoxResult.No)
 				{
-					debugOut("User cancelled test run.");
+					debugOut("TEST: User cancelled test run.");
 					return;
 				}
 			}
@@ -188,7 +188,7 @@ namespace OATTest
 				if (_abortTestRun)
 				{
 					test.Status = CommandTest.StatusType.Skipped;
-					testResult(CommandTest.StatusType.Skipped);
+					await testResult(test, CommandTest.StatusType.Skipped);
 					continue;
 				}
 
@@ -196,21 +196,22 @@ namespace OATTest
 				{
 					if (FirmwareVersion < test.MinFirmwareVersion)
 					{
-						debugOut($"Skipping test '{test.Description}' because firmware too old");
+						debugOut($"TEST: Skipping test '{test.Description}' because firmware too old");
 						test.Status = CommandTest.StatusType.Skipped;
-						testResult(CommandTest.StatusType.Skipped);
+						await testResult(test, CommandTest.StatusType.Skipped);
 						continue;
 					}
 					if ((test.MaxFirmwareVersion != -1) && FirmwareVersion > test.MaxFirmwareVersion)
 					{
-						debugOut($"Skipping test '{test.Description}' because firmware too new");
+						debugOut($"TEST: Skipping test '{test.Description}' because firmware too new");
 						test.Status = CommandTest.StatusType.Skipped;
-						testResult(CommandTest.StatusType.Skipped);
+						await testResult(test, CommandTest.StatusType.Skipped);
 						continue;
 					}
 
-					debugOut($"Running test '{test.Description}'...");
+					debugOut($"TEST: Running test '{test.Description}'...");
 					test.Status = CommandTest.StatusType.Running;
+					await testResult(test, CommandTest.StatusType.Running);
 					var command = ReplaceMacros(test.Command);
 					bool success = false;
 					string reply = string.Empty;
@@ -219,7 +220,7 @@ namespace OATTest
 						switch (test.ExpectedReplyType)
 						{
 							case CommandTest.ReplyType.Number:
-								debugOut($"Sending command '{command}', expecting number reply...");
+								debugOut($"TEST: Sending command '{command}', expecting number reply...");
 								handler.SendCommandConfirm(command, (data) =>
 								{
 									success = data.Success;
@@ -229,7 +230,7 @@ namespace OATTest
 								break;
 
 							case CommandTest.ReplyType.HashDelimited:
-								debugOut($"Sending command '{command}', expecting delimited reply...");
+								debugOut($"TEST: Sending command '{command}', expecting delimited reply...");
 								handler.SendCommand(command, (data) =>
 								{
 									success = data.Success;
@@ -240,7 +241,7 @@ namespace OATTest
 
 
 							case CommandTest.ReplyType.DoubleHashDelimited:
-								debugOut($"Sending command '{command}', expecting double delimited reply...");
+								debugOut($"TEST: Sending command '{command}', expecting double delimited reply...");
 								handler.SendCommandDoubleResponse(command, (data) =>
 								{
 									success = data.Success;
@@ -250,7 +251,7 @@ namespace OATTest
 								break;
 
 							case CommandTest.ReplyType.None:
-								debugOut($"Sending command '{command}', expecting no reply...");
+								debugOut($"TEST: Sending command '{command}', expecting no reply...");
 								handler.SendBlind(command, (data) =>
 								{
 									success = data.Success;
@@ -279,7 +280,7 @@ namespace OATTest
 							{
 								case "DELAY":
 									{
-										debugOut($"Executing built in 'Delay' command for {num * factor}ms ...");
+										debugOut($"TEST: Executing built in 'Delay' command for {num * factor}ms ...");
 										await Task.Delay(TimeSpan.FromMilliseconds(num * factor));
 										success = true;
 										reply = string.Empty;
@@ -291,17 +292,37 @@ namespace OATTest
 										do
 										{
 											await Task.Delay(TimeSpan.FromSeconds(0.5));
+											debugOut($"TEST: Send GIS");
 											handler.SendCommandConfirm(":GIS#", (data) =>
 											{
+												debugOut($"TEST: GIS returned {data.Success} and {data.Data}");
 												success = data.Success;
 												reply = data.Data;
 												_commandCompleteEvent.Set();
 											});
 											await _commandCompleteEvent.WaitAsync();
 											if ((reply == "0") || !success || _abortTestRun)
+											{
+												if (reply == "0") debugOut($"TEST: GIS loop terminating since OAT is idle.");
+												else if (!success) debugOut($"TEST: GIS loop terminating since GIS failed.");
+												else if (_abortTestRun) debugOut($"TEST: GIS loop terminating since Test run aborted.");
 												break;
+											}
 										}
 										while (true);
+
+										// If comms failed, try send a blind command to clear buffers.
+										if (!success)
+										{
+											debugOut($"TEST: GIS loop failed, sending Blind command.");
+											handler.SendBlind(":RS#", (data) =>
+											{
+												success = data.Success;
+												_commandCompleteEvent.Set();
+											});
+											await _commandCompleteEvent.WaitAsync();
+											debugOut($"TEST: Blind command complete.");
+										}
 										reply = string.Empty;
 										break;
 									}
@@ -316,7 +337,7 @@ namespace OATTest
 						// Did we get a reply?
 						if (!string.IsNullOrEmpty(reply))
 						{
-							debugOut($"Command completed successfully. Reply was '{reply}'.");
+							debugOut($"TEST: Command completed successfully. Reply was '{reply}'.");
 							// Yes, so set it
 							test.ReceivedReply = reply;
 							// Did we expect a reply?
@@ -324,7 +345,8 @@ namespace OATTest
 							{
 								var expected = ReplaceMacros(test.ExpectedReply);
 								// Yes, so set fail or success according to match
-								test.Status = (expected == test.ReceivedReply) ? CommandTest.StatusType.Success : CommandTest.StatusType.Failed;
+								
+								test.Status = test.IsReceivedReplyEqualToExpectedReply(reply,expected) ? CommandTest.StatusType.Success : CommandTest.StatusType.Failed;
 							}
 							else
 							{
@@ -339,24 +361,25 @@ namespace OATTest
 						}
 						else
 						{
-							debugOut($"Command completed successfully. No reply was received.");
+							debugOut($"TEST: Command completed successfully. No reply was received.");
 							// No reply. If that's expected, set complete (or success?), otherwise it's failed.
 							test.Status = test.ExpectedReplyType == CommandTest.ReplyType.None ? CommandTest.StatusType.Complete : CommandTest.StatusType.Failed;
 						}
 					}
 					else
 					{
-						debugOut($"Command failed.");
+						debugOut($"TEST: Command failed.");
 						test.Status = CommandTest.StatusType.Failed;
 					}
-					if (!testResult(test.Status))
+
+					if (!await testResult(test, test.Status))
 					{
 						_abortTestRun = true;
 					}
 				}
 				catch (Exception ex)
 				{
-					debugOut($"Exception caught in Test '{test.Description}': {ex.Message}");
+					debugOut($"TEST: Exception caught in Test '{test.Description}': {ex.Message}");
 				}
 			}
 			AreTestsRunning = false;

@@ -34,20 +34,6 @@ namespace OATControl
 	/// </summary>
 	public partial class DlgChooseOat : MetroWindow, INotifyPropertyChanged
 	{
-		public class DeviceDriver
-		{
-			public DeviceDriver(string name, bool hasSetup, ICommand runSetup)
-			{
-				DeviceName = name;
-				SupportsSetup = hasSetup;
-				RunSetupCommand = runSetup;
-			}
-
-			public string DeviceName { get; set; }
-			public bool SupportsSetup { get; set; }
-			public ICommand RunSetupCommand { get; set; }
-		}
-
 		public enum Steps
 		{
 			Idle,
@@ -759,8 +745,17 @@ namespace OATControl
 						GPSStatus = "Sync'd! Retrieving current location...";
 						float latitude = 0;
 						float longitude = 0;
+						string hemisphere = "Northern Hemisphere";
 						bool gotLoc = false;
 						var doneEventLatLong = new AutoResetEvent(false);
+						if (_mountViewModel.FirmwareVersion >= 11204)
+						{
+							_sendCommand(":XGHS#,#", (a) => { if (a.Success) hemisphere = a.Data[0] + ". Hemisphere"; });
+						}
+						else
+						{
+							hemisphere = string.Empty;
+						}
 						_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref latitude); });
 						_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref longitude); doneEventLatLong.Set(); });
 						doneEventLatLong.WaitOne();

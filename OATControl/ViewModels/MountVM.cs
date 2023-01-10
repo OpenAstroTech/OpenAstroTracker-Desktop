@@ -90,6 +90,7 @@ namespace OATControl.ViewModels
 		string _scopeFeatures = string.Empty;
 		string _scopeLatitude = string.Empty;
 		string _scopeLongitude = string.Empty;
+		string _scopeHemisphere = string.Empty;
 		string _scopeTemperature = string.Empty;
 		string _scopeDate = string.Empty;
 		string _scopeTime = string.Empty;
@@ -163,6 +164,7 @@ namespace OATControl.ViewModels
 		DateTime _startTime;
 		private string _parkString = "Park";
 		private string _remainingRATime;
+		private TimeSpan _remainingRATimeSpan;
 		private float _slewStartRA;
 		private float _slewStartDEC;
 		private float _slewTargetRA;
@@ -174,6 +176,8 @@ namespace OATControl.ViewModels
 		private int _incrDirection;
 		private string _incrVar;
 		private string _keyboardFocus = string.Empty;
+		private DateTime _siderealTime;
+		private DateTime _lastSiderealSync = DateTime.UtcNow - TimeSpan.FromMinutes(10);
 
 		public float RASpeed
 		{
@@ -320,7 +324,7 @@ namespace OATControl.ViewModels
 				}
 				if (i < 3) i++;
 			}
-			for (; i < 4; i++)
+			for (; i < 3; i++)
 			{
 				_customButtonText[i] = "action " + (i + 1);
 				_customButtonResultStatus[i] = "Ctrl-Shift-Click to set.";
@@ -1012,9 +1016,9 @@ namespace OATControl.ViewModels
 						{
 							if (result.Success)
 							{
-							//   0   1  2 3 4    5      6     7
-							// Idle,--T,0,0,31,080300,+900000,50000,#
-							string status = result.Data;
+								//   0   1  2 3 4    5      6     7
+								// Idle,--T,0,0,31,080300,+900000,50000,#
+								string status = result.Data;
 								Log.WriteLine("UPDATE: Received GX reply: [{0}]", status);
 
 								if (result.Success && !string.IsNullOrWhiteSpace(status))
@@ -1059,8 +1063,8 @@ namespace OATControl.ViewModels
 
 											await waitForTarget.WaitAsync();
 
-										// For newer firmware, use the actual stepper position calculations for progress display.
-										_slewTargetValid = false;
+											// For newer firmware, use the actual stepper position calculations for progress display.
+											_slewTargetValid = false;
 											if (_firmwareVersion > 10900)
 											{
 												this.SendOatCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", TargetRATotalHours, TargetDECTotalHours), (posRes) =>
@@ -1122,8 +1126,8 @@ namespace OATControl.ViewModels
 											default: IsSlewingNorth = false; IsSlewingSouth = false; break;
 										}
 
-									// Don't use property here since it sends a command.
-									_isTracking = (parts[1][2] == 'T') || _isGuiding;
+										// Don't use property here since it sends a command.
+										_isTracking = (parts[1][2] == 'T') || _isGuiding;
 										OnPropertyChanged("IsTracking");
 										OnPropertyChanged("IsGuiding");
 
@@ -1232,17 +1236,83 @@ namespace OATControl.ViewModels
 
 		public async Task UpdateSiderealTime()
 		{
-			string siderealTime = string.Empty;
-			var done = new AsyncAutoResetEvent();
-			this.SendOatCommand(":XGL#,#", (a) => { siderealTime = a.Data; done.Set(); });
-			await done.WaitAsync();
-			if (siderealTime.Length == 6)
+			TimeSpan elapsedSinceLastSync = DateTime.UtcNow - _lastSiderealSync;
+			if (elapsedSinceLastSync.TotalSeconds > 60)
 			{
-				ScopeSiderealTime = $"{siderealTime.Substring(0, 2)}:{siderealTime.Substring(2, 2)}:{siderealTime.Substring(4)}";
+				string siderealTime = string.Empty;
+				string safeTimeRemaining = string.Empty;
+				var done = new AsyncAutoResetEvent();
+				if (FirmwareVersion >= 11206)
+				{
+					this.SendOatCommand(":XGST#,#", (a) => { safeTimeRemaining = a.Data; });
+				}
+				this.SendOatCommand(":XGL#,#", (a) => { siderealTime = a.Data; done.Set(); });
+				await done.WaitAsync();
+				if (siderealTime.Length == 6)
+				{
+					ScopeSiderealTime = $"{siderealTime.Substring(0, 2)}:{siderealTime.Substring(2, 2)}:{siderealTime.Substring(4)}";
+					_siderealTime = new DateTime(2022, 1, 1, int.Parse(siderealTime.Substring(0, 2)), int.Parse(siderealTime.Substring(2, 2)), int.Parse(siderealTime.Substring(4)));
+				}
+				else
+				{
+					ScopeSiderealTime = "-";
+				}
+
+				_lastSiderealSync = DateTime.UtcNow;
+
+				if (!string.IsNullOrEmpty(safeTimeRemaining))
+				{
+					if (float.TryParse(safeTimeRemaining, out float remainingTime))
+					{
+						TimeSpan remaining = TimeSpan.FromHours(remainingTime);
+						RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
+						_remainingRATimeSpan = remaining;
+					}
+					else
+					{
+						RemainingRATime = "-";
+					}
+				}
+				else
+				{
+					RemainingRATime = "-";
+				}
 			}
 			else
 			{
-				ScopeSiderealTime = "-";
+				DateTime currentSiderealTime = _siderealTime + elapsedSinceLastSync;
+				ScopeSiderealTime = $"{currentSiderealTime.Hour:00}:{currentSiderealTime.Minute:00}:{currentSiderealTime.Second:00}";
+
+				TimeSpan remaining = _remainingRATimeSpan.Subtract(elapsedSinceLastSync);
+				RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
+			}
+		}
+
+		public async Task UpdateRemainingSafeTime()
+		{
+			if (FirmwareVersion >= 11206)
+			{
+				string safeTimeRemaining = string.Empty;
+				var done = new AsyncAutoResetEvent();
+				this.SendOatCommand(":XGST#,#", (a) => { safeTimeRemaining = a.Data; done.Set();  });
+				await done.WaitAsync();
+				if (!string.IsNullOrEmpty(safeTimeRemaining))
+				{
+					if (float.TryParse(safeTimeRemaining, out float remainingTime))
+					{
+						TimeSpan remaining = TimeSpan.FromHours(remainingTime);
+						RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
+						_remainingRATimeSpan = remaining;
+					}
+					else
+					{
+						RemainingRATime = "-";
+					}
+				}
+				else
+				{
+					RemainingRATime = "-";
+				}
 			}
 		}
 
@@ -1256,6 +1326,7 @@ namespace OATControl.ViewModels
 			string temperature = string.Empty;
 			string speed = string.Empty;
 			string network = string.Empty;
+			string hemisphere = string.Empty;
 			bool failed = false;
 
 			if (_oatMount != null)
@@ -1267,6 +1338,10 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GL#,#", (a) => { localTime = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
+					if (FirmwareVersion >= 11206)
+					{
+						this.SendOatCommand(":XGHS#,#", (a) => { hemisphere = a.Data.Substring(0, 1); failed |= !a.Success; });
+					}
 					this.SendOatCommand(":XGL#,#", (a) => { siderealTime = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":XGN#,#", (a) => { network = a.Data; failed |= !a.Success; });
 					if (editable)
@@ -1328,7 +1403,7 @@ namespace OATControl.ViewModels
 							TrackingSpeed = float.Parse(speed, _oatCulture);
 						}
 
-						if (temperature != "0")
+						if (!string.IsNullOrEmpty(temperature) && temperature != "0")
 						{
 							float temp = float.Parse(temperature, _oatCulture);
 							int fahrenheit = (int)Math.Round(32.0 + (9.0 * temp / 5.0));
@@ -1378,6 +1453,19 @@ namespace OATControl.ViewModels
 									ScopeNetworkSSID = "-";
 								}
 							}
+						}
+
+						if (hemisphere == "N")
+						{
+							ScopeHemisphere = "Northern Hemisphere";
+						}
+						else if (hemisphere == "S")
+						{
+							ScopeHemisphere = "Southern Hemisphere";
+						}
+						else
+						{
+							ScopeHemisphere = string.Empty;
 						}
 					}
 					catch (Exception ex)
@@ -2293,7 +2381,7 @@ namespace OATControl.ViewModels
 					{
 						if (s == null) return false;
 						statuses.Add(s[0]);
-						return (s[0] != "Idle") && (s[0] != "Tracking");
+						return (s[0] != "Idle") && (s[0] != "Tracking") && (s[0] != "Parked");
 					})
 					{
 						Owner = Application.Current.MainWindow,
@@ -2584,10 +2672,13 @@ namespace OATControl.ViewModels
 				if (res.Success)
 				{
 					var parts = res.Data.Split('|');
-					var raSteps = float.Parse(parts[0]);
-					raSteps += TrkStepper * long.Parse(ScopeRASlewMS) / long.Parse(this.ScopeRATrackMS);
-					RAStepperTargetHours = raSteps / RAStepsPerDegree / 15.0;
-					DECStepperTargetDegrees = float.Parse(parts[1]) / DECStepsPerDegree;
+					if (parts.Length == 2)
+					{
+						var raSteps = float.Parse(parts[0]);
+						raSteps += TrkStepper * long.Parse(ScopeRASlewMS) / long.Parse(this.ScopeRATrackMS);
+						RAStepperTargetHours = raSteps / RAStepsPerDegree / 15.0;
+						DECStepperTargetDegrees = float.Parse(parts[1]) / DECStepsPerDegree;
+					}
 				}
 			});
 		}
@@ -2768,22 +2859,29 @@ namespace OATControl.ViewModels
 
 		private void OnRAPosChanged(float a, float b)
 		{
-			long tms;
-			if (long.TryParse(ScopeRATrackMS, out tms))
+			if (FirmwareVersion < 11206)
 			{
-				var raTrackMs = long.Parse(ScopeRATrackMS);
-				var raSlewMs = long.Parse(ScopeRASlewMS);
-				float raPos = RAStepper + raSlewMs * TrkStepper / raTrackMs;
-				var stepLimit = 15 * 6.5 * RAStepsPerDegree; // After 6.5h the ring falls off the bearings
+				long tms;
+				if (long.TryParse(ScopeRATrackMS, out tms))
+				{
+					var raTrackMs = long.Parse(ScopeRATrackMS);
+					var raSlewMs = long.Parse(ScopeRASlewMS);
+					float raPos = RAStepper + raSlewMs * TrkStepper / raTrackMs;
+					var stepLimit = 15 * 6.5 * RAStepsPerDegree; // After 6.5h the ring falls off the bearings
 
-				int raStepsLeft = (int)Math.Round(stepLimit - raPos);
-				double secondsLeft = (3600.0 / 15.0) * raStepsLeft / (RAStepsPerDegree * SpeedCalibrationFactor);
-				// secondsLeft = 3600;
-				RemainingRATime = TimeSpan.FromSeconds(secondsLeft).ToString("%h'h '%m'm'");
+					int raStepsLeft = (int)Math.Round(stepLimit - raPos);
+					double secondsLeft = (3600.0 / 15.0) * raStepsLeft / (RAStepsPerDegree * SpeedCalibrationFactor);
+					// secondsLeft = 3600;
+					RemainingRATime = TimeSpan.FromSeconds(secondsLeft).ToString("%h'h '%m'm'");
+				}
+				else
+				{
+					RemainingRATime = "-";
+				}
 			}
 			else
 			{
-				RemainingRATime = "-";
+				Task.Run(() => UpdateRemainingSafeTime());
 			}
 
 			OnPropertyChanged("RAStepperHours");
@@ -3172,6 +3270,11 @@ namespace OATControl.ViewModels
 		{
 			get { return _scopeLongitude; }
 			set { SetPropertyValue(ref _scopeLongitude, value); }
+		}
+		public string ScopeHemisphere
+		{
+			get { return _scopeHemisphere; }
+			set { SetPropertyValue(ref _scopeHemisphere, value); }
 		}
 
 		public string ScopeTemperature

@@ -26,24 +26,12 @@ namespace OATTest.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string COMPort {
+        public string CommandDevice {
             get {
-                return ((string)(this["COMPort"]));
+                return ((string)(this["CommandDevice"]));
             }
             set {
-                this["COMPort"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("19200")]
-        public string COMBaud {
-            get {
-                return ((string)(this["COMBaud"]));
-            }
-            set {
-                this["COMBaud"] = value;
+                this["CommandDevice"] = value;
             }
         }
         
@@ -61,7 +49,7 @@ namespace OATTest.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("19200")]
+        [global::System.Configuration.DefaultSettingValueAttribute("115200")]
         public string DebugBaud {
             get {
                 return ((string)(this["DebugBaud"]));
@@ -92,6 +80,30 @@ namespace OATTest.Properties {
             }
             set {
                 this["StopOnError"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SeparateDebugPort {
+            get {
+                return ((bool)(this["SeparateDebugPort"]));
+            }
+            set {
+                this["SeparateDebugPort"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("19200")]
+        public string COMBaud {
+            get {
+                return ((string)(this["COMBaud"]));
+            }
+            set {
+                this["COMBaud"] = value;
             }
         }
     }

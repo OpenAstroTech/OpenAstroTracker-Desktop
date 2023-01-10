@@ -74,7 +74,7 @@ namespace OATCommunications
 			bool error = false;
 			SendCommand(":GR#,#", (ra) =>
 			{
-				if (ra.Success && TryParseRA(ra.Data, out double dRa))
+				if (ra.Success && Parsers.TryParseRA(ra.Data, out double dRa))
 				{
 					MountState.RightAscension = dRa;
 				}
@@ -86,7 +86,7 @@ namespace OATCommunications
 
 			SendCommand(":GD#,#", (dec) =>
 			{
-				if (dec.Success && TryParseDec(dec.Data, out double dDec))
+				if (dec.Success && Parsers.TryParseDec(dec.Data, out double dDec))
 				{
 					MountState.Declination = dDec;
 				}
@@ -110,7 +110,7 @@ namespace OATCommunications
 
 			SendCommand(":Gt#,#", (lat) =>
 			{
-				if (lat.Success && TryParseDec(lat.Data, out latitude))
+				if (lat.Success && Parsers.TryParseDec(lat.Data, out latitude))
 				{
 					success = true;
 				}
@@ -130,7 +130,7 @@ namespace OATCommunications
 
 			SendCommand(":Gg#,#", (lat) =>
 			{
-				if (lat.Success && TryParseDec(lat.Data, out longitude))
+				if (lat.Success && Parsers.TryParseDec(lat.Data, out longitude))
 				{
 					success = true;
 					if (_firmwareVersion < 11105)
@@ -157,13 +157,6 @@ namespace OATCommunications
 			char sgn = latitude < 0 ? '-' : '+';
 			int latInt = (int)Math.Abs(latitude);
 			int latMin = (int)((Math.Abs(latitude) - latInt) * 60.0f);
-			char hemisphere = latitude < 0 ? 'S' : 'N';
-			SendCommand($":XSHS{hemisphere}#,n", (result) =>
-			{
-				doneEvent.Set();
-			});
-
-			await doneEvent.WaitAsync();
 			SendCommand($":St{sgn}{latInt:00}*{latMin:00}#,n", (result) =>
 			{
 				success = result.Success;
@@ -221,50 +214,6 @@ namespace OATCommunications
 			m = (int)Math.Floor(val);
 			val = (val - m) * 60;
 			s = (int)Math.Round(val);
-		}
-
-		private bool TryParseRA(string ra, out double dRa)
-		{
-			try
-			{
-				var parts = ra.Split(':');
-				dRa = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0 + int.Parse(parts[2]) / 3600.0;
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Log.WriteLine("OAT: Can't parse RA from {0}", ra);
-			}
-			dRa = 0;
-			return false;
-		}
-
-		private bool TryParseDec(string dec, out double dDec)
-		{
-			try
-			{
-				var parts = dec.Split('*', '\'');
-				if (parts[0][0] == '-')
-				{
-					dDec = -(int.Parse(parts[0].Substring(1)) + int.Parse(parts[1]) / 60.0);
-				}
-				else
-				{
-					dDec = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0;
-				}
-				if (parts.Length > 2)
-				{
-					dDec += int.Parse(parts[2]) / 3600.0;
-				}
-
-				return true;
-			}
-			catch (Exception ex)
-			{
-				Log.WriteLine("OAT: Can't parse DEC from {0}", dec);
-			}
-			dDec = 0;
-			return false;
 		}
 
 		public async Task<bool> StartMoving(string dir)

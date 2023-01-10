@@ -3,16 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:e="clr-namespace:OATTest.Converters"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:OATTest" xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:local="clr-namespace:OATTest" xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase" xmlns:WpfUtilities="clr-namespace:OATCommunications.WPF;assembly=OATCommunications.WPF"
         mc:Ignorable="d"
         Title="OAT Test Manager" Height="870" Width="900" Background="#EEF">
     <Window.Resources>
         <CollectionViewSource x:Key="testlist" Source="{Binding TestSuites}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Name" />
-            </CollectionViewSource.SortDescriptions>                  
-            
+            </CollectionViewSource.SortDescriptions>
+
         </CollectionViewSource>
         <Style x:Key="CommandHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontWeight" Value="Bold"/>
@@ -50,7 +51,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Command Port" HorizontalAlignment="Right" Margin="0,6,0,5" VerticalAlignment="Center" />
-        <ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding AvailableDevices}" SelectedValue="{Binding CommandPort}"/>
+        <ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding AvailableDevices}" DisplayMemberPath="DeviceName" SelectedItem="{Binding CommandDevice}"/>
         <ComboBox Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" Margin="10,5,10,0" VerticalAlignment="Top" Width="90" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding CommandBaudRate}" />
         <Button Grid.Row="0" Grid.Column="3" Grid.RowSpan="2" Content="Rescan Ports" Padding="8,14,8,18" Margin="4,4,4,0" VerticalAlignment="Center" Command="{Binding ResetScanDevicesCommand}" IsEnabled="{Binding CanReset}" />
         <TextBlock Grid.Row="0" Grid.Column="4" Text="Set Date To:" HorizontalAlignment="Right" Margin="30,6,5,5" VerticalAlignment="Center" />
@@ -59,7 +60,7 @@
         <Button Grid.Row="0" Grid.Column="7" Grid.RowSpan="2" HorizontalAlignment="Left" Padding="5,12,5,16" Width="50" Margin="4,5,4,3" Content="Preset" VerticalAlignment="Center" Command="{Binding SetDateTimeToPresetCommand}"/>
 
         <CheckBox Grid.Row="1" Content="Seperate Debug Port" HorizontalAlignment="Right" Margin="5,6,0,6" VerticalAlignment="Center" x:Name="seperatePort" IsChecked="{Binding IsDebugPortSeperate}" />
-        <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding AvailableDevices}" SelectedValue="{Binding DebugPort}" IsEnabled="{Binding IsChecked,ElementName=seperatePort}"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding AvailableDevices}" DisplayMemberPath="DeviceName" SelectedItem="{Binding DebugPort}" IsEnabled="{Binding IsChecked,ElementName=seperatePort}"/>
         <ComboBox Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" Margin="10,5,10,0" VerticalAlignment="Top" Width="90" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding DebugBaudRate}" IsEnabled="{Binding IsChecked,ElementName=seperatePort}"/>
         <TextBlock Grid.Row="1" Grid.Column="4" Text="Set Time To:" HorizontalAlignment="Right" Margin="30,6,5,5" VerticalAlignment="Center" />
         <TextBox Grid.Row="1" Grid.Column="5" HorizontalAlignment="Stretch" Height="Auto" Margin="4,6,4,3" Text="{Binding UseTime}" VerticalAlignment="Center" />
@@ -68,7 +69,8 @@
 
         <Grid Grid.Row="3" Grid.ColumnSpan="7" HorizontalAlignment="Stretch" Margin="5,10,5,5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="161"/>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -77,13 +79,28 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <ComboBox Grid.Column="0" Margin="0" ItemsSource="{Binding Source={StaticResource testlist}}" SelectedItem="{Binding SelectedTestSuite}" />
-            <Button Grid.Column="1" Content="{Binding RunButtonText}" Padding="15,2" Margin="10,0" VerticalAlignment="Center" Command="{Binding RunTestsCommand}" IsEnabled="{Binding CanRun}"/>
-            <Button Grid.Column="2" Content="Reset" Padding="15,2" Margin="5,0" VerticalAlignment="Center" Command="{Binding ResetTestsCommand}" IsEnabled="{Binding CanReset}" />
+            <ComboBox Grid.Column="0" Margin="0" ItemsSource="{Binding Source={StaticResource testlist}}" SelectedItem="{Binding SelectedTestSuite}" Grid.ColumnSpan="2" />
+            <Button Grid.Column="3" Content="Reset" Padding="15,2" Margin="5,0" VerticalAlignment="Center" Command="{Binding ResetTestsCommand}" IsEnabled="{Binding CanReset}" />
 
-            <TextBlock Grid.Row="1" Text="{Binding AppStatus}" VerticalAlignment="Top" Margin="5,3,0,0" FontWeight="Bold" Foreground="Navy"/>
+            <TextBlock Grid.Row="1" Text="{Binding AppStatus}" VerticalAlignment="Top" Margin="5,3,0,0" FontWeight="Bold" Foreground="Navy" />
+            <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0" Grid.Column="0" Content="Run" Padding="15,2" Margin="10,8" VerticalAlignment="Center" Command="{Binding RunTestCommand}" IsEnabled="{Binding CanRun}"/>
+                <Button Grid.Row="1" Grid.Column="0" Content="Debug" Padding="15,2" Margin="10,8" VerticalAlignment="Center" Command="{Binding DebugTestCommand}" IsEnabled="{Binding CanRun}"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="Stop" Padding="15,2" Margin="10,8" VerticalAlignment="Center" Command="{Binding StopTestCommand}" IsEnabled="{Binding CanStop}"/>
+                <Button Grid.Row="1" Grid.Column="1" Content="Continue" Padding="15,2" Margin="10,8" VerticalAlignment="Center" Command="{Binding ContinueTestCommand}" IsEnabled="{Binding CanStep}" />
 
-            <Grid Grid.Row="1" Margin="0,24,0,10" VerticalAlignment="Top">
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,24,0,0" VerticalAlignment="Top" Grid.ColumnSpan="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -108,7 +125,7 @@
                 </Border>
                 <ProgressBar Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,5,0,0" VerticalAlignment="Bottom" Height="10" Value="{Binding TestsCompleted,Mode=OneWay}" Maximum="{Binding NumTests,Mode=OneWay}"/>
             </Grid>
-            <Button Content="Logs" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,25,5,0" Grid.Row="1" VerticalAlignment="Top" Command="{Binding OpenLogsCommand}"/>
+            <Button Grid.Row="1" Grid.Column="3" Content="Logs" HorizontalAlignment="Stretch" Margin="5,25,5,0" VerticalAlignment="Top" Command="{Binding OpenLogsCommand}"/>
 
         </Grid>
 
@@ -128,7 +145,10 @@
             <TextBlock Grid.Column="4" Text="Expected"  Style="{StaticResource CommandHeaderStyle}"/>
             <TextBlock Grid.Column="5" Text="Received"  Style="{StaticResource CommandHeaderStyle}" Margin="-5,0,0,0"/>
         </Grid>
-        <ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="7" Margin="5,2,5,18" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ItemsSource="{Binding Tests}" >
+        <ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="7" Margin="5,2,5,18" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" ItemsSource="{Binding Tests}" SelectedItem="{Binding SelectedTest}" >
+            <i:Interaction.Behaviors>
+                <WpfUtilities:ScrollIntoViewForListBox />
+            </i:Interaction.Behaviors>
             <ListView.Resources>
                 <e:SwitchConverter x:Key="StatusIcons">
                     <e:SwitchConverterCase When="Ready" Then="Images/clock.png" />
@@ -159,28 +179,16 @@
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
-            <!--<ListView.View>
-				<GridView>
-					<GridViewColumn Width="28">
-						<GridViewColumn.CellTemplate>
-							<DataTemplate>
-								<Image Source="Images\clock.png" />
-							</DataTemplate>
-						</GridViewColumn.CellTemplate>
-					</GridViewColumn>
 
-					<GridViewColumn Header="Status" Width="60" DisplayMemberBinding="{Binding Status}"/>
-					<GridViewColumn Header="Description" Width="Auto" DisplayMemberBinding="{Binding Description}"/>
-					<GridViewColumn Header="Command" Width="120" DisplayMemberBinding="{Binding Command}"/>
-					<GridViewColumn Header="Expected" Width="Auto" DisplayMemberBinding="{Binding Expected}"/>
-					<GridViewColumn Header="Received" Width="Auto" DisplayMemberBinding="{Binding Received}"/>
-				</GridView>
-			</ListView.View>-->
         </ListView>
 
         <TextBlock Grid.Row="7" HorizontalAlignment="Left" Margin="5,0,0,1.63" Text="Debug Output" VerticalAlignment="Bottom" FontSize="11" FontWeight="Bold" />
 
-        <ListBox Grid.Row="8" Grid.ColumnSpan="7" Margin="5,2.37,5,4.63" FontFamily="Consolas" FontSize="10" ItemsSource="{Binding DebugOutput}" />
+        <ListBox Grid.Row="8" Grid.ColumnSpan="7" Margin="5,2.37,5,4.63" FontFamily="Consolas" FontSize="10" ItemsSource="{Binding DebugOutput}" SelectedIndex="{Binding LastLineIndex, Mode=OneWay}">
+            <i:Interaction.Behaviors>
+                <WpfUtilities:ScrollIntoViewForListBox />
+            </i:Interaction.Behaviors>
+        </ListBox>
 
     </Grid>
 </Window>

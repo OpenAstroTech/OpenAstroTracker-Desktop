@@ -36,8 +36,8 @@ namespace OATCommunications.WPF.CommunicationHandlers
 				}
 				_port.BaudRate = rate;
 				_port.DtrEnable = false;
-				_port.ReadTimeout = 1000;
-				_port.WriteTimeout = 1000;
+				_port.ReadTimeout = 2000;
+				_port.WriteTimeout = 2000;
 			}
 		}
 
@@ -163,6 +163,7 @@ namespace OATCommunications.WPF.CommunicationHandlers
 			StopJobsProcessor();
 			if (_port != null && _port.IsOpen)
 			{
+				// Log.WriteLine("SERIAL: Port is open, closing.");
 				Log.WriteLine("SERIAL: Port is open, sending shutdown command [:Qq#]");
 				if (_port.IsOpen)
 				{

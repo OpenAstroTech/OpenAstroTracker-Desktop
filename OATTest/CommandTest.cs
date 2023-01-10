@@ -4,12 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using OATCommunications.Model;
 using OATCommunications.WPF;
 
 namespace OATTest
 {
 	public class CommandTest : NotifyPropertyChanged
 	{
+		// We compare DEC slew results with an accuracy of plusminus 8 arcsecs
+		public static double ArcSecondResolution = 8.0 / 60.0 / 60.0;
+		public static double TwoSeconds = 2.0 / 60.0 / 60.0;
+
 		public enum StatusType
 		{
 			Ready,
@@ -32,6 +37,7 @@ namespace OATTest
 		{
 			string _expected = string.Empty;
 			string _storeAs = string.Empty;
+			string _fuzzyType = string.Empty;
 			long _minVersion = -1;
 			long _maxVersion = -1;
 			ReplyType _replyType;
@@ -47,6 +53,7 @@ namespace OATTest
 				_minVersion = long.Parse(node.Attribute("MinFirmware")?.Value ?? "-1");
 				_maxVersion = long.Parse(node.Attribute("MaxFirmware")?.Value ?? "-1");
 				_storeAs = node.Attribute("StoreAs")?.Value ?? string.Empty;
+				_fuzzyType = node.Attribute("Fuzzy")?.Value ?? string.Empty;
 			}
 
 			public string Expected { get { return _expected; } }
@@ -54,6 +61,7 @@ namespace OATTest
 			public long MinVersion { get { return _minVersion; } }
 			public long MaxVersion { get { return _maxVersion; } }
 			public string StoreAs { get { return _storeAs; } }
+			public string FuzzyType { get { return _fuzzyType; } }
 		}
 
 		string _command = string.Empty;
@@ -190,6 +198,32 @@ namespace OATTest
 				}
 
 			}
+		}
+
+		internal bool IsReceivedReplyEqualToExpectedReply(string reply, string expected)
+		{
+			string fuzzyCompare = (_replies.FirstOrDefault()?.FuzzyType ?? "").ToLower();
+			if (string.IsNullOrEmpty(fuzzyCompare))
+			{
+				return string.Equals(reply, expected);
+			}
+			if (fuzzyCompare == "degrees")
+			{
+				if (Parsers.TryParseDec(reply, out double replyDec) && Parsers.TryParseDec(expected, out double expectedDec))
+				{
+					return Math.Abs(replyDec - expectedDec) < ArcSecondResolution;
+				}
+			}
+			else if (fuzzyCompare.StartsWith("time"))
+			{
+				if (Parsers.TryParseRA(reply, out double replyRa) && Parsers.TryParseRA(expected, out double expectedRa))
+				{
+					return Math.Abs(replyRa - expectedRa) < TwoSeconds;
+				}
+			}
+
+
+			return false;
 		}
 	}
 }

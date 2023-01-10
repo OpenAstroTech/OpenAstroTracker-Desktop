@@ -2,23 +2,26 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="OATTest.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="COMPort" Type="System.String" Scope="User">
+    <Setting Name="CommandDevice" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="COMBaud" Type="System.String" Scope="User">
-      <Value Profile="(Default)">19200</Value>
     </Setting>
     <Setting Name="DebugPort" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="DebugBaud" Type="System.String" Scope="User">
-      <Value Profile="(Default)">19200</Value>
+      <Value Profile="(Default)">115200</Value>
     </Setting>
     <Setting Name="Suite" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="StopOnError" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="SeparateDebugPort" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="COMBaud" Type="System.String" Scope="User">
+      <Value Profile="(Default)">19200</Value>
     </Setting>
   </Settings>
 </SettingsFile>

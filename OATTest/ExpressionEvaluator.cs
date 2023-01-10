@@ -10,7 +10,6 @@ namespace OATTest
 	{
 		public static double Evaluate(string expr, Func<string, string> getVar)
 		{
-			//expr = expr.ToLower();
 			expr = expr.Replace(" ", "");
 			expr = expr.Replace("true", "1");
 			expr = expr.Replace("false", "0");
@@ -39,6 +38,11 @@ namespace OATTest
 
 				if (!char.IsDigit(chr) && chr != '.' && value != "")
 				{
+					if ((stack.Count() == 1) && (stack.Peek() == "-"))
+					{
+						stack.Pop();
+						value = "-" + value;
+					}
 					stack.Push(value);
 					value = "";
 				}
@@ -91,7 +95,14 @@ namespace OATTest
 						throw new Exception("Invalid decimal.");
 
 					if (i == (expr.Length - 1))
+					{
+						if ((stack.Count() == 1) && (stack.Peek() == "-"))
+						{
+							stack.Pop();
+							value = "-" + value;
+						}
 						stack.Push(value);
+					}
 
 				}
 				else if (chr != '$')
@@ -100,9 +111,10 @@ namespace OATTest
 				}
 
 			}
+
 			double result = 0;
 			List<String> list = stack.ToList<String>();
-			for (int i = list.Count - 2; i >= 0; i--)
+			for (int i = list.Count - 2; i >= 0;)
 			{
 				if (list[i] == "/")
 				{
@@ -111,9 +123,13 @@ namespace OATTest
 					list.RemoveAt(i - 1);
 					i -= 2;
 				}
+				else
+				{
+					i--;
+				}
 			}
 
-			for (int i = list.Count - 2; i >= 0; i--)
+			for (int i = list.Count - 2; i >= 0;)
 			{
 				if (list[i] == "*")
 				{
@@ -122,8 +138,12 @@ namespace OATTest
 					list.RemoveAt(i - 1);
 					i -= 2;
 				}
+				else
+				{
+					i--;
+				}
 			}
-			for (int i = list.Count - 2; i >= 0; i--)
+			for (int i = list.Count - 2; i >= 0;)
 			{
 				if (list[i] == "+")
 				{
@@ -132,8 +152,12 @@ namespace OATTest
 					list.RemoveAt(i - 1);
 					i -= 2;
 				}
+				else
+				{
+					i--;
+				}
 			}
-			for (int i = list.Count - 2; i >= 0; i--)
+			for (int i = list.Count - 2; i >= 0;)
 			{
 				if (list[i] == "-")
 				{
@@ -141,6 +165,10 @@ namespace OATTest
 					list.RemoveAt(i + 1);
 					list.RemoveAt(i - 1);
 					i -= 2;
+				}
+				else
+				{
+					i--;
 				}
 			}
 			stack.Clear();
