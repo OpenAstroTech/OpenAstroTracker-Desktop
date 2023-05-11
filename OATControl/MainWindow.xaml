@@ -19,6 +19,7 @@
         <converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
         <converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
         <converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
+        <converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Collapsed" />
 
         <Path x:Key="IconArrowUp" x:Shared="false" Data="M16,0L32,19.745 0,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
         <Path x:Key="IconArrowLeft" x:Shared="false" Data="M25.3,0L25.3,32 0,16z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
@@ -354,6 +355,29 @@
 						MajorTickColor="#FC11"
 						MinorTickColor="#F911"
 						TickLabelColor="#FB11"
+                        Visibility="{Binding ScopeType, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}OAM}"
+				  />
+                <controls:RangeSlider Grid.Column="4" Grid.RowSpan="4" 
+						Width="48"
+						Height="270"
+						LabelColumnSize="30"
+						Minimum="{Binding DECStepperMinimum}"
+						Maximum="{Binding DECStepperMaximum}"
+						LowerLimit="{Binding DECStepperLowerLimit}"
+						UpperLimit="{Binding DECStepperUpperLimit}"
+						Value="{Binding DECStepperDegrees, Mode=OneWay}" 
+						MarkerValue="{Binding DECStepperTargetDegrees, Mode=OneWay}" 
+						Padding="0" 
+						ShowLimits="{Binding ShowDECLimits}"
+						AxisLabel="DEC Axis" 
+						TickMajorSpacing="30" 
+						TickMinorSpacing="10" 
+						TickStart="-150" 
+						TickEnd="150"
+						MajorTickColor="#FC11"
+						MinorTickColor="#F911"
+						TickLabelColor="#FB11"
+                        Visibility="{Binding ScopeType, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}OAT}"
 				  />
 
                 <controls:RangeSlider Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="5"

@@ -70,6 +70,7 @@ namespace OATControl.ViewModels
 		double _speed = 1.0;
 		long _speedEdit = 0;
 		string _scopeName = string.Empty;
+		string _scopeType = "OAT";
 		string _scopeVersion = string.Empty;
 		string _scopeHardware = string.Empty;
 		string _scopeRAStepper = string.Empty;
@@ -1294,7 +1295,7 @@ namespace OATControl.ViewModels
 			{
 				string safeTimeRemaining = string.Empty;
 				var done = new AsyncAutoResetEvent();
-				this.SendOatCommand(":XGST#,#", (a) => { safeTimeRemaining = a.Data; done.Set();  });
+				this.SendOatCommand(":XGST#,#", (a) => { safeTimeRemaining = a.Data; done.Set(); });
 				await done.WaitAsync();
 				if (!string.IsNullOrEmpty(safeTimeRemaining))
 				{
@@ -1762,6 +1763,7 @@ namespace OATControl.ViewModels
 			}
 
 			ScopeName = string.Empty;
+			ScopeType = "OAT";
 			ConnectionState = string.Empty;
 			ScopeHardware = string.Empty;
 			_oatMount = null;
@@ -1849,6 +1851,7 @@ namespace OATControl.ViewModels
 			catch (FormatException fex)
 			{
 				ScopeName = string.Empty;
+				ScopeType = "OAT";
 				ScopeHardware = string.Empty;
 				ConnectionState = string.Empty;
 				Log.WriteLine("MOUNT: Failed to connect and configure OAT! {0}", fex.Message);
@@ -1857,6 +1860,7 @@ namespace OATControl.ViewModels
 			catch (Exception ex)
 			{
 				ScopeName = string.Empty;
+				ScopeType = "OAT";
 				ScopeHardware = string.Empty;
 				ConnectionState = string.Empty;
 				Log.WriteLine("MOUNT: Failed to connect and configure OAT! {0}", ex.Message);
@@ -2035,6 +2039,7 @@ namespace OATControl.ViewModels
 					{
 						Log.WriteLine("MOUNT: Request OAT Firmware version (Attempt #{0})", attempts + 1);
 
+						string mountType = string.Empty;
 						this.SendOatCommand("GVP#,#", (result) =>
 						{
 							if (!result.Success)
@@ -2047,7 +2052,7 @@ namespace OATControl.ViewModels
 							{
 								failed = false;
 								resultName = result.Data;
-								Log.WriteLine("MOUNT: Successfully communicated with OAT");
+								Log.WriteLine("MOUNT: Successfully communicated with " + resultName);
 							}
 							Log.WriteLine("MOUNT: Setting signal");
 							doneEvent.Set();
@@ -2087,14 +2092,15 @@ namespace OATControl.ViewModels
 
 			await Task.Delay(200);
 
-			Log.WriteLine("MOUNT: Connected to OAT. Requesting firmware version..");
+			ScopeType = (resultName == "OpenAstroTracker") ? "OAT" : "OAM";
+			Log.WriteLine("MOUNT: Connected to " + ScopeType + ". Requesting firmware version..");
 			this.SendOatCommand("GVN#,#", (resultNr) =>
 			{
 				if (resultNr.Success)
 				{
 					if (resultNr.Data.StartsWith("["))
 					{
-						message = "OAT likely has debug logging enabled. Check firmware.";
+						message = ScopeType + " likely has debug logging enabled. Check firmware.";
 						Log.WriteLine("MOUNT: {0} {1}", message, resultNr.Data);
 						failed = true;
 					}
@@ -2453,6 +2459,7 @@ namespace OATControl.ViewModels
 			RequeryCommands();
 			Log.WriteLine("MOUNT: Chooser cancelled");
 			ScopeName = string.Empty;
+			ScopeType = "OAT";
 			ScopeHardware = string.Empty;
 			_oatAddonStates.Clear();
 			if (_commHandler != null)
@@ -3132,6 +3139,15 @@ namespace OATControl.ViewModels
 		{
 			get { return _scopeVersion; }
 			set { SetPropertyValue(ref _scopeVersion, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the type of the scope (OAM vs. OAT) 
+		/// </summary>
+		public string ScopeType
+		{
+			get { return _scopeType; }
+			set { SetPropertyValue(ref _scopeType, value); }
 		}
 
 		/// <summary>
