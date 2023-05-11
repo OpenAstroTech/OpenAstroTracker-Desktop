@@ -1284,7 +1284,7 @@ namespace OATControl.ViewModels
 				ScopeSiderealTime = $"{currentSiderealTime.Hour:00}:{currentSiderealTime.Minute:00}:{currentSiderealTime.Second:00}";
 
 				TimeSpan remaining = _remainingRATimeSpan.Subtract(elapsedSinceLastSync);
-				RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
+				// RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
 			}
 		}
 
