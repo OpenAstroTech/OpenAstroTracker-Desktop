@@ -49,6 +49,8 @@ namespace OATControl.ViewModels
 		float _decStepperUpperLimit = 180;
 		double _decStepperTargetDegrees;
 		bool _showDecLimits = false;
+		string _decTickLabels = string.Empty;
+		float _decTickStart = 0;
 
 		bool _connected = false;
 		bool _slewInProgress = false;
@@ -70,7 +72,7 @@ namespace OATControl.ViewModels
 		double _speed = 1.0;
 		long _speedEdit = 0;
 		string _scopeName = string.Empty;
-		string _scopeType = "OAT";
+		string _scopeType = string.Empty;
 		string _scopeVersion = string.Empty;
 		string _scopeHardware = string.Empty;
 		string _scopeRAStepper = string.Empty;
@@ -293,6 +295,8 @@ namespace OATControl.ViewModels
 			_oatSimComm.Start(4035);
 			_oatSimComm.ClientConnected += OnSimulationClientConnect;
 			_oatSimComm.ClientCommand += OnSimationClientCommand;
+
+			ScopeType = "OAM";
 		}
 
 		internal async Task SetSteps(float raStepsAfter, float decStepsAfter)
@@ -1212,11 +1216,13 @@ namespace OATControl.ViewModels
 			OnPropertyChanged("CurrentRAMinute");
 			OnPropertyChanged("CurrentRASecond");
 			OnPropertyChanged("CurrentRATotalHours");
+			OnPropertyChanged("CurrentRAString");
 			OnPropertyChanged("CurrentDECSign");
 			OnPropertyChanged("CurrentDECDegree");
 			OnPropertyChanged("CurrentDECMinute");
 			OnPropertyChanged("CurrentDECSecond");
 			OnPropertyChanged("CurrentDECTotalHours");
+			OnPropertyChanged("CurrentDECString");
 		}
 
 		public async Task<string> SetSiteLatitude(float latitude)
@@ -1843,6 +1849,8 @@ namespace OATControl.ViewModels
 				KeepMiniControlOnTop = AppSettings.Instance.KeepMiniControlOnTop;
 				DECStepperLowerLimit = AppSettings.Instance.LowerDecLimit;
 				DECStepperUpperLimit = AppSettings.Instance.UpperDecLimit;
+
+				OnPropertyChanged("ScopeType");
 
 				_connectedAt = DateTime.UtcNow;
 				MountConnected = true;
@@ -2956,6 +2964,24 @@ namespace OATControl.ViewModels
 			get { return _decStepperMinimum; }
 			set { SetPropertyValue(ref _decStepperMinimum, value); }
 		}
+		
+		/// <summary>
+		/// Gets or sets the DEC Slider labels
+		/// </summary>
+		public string DECTickLabels
+		{
+			get { return _decTickLabels; }
+			set { SetPropertyValue(ref _decTickLabels, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the DEC Tick start
+		/// </summary>
+		public float DECTickStart
+		{
+			get { return _decTickStart; }
+			set { SetPropertyValue(ref _decTickStart, value); }
+		}
 
 		/// <summary>
 		/// Gets or sets the DEC Stepper position
@@ -3147,9 +3173,32 @@ namespace OATControl.ViewModels
 		public string ScopeType
 		{
 			get { return _scopeType; }
-			set { SetPropertyValue(ref _scopeType, value); }
+			set { SetPropertyValue(ref _scopeType, value, OnScopeTypeChanged); }
 		}
 
+		private void OnScopeTypeChanged(string oldVal, string newVal)
+		{
+			if (newVal == "OAT")
+			{
+				DECStepperMinimum = -90;
+				DECStepperMaximum = 180;
+				DECStepperLowerLimit = -90;
+				DECStepperUpperLimit = 180;
+
+				DECTickLabels = "-90|-60|-30|0|30|60|90|120|150|180";
+				DECTickStart = -90;
+			}
+			else if (newVal == "OAM")
+			{
+				DECStepperMinimum = -180;
+				DECStepperMaximum = 180;
+				DECStepperLowerLimit = -180;
+				DECStepperUpperLimit = 180;
+
+				DECTickLabels = "-180|-150|-120|-90|-60|-30|0|30|60|90|120|150|180";
+				DECTickStart = -180;
+			}
+		}
 		/// <summary>
 		/// Gets or sets the hardware config of the scope
 		/// </summary>
