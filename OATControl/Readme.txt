@@ -1,5 +1,19 @@
 Revision History
 ----------------
+OATControl V1.0.5.0                                              13 May 2023
+- Fixed bug that never completed RA Homing when Track On Boot was disabled
+  in the firmware
+- Added support for OAM DEC display
+
+OATControl V1.0.4.2                                              10 Jan 2023
+- Get remaining tracking time from OAT (V1.12.6 firmware and above).
+- Show active hemisphere on Settings page (V1.12.5 firmware and above).
+- Fixed a bug that did not store all macro commands on Settings page.
+- Made Sidereal Time and Remaining Time display sync with OAT once a minute and use clock in between.
+- Fixed bug that did not detect Idle state of OAT when it was Parked.
+- Increased Send and Receive timeout on Serial connections to 2s
+- Added steps calibration function to Settings page.
+
 OATControl V1.0.3.0                                              27 Mar 2022
 - Added support for firmware V1.11.5 that fixes the Meade longitude and UTC
   offset bugs.

@@ -1285,14 +1285,6 @@ namespace OATControl.ViewModels
 					RemainingRATime = "-";
 				}
 			}
-			else
-			{
-				DateTime currentSiderealTime = _siderealTime + elapsedSinceLastSync;
-				ScopeSiderealTime = $"{currentSiderealTime.Hour:00}:{currentSiderealTime.Minute:00}:{currentSiderealTime.Second:00}";
-
-				TimeSpan remaining = _remainingRATimeSpan.Subtract(elapsedSinceLastSync);
-				// RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
-			}
 		}
 
 		public async Task UpdateRemainingSafeTime()
@@ -2364,7 +2356,7 @@ namespace OATControl.ViewModels
 					{
 						if (s == null) return false;
 						Log.WriteLine("MOUNT: DEC Unpark state: ", s[0]);
-						return (s[0] != "Idle") && (s[0] != "Tracking");
+						return (s[0] != "Idle") && (s[0] != "Tracking") && (s[0] != "Parked");
 					})
 					{
 						Owner = Application.Current.MainWindow,
@@ -2425,7 +2417,7 @@ namespace OATControl.ViewModels
 					{
 						if (s == null) return false;
 						statuses.Add(s[0]);
-						return (s[0] != "Idle") && (s[0] != "Tracking");
+						return (s[0] != "Idle") && (s[0] != "Tracking") && (s[0] != "Parked");
 					})
 					{
 						Owner = Application.Current.MainWindow,
