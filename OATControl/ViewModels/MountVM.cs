@@ -49,6 +49,8 @@ namespace OATControl.ViewModels
 		float _decStepperUpperLimit = 180;
 		double _decStepperTargetDegrees;
 		bool _showDecLimits = false;
+		string _decTickLabels = string.Empty;
+		float _decTickStart = 0;
 
 		bool _connected = false;
 		bool _slewInProgress = false;
@@ -70,6 +72,7 @@ namespace OATControl.ViewModels
 		double _speed = 1.0;
 		long _speedEdit = 0;
 		string _scopeName = string.Empty;
+		string _scopeType = string.Empty;
 		string _scopeVersion = string.Empty;
 		string _scopeHardware = string.Empty;
 		string _scopeRAStepper = string.Empty;
@@ -292,6 +295,8 @@ namespace OATControl.ViewModels
 			_oatSimComm.Start(4035);
 			_oatSimComm.ClientConnected += OnSimulationClientConnect;
 			_oatSimComm.ClientCommand += OnSimationClientCommand;
+
+			ScopeType = "OAM";
 		}
 
 		internal async Task SetSteps(float raStepsAfter, float decStepsAfter)
@@ -1211,11 +1216,13 @@ namespace OATControl.ViewModels
 			OnPropertyChanged("CurrentRAMinute");
 			OnPropertyChanged("CurrentRASecond");
 			OnPropertyChanged("CurrentRATotalHours");
+			OnPropertyChanged("CurrentRAString");
 			OnPropertyChanged("CurrentDECSign");
 			OnPropertyChanged("CurrentDECDegree");
 			OnPropertyChanged("CurrentDECMinute");
 			OnPropertyChanged("CurrentDECSecond");
 			OnPropertyChanged("CurrentDECTotalHours");
+			OnPropertyChanged("CurrentDECString");
 		}
 
 		public async Task<string> SetSiteLatitude(float latitude)
@@ -1278,14 +1285,6 @@ namespace OATControl.ViewModels
 					RemainingRATime = "-";
 				}
 			}
-			else
-			{
-				DateTime currentSiderealTime = _siderealTime + elapsedSinceLastSync;
-				ScopeSiderealTime = $"{currentSiderealTime.Hour:00}:{currentSiderealTime.Minute:00}:{currentSiderealTime.Second:00}";
-
-				TimeSpan remaining = _remainingRATimeSpan.Subtract(elapsedSinceLastSync);
-				RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
-			}
 		}
 
 		public async Task UpdateRemainingSafeTime()
@@ -1294,7 +1293,7 @@ namespace OATControl.ViewModels
 			{
 				string safeTimeRemaining = string.Empty;
 				var done = new AsyncAutoResetEvent();
-				this.SendOatCommand(":XGST#,#", (a) => { safeTimeRemaining = a.Data; done.Set();  });
+				this.SendOatCommand(":XGST#,#", (a) => { safeTimeRemaining = a.Data; done.Set(); });
 				await done.WaitAsync();
 				if (!string.IsNullOrEmpty(safeTimeRemaining))
 				{
@@ -1762,6 +1761,7 @@ namespace OATControl.ViewModels
 			}
 
 			ScopeName = string.Empty;
+			ScopeType = "OAT";
 			ConnectionState = string.Empty;
 			ScopeHardware = string.Empty;
 			_oatMount = null;
@@ -1842,6 +1842,8 @@ namespace OATControl.ViewModels
 				DECStepperLowerLimit = AppSettings.Instance.LowerDecLimit;
 				DECStepperUpperLimit = AppSettings.Instance.UpperDecLimit;
 
+				OnPropertyChanged("ScopeType");
+
 				_connectedAt = DateTime.UtcNow;
 				MountConnected = true;
 				Log.WriteLine("MOUNT: Successfully connected and configured!");
@@ -1849,6 +1851,7 @@ namespace OATControl.ViewModels
 			catch (FormatException fex)
 			{
 				ScopeName = string.Empty;
+				ScopeType = "OAT";
 				ScopeHardware = string.Empty;
 				ConnectionState = string.Empty;
 				Log.WriteLine("MOUNT: Failed to connect and configure OAT! {0}", fex.Message);
@@ -1857,6 +1860,7 @@ namespace OATControl.ViewModels
 			catch (Exception ex)
 			{
 				ScopeName = string.Empty;
+				ScopeType = "OAT";
 				ScopeHardware = string.Empty;
 				ConnectionState = string.Empty;
 				Log.WriteLine("MOUNT: Failed to connect and configure OAT! {0}", ex.Message);
@@ -2035,6 +2039,7 @@ namespace OATControl.ViewModels
 					{
 						Log.WriteLine("MOUNT: Request OAT Firmware version (Attempt #{0})", attempts + 1);
 
+						string mountType = string.Empty;
 						this.SendOatCommand("GVP#,#", (result) =>
 						{
 							if (!result.Success)
@@ -2047,7 +2052,7 @@ namespace OATControl.ViewModels
 							{
 								failed = false;
 								resultName = result.Data;
-								Log.WriteLine("MOUNT: Successfully communicated with OAT");
+								Log.WriteLine("MOUNT: Successfully communicated with " + resultName);
 							}
 							Log.WriteLine("MOUNT: Setting signal");
 							doneEvent.Set();
@@ -2087,14 +2092,15 @@ namespace OATControl.ViewModels
 
 			await Task.Delay(200);
 
-			Log.WriteLine("MOUNT: Connected to OAT. Requesting firmware version..");
+			ScopeType = (resultName == "OpenAstroTracker") ? "OAT" : "OAM";
+			Log.WriteLine("MOUNT: Connected to " + ScopeType + ". Requesting firmware version..");
 			this.SendOatCommand("GVN#,#", (resultNr) =>
 			{
 				if (resultNr.Success)
 				{
 					if (resultNr.Data.StartsWith("["))
 					{
-						message = "OAT likely has debug logging enabled. Check firmware.";
+						message = ScopeType + " likely has debug logging enabled. Check firmware.";
 						Log.WriteLine("MOUNT: {0} {1}", message, resultNr.Data);
 						failed = true;
 					}
@@ -2350,7 +2356,7 @@ namespace OATControl.ViewModels
 					{
 						if (s == null) return false;
 						Log.WriteLine("MOUNT: DEC Unpark state: ", s[0]);
-						return (s[0] != "Idle") && (s[0] != "Tracking");
+						return (s[0] != "Idle") && (s[0] != "Tracking") && (s[0] != "Parked");
 					})
 					{
 						Owner = Application.Current.MainWindow,
@@ -2411,7 +2417,7 @@ namespace OATControl.ViewModels
 					{
 						if (s == null) return false;
 						statuses.Add(s[0]);
-						return (s[0] != "Idle") && (s[0] != "Tracking");
+						return (s[0] != "Idle") && (s[0] != "Tracking") && (s[0] != "Parked");
 					})
 					{
 						Owner = Application.Current.MainWindow,
@@ -2453,6 +2459,7 @@ namespace OATControl.ViewModels
 			RequeryCommands();
 			Log.WriteLine("MOUNT: Chooser cancelled");
 			ScopeName = string.Empty;
+			ScopeType = "OAT";
 			ScopeHardware = string.Empty;
 			_oatAddonStates.Clear();
 			if (_commHandler != null)
@@ -2949,6 +2956,24 @@ namespace OATControl.ViewModels
 			get { return _decStepperMinimum; }
 			set { SetPropertyValue(ref _decStepperMinimum, value); }
 		}
+		
+		/// <summary>
+		/// Gets or sets the DEC Slider labels
+		/// </summary>
+		public string DECTickLabels
+		{
+			get { return _decTickLabels; }
+			set { SetPropertyValue(ref _decTickLabels, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the DEC Tick start
+		/// </summary>
+		public float DECTickStart
+		{
+			get { return _decTickStart; }
+			set { SetPropertyValue(ref _decTickStart, value); }
+		}
 
 		/// <summary>
 		/// Gets or sets the DEC Stepper position
@@ -3134,6 +3159,38 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _scopeVersion, value); }
 		}
 
+		/// <summary>
+		/// Gets or sets the type of the scope (OAM vs. OAT) 
+		/// </summary>
+		public string ScopeType
+		{
+			get { return _scopeType; }
+			set { SetPropertyValue(ref _scopeType, value, OnScopeTypeChanged); }
+		}
+
+		private void OnScopeTypeChanged(string oldVal, string newVal)
+		{
+			if (newVal == "OAT")
+			{
+				DECStepperMinimum = -90;
+				DECStepperMaximum = 180;
+				DECStepperLowerLimit = -90;
+				DECStepperUpperLimit = 180;
+
+				DECTickLabels = "-90|-60|-30|0|30|60|90|120|150|180";
+				DECTickStart = -90;
+			}
+			else if (newVal == "OAM")
+			{
+				DECStepperMinimum = -180;
+				DECStepperMaximum = 180;
+				DECStepperLowerLimit = -180;
+				DECStepperUpperLimit = 180;
+
+				DECTickLabels = "-180|-150|-120|-90|-60|-30|0|30|60|90|120|150|180";
+				DECTickStart = -180;
+			}
+		}
 		/// <summary>
 		/// Gets or sets the hardware config of the scope
 		/// </summary>

@@ -19,6 +19,7 @@
         <converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
         <converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
         <converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
+        <converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Hidden" />
 
         <Path x:Key="IconArrowUp" x:Shared="false" Data="M16,0L32,19.745 0,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
         <Path x:Key="IconArrowLeft" x:Shared="false" Data="M25.3,0L25.3,32 0,16z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
@@ -348,9 +349,9 @@
 						AxisLabel="DEC Axis" 
 						TickMajorSpacing="30" 
 						TickMinorSpacing="10" 
-						TickStart="-90" 
+						TickStart="{Binding DECTickStart}" 
 						TickEnd="180"
-						TickLabels="-90,-90|-60,-60|-30,-30|0,0|30,30|60,60|90,90|120,120|150,150|180,180"
+						TickLabels="{Binding DECTickLabels}"
 						MajorTickColor="#FC11"
 						MinorTickColor="#F911"
 						TickLabelColor="#FB11"
