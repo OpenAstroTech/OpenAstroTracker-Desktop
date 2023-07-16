@@ -60,6 +60,9 @@ namespace OATControl.ViewModels
 		bool _isSlewingSouth = false;
 		bool _isSlewingWest = false;
 		bool _isSlewingEast = false;
+		bool _isSlewingAlt = false;
+		bool _isSlewingAz = false;
+		bool _isSlewingFocus = false;
 		bool _driftAlignRunning = false;
 		bool _keepMiniControllerOnTop = false;
 		bool _inStartup = false;
@@ -1133,8 +1136,14 @@ namespace OATControl.ViewModels
 
 										// Don't use property here since it sends a command.
 										_isTracking = (parts[1][2] == 'T') || _isGuiding;
+										_isSlewingAlt = (parts[1][3] != '-');
+										_isSlewingAz = (parts[1][4] != '-');
+										_isSlewingFocus = (parts[1][5] != '-');
 										OnPropertyChanged("IsTracking");
 										OnPropertyChanged("IsGuiding");
+										OnPropertyChanged("IsSlewingAz");
+										OnPropertyChanged("IsSlewingAlt");
+										OnPropertyChanged("IsSlewingFocus");
 
 										if (FirmwareVersion >= 20000)
 										{
@@ -3474,7 +3483,15 @@ namespace OATControl.ViewModels
 		public bool IsSlewingNorth
 		{
 			get { return _isSlewingNorth; }
-			set { SetPropertyValue(ref _isSlewingNorth, value); }
+			set { SetPropertyValue(ref _isSlewingNorth, value, SlewingChanged); }
+		}
+
+		/// <summary>
+		/// Gets or sets the status of the scope
+		/// </summary>
+		public bool IsSlewingDec
+		{
+			get { return _isSlewingNorth | _isSlewingSouth; }
 		}
 
 
@@ -3484,7 +3501,7 @@ namespace OATControl.ViewModels
 		public bool IsSlewingSouth
 		{
 			get { return _isSlewingSouth; }
-			set { SetPropertyValue(ref _isSlewingSouth, value); }
+			set { SetPropertyValue(ref _isSlewingSouth, value, SlewingChanged); }
 		}
 
 		/// <summary>
@@ -3493,7 +3510,7 @@ namespace OATControl.ViewModels
 		public bool IsSlewingEast
 		{
 			get { return _isSlewingEast; }
-			set { SetPropertyValue(ref _isSlewingEast, value); }
+			set { SetPropertyValue(ref _isSlewingEast, value, SlewingChanged); }
 		}
 
 		/// <summary>
@@ -3502,7 +3519,48 @@ namespace OATControl.ViewModels
 		public bool IsSlewingWest
 		{
 			get { return _isSlewingWest; }
-			set { SetPropertyValue(ref _isSlewingWest, value); }
+			set { SetPropertyValue(ref _isSlewingWest, value, SlewingChanged); }
+		}
+
+		private void SlewingChanged(bool arg1, bool arg2)
+		{
+			OnPropertyChanged("IsSlewingRa");
+			OnPropertyChanged("IsSlewingDec");
+		}
+
+		/// <summary>
+		/// Gets or sets the status of the scope
+		/// </summary>
+		public bool IsSlewingRa
+		{
+			get { return _isSlewingEast| _isSlewingWest; }
+		}
+
+		/// <summary>
+		/// Gets or sets the status of the scope
+		/// </summary>
+		public bool IsSlewingAlt
+		{
+			get { return _isSlewingAlt; }
+			set { SetPropertyValue(ref _isSlewingAlt, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the status of the scope
+		/// </summary>
+		public bool IsSlewingAz
+		{
+			get { return _isSlewingAz; }
+			set { SetPropertyValue(ref _isSlewingAz, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the status of the scope
+		/// </summary>
+		public bool IsSlewingFocus
+		{
+			get { return _isSlewingFocus; }
+			set { SetPropertyValue(ref _isSlewingFocus, value); }
 		}
 
 		public string RemainingRATime
