@@ -32,6 +32,6 @@
 				</Style.Triggers>
 			</Style>
 		</Grid.Resources>
-		<local:StopSign Style="{StaticResource arrowStyle}" IsHitTestVisible="False" FrameWidth="{Binding FrameWidth, ElementName=ThisStopButton}" />
+		<local:StopSign Style="{StaticResource arrowStyle}" IsHitTestVisible="False" FrameWidth="{Binding FrameWidth, ElementName=ThisStopButton}" Margin="0,3"/>
 	</Grid>
 </UserControl>

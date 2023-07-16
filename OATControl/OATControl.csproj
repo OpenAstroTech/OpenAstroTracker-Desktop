@@ -68,6 +68,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\MotorIndicator.cs" />
     <Compile Include="Controls\Stopsign.cs" />
     <Compile Include="Controls\StopButton.xaml.cs">
       <DependentUpon>StopButton.xaml</DependentUpon>

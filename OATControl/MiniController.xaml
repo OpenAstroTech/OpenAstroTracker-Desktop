@@ -7,7 +7,7 @@
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
 		Background="#600"
-        Title="Mini OAT Control" Height="79" MinHeight="79" MaxHeight="79" Width="Auto" MaxWidth="600" MinWidth="250" WindowStyle="None" SizeToContent="Width">
+        Title="Mini OAT Control" Height="85" MinHeight="85" MaxHeight="85" Width="Auto" MaxWidth="660" MinWidth="250" WindowStyle="None" SizeToContent="Width">
 	<Window.Resources>
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
@@ -40,6 +40,15 @@
 		</Style>
 		<Style x:Key="TextBlockLabelTinyLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelTiny}">
 			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+		<Style x:Key="MotorIndicatorStyle" TargetType="controls:MotorIndicator" >
+			<Setter Property="Width" Value="38" />
+			<Setter Property="Height" Value="8" />
+			<Setter Property="Margin" Value="1,1,1,1" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+			<Setter Property="Foreground" Value="{StaticResource AccentColorBrush3}" />
+			<Setter Property="ActiveBackground" Value="#C00" />
+			<Setter Property="ActiveForeground" Value="#E00" />
 		</Style>
 		<Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
 			<Setter Property="Width" Value="16" />
@@ -105,6 +114,7 @@
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="40"/>
 			<ColumnDefinition Width="65"/>
 		</Grid.ColumnDefinitions>
 		<TextBlock Grid.Row="0" Grid.Column="0" Text="RA:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove"  Cursor="SizeAll" />
@@ -140,8 +150,8 @@
 						Content="4"/>
 		</StackPanel>
 
-		<Button Grid.Row="0" Grid.Column="6" Margin="8,2" Padding="10,0" Content="Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}"/>
-		<Button Grid.Row="1" Grid.Column="6" Margin="8,2" Padding="10,0" Content="{Binding ParkCommandString}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}"/>
+		<Button Grid.Row="0" Grid.Column="6"  Margin="8,4" Padding="10,0" Content="Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}"/>
+		<Button Grid.Row="1" Grid.Column="6" Margin="8,4" Padding="10,0" Content="{Binding ParkCommandString}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}"/>
 
 		<!--  AZ/ALT Controls -->
 		<controls:PushButton Grid.RowSpan="2" Grid.Column="7" Width="36" Height="32" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="L" Visibility="{Binding ScopeHasAZ, Converter={StaticResource CollapseIfFalse}}"/>
@@ -190,8 +200,18 @@
 							 Command="{Binding ChangeSlewingStateCommand}" 
 							 CommandParameter="G" 
 							 Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
-	
-		<controls:StopButton Grid.Row="0" Grid.Column="11" Grid.RowSpan="2" 
+
+		<StackPanel Grid.Row="0" Grid.Column="11" Grid.RowSpan="2" Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Center">
+			<controls:MotorIndicator Style="{StaticResource MotorIndicatorStyle}" MotorName="Track" IsRunning="{Binding IsTracking}" />
+			<controls:MotorIndicator Style="{StaticResource MotorIndicatorStyle}" MotorName="Guide" IsRunning="{Binding IsGuiding}" />
+			<controls:MotorIndicator Style="{StaticResource MotorIndicatorStyle}" MotorName="RA" IsRunning="{Binding IsSlewingRa}" />
+			<controls:MotorIndicator Style="{StaticResource MotorIndicatorStyle}" MotorName="DEC" IsRunning="{Binding IsSlewingDec}" />
+			<controls:MotorIndicator Style="{StaticResource MotorIndicatorStyle}" MotorName="AZ" IsRunning="{Binding IsSlewingAz}"  Visibility="{Binding ScopeHasAZ, Converter={StaticResource CollapseIfFalse}}" />
+			<controls:MotorIndicator Style="{StaticResource MotorIndicatorStyle}" MotorName="ALT" IsRunning="{Binding IsSlewingAlt}" Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}" />
+			<controls:MotorIndicator Style="{StaticResource MotorIndicatorStyle}" MotorName="Focus" IsRunning="{Binding IsSlewingFocus}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}" />
+		</StackPanel>
+
+		<controls:StopButton Grid.Row="0" Grid.Column="12" Grid.RowSpan="2" 
 							 IsEnabled="{Binding MountConnected}"
 							 Command="{Binding StopSlewingCommand}"
 							 Foreground="#A20"
