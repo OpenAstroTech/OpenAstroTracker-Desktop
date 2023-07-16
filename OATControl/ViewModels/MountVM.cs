@@ -2985,24 +2985,6 @@ namespace OATControl.ViewModels
 		}
 
 		/// <summary>
-		/// Gets or sets the DEC Slider labels
-		/// </summary>
-		public string DECTickLabels
-		{
-			get { return _decTickLabels; }
-			set { SetPropertyValue(ref _decTickLabels, value); }
-		}
-
-		/// <summary>
-		/// Gets or sets the DEC Tick start
-		/// </summary>
-		public float DECTickStart
-		{
-			get { return _decTickStart; }
-			set { SetPropertyValue(ref _decTickStart, value); }
-		}
-
-		/// <summary>
 		/// Gets or sets the DEC Stepper position
 		/// </summary>
 		public float DECStepperMaximum
