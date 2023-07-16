@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestSuites>
+	<TestSuite Name="Southern Hemisphere Checks" Description="Makes Movements in RA and in DEC">
+		<Test Description="Get Product">
+			<Command>:GVP#</Command>
+			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
+		</Test>
+		<Test Description="Get FirmwareVersion">
+			<Command >:GVN#</Command>
+			<ExpectedReply Type="#" />
+		</Test>
+
+		<Test Description="Set UTC offset" MinFirmware="11211">
+			<Command>:SG+13#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Latitude">
+			<Command>:St-35*44.34#</Command>
+			<!-- South is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Longitude">
+			<Command>:Sg-174*3#</Command>
+			<!-- East is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Date">
+			<Command>:SC06/10/2023#</Command>
+			<ExpectedReply Type="##">1Updating Planetary Data</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Time">
+			<Command>:SL17:30:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		
+		<Test Description="Get Time">
+			<Command>:GL#</Command>
+			<ExpectedReply Type="#">17:30:00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get LST">
+			<Command>:XGH#</Command>
+			<ExpectedReply Type="#">082217</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:22:25</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">-90*00'00</ExpectedReply>
+		</Test>
+		<Test Description="Enable Tracking">
+			<Command>:MT1#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		<Test Description="Delay 6sec">
+			<Command Type="Builtin">Delay,6000ms</Command>
+		</Test>		
+		<Test Description="Set Target RA">
+			<Command>:Sr11:15:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		<Test Description="Set Target DEC">
+			<Command>:Sd-60:00:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA Negative">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Delay 500ms">
+			<Command Type="Builtin">Delay,500ms</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:15:00</ExpectedReply>
+		</Test>
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">-60*00'00</ExpectedReply>
+		</Test>
+		<Test Description="Delay 6sec">
+			<Command Type="Builtin">Delay,6000ms</Command>
+		</Test>		
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+		<Test Description="Delay 6sec">
+			<Command Type="Builtin">Delay,6000ms</Command>
+		</Test>		
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+
+		<Test Description="Set Target RA">
+			<Command>:Sr12:15:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		<Test Description="Set Target DEC">
+			<Command>:Sd-60:00:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA Negative">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForIdle</Command>
+		</Test>
+
+		<Test Description="Enable Tracking">
+			<Command>:MT1#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 500ms">
+			<Command Type="Builtin">Delay,500ms</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">12:15:00</ExpectedReply>
+		</Test>
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">-60*00'00</ExpectedReply>
+		</Test>
+		<Test Description="Delay 6sec">
+			<Command Type="Builtin">Delay,6000ms</Command>
+		</Test>		
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+		<Test Description="Delay 6sec">
+			<Command Type="Builtin">Delay,6000ms</Command>
+		</Test>		
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+</TestSuites>

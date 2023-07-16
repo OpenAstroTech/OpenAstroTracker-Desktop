@@ -23,6 +23,7 @@ namespace OATTest
 	{
 		TestManager _testManager;
 		ObservableCollection<string> _debugOutput;
+		object _debugLock = new object();
 		ICommunicationHandler _handler;
 		SerialListener _debugHandler; // 
 		AsyncAutoResetEvent _asyncAutoResetEvent = new AsyncAutoResetEvent();
@@ -131,7 +132,10 @@ namespace OATTest
 			Log.WriteLine(line);
 			WpfUtilities.RunOnUiThread(() =>
 			{
-				_debugOutput.Add(line);
+				lock (_debugLock)
+				{
+					_debugOutput.Add(line);
+				}
 				OnPropertyChanged("LastLineIndex");
 			}, Application.Current.Dispatcher);
 		}
@@ -171,7 +175,10 @@ namespace OATTest
 			SucceededTests = "-";
 			FailedTests = "-";
 			CompletedTests = "-";
-			_debugOutput.Clear();
+			lock (_debugLock)
+			{
+				_debugOutput.Clear();
+			}
 			_testManager.PrepareForRun();
 		}
 
@@ -203,7 +210,10 @@ namespace OATTest
 			_failed = 0;
 			_skipped = 0;
 			_completed = 0;
-			_debugOutput.Clear();
+			lock (_debugLock)
+			{
+				_debugOutput.Clear();
+			}
 			_asyncAutoResetEvent = new AsyncAutoResetEvent();
 
 			await UpdateResults(null, CommandTest.StatusType.Ready, false);
