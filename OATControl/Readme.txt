@@ -1,5 +1,15 @@
 Revision History
 ----------------
+
+OATControl V1.0.6.1                                             18 July 2023
+- Fixed a bug that prevented DEC autohoming from running during connection.
+- Fixed some bugs that were incorrectly persisting custom commands.
+
+OATControl V1.0.6.0                                             16 July 2023
+- Improved OAM support
+- Fixed bug that made MiniControl Coordinates not update when slewing
+- Added motor indicator to MiniController
+
 OATControl V1.0.5.0                                              13 May 2023
 - Fixed bug that never completed RA Homing when Track On Boot was disabled
   in the firmware

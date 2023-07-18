@@ -268,6 +268,11 @@ namespace OATControl
 				if (value != _runDECOffsetHoming)
 				{
 					_runDECOffsetHoming = value;
+					if (_decAutoHoming)
+					{
+						_runDECAutoHoming = value;
+						OnPropertyChanged("RunDECAutoHoming");
+					}
 					OnPropertyChanged("RunDECOffsetHoming");
 				}
 			}
@@ -560,243 +565,245 @@ namespace OATControl
 					break;
 
 				case Steps.CheckHardware:
-				{
-					var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice.DeviceName + "@" + SelectedBaudRate);
-
-					ShowGPSStatus = false;
-					GPSStatus = string.Empty;
-
-					if (!connectResult.Item1)
 					{
-						ShowGPSStatus = true;
-						GPSStatus = connectResult.Item2;
-						CurrentStep = Steps.WaitForConnection;
-						_mountViewModel.ConnectionState = string.Empty;
-						return;
-					}
+						var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice.DeviceName + "@" + SelectedBaudRate);
 
-					if (_mountViewModel.IsAddonSupported("GYRO"))
-					{
-						CurrentStep = Steps.WaitForLevel;
+						ShowGPSStatus = false;
+						GPSStatus = string.Empty;
 
-						// Turn on the Digital Level
-						var doneEvent = new AutoResetEvent(false);
-						_sendCommand(":XL1#,#", (a) => { });
-						Thread.Sleep(100);
-						// Get the reference angles from the level.
-						_sendCommand(":XLGR#,#", (a) =>
+						if (!connectResult.Item1)
 						{
-							if (a.Success)
-							{
-								string referenceAngles = a.Data;
-								var angles = referenceAngles.Split(",".ToCharArray());
-								float pitch, roll;
-								float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out _pitchReference);
-								float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out _rollReference);
-							}
-							doneEvent.Set();
-						});
-						doneEvent.WaitOne();
-						ShowLevelDisplay = true;
-					}
-					else if (_mountViewModel.IsAddonSupported("GPS"))
-					{
-						CurrentStep = Steps.WaitForGPS;
-						ShowGPSStatus = true;
-						_startedGPSWaitAt = DateTime.UtcNow;
-					}
-					else
-					{
-						ShowManualLocation = true;
-						CurrentStep = Steps.ConfirmLocation;
-						// Let's get the coordinate stored on the OAT
-						var locDoneEvent = new AutoResetEvent(false);
-						bool gotLoc = false;
-						float lat = 0, lng = 0;
-						_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref lat); });
-						_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref lng); locDoneEvent.Set(); });
-						locDoneEvent.WaitOne();
-						if (gotLoc)
-						{
-							Latitude = lat;
-							if (_mountViewModel.FirmwareVersion < 11105)
-							{
-								Longitude = 180.0f - lng;
-							}
-							else
-							{
-								Longitude = -lng;
-							}
+							ShowGPSStatus = true;
+							GPSStatus = connectResult.Item2;
+							CurrentStep = Steps.WaitForConnection;
+							_mountViewModel.ConnectionState = string.Empty;
+							return;
 						}
-						if (_mountViewModel.ScopeHasHSAH || _mountViewModel.ScopeHasHSAV || (_mountViewModel.DECStepperLowerLimit != 0))
-						{
-							ShowRAHoming = _mountViewModel.ScopeHasHSAH;
-							ShowDECHoming = _mountViewModel.ScopeHasHSAV || _mountViewModel.DECStepperLowerLimit != 0;
-							if (_mountViewModel.ScopeHasHSAV)
-							{
-								_decAutoHoming = true;
-								OnPropertyChanged("DECHomingMethod");
-							}
 
-							var gxDoneEvent = new AutoResetEvent(false);
-							var gotGX = false;
-							int loopCount = 0;
-							string gxValue = string.Empty;
-							do
+						if (_mountViewModel.IsAddonSupported("GYRO"))
+						{
+							CurrentStep = Steps.WaitForLevel;
+
+							// Turn on the Digital Level
+							var doneEvent = new AutoResetEvent(false);
+							_sendCommand(":XL1#,#", (a) => { });
+							Thread.Sleep(100);
+							// Get the reference angles from the level.
+							_sendCommand(":XLGR#,#", (a) =>
 							{
-								loopCount++;
-								gotGX = false;
-								_sendCommand(":GX#,#", (a) => { gotGX = a.Success; gxValue = a.Data; gxDoneEvent.Set(); });
-								gxDoneEvent.WaitOne();
-							}
-							while (!gotGX && loopCount < 3);
-							if (gotGX)
-							{
-								// 'SlewToTarget,-dT---,0,13919,1861,034107,+454030,50000,'
-								var gxSplit = gxValue.Split(",".ToCharArray());
-								if (_mountViewModel.FirmwareVersion >= 20000)
+								if (a.Success)
 								{
-									if (float.Parse(gxSplit[3]) != 0.0) { RunDECOffsetHoming = false; }
+									string referenceAngles = a.Data;
+									var angles = referenceAngles.Split(",".ToCharArray());
+									float pitch, roll;
+									float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out _pitchReference);
+									float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out _rollReference);
+								}
+								doneEvent.Set();
+							});
+							doneEvent.WaitOne();
+							ShowLevelDisplay = true;
+						}
+						else if (_mountViewModel.IsAddonSupported("GPS"))
+						{
+							CurrentStep = Steps.WaitForGPS;
+							ShowGPSStatus = true;
+							_startedGPSWaitAt = DateTime.UtcNow;
+						}
+						else
+						{
+							ShowManualLocation = true;
+							CurrentStep = Steps.ConfirmLocation;
+							// Let's get the coordinate stored on the OAT
+							var locDoneEvent = new AutoResetEvent(false);
+							bool gotLoc = false;
+							float lat = 0, lng = 0;
+							_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref lat); });
+							_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref lng); locDoneEvent.Set(); });
+							locDoneEvent.WaitOne();
+							if (gotLoc)
+							{
+								Latitude = lat;
+								if (_mountViewModel.FirmwareVersion < 11105)
+								{
+									Longitude = 180.0f - lng;
 								}
 								else
 								{
-									if (long.Parse(gxSplit[3]) != 0) { RunDECOffsetHoming = false; }
+									Longitude = -lng;
 								}
 							}
+							if (_mountViewModel.ScopeHasHSAH || _mountViewModel.ScopeHasHSAV || (_mountViewModel.DECStepperLowerLimit != 0))
+							{
+								ShowRAHoming = _mountViewModel.ScopeHasHSAH;
+								ShowDECHoming = _mountViewModel.ScopeHasHSAV || _mountViewModel.DECStepperLowerLimit != 0;
+								if (_mountViewModel.ScopeHasHSAV)
+								{
+									_decAutoHoming = true;
+									RunDECAutoHoming = RunDECOffsetHoming;
+									OnPropertyChanged("DECHomingMethod");
+								}
+
+								var gxDoneEvent = new AutoResetEvent(false);
+								var gotGX = false;
+								int loopCount = 0;
+								string gxValue = string.Empty;
+								do
+								{
+									loopCount++;
+									gotGX = false;
+									_sendCommand(":GX#,#", (a) => { gotGX = a.Success; gxValue = a.Data; gxDoneEvent.Set(); });
+									gxDoneEvent.WaitOne();
+								}
+								while (!gotGX && loopCount < 3);
+								if (gotGX)
+								{
+									// 'SlewToTarget,-dT---,0,13919,1861,034107,+454030,50000,'
+									var gxSplit = gxValue.Split(",".ToCharArray());
+									if (_mountViewModel.FirmwareVersion >= 20000)
+									{
+										if (float.Parse(gxSplit[3]) != 0.0) { RunDECOffsetHoming = false; }
+									}
+									else
+									{
+										if (long.Parse(gxSplit[3]) != 0) { RunDECOffsetHoming = false; }
+									}
+								}
+							}
+							break;
 						}
-						break;
 					}
-				}
-				break;
+					break;
 
 				case Steps.WaitForLevel:
-				{
-					var doneEvent = new AsyncAutoResetEvent();
-					// Get the current digital level angles.
-					_sendCommand(":XLGC#,#", (a) =>
 					{
-						string currentAngles = a.Data;
-						if (a.Success && !currentAngles.Contains("NAN"))
+						var doneEvent = new AsyncAutoResetEvent();
+						// Get the current digital level angles.
+						_sendCommand(":XLGC#,#", (a) =>
 						{
-							var angles = currentAngles.Split(",".ToCharArray());
-							float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float currentPitch);
-							float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float currentRoll);
-
-							// Keep a rolling average of the last 3 values.
-							if (_rollOffsetHistory.Count > 2)
+							string currentAngles = a.Data;
+							if (a.Success && !currentAngles.Contains("NAN"))
 							{
-								_rollOffsetHistory.RemoveAt(0);
-							}
-							if (_pitchOffsetHistory.Count > 2)
-							{
-								_pitchOffsetHistory.RemoveAt(0);
-							}
+								var angles = currentAngles.Split(",".ToCharArray());
+								float.TryParse(angles[0], NumberStyles.Float, _oatCulture, out float currentPitch);
+								float.TryParse(angles[1], NumberStyles.Float, _oatCulture, out float currentRoll);
 
-							_rollOffsetHistory.Add(currentRoll - _rollReference);
-							_pitchOffsetHistory.Add(currentPitch - _pitchReference);
+								// Keep a rolling average of the last 3 values.
+								if (_rollOffsetHistory.Count > 2)
+								{
+									_rollOffsetHistory.RemoveAt(0);
+								}
+								if (_pitchOffsetHistory.Count > 2)
+								{
+									_pitchOffsetHistory.RemoveAt(0);
+								}
+
+								_rollOffsetHistory.Add(currentRoll - _rollReference);
+								_pitchOffsetHistory.Add(currentPitch - _pitchReference);
+							}
+							doneEvent.Set();
+						});
+						await doneEvent.WaitAsync();
+						if (_rollOffsetHistory.Any())
+						{
+							RollOffset = _rollOffsetHistory.Average();
 						}
-						doneEvent.Set();
-					});
-					await doneEvent.WaitAsync();
-					if (_rollOffsetHistory.Any())
-					{
-						RollOffset = _rollOffsetHistory.Average();
+						if (_pitchOffsetHistory.Any())
+						{
+							PitchOffset = _pitchOffsetHistory.Average();
+						}
 					}
-					if (_pitchOffsetHistory.Any())
-					{
-						PitchOffset = _pitchOffsetHistory.Average();
-					}
-				}
-				break;
+					break;
 
 				case Steps.WaitForGPS:
-				{
-					TimeSpan elapsed;
-					elapsed = DateTime.UtcNow - _startedGPSWaitAt;
-					if (elapsed.TotalSeconds >= MaxWaitForGPS)
 					{
-						GPSStatus = "GPS could not get a location lock. Please enter location manually:";
-						ShowManualLocation = true;
-						CurrentStep = Steps.ConfirmLocation;
-						break;
-					}
+						TimeSpan elapsed;
+						elapsed = DateTime.UtcNow - _startedGPSWaitAt;
+						if (elapsed.TotalSeconds >= MaxWaitForGPS)
+						{
+							GPSStatus = "GPS could not get a location lock. Please enter location manually:";
+							ShowManualLocation = true;
+							CurrentStep = Steps.ConfirmLocation;
+							break;
+						}
 
-					GPSStatus = $"Waiting {MaxWaitForGPS - elapsed.TotalSeconds:0}s for GPS to find satellites and sync...";
-					await Task.Delay(150);
+						GPSStatus = $"Waiting {MaxWaitForGPS - elapsed.TotalSeconds:0}s for GPS to find satellites and sync...";
+						await Task.Delay(150);
 
-					bool gpsIsSyncd = false;
-					var doneEvent = new AutoResetEvent(false);
-					_sendCommand(":gT100#,n", async (result) =>
-					{
-						if (result.Data == "1")
+						bool gpsIsSyncd = false;
+						var doneEvent = new AutoResetEvent(false);
+						_sendCommand(":gT100#,n", async (result) =>
 						{
-							gpsIsSyncd = true;
-						}
-						else
-						{
-							await Task.Delay(500);
-						}
-						doneEvent.Set();
-					});
-					doneEvent.WaitOne(2500);
-
-					if (gpsIsSyncd)
-					{
-						GPSStatus = "Sync'd! Retrieving current location...";
-						float latitude = 0;
-						float longitude = 0;
-						string hemisphere = "Northern Hemisphere";
-						bool gotLoc = false;
-						var doneEventLatLong = new AutoResetEvent(false);
-						if (_mountViewModel.FirmwareVersion >= 11204)
-						{
-							_sendCommand(":XGHS#,#", (a) => { if (a.Success) hemisphere = a.Data[0] + ". Hemisphere"; });
-						}
-						else
-						{
-							hemisphere = string.Empty;
-						}
-						_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref latitude); });
-						_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref longitude); doneEventLatLong.Set(); });
-						doneEventLatLong.WaitOne();
-						if (gotLoc)
-						{
-							if (_mountViewModel.FirmwareVersion < 11105)
+							if (result.Data == "1")
 							{
-								longitude = 180.0f - longitude;
+								gpsIsSyncd = true;
 							}
 							else
 							{
-								longitude = -longitude;
+								await Task.Delay(500);
 							}
+							doneEvent.Set();
+						});
+						doneEvent.WaitOne(2500);
 
-							GPSStatus = "Sync'd! Setting OAT location...";
-							await _mountViewModel.SetSiteLatitude(latitude);
-							await _mountViewModel.SetSiteLongitude(longitude);
-							await Task.Delay(400);
-						}
-
-						AppSettings.Instance.SiteLatitude = latitude;
-						AppSettings.Instance.SiteLongitude = longitude;
-						AppSettings.Instance.Save();
-						if (_mountViewModel.ScopeHasHSAH || _mountViewModel.ScopeHasHSAV || (_mountViewModel.DECStepperLowerLimit != 0))
+						if (gpsIsSyncd)
 						{
-							ShowRAHoming = _mountViewModel.ScopeHasHSAH;
-							ShowDECHoming = _mountViewModel.ScopeHasHSAV || _mountViewModel.DECStepperLowerLimit != 0;
-							if (_mountViewModel.ScopeHasHSAV)
+							GPSStatus = "Sync'd! Retrieving current location...";
+							float latitude = 0;
+							float longitude = 0;
+							string hemisphere = "Northern Hemisphere";
+							bool gotLoc = false;
+							var doneEventLatLong = new AutoResetEvent(false);
+							if (_mountViewModel.FirmwareVersion >= 11204)
 							{
-								_decAutoHoming = true;
-								OnPropertyChanged("DECHomingMethod");
+								_sendCommand(":XGHS#,#", (a) => { if (a.Success) hemisphere = a.Data[0] + ". Hemisphere"; });
 							}
-							CurrentStep = Steps.ConfirmStartupActions;
-						}
-						else
-						{
-							CurrentStep = Steps.Completed;
+							else
+							{
+								hemisphere = string.Empty;
+							}
+							_sendCommand(":Gt#,#", (a) => { gotLoc = a.Success && TryParseLatLong(a.Data, ref latitude); });
+							_sendCommand(":Gg#,#", (a) => { gotLoc = gotLoc && a.Success && TryParseLatLong(a.Data, ref longitude); doneEventLatLong.Set(); });
+							doneEventLatLong.WaitOne();
+							if (gotLoc)
+							{
+								if (_mountViewModel.FirmwareVersion < 11105)
+								{
+									longitude = 180.0f - longitude;
+								}
+								else
+								{
+									longitude = -longitude;
+								}
+
+								GPSStatus = "Sync'd! Setting OAT location...";
+								await _mountViewModel.SetSiteLatitude(latitude);
+								await _mountViewModel.SetSiteLongitude(longitude);
+								await Task.Delay(400);
+							}
+
+							AppSettings.Instance.SiteLatitude = latitude;
+							AppSettings.Instance.SiteLongitude = longitude;
+							AppSettings.Instance.Save();
+							if (_mountViewModel.ScopeHasHSAH || _mountViewModel.ScopeHasHSAV || (_mountViewModel.DECStepperLowerLimit != 0))
+							{
+								ShowRAHoming = _mountViewModel.ScopeHasHSAH;
+								ShowDECHoming = _mountViewModel.ScopeHasHSAV || _mountViewModel.DECStepperLowerLimit != 0;
+								if (_mountViewModel.ScopeHasHSAV)
+								{
+									_decAutoHoming = true;
+									RunDECAutoHoming = RunDECOffsetHoming;
+									OnPropertyChanged("DECHomingMethod");
+								}
+								CurrentStep = Steps.ConfirmStartupActions;
+							}
+							else
+							{
+								CurrentStep = Steps.Completed;
+							}
 						}
 					}
-				}
-				break;
+					break;
 
 				case Steps.ConfirmLocation:
 				case Steps.ConfirmStartupActions:

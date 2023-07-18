@@ -321,21 +321,25 @@ namespace OATControl.ViewModels
 		{
 			XDocument doc = XDocument.Parse(AppSettings.Instance.CustomCommands);
 			int i = 0;
+			for (i = 0; i < 4; i++)
+			{
+				_customButtonText[i] = "action " + (i + 1);
+				_customButtonResultStatus[i] = "Ctrl-Shift-Click to set.";
+			}
+
+			i = 0;
 			foreach (var elem in doc.Element("CustomCommands").Elements("Command"))
 			{
 				_customButtonText[i] = elem.Attribute("Display").Value;
 				_customCommandText[i] = elem.Attribute("LX200Command").Value;
+				_customButtonResultStatus[i] = "Click to run";
+				_customButtonResultText[i] = "-";
 				if (string.IsNullOrEmpty(_customCommandText[i]))
 				{
 					_customButtonText[i] = "action " + (i + 1);
 					_customButtonResultStatus[i] = "Ctrl-Shift-Click to set.";
 				}
-				if (i < 3) i++;
-			}
-			for (; i < 3; i++)
-			{
-				_customButtonText[i] = "action " + (i + 1);
-				_customButtonResultStatus[i] = "Ctrl-Shift-Click to set.";
+				i++;
 			}
 		}
 
@@ -707,7 +711,7 @@ namespace OATControl.ViewModels
 		private void SetDECHomeOffsetOnMount(long pos)
 		{
 			var donePosQuery = new AutoResetEvent(false);
-			_oatMount.SendCommand($":XSDP{pos}#", (a) => donePosQuery.Set());
+			_oatMount.SendCommand($":XSHD{pos}#", (a) => donePosQuery.Set());
 			donePosQuery.WaitOne();
 		}
 
@@ -715,7 +719,7 @@ namespace OATControl.ViewModels
 		{
 			long pos = 0;
 			var donePosQuery = new AutoResetEvent(false);
-			_oatMount.SendCommand($":XGDP#,#", (a) =>
+			_oatMount.SendCommand($":XGHD#,#", (a) =>
 			{
 				if (a.Success)
 				{
@@ -755,7 +759,7 @@ namespace OATControl.ViewModels
 				}
 				else
 				{
-					SetDECHomeOffsetOnMount(decPos);
+					SetDECHomeOffsetOnMount(-decPos);
 					// AppSettings.Instance.DECHomeOffset = decPos;
 					AppSettings.Instance.Save();
 				}
@@ -2343,24 +2347,34 @@ namespace OATControl.ViewModels
 
 			if (dlg.Result == true)
 			{
+
 				_inStartup = true;
 				UpdateLocation();
 				Log.WriteLine("SYSTEM: OAT Connected!");
 				await UpdateInitialScopeValues();
+
+				Log.WriteLine("MOUNT: Homing requested: RA:{0}   DEC:{1}   DECOffset:{2}", dlg.RunRAAutoHoming, dlg.RunDECAutoHoming, dlg.RunDECOffsetHoming);
 
 				bool setHome = false;
 				bool abortHoming = false;
 
 				long decOffset = GetDECHomeOffsetFromMount();
 				//if (dlg.RunDECOffsetHoming && (AppSettings.Instance.DECHomeOffset != 0))
-				if (dlg.RunDECOffsetHoming && (decOffset != 0))
+				if (dlg.RunDECOffsetHoming)
+				{
+					Log.WriteLine("MOUNT: DEC Unparking requested. Offset is {0}", decOffset);
+				}
+
+				if (dlg.RunDECOffsetHoming && (decOffset != 0) && !ScopeHasHSAV)
 				{
 					Log.WriteLine("MOUNT: DEC unparking starting");
 					var doneEvent = new AsyncAutoResetEvent();
-					//					_oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { doneEvent.Set(); });
+					// _oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { doneEvent.Set(); });
+					Log.WriteLine("MOUNT: Sending MXn command...");
 					_oatMount.SendCommand($":MXd{decOffset}#,n", (a) => { doneEvent.Set(); });
+					Log.WriteLine("MOUNT: Waiting for completion...");
 					await doneEvent.WaitAsync();
-
+					Log.WriteLine("MOUNT: Completed. Open DEC Wait dialog");
 					var dlgWait = new DlgWaitForGXState("Unparking DEC...", this, SendOatCommand, (s) =>
 					{
 						if (s == null) return false;
@@ -2382,19 +2396,23 @@ namespace OATControl.ViewModels
 					}
 				}
 
+				Log.WriteLine("MOUNT: RA Homing requested {0}. Firmware is {1}, Scope supports is {2}, aborting is {3}", dlg.RunRAAutoHoming, FirmwareVersion, ScopeHasHSAH, abortHoming);
 				if ((FirmwareVersion > 10935) && dlg.RunRAAutoHoming && ScopeHasHSAH && !abortHoming)
 				{
 					Log.WriteLine("MOUNT: RA Auto Home starting");
 					var statuses = new List<string>();
 					var doneEvent = new AsyncAutoResetEvent();
 					// The MHRR command actually returns 0 or 1, but we ignore it, so that we can monitor progress
+					Log.WriteLine("MOUNT: Sending MHRR command....");
 					_oatMount.SendCommand($":MHRR#", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
 
+					Log.WriteLine("MOUNT: Waiting for homing to end....");
 					// Open the GX monitoring dialog
 					var dlgWait = new DlgWaitForGXState("Homing RA...", this, SendOatCommand, (s) =>
 					{
 						if (s == null) return false;
+						Log.WriteLine("MOUNT: Status is {0}", s[0]);
 						statuses.Add(s[0]);
 						return (s[0] != "Idle") && (s[0] != "Tracking") && (s[0] != "Parked");
 					})
@@ -2412,19 +2430,23 @@ namespace OATControl.ViewModels
 					}
 				}
 
+				Log.WriteLine("MOUNT: DEC Homing requested {0}. Firmware is {1}, Scope supports is {2}, aborting is {3}", dlg.RunDECAutoHoming, FirmwareVersion, ScopeHasHSAV, abortHoming);
 				if ((FirmwareVersion >= 11201) && dlg.RunDECAutoHoming && ScopeHasHSAV && !abortHoming)
 				{
 					Log.WriteLine("MOUNT: DEC Auto Home starting");
 					var statuses = new List<string>();
 					var doneEvent = new AsyncAutoResetEvent();
 					// The MHDU command actually returns 0 or 1, but we ignore it, so that we can monitor progress
+					Log.WriteLine("MOUNT: Sending MHDU command");
 					_oatMount.SendCommand($":MHDU#", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
+					Log.WriteLine("MOUNT: Waiting for homing to end....");
 
 					// Open the GX monitoring dialog
 					var dlgWait = new DlgWaitForGXState("Homing DEC...", this, SendOatCommand, (s) =>
 					{
 						if (s == null) return false;
+						Log.WriteLine("MOUNT: Status is {0}", s[0]);
 						statuses.Add(s[0]);
 						return (s[0] != "Idle") && (s[0] != "Tracking") && (s[0] != "Parked");
 					})
@@ -2445,6 +2467,7 @@ namespace OATControl.ViewModels
 
 				if (setHome)
 				{
+					Log.WriteLine("MOUNT: Setting home after autohoming");
 					await OnSetHome();
 				}
 
@@ -2965,7 +2988,7 @@ namespace OATControl.ViewModels
 			get { return _decStepperMinimum; }
 			set { SetPropertyValue(ref _decStepperMinimum, value); }
 		}
-		
+
 		/// <summary>
 		/// Gets or sets the DEC Slider labels
 		/// </summary>
@@ -3533,7 +3556,7 @@ namespace OATControl.ViewModels
 		/// </summary>
 		public bool IsSlewingRa
 		{
-			get { return _isSlewingEast| _isSlewingWest; }
+			get { return _isSlewingEast | _isSlewingWest; }
 		}
 
 		/// <summary>
