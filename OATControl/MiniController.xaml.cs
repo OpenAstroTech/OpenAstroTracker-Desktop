@@ -93,6 +93,7 @@ namespace OATControl
 				case Key.D2: _mount.SlewRate = 2; break;
 				case Key.D3: _mount.SlewRate = 3; break;
 				case Key.D4: _mount.SlewRate = 4; break;
+				case Key.D5: _mount.SlewRate = 5; break;
 				case Key.Escape: this.Hide(); break;
 			}
 

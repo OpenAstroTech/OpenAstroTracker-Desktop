@@ -18,8 +18,9 @@
         <converters:IntToBoolConverter x:Key="Int1ToBool" TrueValue="1" Operator="==" />
         <converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
         <converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
-        <converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
-        <converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Hidden" />
+		<converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
+		<converters:IntToBoolConverter x:Key="Int5ToBool" TrueValue="5" Operator="==" />
+		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Hidden" />
 
         <Path x:Key="IconArrowUp" x:Shared="false" Data="M16,0L32,19.745 0,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
         <Path x:Key="IconArrowLeft" x:Shared="false" Data="M25.3,0L25.3,32 0,16z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
@@ -232,8 +233,13 @@
             <Button Grid.Row="6" Grid.Column="8" Grid.RowSpan="1" Margin="8,4,8,0" Padding="0,4,0,8"  Content="Sync -&gt;" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToTargetCommand}" />
 
             <TextBlock Grid.Row="0" Grid.Column="9" Grid.ColumnSpan="7"  Text="Current" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
+			<Button Grid.Row="0" Grid.Column="16" Grid.ColumnSpan="1" HorizontalAlignment="Center" Width="28" Height="28" Command="{Binding OpenAppSettings}">
+				<Button.Background>
+					<ImageBrush ImageSource="/Resources/SettingsIcon.png"/>
+				</Button.Background>
+			</Button>
 
-            <TextBlock Grid.Row="2" Grid.Column="9"  Text="RA" Style="{StaticResource TextBlockHeading}" />
+			<TextBlock Grid.Row="2" Grid.Column="9"  Text="RA" Style="{StaticResource TextBlockHeading}" />
             <TextBlock Grid.Row="2" Grid.Column="11" Text="{Binding CurrentRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
             <TextBlock Grid.Row="2" Grid.Column="12"  Text="h" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
             <TextBlock Grid.Row="2" Grid.Column="13" Text="{Binding CurrentRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
@@ -424,13 +430,19 @@
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int3ToBool}}"
 						Content="3"/>
-                <ToggleButton 
+				<ToggleButton 
 						Width="24" Margin="5,0,0,0"
 						Height="24"
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int4ToBool}}"
 						Content="4"/>
-            </StackPanel>
+				<ToggleButton 
+						Width="24" Margin="5,0,0,0"
+						Height="24"
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int5ToBool}}"
+						Content="5"/>
+			</StackPanel>
 
             <Grid Grid.Row="3" >
                 <Grid.RowDefinitions>

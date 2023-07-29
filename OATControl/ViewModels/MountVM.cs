@@ -162,7 +162,7 @@ namespace OATControl.ViewModels
 		private long _firmwareVersion = 0;
 		private float _slewYSpeed;
 		private float _slewXSpeed;
-		private int _slewRate = 4;
+		private int _slewRate = 5;
 		private object _speedUpdateLock = new object();
 		private object _oatLock = new object();
 		private bool _updatedSpeeds;
@@ -1599,7 +1599,7 @@ namespace OATControl.ViewModels
 		{
 			Log.WriteLine("CONTROL: Enter Start slewing {0}", dir);
 
-			float[] rateDistance = { 0, 0.25f, 2.0f, 7.5f, 30.0f };
+			float[] rateDistance = { 0, 0.05f, 0.25f, 2.0f, 7.5f, 30.0f };
 			var doneEvent = new AsyncAutoResetEvent();
 			float distance = rateDistance[SlewRate];
 			// a/z - ALT up/down
@@ -3643,8 +3643,8 @@ namespace OATControl.ViewModels
 
 		private void SlewRateChanged(int arg1, int newRate)
 		{
-			float[] speeds = { 0, 0.05f, 0.15f, 0.5f, 1.0f };
-			string slewRateComdChar = "_GCMS";
+			float[] speeds = { 0, 0.05f, 0.05f, 0.15f, 0.5f, 1.0f };
+			string slewRateComdChar = "_GGCMS";
 
 			MaxMotorSpeed = speeds[newRate] * 2.5f; // Can't go much quicker than 2.5 degs/sec
 

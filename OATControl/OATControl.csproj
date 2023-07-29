@@ -240,6 +240,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\SettingsIcon.png" />
     <Resource Include="oat.ico" />
     <Content Include="PointsOfInterest.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
