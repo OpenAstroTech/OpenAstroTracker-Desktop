@@ -7,7 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OATTest" xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase" xmlns:WpfUtilities="clr-namespace:OATCommunications.WPF;assembly=OATCommunications.WPF"
         mc:Ignorable="d"
-        Title="OAT Test Manager" Height="870" Width="900" Background="#EEF">
+        Title="{Binding Version, StringFormat={} OpenAstro Test Manager V{0}}" Height="870" Width="900" Background="#EEF">
     <Window.Resources>
         <CollectionViewSource x:Key="testlist" Source="{Binding TestSuites}">
             <CollectionViewSource.SortDescriptions>

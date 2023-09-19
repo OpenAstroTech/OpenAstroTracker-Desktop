@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Reflection;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -84,7 +85,8 @@ namespace OATTest
 			_seperateDebugPort = false;
 			_debugOutput = new ObservableCollection<string>();
 			OnPropertyChanged("Tests");
-			_debugOutput.Add("Welcome to TestManager V1.0");
+			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
+			_debugOutput.Add("Welcome to TestManager " + this.Version);
 			_setDateTimeCommand = new DelegateCommand(s => OnSetDateTime(true));
 			_setDateTimePresetCommand = new DelegateCommand(s => OnSetDateTime(false));
 			_runTestCommand = new DelegateCommand(async (s) => await OnStartTest(false));
@@ -97,6 +99,7 @@ namespace OATTest
 
 			_commandBaudRate = "19200";
 			_debugBaudRate = "115200";
+
 
 			AvailableDevices = new ObservableCollection<DeviceDriver>();
 			AvailableBaudRates = new List<string>() { "9600", "19200", "28800", "38400", "57600", "115200" };
@@ -126,6 +129,8 @@ namespace OATTest
 		{
 			Debug("OAT: " + line);
 		}
+
+		public Version Version { get; private set; }
 
 		void Debug(string line)
 		{
@@ -568,7 +573,7 @@ namespace OATTest
 					//	DebugPort = CommandPort;
 					//}
 					OnPropertyChanged();
-					Settings.Default.SeparateDebugPort= _seperateDebugPort;
+					Settings.Default.SeparateDebugPort = _seperateDebugPort;
 					Settings.Default.Save();
 				}
 			}
