@@ -97,7 +97,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Delay 500ms">
@@ -157,7 +157,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Enable Tracking">

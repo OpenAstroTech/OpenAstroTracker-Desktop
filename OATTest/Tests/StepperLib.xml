@@ -17,7 +17,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -61,7 +61,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -100,7 +100,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -125,7 +125,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -145,7 +145,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -182,7 +182,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current DEC">
@@ -215,7 +215,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current DEC">
@@ -263,7 +263,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current DEC">
@@ -306,7 +306,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current DEC">
@@ -349,7 +349,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current DEC">
@@ -514,7 +514,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get current RA">
@@ -649,7 +649,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current RA">
@@ -693,7 +693,7 @@
 		</Test>
 
 		<Test Description="Wait for slew end">
-			<Command Type="Builtin">WaitForIdle</Command>
+			<Command Type="Builtin">WaitForSlewEnd</Command>
 		</Test>
 
 		<Test Description="Get Current DEC">

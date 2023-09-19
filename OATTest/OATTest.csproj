@@ -169,5 +169,8 @@
   <ItemGroup>
     <Resource Include="Tests\ReadConfigSettings.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Tests\Parking.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

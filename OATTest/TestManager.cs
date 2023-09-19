@@ -264,71 +264,117 @@ namespace OATTest
 					}
 					else if (test.CommandType == "Builtin")
 					{
-						string pattern = @"^(\w+)(?:,(\d+)(\w{1,2}))*$";
-						var match = Regex.Match(command, pattern, RegexOptions.Singleline);
-						if (match.Success)
+						//string pattern = @"^(\w+)(?:,(\d+)(\w{1,2}))*$";
+						int commaPos = command.IndexOf(',');
+						string verb = commaPos == -1 ? command.ToUpper() : command.Substring(0, commaPos).ToUpper();
+						string arguments = commaPos == -1 ? string.Empty : command.Substring(commaPos + 1);
+						switch (verb)
 						{
-							long num = 0;
-							long factor = 1000;
-							if (!string.IsNullOrEmpty(match.Groups[2].Value))
-							{
-								long.TryParse(match.Groups[2].Value, out num);
-								factor = GetMsFactorFromUnit(match.Groups[3].Value);
-							}
-
-							switch (match.Groups[1].Value.ToUpper())
-							{
-								case "DELAY":
+							case "DELAY":
+								{
+									var match = Regex.Match(arguments, @"(\d+)(\w{1,2})", RegexOptions.Singleline);
+									if (match.Success)
 									{
+										long num = 0;
+										long factor = 1000;
+										if (!string.IsNullOrEmpty(match.Groups[1].Value))
+										{
+											long.TryParse(match.Groups[1].Value, out num);
+											factor = GetMsFactorFromUnit(match.Groups[2].Value);
+										}
 										debugOut($"TEST: Executing built in 'Delay' command for {num * factor}ms ...");
 										await Task.Delay(TimeSpan.FromMilliseconds(num * factor));
 										success = true;
 										reply = string.Empty;
-										break;
 									}
-								case "WAITFORIDLE":
-									{
-										debugOut($"Executing built in 'WaitForIdle' command...");
-										do
-										{
-											await Task.Delay(TimeSpan.FromSeconds(0.5));
-											debugOut($"TEST: Send GIS");
-											handler.SendCommandConfirm(":GIS#", (data) =>
-											{
-												debugOut($"TEST: GIS returned {data.Success} and {data.Data}");
-												success = data.Success;
-												reply = data.Data;
-												_commandCompleteEvent.Set();
-											});
-											await _commandCompleteEvent.WaitAsync();
-											if ((reply == "0") || !success || _abortTestRun)
-											{
-												if (reply == "0") debugOut($"TEST: GIS loop terminating since OAT is idle.");
-												else if (!success) debugOut($"TEST: GIS loop terminating since GIS failed.");
-												else if (_abortTestRun) debugOut($"TEST: GIS loop terminating since Test run aborted.");
-												break;
-											}
-										}
-										while (true);
+								}
+								break;
 
-										// If comms failed, try send a blind command to clear buffers.
-										if (!success)
+							case "WAITFORSLEWEND":
+								{
+									debugOut($"Executing built in 'WaitForSlewEnd' command...");
+									do
+									{
+										await Task.Delay(TimeSpan.FromSeconds(0.5));
+										debugOut($"TEST: Send GIS");
+										handler.SendCommandConfirm(":GIS#", (data) =>
 										{
-											debugOut($"TEST: GIS loop failed, sending Blind command.");
-											handler.SendBlind(":RS#", (data) =>
-											{
-												success = data.Success;
-												_commandCompleteEvent.Set();
-											});
-											await _commandCompleteEvent.WaitAsync();
-											debugOut($"TEST: Blind command complete.");
+											debugOut($"TEST: GIS returned {data.Success} and {data.Data}");
+											success = data.Success;
+											reply = data.Data;
+											_commandCompleteEvent.Set();
+										});
+										await _commandCompleteEvent.WaitAsync();
+										if ((reply == "0") || !success || _abortTestRun)
+										{
+											if (reply == "0") debugOut($"TEST: GIS loop terminating since OAT is not slewing.");
+											else if (!success) debugOut($"TEST: GIS loop terminating since GIS failed.");
+											else if (_abortTestRun) debugOut($"TEST: GIS loop terminating since Test run aborted.");
+											break;
 										}
-										reply = string.Empty;
-										break;
 									}
-								default:
-									throw new ArgumentException("Unrecognized built-in command '" + match.Groups[1].Value + "'.");
-							}
+									while (true);
+
+									// If comms failed, try send a blind command to clear buffers.
+									if (!success)
+									{
+										debugOut($"TEST: GIS loop failed, sending Blind command.");
+										handler.SendBlind(":RS#", (data) =>
+										{
+											success = data.Success;
+											_commandCompleteEvent.Set();
+										});
+										await _commandCompleteEvent.WaitAsync();
+										debugOut($"TEST: Blind command complete.");
+									}
+									reply = string.Empty;
+									break;
+								}
+							case "WAITFORSTATUS":
+								{
+									debugOut($"Executing built in 'WaitForStatus' command...");
+									do
+									{
+										await Task.Delay(TimeSpan.FromSeconds(0.5));
+										debugOut($"TEST: Send GX");
+										handler.SendCommand(":GX#,#", (data) =>
+										{
+											debugOut($"TEST: GX returned {data.Success} and {data.Data}");
+											success = data.Success;
+											reply = data.Data;
+											_commandCompleteEvent.Set();
+										});
+										await _commandCompleteEvent.WaitAsync();
+
+										string status = reply.Split(',')[0];
+
+										if ((status.ToUpper() == arguments.ToUpper()) || !success || _abortTestRun)
+										{
+											if (status.ToUpper() == arguments) debugOut($"TEST: GX loop terminating since OAT is in requested state ({arguments}).");
+											else if (!success) debugOut($"TEST: GX loop terminating since GX failed.");
+											else if (_abortTestRun) debugOut($"TEST: GX loop terminating since Test run aborted.");
+											break;
+										}
+									}
+									while (true);
+
+									// If comms failed, try send a blind command to clear buffers.
+									if (!success)
+									{
+										debugOut($"TEST: GIS loop failed, sending Blind command.");
+										handler.SendBlind(":RS#", (data) =>
+										{
+											success = data.Success;
+											_commandCompleteEvent.Set();
+										});
+										await _commandCompleteEvent.WaitAsync();
+										debugOut($"TEST: Blind command complete.");
+									}
+									reply = string.Empty;
+									break;
+								}
+							default:
+								throw new ArgumentException("Unrecognized built-in command '" + verb + "'.");
 						}
 					}
 
@@ -345,8 +391,8 @@ namespace OATTest
 							{
 								var expected = ReplaceMacros(test.ExpectedReply);
 								// Yes, so set fail or success according to match
-								
-								test.Status = test.IsReceivedReplyEqualToExpectedReply(reply,expected) ? CommandTest.StatusType.Success : CommandTest.StatusType.Failed;
+
+								test.Status = test.IsReceivedReplyEqualToExpectedReply(reply, expected) ? CommandTest.StatusType.Success : CommandTest.StatusType.Failed;
 							}
 							else
 							{
