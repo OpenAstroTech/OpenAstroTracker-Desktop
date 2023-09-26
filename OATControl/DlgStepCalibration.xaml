@@ -99,8 +99,9 @@
             <TextBlock Grid.Row="0" Text="To perform stepper motor Step Calibration for RA and DEC, the following is needed:" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap"/>
             <TextBlock Grid.Row="1" Text="· Clear view of the sky above you that extends 3h (45°) in RA and 45° in DEC." Style="{StaticResource TextBlockListItem}"/>
             <TextBlock Grid.Row="2" Text="· Ability to capture and plate solve image when prompted." Style="{StaticResource TextBlockListItem}"/>
-            <TextBlock Grid.Row="4" Text="· Mount is polar-aligned and in Home position to start." Style="{StaticResource TextBlockListItem}"/>
-            <Grid Grid.Row="5" Grid.RowSpan="2">
+			<TextBlock Grid.Row="3" Text="· Mount is polar-aligned and in Home position to start." Style="{StaticResource TextBlockListItem}"/>
+			<TextBlock Grid.Row="4" Text="· All degrees are relative, positive DEC goes up." Style="{StaticResource TextBlockListItem}"/>
+			<Grid Grid.Row="5" Grid.RowSpan="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="70" />
@@ -122,11 +123,11 @@
                 <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding DegreesToFour}" Style="{StaticResource TextBorderSmall}"/>
             </Grid>
 
-            <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+			<StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
                 <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}" IsEnabled="{Binding CanContinue}"/>
                 <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
             </StackPanel>
-            <TextBlock Grid.Row="8" Text="Slewing DEC 15° up from Home..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,30,0,0" Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+            <TextBlock Grid.Row="8" Text="{Binding DegreesToOne, StringFormat='Slewing DEC {0}° from Home...'}" Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,30,0,0" Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
         </Grid>
         <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=2}">
             <Grid.RowDefinitions>
@@ -146,7 +147,7 @@
                 <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
                 <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
             </StackPanel>
-            <TextBlock Grid.Row="4" Text="Slewing DEC up 45° ..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0" Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+			<TextBlock Grid.Row="4" Text="{Binding DegreesToTwo, StringFormat='Slewing DEC by {0}° ...'}" Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0" Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
         </Grid>
 
         <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=3}">
@@ -167,7 +168,7 @@
                 <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
                 <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
             </StackPanel>
-            <TextBlock Grid.Row="4" Text="Slewing DEC down 15° and RA west 1.5h..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+			<TextBlock Grid.Row="4" Text="{Binding DegreesToThree, StringFormat='Slewing RA {0}° from Home...'}" Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
         </Grid>
 
         <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=4}">
@@ -188,7 +189,7 @@
                 <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
                 <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
             </StackPanel>
-            <TextBlock Grid.Row="4" Text="Slewing RA 3h east ..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+			<TextBlock Grid.Row="4" Text="{Binding DegreesToFour, StringFormat='Slewing RA {0}° ...'}" Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
         </Grid>
 
         <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=5}">
@@ -209,7 +210,7 @@
                 <Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
                 <Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
             </StackPanel>
-            <TextBlock Grid.Row="4" Text="Slewing RA east 1.5h ..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
+            <TextBlock Grid.Row="4" Text="Slewing back to Home position..." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,30,0,0"  Visibility="{Binding DisplayStatus, Converter={StaticResource VisibleIfDIsplayOn}}"/>
         </Grid>
 
         <Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfPageEquals},ConverterParameter=6}">

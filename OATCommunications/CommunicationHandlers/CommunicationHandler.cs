@@ -41,6 +41,8 @@ namespace OATCommunications.CommunicationHandlers
 		protected bool _logJobs = false;
 #endif
 
+		public bool IsLoggingEnabled { get { return _logJobs; } }
+
 		public void EnableLogging(bool state)
 		{
 			_logJobs = state;

@@ -64,6 +64,7 @@ namespace OATControl.ViewModels
 				{
 					// This will execute on every new release. Allows clients to upgrade settings if needed.
 					OnUpgradeSettings();
+					Save();
 				}
 			}
 		}
@@ -256,5 +257,32 @@ namespace OATControl.ViewModels
 			set { this["RunDECOffsetHomingOnConnect"] = value.ToString(); }
 		}
 
+		[DefaultValueAttribute("East")]
+		public string AutoHomeRaDirection
+		{
+			get { return this["AutoHomeRaDirection"]; }
+			set { this["AutoHomeRaDirection"] = value; }
+		}
+
+		[DefaultValueAttribute("15")]
+		public float AutoHomeRaDistance
+		{
+			get { return Convert.ToSingle(this["AutoHomeRaDistance"]); }
+			set { this["AutoHomeRaDistance"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("North")]
+		public string AutoHomeDecDirection
+		{
+			get { return this["AutoHomeDecDirection"]; }
+			set { this["AutoHomeDecDirection"] = value; }
+		}
+
+		[DefaultValueAttribute("15")]
+		public float AutoHomeDecDistance
+		{
+			get { return Convert.ToSingle(this["AutoHomeDecDistance"]); }
+			set { this["AutoHomeDecDistance"] = value.ToString(); }
+		}
 	}
 }

@@ -38,7 +38,7 @@ namespace OATControl
 		{
 			Idle,
 			WaitForDeviceConfirm,
-			WaitForBaudrate,
+			//WaitForBaudrate,
 			WaitForConnection,
 			CheckHardware,
 			WaitForLevel,
@@ -101,7 +101,7 @@ namespace OATControl
 			_runDECOffsetHoming = AppSettings.Instance.RunDECOffsetHomingOnConnect;
 
 			CurrentStep = Steps.Idle;
-			_rescanCommand = new DelegateCommand(async () => { await OnDiscoverDevices(); }, () => (_currentStep == Steps.Idle) || (_currentStep == Steps.WaitForBaudrate));
+			_rescanCommand = new DelegateCommand(async () => { await OnDiscoverDevices(); }, () => (_currentStep == Steps.Idle) );
 			_connectAndNextCommand = new DelegateCommand((o) => AdvanceStateMachine(), () => IsNextEnabled);
 
 			this.DataContext = this;
@@ -453,8 +453,8 @@ namespace OATControl
 				case Steps.WaitForDeviceConfirm: // Clicked on Next
 					if (SelectedDevice.DeviceName.StartsWith("Serial"))
 					{
-						CurrentStep = Steps.WaitForBaudrate;
-						ShowBaudRate = true;
+						CurrentStep = Steps.WaitForConnection;
+						ShowBaudRate = false;
 					}
 					else
 					{
@@ -466,7 +466,7 @@ namespace OATControl
 					ShowNextButton = !string.IsNullOrEmpty(SelectedBaudRate);
 					break;
 
-				case Steps.WaitForBaudrate:
+				// case Steps.WaitForBaudrate:
 				case Steps.WaitForConnection:
 					GPSStatus = $"Connecting to OAT on {SelectedDevice.DeviceName}{(SelectedDevice.DeviceName.StartsWith("Serial") ? " at " + SelectedBaudRate + " baud" : "")}";
 					ShowGPSStatus = true;
@@ -558,8 +558,8 @@ namespace OATControl
 			stateTimer.Stop();
 			switch (CurrentStep)
 			{
-				case Steps.WaitForBaudrate:
-					break;
+				//case Steps.WaitForBaudrate:
+				//	break;
 
 				case Steps.WaitForConnection:
 					break;
@@ -829,8 +829,8 @@ namespace OATControl
 					case Steps.Idle:
 						return false;
 
-					case Steps.WaitForBaudrate:
-						return !string.IsNullOrEmpty(SelectedBaudRate);
+					//case Steps.WaitForBaudrate:
+					//	return !string.IsNullOrEmpty(SelectedBaudRate);
 
 					case Steps.WaitForDeviceConfirm:
 					case Steps.WaitForConnection:

@@ -47,7 +47,7 @@ namespace OATControl
 
 		private float _raStepsAfter;
 		private float _decStepsAfter;
-		private float _degreesToOne = 15f;
+		private float _degreesToOne = -15f;
 		private float _degreesToTwo = 45f;
 		private float _degreesToThree = -22.5f;
 		private float _degreesToFour = 45f;
@@ -332,7 +332,7 @@ namespace OATControl
 				case CalibrationState.WaitToStart:
 					// Initiate slew 15 deg up, display status
 					Log.WriteLine("STEPCALIBRATION: Moving mount up {0} deg.", _degreesToOne);
-					await _mountVM.MoveMount(0, (long)(_decStepsBefore * 15));
+					await _mountVM.MoveMount(0, (long)(_decStepsBefore * _degreesToOne));
 					DisplayStatus = true;
 					await Task.Delay(500);
 					_calibrationState = CalibrationState.SlewToDecStart;
@@ -340,16 +340,16 @@ namespace OATControl
 					break;
 
 				case CalibrationState.SlewToDecStart:
-				// if slewing complete
-				{
-					DisplayStatus = false;
-					_calibrationState = CalibrationState.GetDecStartCoordinate;
-					Step = 2;
-					await _mountVM.UpdateStatus();
-					Log.WriteLine("STEPCALIBRATION: Prompting 1st DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, Coord(_mountVM.CurrentDECTotalHours));
-					InputCoordinate = Coord(_mountVM.CurrentDECTotalHours);
-				}
-				break;
+					// if slewing complete
+					{
+						DisplayStatus = false;
+						_calibrationState = CalibrationState.GetDecStartCoordinate;
+						Step = 2;
+						await _mountVM.UpdateStatus();
+						Log.WriteLine("STEPCALIBRATION: Prompting 1st DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, Coord(_mountVM.CurrentDECTotalHours));
+						InputCoordinate = Coord(_mountVM.CurrentDECTotalHours);
+					}
+					break;
 
 				case CalibrationState.GetDecStartCoordinate:
 					if (TryParseCoord(InputCoordinate, out _decSolvedStart))
@@ -373,24 +373,24 @@ namespace OATControl
 					break;
 
 				case CalibrationState.Slew45DecDegrees:
-				// Slewing complete
-				{
-					DisplayStatus = false;
-					_calibrationState = CalibrationState.GetDecEndCoordinate;
-					await _mountVM.UpdateStatus();
-					Log.WriteLine("STEPCALIBRATION: Prompting 2nd DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, Coord(_mountVM.CurrentDECTotalHours));
-					InputCoordinate = Coord(_mountVM.CurrentDECTotalHours);
-					Step = 3;
-				}
-				break;
+					// Slewing complete
+					{
+						DisplayStatus = false;
+						_calibrationState = CalibrationState.GetDecEndCoordinate;
+						await _mountVM.UpdateStatus();
+						Log.WriteLine("STEPCALIBRATION: Prompting 2nd DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, Coord(_mountVM.CurrentDECTotalHours));
+						InputCoordinate = Coord(_mountVM.CurrentDECTotalHours);
+						Step = 3;
+					}
+					break;
 
 				case CalibrationState.GetDecEndCoordinate:
 					if (TryParseCoord(InputCoordinate, out _decSolvedEnd))
 					{
 						// Store end dec coords and stepper pos
 						// Initiate 15 deg slew back using steps, display status
-						Log.WriteLine("STEPCALIBRATION: Platesolved DEC end is, {0}. Moving down 15deg and east 1.5h.", _decSolvedStart, Coord(_decSolvedEnd));
-						await _mountVM.MoveMount((long)(_raStepsBefore * _degreesToThree), (long)(-_decStepsBefore * _degreesToOne));
+						Log.WriteLine("STEPCALIBRATION: Platesolved DEC end is, {0}. Moving east 1.5h.", _decSolvedStart, Coord(_decSolvedEnd));
+						await _mountVM.MoveMount((long)(_raStepsBefore * _degreesToThree), 0);
 						DisplayStatus = true;
 						await Task.Delay(500);
 						_calibrationState = CalibrationState.SlewBack15DecDegrees;
@@ -403,16 +403,16 @@ namespace OATControl
 					break;
 
 				case CalibrationState.SlewBack15DecDegrees:
-				// Slewing complete
-				{
-					DisplayStatus = false;
-					_calibrationState = CalibrationState.GetRaStartCoordinates;
-					await _mountVM.UpdateStatus();
-					Log.WriteLine("STEPCALIBRATION: Starting RA calibration. Prompting for RA, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, Coord(_mountVM.CurrentRATotalHours));
-					InputCoordinate = Coord(_mountVM.CurrentRATotalHours);
-					Step = 4;
-				}
-				break;
+					// Slewing complete
+					{
+						DisplayStatus = false;
+						_calibrationState = CalibrationState.GetRaStartCoordinates;
+						await _mountVM.UpdateStatus();
+						Log.WriteLine("STEPCALIBRATION: Starting RA calibration. Prompting for RA, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, Coord(_mountVM.CurrentRATotalHours));
+						InputCoordinate = Coord(_mountVM.CurrentRATotalHours);
+						Step = 4;
+					}
+					break;
 
 				case CalibrationState.GetRaStartCoordinates:
 					if (TryParseCoord(InputCoordinate, out _raSolvedStart))
@@ -439,16 +439,16 @@ namespace OATControl
 					break;
 
 				case CalibrationState.Slew45RaDegrees:
-				// Slewing complete
-				{
-					DisplayStatus = false;
-					_calibrationState = CalibrationState.GetRAEndCoordinate;
-					await _mountVM.UpdateStatus();
-					Log.WriteLine("STEPCALIBRATION: Prompting 2nd RA value, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, Coord(_mountVM.CurrentRATotalHours));
-					InputCoordinate = Coord(_mountVM.CurrentRATotalHours);
-					Step = 5;
-				}
-				break;
+					// Slewing complete
+					{
+						DisplayStatus = false;
+						_calibrationState = CalibrationState.GetRAEndCoordinate;
+						await _mountVM.UpdateStatus();
+						Log.WriteLine("STEPCALIBRATION: Prompting 2nd RA value, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, Coord(_mountVM.CurrentRATotalHours));
+						InputCoordinate = Coord(_mountVM.CurrentRATotalHours);
+						Step = 5;
+					}
+					break;
 
 				case CalibrationState.GetRAEndCoordinate:
 					if (TryParseCoord(InputCoordinate, out _raSolvedEnd))
@@ -456,14 +456,13 @@ namespace OATControl
 						// Store end coordinates and pos
 						// Initiate slew back in RA. display status
 						Log.WriteLine("STEPCALIBRATION: Platesolved RA end is, {0}. Moving RA back to start by -45deg.", _raSolvedEnd, Coord(_raSolvedEnd));
-						await _mountVM.MoveMount((long)(-_raStepsBefore * (_degreesToThree + _degreesToFour)), 0);
+						await _mountVM.MoveMount((long)(-_raStepsBefore * (_degreesToThree + _degreesToFour)), (long)(-_decStepsBefore * (_degreesToOne + _degreesToTwo)));
 
 						DisplayStatus = true;
 						await Task.Delay(500);
 
 						_calibrationState = CalibrationState.SlewBack45RaDegrees;
 						_timer.Start();
-
 					}
 					else
 					{
@@ -472,47 +471,60 @@ namespace OATControl
 					break;
 
 				case CalibrationState.SlewBack45RaDegrees:
-				// Slewing complete
-				{
-					DisplayStatus = false;
-					_calibrationState = CalibrationState.ConfirmResults;
-					Step = 6;
+					// Slewing complete
+					{
+						DisplayStatus = false;
+						_calibrationState = CalibrationState.ConfirmResults;
+						Step = 6;
 
-					// double raStepsTaken = 45 * _raStepsBefore;
-					// double decStepsTaken = 45 * _decStepsBefore;
-					// double secsPerDay = 86400;
-					// double secsPerSiderealDay = 86164;
-					// double secRatio = secsPerSiderealDay / secsPerDay;
-					// double rotationPerDay = 360 * secRatio;
-					// double rotationPerHour = rotationPerDay / 24.0;
-					// double rotationPerMinute = rotationPerHour / 60.0;
-					// double rotationPerSecond = rotationPerMinute / 60.0;
+						// double raStepsTaken = 45 * _raStepsBefore;
+						// double decStepsTaken = 45 * _decStepsBefore;
+						// double secsPerDay = 86400;
+						// double secsPerSiderealDay = 86164;
+						// double secRatio = secsPerSiderealDay / secsPerDay;
+						// double rotationPerDay = 360 * secRatio;
+						// double rotationPerHour = rotationPerDay / 24.0;
+						// double rotationPerMinute = rotationPerHour / 60.0;
+						// double rotationPerSecond = rotationPerMinute / 60.0;
 
-					// DEC
-					double actualDecDegrees = _decSolvedStart - _decSolvedEnd;
-					double decRatio = _degreesToTwo / actualDecDegrees;
-					DecStepsAfter = (float)(Math.Round(_decStepsBefore * decRatio * 10.0) / 10.0);
+						// DEC
+						double actualDecDegrees = _decSolvedStart - _decSolvedEnd;
+						if (Math.Sign(_degreesToOne) != Math.Sign(_degreesToTwo))
+						{
+							actualDecDegrees = (90 - _decSolvedStart) + (90 - _decSolvedEnd);
+						}
+						double decRatio = _degreesToTwo / actualDecDegrees;
+						DecStepsAfter = (float)(Math.Round(_decStepsBefore * decRatio * 10.0) / 10.0);
 
-					// RA
-					double actualRaHours = _raSolvedStart - _raSolvedEnd;
-					double raRatio = _degreesToFour / 15.0f / actualRaHours;
-					RaStepsAfter = (float)(Math.Round(_raStepsBefore * raRatio * 10.0) / 10.0);
+						// RA
+						double actualRaHours = _raSolvedStart - _raSolvedEnd;
+						if (actualRaHours < 0)
+						{
+							actualRaHours += 24.0;
+						}
+						if (actualRaHours > 12.0)
+						{
+							actualRaHours = 24.0 - actualRaHours;
+						}
 
-					Log.WriteLine("STEPCALIBRATION: RA Calculation");
-					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}h ({1:0.0000}deg)", _degreesToFour/15.0, _degreesToFour);
-					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}h ({1:0.0000}deg)", actualRaHours, actualRaHours * 15);
-					Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", raRatio);
-					Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", RaStepsBefore);
-					Log.WriteLine("STEPCALIBRATION:       New Steps : {0:0.0}", RaStepsAfter);
+						double raRatio = Math.Abs(_degreesToFour / 15.0f / actualRaHours);
+						RaStepsAfter = (float)(Math.Round(_raStepsBefore * raRatio * 10.0) / 10.0);
 
-					Log.WriteLine("STEPCALIBRATION: DEC Calculation");
-					Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}deg", _degreesToTwo);
-					Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}deg)", actualDecDegrees);
-					Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", decRatio);
-					Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", DecStepsBefore);
-					Log.WriteLine("STEPCALIBRATION:       New Steps : {0:0.0}", DecStepsAfter);
-				}
-				break;
+						Log.WriteLine("STEPCALIBRATION: RA Calculation");
+						Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}h ({1:0.0000}deg)", _degreesToFour / 15.0, _degreesToFour);
+						Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}h ({1:0.0000}deg)", actualRaHours, actualRaHours * 15);
+						Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", raRatio);
+						Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", RaStepsBefore);
+						Log.WriteLine("STEPCALIBRATION:       New Steps : {0:0.0}", RaStepsAfter);
+
+						Log.WriteLine("STEPCALIBRATION: DEC Calculation");
+						Log.WriteLine("STEPCALIBRATION:   Expected Move : {0:0.0000}deg", _degreesToTwo);
+						Log.WriteLine("STEPCALIBRATION:     Actual Move : {0:0.0000}deg)", actualDecDegrees);
+						Log.WriteLine("STEPCALIBRATION:      Move Ratio : {0:0.000}", decRatio);
+						Log.WriteLine("STEPCALIBRATION:       Old Steps : {0:0.0}", DecStepsBefore);
+						Log.WriteLine("STEPCALIBRATION:       New Steps : {0:0.0}", DecStepsAfter);
+					}
+					break;
 
 				case CalibrationState.ConfirmResults:
 					// Slew back to home
@@ -524,16 +536,16 @@ namespace OATControl
 					break;
 
 				case CalibrationState.SlewBackToHomeAndSet:
-				// If slew complete
-				{
-					DisplayStatus = false;
+					// If slew complete
+					{
+						DisplayStatus = false;
 
-					// set RA and DEC stepsperdegree according to formula
-					await _mountVM.SetSteps(RaStepsAfter, DecStepsAfter);
+						// set RA and DEC stepsperdegree according to formula
+						await _mountVM.SetSteps(RaStepsAfter, DecStepsAfter);
 
-					WpfUtilities.RunOnUiThread(() => this.Close(), Application.Current.Dispatcher);
-				}
-				break;
+						WpfUtilities.RunOnUiThread(() => this.Close(), Application.Current.Dispatcher);
+					}
+					break;
 			}
 
 			CanContinue = !DisplayStatus;

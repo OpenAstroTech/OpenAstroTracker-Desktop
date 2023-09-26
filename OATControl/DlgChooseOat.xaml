@@ -91,9 +91,9 @@
 			</ListView.ItemTemplate>
 		</ListView>
 
-		<TextBlock Grid.Row="2" Grid.Column="0"  Text="Baud rate" Foreground="{StaticResource AccentSelectedColorBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,20,16,5" Visibility="{Binding ShowBaudRate,Converter={StaticResource CollapseOnFalse}}"/>
+		<!--<TextBlock Grid.Row="2" Grid.Column="0"  Text="Baud rate" Foreground="{StaticResource AccentSelectedColorBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,20,16,5" Visibility="{Binding ShowBaudRate,Converter={StaticResource CollapseOnFalse}}"/>
 		<ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="1" Margin="8,19,0,1" ItemsSource="{Binding AvailableBaudRates}" SelectedValue="{Binding SelectedBaudRate}"
-					  Width="120" FontSize="16" HorizontalAlignment="Left" Foreground="Red" FontWeight="Bold" BorderBrush="#FF880000" Visibility="{Binding ShowBaudRate,Converter={StaticResource CollapseOnFalse}}"/>
+					  Width="120" FontSize="16" HorizontalAlignment="Left" Foreground="Red" FontWeight="Bold" BorderBrush="#FF880000" Visibility="{Binding ShowBaudRate,Converter={StaticResource CollapseOnFalse}}"/>-->
 
 		<TextBlock Grid.Row="3" Grid.Column="0" Text="Pitch Level:" HorizontalAlignment="Right" Margin="0,19,8,12" Foreground="{StaticResource AccentSelectedColorBrush}" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />
 		<local:LevelDisplay Grid.Row="3" Grid.Column="1" Value="{Binding PitchOffset}" Range="3" Labels="-3|-2|-1|0|1|2|3" Margin="10,23,20,7" Visibility="{Binding ShowLevelDisplay, Converter={StaticResource CollapseOnFalse}}" />

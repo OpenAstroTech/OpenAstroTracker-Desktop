@@ -99,6 +99,9 @@
     <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="DayTime.cs" />
     <Compile Include="Declination.cs" />
+    <Compile Include="DlgAppSettings.xaml.cs">
+      <DependentUpon>DlgAppSettings.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DlgCustomActionSetup.xaml.cs">
       <DependentUpon>DlgCustomActionSetup.xaml</DependentUpon>
     </Compile>
@@ -148,6 +151,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\RangeSlider.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DlgAppSettings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -240,6 +247,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\SettingsHoverIcon.png" />
     <Resource Include="Resources\SettingsIcon.png" />
     <Resource Include="oat.ico" />
     <Content Include="PointsOfInterest.xml">

@@ -47,5 +47,8 @@ namespace OATCommunications
 
         // Send a command, expect a single digit response
         void SendCommandConfirm(string command, Action<CommandResponse> onFullFilledAction);
+
+        bool IsLoggingEnabled { get; }
+        void EnableLogging(bool state = true);
 	}
 }

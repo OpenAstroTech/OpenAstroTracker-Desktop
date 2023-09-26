@@ -9,338 +9,386 @@
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
 		Title="{Binding Version, StringFormat={} OpenAstroTracker Control V{0}}" MinHeight="767" MinWidth="720" Height="767" Width="720">
-    <Window.Resources>
+	<Window.Resources>
 		<converters:AbsConverter x:Key="AbsConverter" />
 		<converters:BoolToStringConverter x:Key="SlewModeConverter" TrueString="pulsed" FalseString="continuous" />
 		<converters:BoolToVisibilityConverter x:Key="TrueBoolToHidden" Collapse="False" IsReversed="True"/>
-        <converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
-        <converters:BoolToVisibilityConverter x:Key="CollapseIfFalse" Collapse="True" IsReversed="False" />
-        <converters:IntToBoolConverter x:Key="Int1ToBool" TrueValue="1" Operator="==" />
-        <converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
-        <converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
+		<converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
+		<converters:BoolToVisibilityConverter x:Key="CollapseIfFalse" Collapse="True" IsReversed="False" />
+		<converters:IntToBoolConverter x:Key="Int1ToBool" TrueValue="1" Operator="==" />
+		<converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
+		<converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int5ToBool" TrueValue="5" Operator="==" />
 		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Hidden" />
 
-        <Path x:Key="IconArrowUp" x:Shared="false" Data="M16,0L32,19.745 0,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
-        <Path x:Key="IconArrowLeft" x:Shared="false" Data="M25.3,0L25.3,32 0,16z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
-        <Path x:Key="IconArrowDown" x:Shared="false" Data="M0,0L32,0 16,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{StaticResource AccentBaseColorBrush}"/>
-        <Path x:Key="IconArrowRight" x:Shared="false" Data="M0,0L25,16 0,32z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
-        <Style x:Key="ArrowStyle" TargetType="controls:PushButton">
-            <Setter Property="Width" Value="30" />
-            <Setter Property="Height" Value="25" />
-            <Setter Property="Padding" Value="0,0" />
-        </Style>
-        <Style x:Key="TextBorder" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
-            <Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="MinWidth" Value="50" />
+		<Path x:Key="IconArrowUp" x:Shared="false" Data="M16,0L32,19.745 0,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
+		<Path x:Key="IconArrowLeft" x:Shared="false" Data="M25.3,0L25.3,32 0,16z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
+		<Path x:Key="IconArrowDown" x:Shared="false" Data="M0,0L32,0 16,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{StaticResource AccentBaseColorBrush}"/>
+		<Path x:Key="IconArrowRight" x:Shared="false" Data="M0,0L25,16 0,32z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
+		<Style x:Key="ArrowStyle" TargetType="controls:PushButton">
+			<Setter Property="Width" Value="30" />
+			<Setter Property="Height" Value="25" />
+			<Setter Property="Padding" Value="0,0" />
+		</Style>
+		<Style x:Key="TextBorder" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}">
+			<Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="MinWidth" Value="50" />
 			<Setter Property="Foreground" Value="#B00" />
 		</Style>
-        <Style x:Key="NumericBorder" TargetType="Controls:NumericUpDown" >
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="MinWidth" Value="50" />
+		<Style x:Key="NumericBorder" TargetType="Controls:NumericUpDown" >
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="MinWidth" Value="50" />
 		</Style>
-        <Style x:Key="DockBlockStatus" TargetType="DockPanel" >
-            <Setter Property="Background" Value="{StaticResource AccentColorBrush}" />
-            <Setter Property="Margin" Value="2" />
-            <Setter Property="Width" Value="28" />
-            <Setter Property="Height" Value="28" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding}" Value="True">
-                    <Setter Property="Background" Value="#FFD02010" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="TextBlockStatus" TargetType="TextBlock" >
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="18" />
-            <Setter Property="Margin" Value="2" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
+		<Style x:Key="DockBlockStatus" TargetType="DockPanel" >
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush}" />
+			<Setter Property="Margin" Value="2" />
+			<Setter Property="Width" Value="28" />
+			<Setter Property="Height" Value="28" />
 			<Style.Triggers>
-                <DataTrigger Binding="{Binding}" Value="True">
-                    <Setter Property="Foreground" Value="#FFB0B0B0" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBaseColorBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource AccentColorBrush3}" />
-            <Setter Property="Foreground" Value="#FF000000" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border Name="border" 
+				<DataTrigger Binding="{Binding}" Value="True">
+					<Setter Property="Background" Value="#FFD02010" />
+				</DataTrigger>
+			</Style.Triggers>
+		</Style>
+		<Style x:Key="TextBlockStatus" TargetType="TextBlock" >
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="18" />
+			<Setter Property="Margin" Value="2" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Style.Triggers>
+				<DataTrigger Binding="{Binding}" Value="True">
+					<Setter Property="Foreground" Value="#FFB0B0B0" />
+				</DataTrigger>
+			</Style.Triggers>
+		</Style>
+		<Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
+			<Setter Property="BorderBrush" Value="{StaticResource AccentBaseColorBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush3}" />
+			<Setter Property="Foreground" Value="#FF000000" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ToggleButton">
+						<Border Name="border" 
                             BorderThickness="1"
                             BorderBrush="{StaticResource AccentBaseColorBrush}" 
                             CornerRadius="0" 
                             Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush2}" />
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush4}" />
-                                <Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentSelectedColorBrush}" />
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush2}" />
-                                <Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush3}" />
-                                <Setter Property="Foreground" Value="{StaticResource AccentBaseColorBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="TextBlockTitle" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="28" />
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush2}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush4}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
+							</Trigger>
+							<Trigger Property="IsChecked" Value="True">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentSelectedColorBrush}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush2}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
+							</Trigger>
+							<Trigger Property="IsEnabled" Value="False">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush3}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentBaseColorBrush}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="ImageSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border BorderBrush="#300" BorderThickness="2" x:Name="ImageBorder" >
+							<Viewbox>
+								<Grid>
+									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+									</Grid>
+									<Path Data="M16.000015,9.6000061C12.500012,9.6000061 9.5999844,12.5 9.5999844,16 9.5999844,19.5 12.500012,22.399994 16.000015,22.399994 19.500019,22.399994 22.400015,19.5 22.400015,16 22.400015,12.5 19.500019,9.6000061 16.000015,9.6000061z M14.199995,0L17.800005,0C18.199999,0,18.599993,0.29998779,18.599993,0.79998779L18.599993,4.7999878C19.900013,5.1000061,21.000019,5.6000061,22.099997,6.2999878L25.000023,3.3999939C25.099999,3.2999878 25.300011,3.1999817 25.500025,3.1999817 25.700007,3.1999817 25.900019,3.2999878 26.000025,3.3999939L28.600033,6C28.900021,6.2999878,28.900021,6.7999878,28.600033,7.1000061L25.700007,10C26.400019,11.100006,26.900019,12.299988,27.200007,13.5L31.20001,13.5C31.600037,13.5,31.999998,13.799988,31.999998,14.299988L31.999998,17.899994C31.999998,18.299988,31.700012,18.699982,31.20001,18.699982L27.200007,18.699982C26.900019,20,26.400019,21.100006,25.700007,22.199982L28.600033,25.100006C28.700009,25.199982 28.799984,25.399994 28.799984,25.600006 28.799984,25.799988 28.700009,26 28.600033,26.100006L26.000025,28.600006C25.900019,28.699982 25.700007,28.799988 25.500025,28.799988 25.300011,28.799988 25.099999,28.699982 25.000023,28.600006L22.099997,25.699982C21.000019,26.399994,19.800007,26.899994,18.599993,27.199982L18.599993,31.199982C18.599993,31.600006,18.300005,32,17.800005,32L14.199995,32C13.8,32,13.400006,31.699982,13.400006,31.199982L13.400006,27.199982C12.099987,26.899994,11.000011,26.399994,9.9000027,25.699982L7.0000064,28.600006C6.9000003,28.699982 6.6999881,28.799988 6.5000059,28.799988 6.2999937,28.799988 6.099981,28.699982 6.0000054,28.600006L3.3999967,26C3.0999784,25.699982,3.0999784,25.199982,3.3999967,24.899994L6.2999937,22C5.5999805,20.899994,5.0999801,19.699982,4.7999923,18.5L0.79998828,18.5C0.39999409,18.5,-1.933513E-07,18.199982,0,17.699982L0,14.100006C-1.933513E-07,13.699982,0.2999879,13.299988,0.79998828,13.299988L4.7999923,13.299988C5.0999801,12,5.5999805,10.899994,6.2999937,9.7999878L3.3999967,7C3.2999908,6.8999939 3.1999845,6.6999817 3.1999845,6.5 3.1999845,6.2999878 3.2999908,6.1000061 3.3999967,6L6.0000054,3.3999939C6.099981,3.2999878 6.2999937,3.1999817 6.5000059,3.1999817 6.6999881,3.1999817 6.9000003,3.2999878 7.0000064,3.3999939L9.9000027,6.2999878C11.000011,5.6000061,12.199993,5.1000061,13.400006,4.7999878L13.400006,0.79998779C13.400006,0.29998779,13.8,0,14.199995,0z" 
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+										<Path.RenderTransform>
+											<TransformGroup>
+												<TransformGroup.Children>
+													<RotateTransform Angle="0" />
+													<ScaleTransform ScaleX="1" ScaleY="1" />
+												</TransformGroup.Children>
+											</TransformGroup>
+										</Path.RenderTransform>
+									</Path>
+								</Grid>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#300" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="True">
+					<Setter Property="Background" Value="#700" />
+					<Setter Property="BorderBrush" Value="#600" />
+				</Trigger>
+				<Trigger Property="IsPressed" Value="True">
+					<Setter Property="Background" Value="#400" />
+					<Setter Property="BorderBrush" Value="#500" />
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style x:Key="TextBlockTitle" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="28" />
 			<Setter Property="Foreground" Value="#F00" />
 		</Style>
-        <Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="Margin" Value="2,0" />
-            <Setter Property="Padding" Value="6,0" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
+		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Margin" Value="2,0" />
+			<Setter Property="Padding" Value="6,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
 			<Setter Property="Foreground" Value="#B00" />
 		</Style>
-        <Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
-            <Setter Property="Padding" Value="2,0" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-        </Style>
-        <Style x:Key="TextBlockValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
-            <Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="Padding" Value="6,2" />
-            <Setter Property="Margin" Value="0,4" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-        </Style>
+		<Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="Padding" Value="2,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
+		<Style x:Key="TextBlockValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Padding" Value="6,2" />
+			<Setter Property="Margin" Value="0,4" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
 
-        <Style x:Key="TextBlockLabelSmall" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Padding" Value="4,0" />
-            <Setter Property="HorizontalAlignment" Value="Right" />
-        </Style>
-        <Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
-            <Setter Property="Padding" Value="12,2" />
-            <Setter Property="Margin" Value="0,4" />
-            <Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
-        </Style>
-        <Style x:Key="ComboBorder" TargetType="TextBox" >
-            <Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
-            <Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-        </Style>
-    </Window.Resources>
-    <Grid Margin="0,8,0,8" HorizontalAlignment="Stretch">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+		<Style x:Key="TextBlockLabelSmall" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Padding" Value="4,0" />
+			<Setter Property="HorizontalAlignment" Value="Right" />
+		</Style>
+		<Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+			<Setter Property="Padding" Value="12,2" />
+			<Setter Property="Margin" Value="0,4" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
+		</Style>
+		<Style x:Key="ComboBorder" TargetType="TextBox" >
+			<Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+		</Style>
+	</Window.Resources>
+	<Grid Margin="0,8,0,8" HorizontalAlignment="Stretch">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="10">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="20"/>
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="20"/>
 				<ColumnDefinition Width="Auto" MinWidth="40"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto" MinWidth="40"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto" MinWidth="40"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="5" Text="Target" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto" MinWidth="40"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto" MinWidth="40"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="5" Text="Target" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
 
-            <controls:PushButton Grid.Row="1" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH+" />
-            <controls:PushButton Grid.Row="1" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM+" />
-            <controls:PushButton Grid.Row="1" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS+" />
+			<controls:PushButton Grid.Row="1" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH+" />
+			<controls:PushButton Grid.Row="1" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM+" />
+			<controls:PushButton Grid.Row="1" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS+" />
 
-            <TextBlock Grid.Row="2" Grid.Column="0"  Text="RA" Style="{StaticResource TextBlockHeading}" />
+			<TextBlock Grid.Row="2" Grid.Column="0"  Text="RA" Style="{StaticResource TextBlockHeading}" />
 			<TextBox Grid.Row="2" Grid.Column="2" Text="{Binding TargetRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RH" TabIndex="1" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
-            <TextBlock Grid.Row="2" Grid.Column="3"  Text="h" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
+			<TextBlock Grid.Row="2" Grid.Column="3"  Text="h" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
 			<TextBox Grid.Row="2" Grid.Column="4" Text="{Binding TargetRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RM" TabIndex="2" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
-            <TextBlock Grid.Row="2" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
+			<TextBlock Grid.Row="2" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
 			<TextBox Grid.Row="2" Grid.Column="6" Text="{Binding TargetRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="RS" TabIndex="3" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
-            <TextBlock Grid.Row="2" Grid.Column="7"  Text="s" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
+			<TextBlock Grid.Row="2" Grid.Column="7"  Text="s" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
 
-            <controls:PushButton Grid.Row="3" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH-" />
-            <controls:PushButton Grid.Row="3" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM-" />
-            <controls:PushButton Grid.Row="3" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS-" />
+			<controls:PushButton Grid.Row="3" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RH-" />
+			<controls:PushButton Grid.Row="3" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RM-" />
+			<controls:PushButton Grid.Row="3" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="RS-" />
 
-            <controls:PushButton Grid.Row="4" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD+" />
-            <controls:PushButton Grid.Row="4" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM+" />
-            <controls:PushButton Grid.Row="4" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS+" />
+			<controls:PushButton Grid.Row="4" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD+" />
+			<controls:PushButton Grid.Row="4" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM+" />
+			<controls:PushButton Grid.Row="4" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="N" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS+" />
 
-            <TextBlock Grid.Row="5" Grid.Column="0"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
+			<TextBlock Grid.Row="5" Grid.Column="0"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
 			<TextBlock Grid.Row="5" Grid.Column="1"  Text="{Binding TargetDECSign}" Margin="0,0,4,4" Style="{StaticResource TextBlockLabel}" HorizontalAlignment="Right" />
 			<TextBox Grid.Row="5" Grid.Column="2" Text="{Binding TargetDECDegree, StringFormat={}{0:00}, Converter={StaticResource AbsConverter}}" Style="{StaticResource TextBorder}" Tag="DD" TabIndex="4" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp" LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
-            <TextBlock Grid.Row="5" Grid.Column="3"  Text="°" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}" />
+			<TextBlock Grid.Row="5" Grid.Column="3"  Text="°" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}" />
 			<TextBox Grid.Row="5" Grid.Column="4" Text="{Binding TargetDECMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DM" TabIndex="5" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
-            <TextBlock Grid.Row="5" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
+			<TextBlock Grid.Row="5" Grid.Column="5"  Text="m" Margin="2,0,8,0" Style="{StaticResource TextBlockLabel}"  />
 			<TextBox Grid.Row="5" Grid.Column="6" Text="{Binding TargetDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBorder}" Tag="DS" TabIndex="6" GotKeyboardFocus="TextBox_GotKeyboardFocus" KeyUp="TextBox_KeyUp"  LostKeyboardFocus="TextBox_LostKeyboardFocus"/>
-            <TextBlock Grid.Row="5" Grid.Column="7"  Text="s" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
+			<TextBlock Grid.Row="5" Grid.Column="7"  Text="s" Margin="2,0,8,0"  Style="{StaticResource TextBlockLabel}" />
 
-            <controls:PushButton Grid.Row="6" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD-" />
-            <controls:PushButton Grid.Row="6" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM-" />
-            <controls:PushButton Grid.Row="6" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS-" />
+			<controls:PushButton Grid.Row="6" Grid.Column="2" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DD-" />
+			<controls:PushButton Grid.Row="6" Grid.Column="4" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DM-" />
+			<controls:PushButton Grid.Row="6" Grid.Column="6" Style="{StaticResource ArrowStyle}" Direction="S" IsEnabled="{Binding MountConnected}" Command="{Binding StartChangingCommand}" CommandParameter="DS-" />
 
-            <Button Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="5" Content="Choose Target..." MinWidth="50" Margin="2,20,2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ChooseTargetCommand}" />
-            <TextBlock Grid.Row="7" Grid.Column="7" Grid.ColumnSpan="5" Text="{Binding SelectedPointOfInterest.Name}" MinWidth="50" Margin="2,20,2,0" Style="{StaticResource TextBlockLabelSmall}" HorizontalAlignment="Left"/>
+			<Button Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="5" Content="Choose Target..." MinWidth="50" Margin="2,20,2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ChooseTargetCommand}" />
+			<TextBlock Grid.Row="7" Grid.Column="7" Grid.ColumnSpan="5" Text="{Binding SelectedPointOfInterest.Name}" MinWidth="50" Margin="2,20,2,0" Style="{StaticResource TextBlockLabelSmall}" HorizontalAlignment="Left"/>
 
-            <Button Grid.Row="1" Grid.Column="8" Grid.RowSpan="1" Margin="8,0,8,4" Padding="0,4,0,8"  Content="&lt;- Update" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToCurrentCommand}" />
-            <Button Grid.Row="2" Grid.Column="8" Grid.RowSpan="4" Margin="8,0" Padding="30,20"  Content="Slew!" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SlewToTargetCommand}" />
-            <Button Grid.Row="6" Grid.Column="8" Grid.RowSpan="1" Margin="8,4,8,0" Padding="0,4,0,8"  Content="Sync -&gt;" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToTargetCommand}" />
+			<Button Grid.Row="1" Grid.Column="8" Grid.RowSpan="1" Margin="8,0,8,4" Padding="0,4,0,8"  Content="&lt;- Update" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToCurrentCommand}" />
+			<Button Grid.Row="2" Grid.Column="8" Grid.RowSpan="4" Margin="8,0" Padding="30,20"  Content="Slew!" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SlewToTargetCommand}" />
+			<Button Grid.Row="6" Grid.Column="8" Grid.RowSpan="1" Margin="8,4,8,0" Padding="0,4,0,8"  Content="Sync -&gt;" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToTargetCommand}" />
 
-            <TextBlock Grid.Row="0" Grid.Column="9" Grid.ColumnSpan="7"  Text="Current" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
-			<Button Grid.Row="0" Grid.Column="16" Grid.ColumnSpan="1" HorizontalAlignment="Center" Width="28" Height="28" Command="{Binding OpenAppSettings}">
-				<Button.Background>
-					<ImageBrush ImageSource="/Resources/SettingsIcon.png"/>
-				</Button.Background>
+			<TextBlock Grid.Row="0" Grid.Column="9" Grid.ColumnSpan="7"  Text="Current" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
+			<Button Grid.Row="0" Grid.Column="16" Grid.ColumnSpan="1" HorizontalAlignment="Center" Width="28" Height="28" Command="{Binding OpenAppSettingsCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}">
 			</Button>
 
 			<TextBlock Grid.Row="2" Grid.Column="9"  Text="RA" Style="{StaticResource TextBlockHeading}" />
-            <TextBlock Grid.Row="2" Grid.Column="11" Text="{Binding CurrentRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="2" Grid.Column="12"  Text="h" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
-            <TextBlock Grid.Row="2" Grid.Column="13" Text="{Binding CurrentRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="2" Grid.Column="14"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBlock Grid.Row="2" Grid.Column="15" Text="{Binding CurrentRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="2" Grid.Column="16"  Text="s" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
-            <Border Grid.Row="3" Grid.Column="9" Grid.ColumnSpan="8" Margin="8,2,15,0">
-                <Border.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="BorderThickness" Value="0,0,0,0"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding DisplaySlewProgress}" Value="True">
-                                <Setter Property="BorderThickness" Value="0,6,0,0"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Resources>
-                <Border.BorderBrush>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Offset="0" Color="Red" />
-                        <GradientStop Offset="{Binding RASlewProgress}" Color="Red" />
-                        <GradientStop Offset="{Binding RASlewProgress}" Color="DarkRed" />
-                        <GradientStop Offset="1.0" Color="DarkRed" />
-                    </LinearGradientBrush>
-                </Border.BorderBrush>
-            </Border>
+			<TextBlock Grid.Row="2" Grid.Column="11" Text="{Binding CurrentRAHour, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+			<TextBlock Grid.Row="2" Grid.Column="12"  Text="h" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
+			<TextBlock Grid.Row="2" Grid.Column="13" Text="{Binding CurrentRAMinute, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+			<TextBlock Grid.Row="2" Grid.Column="14"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
+			<TextBlock Grid.Row="2" Grid.Column="15" Text="{Binding CurrentRASecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+			<TextBlock Grid.Row="2" Grid.Column="16"  Text="s" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
+			<Border Grid.Row="3" Grid.Column="9" Grid.ColumnSpan="8" Margin="8,2,15,0">
+				<Border.Resources>
+					<Style TargetType="Border">
+						<Setter Property="BorderThickness" Value="0,0,0,0"/>
+						<Style.Triggers>
+							<DataTrigger Binding="{Binding DisplaySlewProgress}" Value="True">
+								<Setter Property="BorderThickness" Value="0,6,0,0"/>
+							</DataTrigger>
+						</Style.Triggers>
+					</Style>
+				</Border.Resources>
+				<Border.BorderBrush>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+						<GradientStop Offset="0" Color="Red" />
+						<GradientStop Offset="{Binding RASlewProgress}" Color="Red" />
+						<GradientStop Offset="{Binding RASlewProgress}" Color="DarkRed" />
+						<GradientStop Offset="1.0" Color="DarkRed" />
+					</LinearGradientBrush>
+				</Border.BorderBrush>
+			</Border>
 
-            <TextBlock Grid.Row="5" Grid.Column="9"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
+			<TextBlock Grid.Row="5" Grid.Column="9"  Text="DEC" Style="{StaticResource TextBlockHeading}"  />
 			<TextBlock Grid.Row="5" Grid.Column="10" Text="{Binding CurrentDECSign}" Margin="0,0,4,4" Style="{StaticResource TextBlockLabel}" HorizontalAlignment="Right" />
 			<TextBlock Grid.Row="5" Grid.Column="11" Text="{Binding CurrentDECDegree, StringFormat={}{0:00}, Converter={StaticResource AbsConverter}}" Style="{StaticResource TextBlockValue}"/>
-            <TextBlock Grid.Row="5" Grid.Column="12"  Text="°" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}" />
-            <TextBlock Grid.Row="5" Grid.Column="13" Text="{Binding CurrentDECMinute, StringFormat={}{0:00}}"  Style="{StaticResource TextBlockValue}"/>
-            <TextBlock Grid.Row="5" Grid.Column="14"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
-            <TextBlock Grid.Row="5" Grid.Column="15" Text="{Binding CurrentDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
-            <TextBlock Grid.Row="5" Grid.Column="16"  Text="s" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
+			<TextBlock Grid.Row="5" Grid.Column="12"  Text="°" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}" />
+			<TextBlock Grid.Row="5" Grid.Column="13" Text="{Binding CurrentDECMinute, StringFormat={}{0:00}}"  Style="{StaticResource TextBlockValue}"/>
+			<TextBlock Grid.Row="5" Grid.Column="14"  Text="m" Margin="0,0,16,0" Style="{StaticResource TextBlockLabel}"  />
+			<TextBlock Grid.Row="5" Grid.Column="15" Text="{Binding CurrentDECSecond, StringFormat={}{0:00}}" Style="{StaticResource TextBlockValue}" />
+			<TextBlock Grid.Row="5" Grid.Column="16"  Text="s" Margin="0,0,16,0"  Style="{StaticResource TextBlockLabel}" />
 
-            <Border Grid.Row="6" Grid.Column="9" Grid.ColumnSpan="8" Margin="8,2,15,0">
-                <Border.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="BorderThickness" Value="0,0,0,0"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding DisplaySlewProgress}" Value="True">
-                                <Setter Property="BorderThickness" Value="0,6,0,0"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Resources>
-                <Border.BorderBrush>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Offset="0" Color="Red" />
-                        <GradientStop Offset="{Binding DECSlewProgress}" Color="Red" />
-                        <GradientStop Offset="{Binding DECSlewProgress}" Color="DarkRed" />
-                        <GradientStop Offset="1.0" Color="DarkRed" />
-                    </LinearGradientBrush>
-                </Border.BorderBrush>
-            </Border>
-        </Grid>
+			<Border Grid.Row="6" Grid.Column="9" Grid.ColumnSpan="8" Margin="8,2,15,0">
+				<Border.Resources>
+					<Style TargetType="Border">
+						<Setter Property="BorderThickness" Value="0,0,0,0"/>
+						<Style.Triggers>
+							<DataTrigger Binding="{Binding DisplaySlewProgress}" Value="True">
+								<Setter Property="BorderThickness" Value="0,6,0,0"/>
+							</DataTrigger>
+						</Style.Triggers>
+					</Style>
+				</Border.Resources>
+				<Border.BorderBrush>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+						<GradientStop Offset="0" Color="Red" />
+						<GradientStop Offset="{Binding DECSlewProgress}" Color="Red" />
+						<GradientStop Offset="{Binding DECSlewProgress}" Color="DarkRed" />
+						<GradientStop Offset="1.0" Color="DarkRed" />
+					</LinearGradientBrush>
+				</Border.BorderBrush>
+			</Border>
+		</Grid>
 
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+		<Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Visibility="{Binding IsCoarseSlewing, Converter={StaticResource TrueBoolToVisible}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="60" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
+			<Grid Grid.Row="0" Grid.Column="0" Visibility="{Binding IsCoarseSlewing, Converter={StaticResource TrueBoolToVisible}}">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" />
+					<RowDefinition Height="60" />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="50"/>
+				</Grid.ColumnDefinitions>
 
-                <controls:PushButton Grid.Column="1" Grid.Row="1" Width="90" Height="90" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="W" />
-                <controls:PushButton Grid.Column="2" Grid.Row="0" Width="90" Height="90" Direction="N" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="N" />
-                <controls:PushButton Grid.Column="3" Grid.Row="1" Width="90" Height="90" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="E" />
-                <controls:PushButton Grid.Column="2" Grid.Row="3" Width="90" Height="90" Direction="S" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="S" />
+				<controls:PushButton Grid.Column="1" Grid.Row="1" Width="90" Height="90" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="W" />
+				<controls:PushButton Grid.Column="2" Grid.Row="0" Width="90" Height="90" Direction="N" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="N" />
+				<controls:PushButton Grid.Column="3" Grid.Row="1" Width="90" Height="90" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="E" />
+				<controls:PushButton Grid.Column="2" Grid.Row="3" Width="90" Height="90" Direction="S" Margin="9,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="S" />
 
-                <StackPanel Grid.Column="2" Grid.Row="1" Orientation="Vertical">
-                    <Button Margin="2,0,2,2" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding StopSlewingCommand}" >Stop</Button>
-                    <StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal">
-                        <Button MinWidth="50" Margin="2,2" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}" >Home</Button>
-                        <Button MinWidth="50" Margin="2,2" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}" Content="{Binding ParkCommandString}" />
-                    </StackPanel>
-                    <Button  Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,2,2,0" Content="Set Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetHomeCommand}" />
-                </StackPanel>
+				<StackPanel Grid.Column="2" Grid.Row="1" Orientation="Vertical">
+					<Button Margin="2,0,2,2" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding StopSlewingCommand}" >Stop</Button>
+					<StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal">
+						<Button MinWidth="50" Margin="2,2" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}" >Home</Button>
+						<Button MinWidth="50" Margin="2,2" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ParkCommand}" Content="{Binding ParkCommandString}" />
+					</StackPanel>
+					<Button  Height="26" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,2,2,0" Content="Set Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetHomeCommand}" />
+				</StackPanel>
 
-                <controls:RangeSlider Grid.Column="4" Grid.RowSpan="4" 
+				<controls:RangeSlider Grid.Column="4" Grid.RowSpan="4" 
 						Width="48"
 						Height="270"
 						LabelColumnSize="30"
@@ -363,7 +411,7 @@
 						TickLabelColor="#FB11"
 				  />
 
-                <controls:RangeSlider Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="5"
+				<controls:RangeSlider Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="5"
 						Height="48"
 						Orientation="Horizontal"
 						LabelColumnSize="22"
@@ -384,25 +432,25 @@
 						TickLabelColor="#FB11"
 				  />
 
-            </Grid>
-            <Grid Grid.Row="0" Grid.Column="0" Visibility="{Binding IsCoarseSlewing, Converter={StaticResource TrueBoolToHidden}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" MinHeight="8" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+			</Grid>
+			<Grid Grid.Row="0" Grid.Column="0" Visibility="{Binding IsCoarseSlewing, Converter={StaticResource TrueBoolToHidden}}">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" MinHeight="8" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
 
-                <controls:Joystick Grid.Row="1" Grid.Column="1" Grid.RowSpan="1" Grid.ColumnSpan="2" Margin="0,0,0,8" CursorX="{Binding SlewXSpeed,Mode=OneWayToSource}" CursorY="{Binding SlewYSpeed,Mode=OneWayToSource}"/>
+				<controls:Joystick Grid.Row="1" Grid.Column="1" Grid.RowSpan="1" Grid.ColumnSpan="2" Margin="0,0,0,8" CursorX="{Binding SlewXSpeed,Mode=OneWayToSource}" CursorY="{Binding SlewYSpeed,Mode=OneWayToSource}"/>
 
-            </Grid>
-            <TextBlock Grid.Row="1" HorizontalAlignment="Right" Text="Slew Rate" Style="{StaticResource TextBlockLabelSmall}"/>
-            <ToggleButton Grid.Row="2" Grid.Column="0" 
+			</Grid>
+			<TextBlock Grid.Row="1" HorizontalAlignment="Right" Text="Slew Rate" Style="{StaticResource TextBlockLabelSmall}"/>
+			<ToggleButton Grid.Row="2" Grid.Column="0" 
 					Margin="10,0,0,0" 
 					Width="80" 
 					HorizontalAlignment="Left" 
@@ -411,20 +459,20 @@
 					Style="{StaticResource AccentedDialogSquareButton}" 
 					Content="{Binding IsCoarseSlewing, Converter={StaticResource SlewModeConverter}}" />
 
-            <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsEnabled="{Binding MountConnected}">
-                <ToggleButton 
+			<StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsEnabled="{Binding MountConnected}">
+				<ToggleButton 
 						Width="24" Margin="0,0,0,0"
 						Height="24"
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int1ToBool}}"
 						Content="1"/>
-                <ToggleButton 
+				<ToggleButton 
 						Width="24" Margin="5,0,0,0"
 						Height="24"
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int2ToBool}}"
 						Content="2"/>
-                <ToggleButton 
+				<ToggleButton 
 						Width="24" Margin="5,0,0,0"
 						Height="24"
 						Style="{StaticResource ToggleButtonState}" 
@@ -444,200 +492,200 @@
 						Content="5"/>
 			</StackPanel>
 
-            <Grid Grid.Row="3" >
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="3" Text="{Binding DriftAlignStatus}" Style="{StaticResource TextBlockLabelSmall}"/>
-                <Border Grid.Row="1" Grid.Column="3" Padding="0,1,0,0">
-                    <Border.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="BorderThickness" Value="0,0,0,0"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsDriftAligning}" Value="True">
-                                    <Setter Property="BorderThickness" Value="0,2,0,0"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Resources>
-                    <Border.BorderBrush>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Offset="0" Color="Red" />
-                            <GradientStop Offset="{Binding DriftPhase}" Color="Red" />
-                            <GradientStop Offset="{Binding DriftPhase}" Color="DarkRed" />
-                            <GradientStop Offset="1.0" Color="DarkRed" />
-                        </LinearGradientBrush>
-                    </Border.BorderBrush>
-                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal">
-                        <Button Padding="8,0" Margin="0,0,2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="15">30s</Button>
-                        <Button Padding="8,0" Margin="2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="30">1m</Button>
-                        <Button Padding="8,0" Margin="2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="60">2m</Button>
-                        <Button Padding="8,0" Margin="2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="90">3m</Button>
-                        <Button Padding="8,0" Margin="2,0,0,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="150">5m</Button>
-                    </StackPanel>
-                </Border>
-                <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="10,0,0,0" Padding="12,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding PolarAlignCommand}">Polar Alignment</Button>
-            </Grid>
-        </Grid>
+			<Grid Grid.Row="3" >
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="3*"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Column="3" Text="{Binding DriftAlignStatus}" Style="{StaticResource TextBlockLabelSmall}"/>
+				<Border Grid.Row="1" Grid.Column="3" Padding="0,1,0,0">
+					<Border.Resources>
+						<Style TargetType="Border">
+							<Setter Property="BorderThickness" Value="0,0,0,0"/>
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding IsDriftAligning}" Value="True">
+									<Setter Property="BorderThickness" Value="0,2,0,0"/>
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</Border.Resources>
+					<Border.BorderBrush>
+						<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+							<GradientStop Offset="0" Color="Red" />
+							<GradientStop Offset="{Binding DriftPhase}" Color="Red" />
+							<GradientStop Offset="{Binding DriftPhase}" Color="DarkRed" />
+							<GradientStop Offset="1.0" Color="DarkRed" />
+						</LinearGradientBrush>
+					</Border.BorderBrush>
+					<StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal">
+						<Button Padding="8,0" Margin="0,0,2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="15">30s</Button>
+						<Button Padding="8,0" Margin="2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="30">1m</Button>
+						<Button Padding="8,0" Margin="2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="60">2m</Button>
+						<Button Padding="8,0" Margin="2,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="90">3m</Button>
+						<Button Padding="8,0" Margin="2,0,0,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding DriftAlignCommand}" CommandParameter="150">5m</Button>
+					</StackPanel>
+				</Border>
+				<Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="10,0,0,0" Padding="12,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding PolarAlignCommand}">Polar Alignment</Button>
+			</Grid>
+		</Grid>
 
 
-        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,16,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+		<Grid Grid.Row="1" Grid.Column="1" Margin="0,0,16,0">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" >
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+			<Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" >
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
 
 
-                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                    <TextBlock Text="Status" Style="{StaticResource TextBlockLabel}"  />
-                    <TextBlock Text="{Binding MountStatus}" Style="{StaticResource TextBlockLabelSmall}" Margin="10,2,0,0"/>
-                </StackPanel>
+				<StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+					<TextBlock Text="Status" Style="{StaticResource TextBlockLabel}"  />
+					<TextBlock Text="{Binding MountStatus}" Style="{StaticResource TextBlockLabelSmall}" Margin="10,2,0,0"/>
+				</StackPanel>
 
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="Safe Time" Style="{StaticResource TextBlockLabelSmall}"  />
-                <TextBlock Grid.Row="0" Grid.Column="2" MinWidth="75" Text="{Binding RemainingRATime}"  Style="{StaticResource TextBlockLabelValue}"  TextAlignment="Center" />
+				<TextBlock Grid.Row="0" Grid.Column="1" Text="Safe Time" Style="{StaticResource TextBlockLabelSmall}"  />
+				<TextBlock Grid.Row="0" Grid.Column="2" MinWidth="75" Text="{Binding RemainingRATime}"  Style="{StaticResource TextBlockLabelValue}"  TextAlignment="Center" />
 
-                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1" Grid.RowSpan="3" >
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+				<Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1" Grid.RowSpan="3" >
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
 
-                    <DockPanel Grid.Row="0" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingNorth}">
-                        <TextBlock Text="N" Style="{StaticResource TextBlockStatus}" />
-                    </DockPanel>
-                    <DockPanel Grid.Row="1" Grid.Column="3" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingEast}">
-                        <TextBlock Text="E" Style="{StaticResource TextBlockStatus}"  />
-                    </DockPanel>
-                    <DockPanel Grid.Row="1" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsGuiding}">
-                        <TextBlock Text="G" Style="{StaticResource TextBlockStatus}"  />
-                    </DockPanel>
-                    <DockPanel Grid.Row="1" Grid.Column="1" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingWest}">
-                        <TextBlock Text="W" Style="{StaticResource TextBlockStatus}"  />
-                    </DockPanel>
-                    <DockPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingSouth}">
-                        <TextBlock Text="S" Style="{StaticResource TextBlockStatus}"  />
-                    </DockPanel>
+					<DockPanel Grid.Row="0" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingNorth}">
+						<TextBlock Text="N" Style="{StaticResource TextBlockStatus}" />
+					</DockPanel>
+					<DockPanel Grid.Row="1" Grid.Column="3" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingEast}">
+						<TextBlock Text="E" Style="{StaticResource TextBlockStatus}"  />
+					</DockPanel>
+					<DockPanel Grid.Row="1" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsGuiding}">
+						<TextBlock Text="G" Style="{StaticResource TextBlockStatus}"  />
+					</DockPanel>
+					<DockPanel Grid.Row="1" Grid.Column="1" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingWest}">
+						<TextBlock Text="W" Style="{StaticResource TextBlockStatus}"  />
+					</DockPanel>
+					<DockPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingSouth}">
+						<TextBlock Text="S" Style="{StaticResource TextBlockStatus}"  />
+					</DockPanel>
 
-                    <DockPanel Grid.Row="1" Grid.Column="0" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsTracking}" Margin="10,0">
-                        <TextBlock Text="T" Style="{StaticResource TextBlockStatus}" />
-                    </DockPanel>
-                </Grid>
+					<DockPanel Grid.Row="1" Grid.Column="0" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsTracking}" Margin="10,0">
+						<TextBlock Text="T" Style="{StaticResource TextBlockStatus}" />
+					</DockPanel>
+				</Grid>
 
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="RA Stepper" Style="{StaticResource TextBlockLabelSmall}"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" MinWidth="75" Text="{Binding RAStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
+				<TextBlock Grid.Row="1" Grid.Column="1" Text="RA Stepper" Style="{StaticResource TextBlockLabelSmall}"/>
+				<TextBlock Grid.Row="1" Grid.Column="2" MinWidth="75" Text="{Binding RAStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
 
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="DEC Stepper"  Style="{StaticResource TextBlockLabelSmall}"/>
+				<TextBlock Grid.Row="2" Grid.Column="1" Text="DEC Stepper"  Style="{StaticResource TextBlockLabelSmall}"/>
 				<TextBlock Grid.Row="2" Grid.Column="2" MinWidth="75" Text="{Binding DECStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" MouseRightButtonUp="OnDecMouseRightButtonUp"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="TRK Stepper"  Style="{StaticResource TextBlockLabelSmall}"/>
+				<TextBlock Grid.Row="3" Grid.Column="1" Text="TRK Stepper"  Style="{StaticResource TextBlockLabelSmall}"/>
 				<TextBlock Grid.Row="3" Grid.Column="2" MinWidth="75" Text="{Binding TrkStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" />
 
-                <TextBlock Grid.Row="4" Grid.Column="1" Text="FOC Stepper"  Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}" />
+				<TextBlock Grid.Row="4" Grid.Column="1" Text="FOC Stepper"  Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}" />
 				<TextBlock Grid.Row="4" Grid.Column="2" MinWidth="75" Text="{Binding FocStepper}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Visibility="{Binding ScopeHasFOC, Converter={StaticResource CollapseIfFalse}}"/>
-            </Grid>
+			</Grid>
 
-            <TextBlock Grid.Column="0" Grid.Row="1" Text="Tracking" Margin="0,5,0,1"  Style="{StaticResource TextBlockHeading}" />
-            <Controls:ToggleSwitchButton  Grid.Column="1" Grid.Row="1"  Margin="0,6,0,0" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}" IsChecked="{Binding IsTracking}" ThumbIndicatorBrush="#E00" />
-            <Grid Grid.Row="1" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Connected" Style="{StaticResource TextBlockLabelSmall}"/>
+			<TextBlock Grid.Column="0" Grid.Row="1" Text="Tracking" Margin="0,5,0,1"  Style="{StaticResource TextBlockHeading}" />
+			<Controls:ToggleSwitchButton  Grid.Column="1" Grid.Row="1"  Margin="0,6,0,0" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}" IsChecked="{Binding IsTracking}" ThumbIndicatorBrush="#E00" />
+			<Grid Grid.Row="1" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Column="0" Text="Connected" Style="{StaticResource TextBlockLabelSmall}"/>
 				<TextBlock Grid.Column="1" MinWidth="75" Text="{Binding ConnectedTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
-            </Grid>
+			</Grid>
 
-            <Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="LST" Style="{StaticResource TextBlockLabelSmall}"/>
+			<Grid Grid.Row="2" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}" VerticalAlignment="Top" Margin="0,0,0,10">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Column="0" Text="LST" Style="{StaticResource TextBlockLabelSmall}"/>
 				<TextBlock Grid.Column="1" MinWidth="75" Text="{Binding ScopeSiderealTime}"  Style="{StaticResource TextBlockLabelValue}" TextAlignment="Center" Padding="5,2"/>
-            </Grid>
+			</Grid>
 
 
-            <Grid Grid.Row="2" Grid.Column="1" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Off" FontSize="10" Margin="0,-4,0,0" FontWeight="Bold" />
-                <TextBlock Grid.Column="2" Text="On" FontSize="10" Margin="0,-4,0,0" FontWeight="Bold" />
-            </Grid>
+			<Grid Grid.Row="2" Grid.Column="1" >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Column="0" Text="Off" FontSize="10" Margin="0,-4,0,0" FontWeight="Bold" />
+				<TextBlock Grid.Column="2" Text="On" FontSize="10" Margin="0,-4,0,0" FontWeight="Bold" />
+			</Grid>
 
-            <Button Grid.Row="2" Grid.Column="0" Content="Set Low" Height="22" Margin="6,2,0,2" HorizontalAlignment="Left" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetDecLowerLimitCommand}" Visibility="{Binding ElementName=ShowLimits, Path=IsChecked,Converter={StaticResource TrueBoolToVisible}}"/>
+			<Button Grid.Row="2" Grid.Column="0" Content="Set Low" Height="22" Margin="6,2,0,2" HorizontalAlignment="Left" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SetDecLowerLimitCommand}" Visibility="{Binding ElementName=ShowLimits, Path=IsChecked,Converter={StaticResource TrueBoolToVisible}}"/>
 
-            <TextBlock Grid.Column="0" Grid.Row="3" Text="Show Limits" Margin="0,5,0,1"  Style="{StaticResource TextBlockLabelSmall}" />
-            <Controls:ToggleSwitchButton Grid.Row="3" Grid.Column="1" Margin="0,2" IsEnabled="{Binding MountConnected}" Name="ShowLimits" ThumbIndicatorBrush="#E00" IsChecked="{Binding ShowDECLimits}"/>
+			<TextBlock Grid.Column="0" Grid.Row="3" Text="Show Limits" Margin="0,5,0,1"  Style="{StaticResource TextBlockLabelSmall}" />
+			<Controls:ToggleSwitchButton Grid.Row="3" Grid.Column="1" Margin="0,2" IsEnabled="{Binding MountConnected}" Name="ShowLimits" ThumbIndicatorBrush="#E00" IsChecked="{Binding ShowDECLimits}"/>
 
 
-            <Button Grid.Row="3" Grid.Column="2" Content="Mini-Control" Margin="0,8" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}">
-                <Button.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Keep On Top" IsCheckable="True" IsChecked="{Binding KeepMiniControlOnTop}" Style="{StaticResource MetroMenuItem}"/>
-                    </ContextMenu>
-                </Button.ContextMenu>
-            </Button>
-            <Button Grid.Row="4" Grid.Column="2" Content="Settings" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
-            <Button Grid.Row="5" Grid.Column="2" Content="Log Files" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" Visibility="{Binding IsLoggingEnabled, Converter={StaticResource CollapseIfFalse}}"/>
+			<Button Grid.Row="3" Grid.Column="2" Content="Mini-Control" Margin="0,8" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}">
+				<Button.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Keep On Top" IsCheckable="True" IsChecked="{Binding KeepMiniControlOnTop}" Style="{StaticResource MetroMenuItem}"/>
+					</ContextMenu>
+				</Button.ContextMenu>
+			</Button>
+			<Button Grid.Row="4" Grid.Column="2" Content="Settings" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
+			<Button Grid.Row="5" Grid.Column="2" Content="Log Files" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" Visibility="{Binding IsLoggingEnabled, Converter={StaticResource CollapseIfFalse}}"/>
 
-            <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="1"  Text="Mount" Style="{StaticResource TextBlockHeading}" Margin="0,10,0,0" HorizontalAlignment="Right"/>
-                <Button Grid.Column="2" Margin="0,12,0,0" Width="110" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ConnectScopeCommand}" Content="{Binding ConnectCommandString}" HorizontalAlignment="Right"/>
-            </Grid>
-            <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScopeName}" Style="{StaticResource TextBlockLabel}" Margin="0,2,0,0" HorizontalAlignment="Right" />
+			<Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Row="0" Grid.Column="1"  Text="Mount" Style="{StaticResource TextBlockHeading}" Margin="0,10,0,0" HorizontalAlignment="Right"/>
+				<Button Grid.Column="2" Margin="0,12,0,0" Width="110" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ConnectScopeCommand}" Content="{Binding ConnectCommandString}" HorizontalAlignment="Right"/>
+			</Grid>
+			<TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScopeName}" Style="{StaticResource TextBlockLabel}" Margin="0,2,0,0" HorizontalAlignment="Right" />
 			<TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ConnectionState}" Style="{StaticResource TextBlockLabelSmall}" Margin="0,2,0,0" HorizontalAlignment="Right" />
 		</Grid>
-    </Grid>
+	</Grid>
 </Controls:MetroWindow>

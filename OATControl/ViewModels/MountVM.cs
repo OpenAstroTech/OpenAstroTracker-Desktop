@@ -19,6 +19,7 @@ using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
+using System.Windows.Controls;
 
 namespace OATControl.ViewModels
 {
@@ -144,6 +145,8 @@ namespace OATControl.ViewModels
 		DelegateCommand _focuserResetCommand;
 		DelegateCommand _customActionCommand;
 		DelegateCommand _runStepCalibrationCommand;
+		DelegateCommand _openAppSettingsCommand;
+
 
 		MiniController _miniController;
 		TargetChooser _targetChooser;
@@ -274,6 +277,7 @@ namespace OATControl.ViewModels
 			_focuserResetCommand = new DelegateCommand((p) => OnResetFocuserPosition(), () => MountConnected && (FirmwareVersion > 10918));
 			_customActionCommand = new DelegateCommand((p) => OnCustomAction(p as string), () => MountConnected);
 			_runStepCalibrationCommand = new DelegateCommand((p) => OnRunStepCalibration(), () => MountConnected);
+			_openAppSettingsCommand = new DelegateCommand((p) => OnShowAppSettings(), () => true);
 
 
 			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
@@ -363,12 +367,24 @@ namespace OATControl.ViewModels
 		{
 			// If needed upgrade the settings file between versions here.
 			// e.LoadedVersion vs. e.CurrentVersion;
+			if (e.LoadedVersion<1000700) {
+				AutoHomeRaDirection = "East";
+				AutoHomeDecDirection = "South";
+				AutoHomeRaDistance = 15;
+				AutoHomeDecDistance= 15;
+			}
 		}
 
 		public void OnResetFocuserPosition()
 		{
 			// 50000 seems to be the standard focuser rest position
 			_oatMount.SendCommand($":FP50000#,n", (a) => { });
+		}
+
+		public void OnShowAppSettings()
+		{
+			DlgAppSettings dlg = new DlgAppSettings(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
+			dlg.ShowDialog();
 		}
 
 		public void OnRunStepCalibration()
@@ -614,6 +630,8 @@ namespace OATControl.ViewModels
 
 		public void OnAutoHomeRA()
 		{
+			string dir = AutoHomeRaDirection == "East" ? "R" : "L";
+			string dist = AutoHomeRaDistance.ToString("0.0");
 			_oatMount.SendCommand($":MHRR#,n", (a) => { });
 		}
 
@@ -759,7 +777,7 @@ namespace OATControl.ViewModels
 				}
 				else
 				{
-					SetDECHomeOffsetOnMount(-decPos);
+					SetDECHomeOffsetOnMount(decPos);
 					// AppSettings.Instance.DECHomeOffset = decPos;
 					AppSettings.Instance.Save();
 				}
@@ -2025,6 +2043,7 @@ namespace OATControl.ViewModels
 			_focuserResetCommand.Requery();
 			_customActionCommand.Requery();
 			_runStepCalibrationCommand.Requery();
+			_openAppSettingsCommand.Requery();
 
 			OnPropertyChanged("ConnectCommandString");
 		}
@@ -2043,6 +2062,10 @@ namespace OATControl.ViewModels
 			_commHandler = CommunicationHandlerFactory.ConnectToDevice(device);
 			if (_commHandler != null)
 			{
+				if (Log.IsLoggingEnabled)
+				{
+					_commHandler.EnableLogging();
+				}
 				if (_commHandler.Connect())
 				{
 					ConnectionState = "Connecting. Querying OAT...";
@@ -2652,6 +2675,7 @@ namespace OATControl.ViewModels
 		public ICommand FocuserResetCommand { get { return _focuserResetCommand; } }
 		public ICommand CustomActionCommand { get { return _customActionCommand; } }
 		public ICommand RunStepCalibrationCommand { get { return _runStepCalibrationCommand; } }
+		public ICommand OpenAppSettingsCommand { get { return _openAppSettingsCommand; } }
 
 		public double TargetRATotalHours
 		{
@@ -3414,6 +3438,30 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _scopeNetworkSSID, value); }
 		}
 
+		public string AutoHomeRaDirection
+		{
+			get { return _autoHomeRaDirection; }
+			set { SetPropertyValue(ref _autoHomeRaDirection, value); }
+		}
+
+		public string AutoHomeDecDirection
+		{
+			get { return _autoHomeDecDirection; }
+			set { SetPropertyValue(ref _autoHomeDecDirection, value); }
+		}
+
+		public float AutoHomeRaDistance
+		{
+			get { return _autoHomeRaDistance; }
+			set { SetPropertyValue(ref _autoHomeRaDistance, value); }
+		}
+
+		public float AutoHomeDecDistance
+		{
+			get { return _autoHomeDecDistance; }
+			set { SetPropertyValue(ref _autoHomeDecDistance, value); }
+		}
+
 		/// <summary>
 		/// Gets or sets the status of the scope
 		/// </summary>
@@ -3788,6 +3836,10 @@ namespace OATControl.ViewModels
 					"1200",
 					"300",
 				};
+		private string _autoHomeRaDirection;
+		private float _autoHomeRaDistance;
+		private string _autoHomeDecDirection;
+		private float _autoHomeDecDistance;
 
 		/// <summary>
 		/// Gets or sets the keep mini control on-top
