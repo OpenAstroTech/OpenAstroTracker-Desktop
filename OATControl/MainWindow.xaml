@@ -284,7 +284,7 @@
 			<Button Grid.Row="6" Grid.Column="8" Grid.RowSpan="1" Margin="8,4,8,0" Padding="0,4,0,8"  Content="Sync -&gt;" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding SyncToTargetCommand}" />
 
 			<TextBlock Grid.Row="0" Grid.Column="9" Grid.ColumnSpan="7"  Text="Current" Style="{StaticResource TextBlockTitle}" HorizontalAlignment="Center"/>
-			<Button Grid.Row="0" Grid.Column="16" Grid.ColumnSpan="1" HorizontalAlignment="Center" Width="28" Height="28" Command="{Binding OpenAppSettingsCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}">
+			<Button Grid.Row="0" Grid.Column="16" Grid.ColumnSpan="1" HorizontalAlignment="Center" Width="28" Height="28" Command="{Binding OpenAppSettingsCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}" ToolTip="Open Application Settings">
 			</Button>
 
 			<TextBlock Grid.Row="2" Grid.Column="9"  Text="RA" Style="{StaticResource TextBlockHeading}" />
@@ -672,7 +672,7 @@
 					</ContextMenu>
 				</Button.ContextMenu>
 			</Button>
-			<Button Grid.Row="4" Grid.Column="2" Content="Settings" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
+			<Button Grid.Row="4" Grid.Column="2" Content="Mount Settings" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="0,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
 			<Button Grid.Row="5" Grid.Column="2" Content="Log Files" Margin="0,2" Width="110" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" Visibility="{Binding IsLoggingEnabled, Converter={StaticResource CollapseIfFalse}}"/>
 
 			<Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" >

@@ -278,33 +278,6 @@ namespace OATControl
 			}
 		}
 
-		string Coord(double pos)
-		{
-			int hours = (int)Math.Floor(pos);
-			pos = (pos - hours) * 60.0f;
-			int minutes = (int)Math.Floor(pos);
-			pos = (pos - minutes) * 60.0f;
-			int seconds = (int)Math.Floor(pos);
-			return string.Format("{0} {1} {2}", hours, minutes, seconds);
-		}
-
-		bool TryParseCoord(string pos, out float result)
-		{
-			result = 0;
-			var parts = pos.Split("hms \"'".ToCharArray());
-			if (parts.Length != 3)
-			{
-				return false;
-			}
-
-			if (!int.TryParse(parts[0], out int hours)) return false;
-			if (!int.TryParse(parts[1], out int minutes)) return false;
-			if (!int.TryParse(parts[2], out int seconds)) return false;
-
-			result = hours + (minutes / 60.0f) + (seconds / 3600.0f);
-			return true;
-		}
-
 		private void OnTimerTick(object sender, EventArgs e)
 		{
 			switch (_calibrationState)
@@ -346,16 +319,16 @@ namespace OATControl
 						_calibrationState = CalibrationState.GetDecStartCoordinate;
 						Step = 2;
 						await _mountVM.UpdateStatus();
-						Log.WriteLine("STEPCALIBRATION: Prompting 1st DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, Coord(_mountVM.CurrentDECTotalHours));
-						InputCoordinate = Coord(_mountVM.CurrentDECTotalHours);
+						Log.WriteLine("STEPCALIBRATION: Prompting 1st DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, MountVM.CoordToString(_mountVM.CurrentDECTotalHours));
+						InputCoordinate = MountVM.CoordToString(_mountVM.CurrentDECTotalHours);
 					}
 					break;
 
 				case CalibrationState.GetDecStartCoordinate:
-					if (TryParseCoord(InputCoordinate, out _decSolvedStart))
+					if (MountVM.TryParseCoord(InputCoordinate, out _decSolvedStart))
 					{
 						// Sync to platesolved position
-						Log.WriteLine("STEPCALIBRATION: Platesolved DEC is, {0}, syncing mount to that.", _decSolvedStart, Coord(_decSolvedStart));
+						Log.WriteLine("STEPCALIBRATION: Platesolved DEC is, {0}, syncing mount to that.", _decSolvedStart, MountVM.CoordToString(_decSolvedStart));
 						await _mountVM.SyncMountTo(_mountVM.CurrentRATotalHours, _decSolvedStart);
 
 						Log.WriteLine("STEPCALIBRATION: Moving DEC up {0}deg.", _degreesToTwo);
@@ -378,18 +351,18 @@ namespace OATControl
 						DisplayStatus = false;
 						_calibrationState = CalibrationState.GetDecEndCoordinate;
 						await _mountVM.UpdateStatus();
-						Log.WriteLine("STEPCALIBRATION: Prompting 2nd DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, Coord(_mountVM.CurrentDECTotalHours));
-						InputCoordinate = Coord(_mountVM.CurrentDECTotalHours);
+						Log.WriteLine("STEPCALIBRATION: Prompting 2nd DEC value, default is {0} -> {1}.", _mountVM.CurrentDECTotalHours, MountVM.CoordToString(_mountVM.CurrentDECTotalHours));
+						InputCoordinate = MountVM.CoordToString(_mountVM.CurrentDECTotalHours);
 						Step = 3;
 					}
 					break;
 
 				case CalibrationState.GetDecEndCoordinate:
-					if (TryParseCoord(InputCoordinate, out _decSolvedEnd))
+					if (MountVM.TryParseCoord(InputCoordinate, out _decSolvedEnd))
 					{
 						// Store end dec coords and stepper pos
 						// Initiate 15 deg slew back using steps, display status
-						Log.WriteLine("STEPCALIBRATION: Platesolved DEC end is, {0}. Moving east 1.5h.", _decSolvedStart, Coord(_decSolvedEnd));
+						Log.WriteLine("STEPCALIBRATION: Platesolved DEC end is, {0}. Moving east 1.5h.", _decSolvedStart, MountVM.CoordToString(_decSolvedEnd));
 						await _mountVM.MoveMount((long)(_raStepsBefore * _degreesToThree), 0);
 						DisplayStatus = true;
 						await Task.Delay(500);
@@ -408,17 +381,17 @@ namespace OATControl
 						DisplayStatus = false;
 						_calibrationState = CalibrationState.GetRaStartCoordinates;
 						await _mountVM.UpdateStatus();
-						Log.WriteLine("STEPCALIBRATION: Starting RA calibration. Prompting for RA, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, Coord(_mountVM.CurrentRATotalHours));
-						InputCoordinate = Coord(_mountVM.CurrentRATotalHours);
+						Log.WriteLine("STEPCALIBRATION: Starting RA calibration. Prompting for RA, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, MountVM.CoordToString(_mountVM.CurrentRATotalHours));
+						InputCoordinate = MountVM.CoordToString(_mountVM.CurrentRATotalHours);
 						Step = 4;
 					}
 					break;
 
 				case CalibrationState.GetRaStartCoordinates:
-					if (TryParseCoord(InputCoordinate, out _raSolvedStart))
+					if (MountVM.TryParseCoord(InputCoordinate, out _raSolvedStart))
 					{
 						// Sync to platesolved position
-						Log.WriteLine("STEPCALIBRATION: Platesolved RA is, {0}, syncing mount to that.", _raSolvedStart, Coord(_raSolvedStart));
+						Log.WriteLine("STEPCALIBRATION: Platesolved RA is, {0}, syncing mount to that.", _raSolvedStart, MountVM.CoordToString(_raSolvedStart));
 						await _mountVM.SyncMountTo(_raSolvedStart, _mountVM.CurrentDECTotalHours);
 
 						// Initiate 3h deg slew using steps, display status
@@ -444,18 +417,18 @@ namespace OATControl
 						DisplayStatus = false;
 						_calibrationState = CalibrationState.GetRAEndCoordinate;
 						await _mountVM.UpdateStatus();
-						Log.WriteLine("STEPCALIBRATION: Prompting 2nd RA value, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, Coord(_mountVM.CurrentRATotalHours));
-						InputCoordinate = Coord(_mountVM.CurrentRATotalHours);
+						Log.WriteLine("STEPCALIBRATION: Prompting 2nd RA value, default is {0} -> {1}.", _mountVM.CurrentRATotalHours, MountVM.CoordToString(_mountVM.CurrentRATotalHours));
+						InputCoordinate = MountVM.CoordToString(_mountVM.CurrentRATotalHours);
 						Step = 5;
 					}
 					break;
 
 				case CalibrationState.GetRAEndCoordinate:
-					if (TryParseCoord(InputCoordinate, out _raSolvedEnd))
+					if (MountVM.TryParseCoord(InputCoordinate, out _raSolvedEnd))
 					{
 						// Store end coordinates and pos
 						// Initiate slew back in RA. display status
-						Log.WriteLine("STEPCALIBRATION: Platesolved RA end is, {0}. Moving RA back to start by -45deg.", _raSolvedEnd, Coord(_raSolvedEnd));
+						Log.WriteLine("STEPCALIBRATION: Platesolved RA end is, {0}. Moving RA back to start by -45deg.", _raSolvedEnd, MountVM.CoordToString(_raSolvedEnd));
 						await _mountVM.MoveMount((long)(-_raStepsBefore * (_degreesToThree + _degreesToFour)), (long)(-_decStepsBefore * (_degreesToOne + _degreesToTwo)));
 
 						DisplayStatus = true;

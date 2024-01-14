@@ -1,0 +1,104 @@
+﻿<mah:MetroWindow x:Class="OATControl.DlgEditPoint"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"		
+		xmlns:controls="clr-namespace:OATControl.Controls" 
+        xmlns:local="clr-namespace:OATControl" xmlns:converters="clr-namespace:OATControl.Converters"
+		mc:Ignorable="d"
+        Title="" MinHeight="310" Width="300" MinWidth="300" Height="310" WindowStyle="ToolWindow" >
+	<Window.Resources>
+		<converters:DoubleToHMSConverter x:Key="RAConverter" />
+		<converters:DoubleToHMSConverter x:Key="DECConverter" Formatter = "[0:+00;-00]° [1:00]&quot; [2:00]'"/>
+		<Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
+			<Setter Property="Margin" Value="10,2,10,2" />
+			<Setter Property="Height" Value="11" />
+			<Setter Property="Background" Value="#600" />
+			<Setter Property="Foreground" Value="#F00" />
+			<Setter Property="Width" Value="Auto" />
+			<Setter Property="BorderBrush" Value="#800" />
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		</Style>
+		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Margin" Value="2,0" />
+			<Setter Property="Padding" Value="6,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+		<Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="Margin" Value="0,8,8,8" />
+			<Setter Property="Padding" Value="0,0" />
+			<Setter Property="HorizontalAlignment" Value="Right" />
+		</Style>
+		<Style x:Key="TextBlockOptionHelp" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="FontSize" Value="8" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="Width" Value="190" />
+			<Setter Property="Margin" Value="2,0,0,0" />
+			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+
+		<Style x:Key="TextBlockOptionHelpNoWidth" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="FontSize" Value="8" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="Margin" Value="2,0,0,0" />
+			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+		<Style x:Key="TextBlockDescription" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="Margin" Value="0,0,0,0" />
+			<Setter Property="Padding" Value="2,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="VerticalAlignment" Value="Top" />
+		</Style>
+	</Window.Resources>
+	<Grid Margin="8">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="1*" />
+			<ColumnDefinition Width="2*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+		<TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Text="Point Of Interest" Style="{StaticResource TextBlockHeading}" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+		<TextBlock Grid.Column="0" Grid.Row="1" Text="Enabled" Style="{StaticResource TextBlockLabel}" />
+		<CheckBox Grid.Column="1" Grid.Row="1" IsChecked="{Binding Enabled}" Margin="10,0" Background="#600" BorderBrush="#700" BorderThickness="1" />
+
+		<TextBlock Grid.Column="0" Grid.Row="2" Text="Name" Style="{StaticResource TextBlockLabel}" />
+		<TextBox Grid.Column="1" Grid.Row="2" Text="{Binding PointName}" Style="{StaticResource TextBoxSmall}" />
+
+		<TextBlock Grid.Column="0" Grid.Row="3" Text="Catalog name" Style="{StaticResource TextBlockLabel}" />
+		<TextBox Grid.Column="1" Grid.Row="3" Text="{Binding CatalogName}" Style="{StaticResource TextBoxSmall}" />
+
+		<TextBlock Grid.Column="0" Grid.Row="4" Text="RA" Style="{StaticResource TextBlockLabel}" />
+		<TextBox Grid.Column="1" Grid.Row="4" Text="{Binding RaCoordinate}" Style="{StaticResource TextBoxSmall}" LostFocus="OnRaLostFocus"/>
+
+		<TextBlock Grid.Column="0" Grid.Row="5" Text="DEC" Style="{StaticResource TextBlockLabel}" />
+		<TextBox Grid.Column="1" Grid.Row="5" Text="{Binding DecCoordinate}" Style="{StaticResource TextBoxSmall}" LostFocus="OnDecLostFocus"/>
+
+		<StackPanel Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,16,8,8">
+			<Button Content="Ok" Width="80" Style="{StaticResource AccentedDialogSquareButton}" Margin="16,0" Command="{Binding OkCommand}"/>
+			<Button Content="Cancel" Width="80" Style="{StaticResource AccentedDialogSquareButton}" Command="{Binding CancelCommand}"/>
+		</StackPanel>
+	</Grid>
+
+
+</mah:MetroWindow>
+	

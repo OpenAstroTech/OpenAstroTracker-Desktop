@@ -453,7 +453,9 @@ namespace OATControl
 				case Steps.WaitForDeviceConfirm: // Clicked on Next
 					if (SelectedDevice.DeviceName.StartsWith("Serial"))
 					{
-						CurrentStep = Steps.WaitForConnection;
+						CurrentStep = Steps.CheckHardware;
+						GPSStatus = $"Connecting to OAT on {SelectedDevice.DeviceName}{(SelectedDevice.DeviceName.StartsWith("Serial") ? " at " + SelectedBaudRate + " baud" : "")}";
+						ShowGPSStatus = true;
 						ShowBaudRate = false;
 					}
 					else

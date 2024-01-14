@@ -22,6 +22,7 @@ namespace OATControl.ViewModels
 		private double distance;
 		private double distanceNormalized;
 		private bool _reachable;
+		private bool _enabled;
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -31,6 +32,7 @@ namespace OATControl.ViewModels
 			RA = 0;
 			DEC = 90;
 			positionsCalculated = false;
+			_enabled = true;
 		}
 
 		public PointOfInterest(XElement e)
@@ -48,6 +50,31 @@ namespace OATControl.ViewModels
 			{
 				DEC = h + m / 60.0f + s / 3600.0f;
 			}
+			if (e.Attribute("Enabled") == null)
+			{
+				Enabled = true;
+			}
+			else
+			{
+				Enabled = e.Attribute("Enabled").Value == "true";
+			}
+			if (e.Attribute("CatalogName") != null)
+			{
+				CatalogName = e.Attribute("CatalogName").Value;
+			}
+		}
+
+		internal XElement ToXElement()
+		{
+			string raOut = MountVM.CoordToString(RA, MountVM.CoordSeparators.Colons);
+			string decOut = MountVM.CoordToString(DEC, MountVM.CoordSeparators.Colons);
+			return new XElement("Object",
+				new XAttribute("Name", this.Name),
+				new XAttribute("CatalogName", this.CatalogName),
+				new XAttribute("RA", raOut),
+				new XAttribute("DEC", decOut),
+				new XAttribute("Enabled", this.Enabled ? "true" : "false")
+		   );
 		}
 
 		internal void CalcDistancesFrom(double ra, double dec, float raPos, float decPos)
@@ -110,10 +137,24 @@ namespace OATControl.ViewModels
 			positionsCalculated = true;
 		}
 
+		public bool Enabled
+		{
+			get { return _enabled; }
+			set
+			{
+				if (_enabled != value)
+				{
+					_enabled = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
 		public long RAPosition => targetRAPos;
 		public long DECPosition => targetDECPos;
+		public string CatalogName { get; set; }
 		public string Name { get; }
-		public double RA { get; }
+		public double RA { get; set; }
 		public double RADistance
 		{
 			get { return raDistance; }
@@ -126,7 +167,7 @@ namespace OATControl.ViewModels
 				}
 			}
 		}
-		public double DEC { get; }
+		public double DEC { get; set; }
 		public double DECDistance
 		{
 			get { return decDistance; }
@@ -165,8 +206,6 @@ namespace OATControl.ViewModels
 				}
 			}
 		}
-
-		
 
 		public double DistanceNormalized
 		{
