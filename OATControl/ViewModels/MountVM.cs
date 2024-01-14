@@ -146,8 +146,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _customActionCommand;
 		DelegateCommand _runStepCalibrationCommand;
 		DelegateCommand _openAppSettingsCommand;
-
-
+		private string _poiFile;
 		MiniController _miniController;
 		TargetChooser _targetChooser;
 
@@ -280,15 +279,26 @@ namespace OATControl.ViewModels
 			_openAppSettingsCommand = new DelegateCommand((p) => OnShowAppSettings(), () => true);
 
 
-			var poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
-			Log.WriteLine("MOUNT: Attempting to read Point of Interest from {0}...", poiFile);
-			if (File.Exists(poiFile))
+			string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+			// Check if the user has his own copy in the documents folder
+			_poiFile = Path.Combine(documentsPath, "PointsOfInterest.xml");
+			if (!File.Exists(this._poiFile))
+			{
+				// He does not, so load it from the app folder
+				_poiFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PointsOfInterest.xml");
+			}
+			Log.WriteLine("MOUNT: Attempting to read Point of Interest from {0}...", _poiFile);
+			if (File.Exists(this._poiFile))
 			{
 				_pointsOfInterest = new PointsOfInterest();
-				_pointsOfInterest.ReadFromXml(poiFile);
+				_pointsOfInterest.ReadFromXml(this._poiFile);
 				_selectedPointOfInterest = null;
 				_pointsOfInterest.CalcDistancesFrom(CurrentRATotalHours, CurrentDECTotalHours, 0, 0);
 				Log.WriteLine("MOUNT: Successfully read {0} Points of Interest.", _pointsOfInterest.Count - 1);
+				
+				// Make sure we point it to the users documents folder, in case it is saved.
+				_poiFile = Path.Combine(documentsPath, "PointsOfInterest.xml");
 			}
 
 			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
@@ -367,11 +377,12 @@ namespace OATControl.ViewModels
 		{
 			// If needed upgrade the settings file between versions here.
 			// e.LoadedVersion vs. e.CurrentVersion;
-			if (e.LoadedVersion<1000700) {
+			if (e.LoadedVersion < 1000700)
+			{
 				AutoHomeRaDirection = "East";
 				AutoHomeDecDirection = "South";
 				AutoHomeRaDistance = 15;
-				AutoHomeDecDistance= 15;
+				AutoHomeDecDistance = 15;
 			}
 		}
 
@@ -957,7 +968,7 @@ namespace OATControl.ViewModels
 					Log.WriteLine("POINT: Scheduling target updates");
 					foreach (var point in _pointsOfInterest)
 					{
-						if (!point.IsPositionCalculated || force)
+						if (point.Enabled && (!point.IsPositionCalculated || force))
 						{
 							this.SendOatCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", point.RA, point.DEC), (res) =>
 							{
@@ -2572,6 +2583,7 @@ namespace OATControl.ViewModels
 					else if (comp == 'M') _targetRA.AddMinutes(inc);
 					else if (comp == 'S') _targetRA.AddSeconds(inc);
 					else { throw new ArgumentException("Invalid RA component!"); }
+					SelectedPointOfInterest = null;
 					UpdateTargetDisplay(true);
 					break;
 				case 'D':
@@ -2579,6 +2591,7 @@ namespace OATControl.ViewModels
 					else if (comp == 'M') _targetDEC.AddMinutes(inc);
 					else if (comp == 'S') _targetDEC.AddSeconds(inc);
 					else { throw new ArgumentException("Invalid DEC component!"); }
+					SelectedPointOfInterest = null;
 					UpdateTargetDisplay(true);
 					break;
 			}
@@ -3776,7 +3789,12 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		public List<PointOfInterest> AvailablePointsOfInterest
+		public IEnumerable<PointOfInterest> AvailablePointsOfInterest
+		{
+			get { return _pointsOfInterest.Where(p => p.Enabled); }
+		}
+
+		public PointsOfInterest AllPointsOfInterest
 		{
 			get { return _pointsOfInterest; }
 		}
@@ -3891,6 +3909,103 @@ namespace OATControl.ViewModels
 		private void OnSimationClientCommand(string cmd)
 		{
 			this.SendOatCommand(cmd, (a) => { });
+		}
+
+		public enum CoordSeparators
+		{
+			NoSeparators,
+			RaSeparators,
+			DecSeparators,
+			Colons
+		}
+		public static string CoordToString(double dpos, CoordSeparators sep = CoordSeparators.NoSeparators)
+		{
+			float pos = (float)dpos;
+			switch (sep)
+			{
+				case CoordSeparators.NoSeparators:
+					{
+						var ra = new DayTime(pos);
+						int hours, mins, secs;
+						ra.GetTime(out hours, out mins, out secs);
+						return string.Format("{0} {1} {2}", hours, mins, secs);
+					}
+				case CoordSeparators.Colons:
+					{
+						var ra = new DayTime(pos);
+						int hours, mins, secs;
+						ra.GetTime(out hours, out mins, out secs);
+						return string.Format("{0:00}:{1:00}:{2:00}", hours, mins, secs);
+					}
+				case CoordSeparators.RaSeparators:
+					{
+						var ra = new DayTime(pos);
+						int hours, mins, secs;
+						ra.GetTime(out hours, out mins, out secs);
+						int absHours = Math.Abs(hours);
+						string sign = ra.TotalSeconds < 0 ? "-" : "";
+						return string.Format($"{sign}{absHours:00}h {mins:00}m {secs:00}s");
+					}
+				case CoordSeparators.DecSeparators:
+					{
+						var dec = new Declination(pos);
+						int degrees, mins, secs;
+						dec.GetTime(out degrees, out mins, out secs);
+						int absDegrees = Math.Abs(degrees);
+						string sign = dec.TotalSeconds < 0 ? "-" : "";
+						return string.Format($"{sign}{absDegrees:00}° {mins:00}\" {secs:00}'");
+					}
+			}
+			return "what";
+		}
+
+		public static bool TryParseCoord(string pos, out float result)
+		{
+			result = 0;
+			var parts = pos.Split("hms \"'°".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+			if (parts.Length != 3)
+			{
+				return false;
+			}
+
+			float sign = 1.0f;
+			if (!int.TryParse(parts[0], out int hours)) return false;
+			if (hours < 0)
+			{
+				hours = Math.Abs(hours);
+				sign = -1.0f;
+			}
+			if (!int.TryParse(parts[1], out int minutes)) return false;
+			if (!int.TryParse(parts[2], out int seconds)) return false;
+
+			result = sign * (hours + (minutes / 60.0f) + (seconds / 3600.0f));
+			return true;
+		}
+
+		internal void ReplacePointOfInterest(PointOfInterest selectedPoint, PointOfInterest newPt)
+		{
+			int index = _pointsOfInterest.IndexOf(selectedPoint);
+			_pointsOfInterest.Remove(selectedPoint);
+			_pointsOfInterest.Insert(index, newPt);
+			SavePointsOfInterest();
+		}
+
+		public void SavePointsOfInterest()
+		{
+			_pointsOfInterest.WriteToXml(this._poiFile);
+			OnPropertyChanged("AvailablePointsOfInterest");
+		}
+
+		internal bool AddPointOfInterest(PointOfInterest newPt)
+		{
+			if (_pointsOfInterest.FirstOrDefault(pt => (pt.Name == newPt.Name) || (pt.CatalogName == newPt.CatalogName)) == null)
+			{
+				_pointsOfInterest.Add(newPt);
+				SavePointsOfInterest();
+				return true;
+			}
+			return false;
 		}
 	}
 }

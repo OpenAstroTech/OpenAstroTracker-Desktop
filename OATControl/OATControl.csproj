@@ -99,6 +99,9 @@
     <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="DayTime.cs" />
     <Compile Include="Declination.cs" />
+    <Compile Include="DlgEditPoint.xaml.cs">
+      <DependentUpon>DlgEditPoint.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DlgAppSettings.xaml.cs">
       <DependentUpon>DlgAppSettings.xaml</DependentUpon>
     </Compile>
@@ -153,6 +156,10 @@
     <Page Include="Controls\RangeSlider.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DlgEditPoint.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="DlgAppSettings.xaml">
       <SubType>Designer</SubType>

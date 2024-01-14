@@ -12,7 +12,7 @@ namespace OATControl.ViewModels
 	{
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public void OnPropertyChanged([CallerMemberName] string propertyName="")
+		public void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			var handler = PropertyChanged;
 			if (handler != null)
@@ -32,7 +32,10 @@ namespace OATControl.ViewModels
 
 		protected void SetPropertyValue<T>(ref T variable, T newValue, Action<T, T> onChangedcallBack, [CallerMemberName] string memberName = "")
 		{
-			if (!newValue.Equals(variable))
+			bool changeIt = (newValue == null) && (variable != null);
+			changeIt |= (newValue != null) && (variable == null);
+			changeIt |= (newValue != null) && !newValue.Equals(variable);
+			if (changeIt)
 			{
 				var oldValue = variable;
 				variable = newValue;

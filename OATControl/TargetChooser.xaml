@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:OATControl"
         xmlns:converters="clr-namespace:OATControl.Converters"
         mc:Ignorable="d"
-        Title="Target Chooser" Height="774" MinHeight="280" Width="466" MinWidth="210" MaxWidth="466">
+        Title="Target Chooser" Height="600" MinHeight="280" Width="550" MinWidth="210" MaxWidth="580">
 	<Window.Resources>
 		<converters:DoubleToHMSConverter x:Key="RAConverter" />
 		<converters:DoubleToHMSConverter x:Key="DECConverter" Formatter = "[0:+00;-00]° [1:00]&quot; [2:00]'"/>
@@ -21,7 +21,7 @@
 		<converters:DoubleToGridLengthDividerConverter x:Key="DistDiffInvertConverter" Divisor= "1" Inverter="100"/>
 
 		<Style x:Key="HeaderStyle" TargetType="TextBlock" >
-			<Setter Property="FontSize" Value="16" />
+			<Setter Property="FontSize" Value="13" />
 			<Setter Property="FontWeight" Value="Bold" />
 			<Setter Property="HorizontalAlignment" Value="Left" />
 			<Setter Property="Foreground" Value="#F00" />
@@ -108,6 +108,14 @@
 			</TextBlock>
 		</DataTemplate>
 
+		<DataTemplate x:Key="CatalogNameCellTemplate">
+			<TextBlock Padding="10,0" Width="90">
+				<TextBlock.Text>
+					<Binding Path="CatalogName" />
+				</TextBlock.Text>
+			</TextBlock>
+		</DataTemplate>
+		
 		<DataTemplate x:Key="RaDistCellTemplate">
 			<Grid>
 				<Grid>
@@ -275,7 +283,7 @@
 			<Setter Property="OverridesDefaultStyle" Value="True" />
 			<Setter Property="Foreground" Value="#F00" />
 			<Setter Property="FontFamily" Value="Segoe UI" />
-			<Setter Property="FontSize" Value="20" />
+			<Setter Property="FontSize" Value="14" />
 			<Setter Property="FontWeight" Value="Bold" />
 		</Style>
 
@@ -286,6 +294,7 @@
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
 		</Grid.RowDefinitions>
 		<mah:ToggleSwitch 
 			x:Name="ShowReachable" 
@@ -295,8 +304,9 @@
 			OffLabel="Showing Unreachable Targets" 
 			Margin="0,0" 
 			Padding="0" 
+			FontSize="12"
 			Foreground="#F00"
-			mah:ControlsHelper.HeaderFontSize="15" 
+			mah:ControlsHelper.HeaderFontSize="2" 
 			HorizontalAlignment="Center" 
 			ContentPadding="51,0,0,0" 
 			mah:ControlsHelper.HeaderMargin="0,0,0,3"
@@ -305,6 +315,7 @@
 		<ListView Grid.Row="1" ItemsSource="{Binding AvailablePointsOfInterest}" HorizontalAlignment="Center" >
 			<ListView.View>
 				<GridView  ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeaderStyle1}" >
+					<GridViewColumn Header="Catalog" Width="80" CellTemplate="{StaticResource CatalogNameCellTemplate}" HeaderTemplate="{StaticResource myHeaderTemplate}"/>
 					<GridViewColumn Header="Name" CellTemplate="{StaticResource NameCellTemplate}" HeaderTemplate="{StaticResource myHeaderTemplate}"/>
 					<GridViewColumn Header="RA" CellTemplate="{StaticResource RaCellTemplate}"/>
 					<!--<GridViewColumn Header="RA Pos" CellTemplate="{StaticResource RaPosCellTemplate}"/>-->
@@ -316,6 +327,7 @@
 				</GridView>
 			</ListView.View>
 		</ListView>
+		<TextBlock Grid.Row="2" Text="This list can be edited in the application Settings dialog" HorizontalAlignment="Center" Margin="0,6" Foreground="#A00" />
 	</Grid>
 	<!--
 	<Grid Grid.IsSharedSizeScope="true">

@@ -40,19 +40,39 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		internal void WriteToXml(string poiFile)
+		{
+			var list =  new PointsOfInterest(this);
+			list.SortBy("Name");
+			var doc = new XDocument(new XElement("PointsOfInterest", list.Select(poi => poi.ToXElement())));
+			doc.Save(poiFile);
+		}
+
 		public void CalcDistancesFrom(double ra, double dec, float raPos, float decPos)
 		{
+			double maxDecPos = 0;
+			double maxRaPos = 0;
+			double maxDist = 0;
 			foreach (var point in this)
 			{
-				point.CalcDistancesFrom(ra, dec, raPos, decPos);
+				if (point.Enabled)
+				{
+					point.CalcDistancesFrom(ra, dec, raPos, decPos);
+					double ptDecPos = Math.Abs(point.DECPosition - decPos);
+					double ptRaPos = Math.Abs(point.RAPosition - raPos);
+					double ptDist = point.Distance;
+					if (ptDecPos > maxDecPos) maxDecPos = ptDecPos;
+					if (ptRaPos > maxRaPos) maxRaPos = ptRaPos;
+					if (ptDist > maxDist) maxDist = ptDist;
+				}
 			}
 
-			double maxDecPos = this.Max(p => Math.Abs(p.DECPosition - decPos));
-			double maxRaPos = this.Max(p => Math.Abs(p.RAPosition - raPos));
-			double maxDist = this.Max(p => p.Distance);
 			foreach (var point in this)
 			{
-				point.Normalize(maxRaPos, maxDecPos, maxDist);
+				if (point.Enabled)
+				{
+					point.Normalize(maxRaPos, maxDecPos, maxDist);
+				}
 			}
 		}
 

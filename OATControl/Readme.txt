@@ -1,6 +1,15 @@
 Revision History
 ----------------
 
+OATControl V1.1.0.0                                          14 January 2024
+- Added an application Settings dialog that allows configuring the Autohome
+  settings, the default baudrate, and the Targets list.
+- Connecting via Serial no longer asks for Baudrate (taken from Settings)
+- Targets list can be configured.
+- Added 5th speed for slewing AZ and ALT. They now go 30, 7.5, 2.0, 0.25 and 
+  0.05 arcminute distances, respectively.
+- Fixed a bug that stored DEC Homing offset incorrectly.
+
 OATControl V1.0.6.1                                             18 July 2023
 - Fixed a bug that prevented DEC autohoming from running during connection.
 - Fixed some bugs that were incorrectly persisting custom commands.
@@ -19,7 +28,8 @@ OATControl V1.0.4.2                                              10 Jan 2023
 - Get remaining tracking time from OAT (V1.12.6 firmware and above).
 - Show active hemisphere on Settings page (V1.12.5 firmware and above).
 - Fixed a bug that did not store all macro commands on Settings page.
-- Made Sidereal Time and Remaining Time display sync with OAT once a minute and use clock in between.
+- Made Sidereal Time and Remaining Time display sync with OAT once a minute 
+  and use clock in between.
 - Fixed bug that did not detect Idle state of OAT when it was Parked.
 - Increased Send and Receive timeout on Serial connections to 2s
 - Added steps calibration function to Settings page.
