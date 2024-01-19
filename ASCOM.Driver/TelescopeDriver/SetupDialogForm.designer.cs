@@ -97,6 +97,7 @@ namespace ASCOM.OpenAstroTracker
 			this.btnAutoHomeRA = new System.Windows.Forms.Button();
 			this.lblRACoordinate = new System.Windows.Forms.Label();
 			this.lblDECCoordinate = new System.Windows.Forms.Label();
+			this.btnUpdateLoc = new System.Windows.Forms.Button();
 			this.lblAzAltControl = new System.Windows.Forms.Label();
 			this.label29 = new System.Windows.Forms.Label();
 			this.lblFocusControl = new System.Windows.Forms.Label();
@@ -121,7 +122,6 @@ namespace ASCOM.OpenAstroTracker
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.panel3 = new System.Windows.Forms.Panel();
-			this.btnUpdateLoc = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox1)).BeginInit();
 			this.TableLayoutPanel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -351,7 +351,7 @@ namespace ASCOM.OpenAstroTracker
             65536});
 			this.numRASteps.Location = new System.Drawing.Point(392, 294);
 			this.numRASteps.Maximum = new decimal(new int[] {
-            10000,
+            100000,
             0,
             0,
             0});
@@ -398,7 +398,7 @@ namespace ASCOM.OpenAstroTracker
             65536});
 			this.numDECSteps.Location = new System.Drawing.Point(392, 319);
 			this.numDECSteps.Maximum = new decimal(new int[] {
-            9999,
+            100000,
             0,
             0,
             0});
@@ -963,6 +963,19 @@ namespace ASCOM.OpenAstroTracker
 			this.lblDECCoordinate.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			this.toolTip1.SetToolTip(this.lblDECCoordinate, "The current DEC coordinate the scope/camera is pointing at");
 			// 
+			// btnUpdateLoc
+			// 
+			this.btnUpdateLoc.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow;
+			this.btnUpdateLoc.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			this.btnUpdateLoc.Location = new System.Drawing.Point(585, 442);
+			this.btnUpdateLoc.Name = "btnUpdateLoc";
+			this.btnUpdateLoc.Size = new System.Drawing.Size(53, 22);
+			this.btnUpdateLoc.TabIndex = 113;
+			this.btnUpdateLoc.Text = "OAT";
+			this.btnUpdateLoc.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.toolTip1.SetToolTip(this.btnUpdateLoc, "Send the location settings to the mount");
+			this.btnUpdateLoc.Click += new System.EventHandler(this.btnUpdateLoc_Click);
+			// 
 			// lblAzAltControl
 			// 
 			this.lblAzAltControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -1218,19 +1231,6 @@ namespace ASCOM.OpenAstroTracker
 			this.panel3.Name = "panel3";
 			this.panel3.Size = new System.Drawing.Size(775, 4);
 			this.panel3.TabIndex = 112;
-			// 
-			// btnUpdateLoc
-			// 
-			this.btnUpdateLoc.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.arrow;
-			this.btnUpdateLoc.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.btnUpdateLoc.Location = new System.Drawing.Point(585, 442);
-			this.btnUpdateLoc.Name = "btnUpdateLoc";
-			this.btnUpdateLoc.Size = new System.Drawing.Size(53, 22);
-			this.btnUpdateLoc.TabIndex = 113;
-			this.btnUpdateLoc.Text = "OAT";
-			this.btnUpdateLoc.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.toolTip1.SetToolTip(this.btnUpdateLoc, "Send the location settings to the mount");
-			this.btnUpdateLoc.Click += new System.EventHandler(this.btnUpdateLoc_Click);
 			// 
 			// SetupDialogForm
 			// 

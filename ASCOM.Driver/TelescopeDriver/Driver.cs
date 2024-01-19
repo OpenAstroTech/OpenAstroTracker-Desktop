@@ -127,7 +127,7 @@ namespace ASCOM.OpenAstroTracker
 						_transform.SetTopocentric(System.Convert.ToDouble(ActionParameters.Split(',')[0]),
 							System.Convert.ToDouble(ActionParameters.Split(',')[1]));
 						retVal = _utilities.HoursToHMS(_transform.RAJ2000, ":", ":", string.Empty) + "&" +
-								 DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
+									DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
 						break;
 					}
 
@@ -851,7 +851,11 @@ namespace ASCOM.OpenAstroTracker
 				if (value >= -300 && value <= 10000)
 				{
 					LogMessage(LoggingFlags.Scope, $"SiteElevation Set {value:0.0}");
-					Profile.Elevation = value;
+					if (Profile.Elevation != value)
+					{
+						Profile.Elevation = value;
+						SharedResources.WriteProfile(Profile);
+					}
 				}
 				else
 				{
@@ -870,8 +874,30 @@ namespace ASCOM.OpenAstroTracker
 			}
 			set
 			{
-				LogMessage(LoggingFlags.Scope, "SiteLatitude Set - Not implemented");
-				throw new ASCOM.PropertyNotImplementedException("SiteLatitude", true);
+				LogMessage(LoggingFlags.Scope, $"SiteLatitude Set => {value:0.00}");
+				if (Profile.Latitude != value)
+				{
+					Profile.Latitude = value;
+					SharedResources.WriteProfile(Profile);
+				}
+			}
+		}
+
+		public double SiteLongitude
+		{
+			get
+			{
+				LogMessage(LoggingFlags.Scope, $"SiteLongitude Get => {Profile.Longitude:0.00}");
+				return Profile.Longitude;
+			}
+			set
+			{
+				LogMessage(LoggingFlags.Scope, $"SiteLongitude Set => {value:0.00}");
+				if (Profile.Longitude!= value)
+				{
+					Profile.Longitude = value;
+					SharedResources.WriteProfile(Profile);
+				}
 			}
 		}
 
@@ -907,20 +933,6 @@ namespace ASCOM.OpenAstroTracker
 				}
 				LogMessage(LoggingFlags.Scope, $"FirmwareVersion Get => {_fwVersion}");
 				return _fwVersion;
-			}
-		}
-
-		public double SiteLongitude
-		{
-			get
-			{
-				LogMessage(LoggingFlags.Scope, $"SiteLongitude Get => {Profile.Longitude:0.00}");
-				return Profile.Longitude;
-			}
-			set
-			{
-				LogMessage(LoggingFlags.Scope, "SiteLongitude Set - Not implemented");
-				throw new ASCOM.PropertyNotImplementedException("SiteLongitude", true);
 			}
 		}
 
