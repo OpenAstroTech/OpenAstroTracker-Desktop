@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("OpenAstroTech")]
 [assembly: AssemblyProduct("OpenAstroTracker")]
-[assembly: AssemblyCopyright("Copyright © 2020-2021 OpenAstroTech")]
+[assembly: AssemblyCopyright("Copyright © 2020-2024 OpenAstroTech")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -35,5 +35,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 //
 // TODO - Set your driver's version here
-[assembly: AssemblyVersion("6.6.6.6")]
-[assembly: AssemblyFileVersion("6.6.6.6")]
+[assembly: AssemblyVersion("6.6.6.7")]
+[assembly: AssemblyFileVersion("6.6.6.7")]

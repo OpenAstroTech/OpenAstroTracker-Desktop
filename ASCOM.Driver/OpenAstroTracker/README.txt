@@ -1,20 +1,22 @@
 +==========================================================================+
-| OpenAstroTracker ASCOM Driver V6.6.6.5 Release                           |
-| Published: 17. March 2022                                                |
+| OpenAstroTracker ASCOM Driver V6.6.6.7 Release                           |
+| Published: 19. January 2024                                              |
 +==========================================================================+
 
-This is the latest ASCOM driver available for the OAT. It allows various 
-client programs to communicate with the OAT using both standard LX200 Meade
-protocol commands, as well as proprietary OAT extensions to that protocol.
+This is the latest ASCOM driver available for the OAT and OAM. It allows 
+various client programs to communicate with the OAT using both standard 
+LX200 Meade protocol commands, as well as proprietary OAT extensions to 
+that protocol.
 
-The driver also contains controls for the OAT so that it can be initialized,
-configured, slewed, unparked, homed, focused and parked from the driver 
-Properties dialog.
+The driver also contains controls for the OAT and OAM so that it can be 
+initialized, configured, slewed, unparked, homed, focused and parked 
+from the driver Properties dialog.
 
  * Tested on MKS Gen L V2.1, Arduino Mega and ESP32. No other variants of 
    Arduino have been tested, or are officially supported.
  * Tested with V1.10.4 firmware.
- * Tested with V1.11.0 firmware (RECOMMENDED).
+ * Tested with V1.11.0 firmware.
+ * Tested with V1.13.5 firmware (RECOMMENDED).
  * It will probably work with earlier version (down to V1.6.32 and later).
 
 
@@ -27,6 +29,10 @@ Support
 
 Testing
 -------
+ * 6.6.6.7 Conformance Test (2024-Jan-19) 
+    - Telescope: All tests passed, no errors, no warnings, 8 issues. 
+    - Focuser:  All tests passed, no errors, no warnings, no issues. 
+
  * 6.6.6.5 Conformance Test (2022-Mar-16) 
     - Telescope: All tests passed, no errors, no warnings, 4 issues. 
     - Focuser:  All tests passed, no errors, no warnings, no issues. 
@@ -47,6 +53,10 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
+ - 6.6.6.7 : Released 2024-01-19
+   Added support for setting Longitude and Latitude.
+   Increased allowed range of DEC and RA steps for OAM support.
+
  - 6.6.6.6 : Released 2022-03-27
    Adapted to use Firmware V1.11.5 and later. This firmware fixes the Longitude 
      and UTC offset bugs.
