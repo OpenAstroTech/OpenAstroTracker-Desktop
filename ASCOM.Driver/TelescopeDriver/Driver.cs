@@ -116,26 +116,26 @@ namespace ASCOM.OpenAstroTracker
 				switch (ActionName)
 				{
 					case "Telescope:getFirmwareVer":
-						{
-							retVal = CommandString(":GVP#,#"); // Get firmware name
-							retVal = retVal + " " + CommandString(":GVN#,#"); // Get firmware version number
-							break;
-						}
+					{
+						retVal = CommandString(":GVP#,#"); // Get firmware name
+						retVal = retVal + " " + CommandString(":GVN#,#"); // Get firmware version number
+						break;
+					}
 
 					case "Utility:JNowtoJ2000":
-						{
-							_transform.SetTopocentric(System.Convert.ToDouble(ActionParameters.Split(',')[0]),
-								System.Convert.ToDouble(ActionParameters.Split(',')[1]));
-							retVal = _utilities.HoursToHMS(_transform.RAJ2000, ":", ":", string.Empty) + "&" +
-									 DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
-							break;
-						}
+					{
+						_transform.SetTopocentric(System.Convert.ToDouble(ActionParameters.Split(',')[0]),
+							System.Convert.ToDouble(ActionParameters.Split(',')[1]));
+						retVal = _utilities.HoursToHMS(_transform.RAJ2000, ":", ":", string.Empty) + "&" +
+									DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
+						break;
+					}
 
 					case "Serial:PassThroughCommand":
-						{
-							retVal = SharedResources.SendPassThroughCommand(ActionParameters);
-							break;
-						}
+					{
+						retVal = SharedResources.SendPassThroughCommand(ActionParameters);
+						break;
+					}
 				}
 				LogMessage(LoggingFlags.Scope, $"Action < result: {retVal}");
 
