@@ -851,10 +851,14 @@ namespace ASCOM.OpenAstroTracker
 				if (value >= -300 && value <= 10000)
 				{
 					LogMessage(LoggingFlags.Scope, $"SiteElevation Set {value:0.0}");
-					if (Profile.Elevation != value)
+					var profile = Profile;
+					if (profile.Elevation != value)
 					{
-						Profile.Elevation = value;
-						SharedResources.WriteProfile(Profile);
+						LogMessage(LoggingFlags.Scope, $"SiteElevation Setting from {profile.Elevation:0.00} to {value:0.00}");
+						profile.Elevation = value;
+						SharedResources.WriteProfile(profile);
+						_transform.SiteElevation = SiteElevation;
+						_azAltTransform.SiteElevation = SiteElevation;
 					}
 				}
 				else
@@ -875,10 +879,14 @@ namespace ASCOM.OpenAstroTracker
 			set
 			{
 				LogMessage(LoggingFlags.Scope, $"SiteLatitude Set => {value:0.00}");
-				if (Profile.Latitude != value)
+				var profile = Profile;
+				if (profile.Latitude != value)
 				{
-					Profile.Latitude = value;
-					SharedResources.WriteProfile(Profile);
+					LogMessage(LoggingFlags.Scope, $"SiteLatitude Setting from {profile.Latitude:0.00} to {value:0.00}");
+					profile.Latitude = value;
+					SharedResources.WriteProfile(profile);
+					_transform.SiteLatitude = SiteLatitude;
+					_azAltTransform.SiteLatitude = SiteLatitude;
 				}
 			}
 		}
@@ -892,11 +900,14 @@ namespace ASCOM.OpenAstroTracker
 			}
 			set
 			{
-				LogMessage(LoggingFlags.Scope, $"SiteLongitude Set => {value:0.00}");
-				if (Profile.Longitude!= value)
+				var profile = Profile;
+				if (profile.Longitude!= value)
 				{
-					Profile.Longitude = value;
-					SharedResources.WriteProfile(Profile);
+					LogMessage(LoggingFlags.Scope, $"SiteLongitude Setting from {profile.Longitude:0.00} to {value:0.00}");
+					profile.Longitude = value;
+					SharedResources.WriteProfile(profile);
+					_transform.SiteLongitude = SiteLongitude;
+					_azAltTransform.SiteLongitude = SiteLongitude;
 				}
 			}
 		}
@@ -1233,7 +1244,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 		}
 
-		private string DegreesToDmsWithSign(double degrees, string degSep = "°", string minSep = "'", string secondSep = "\"")
+		private string DegreesToDmsWithSign(double degrees, string degSep = "ï¿½", string minSep = "'", string secondSep = "\"")
 		{
 			return (degrees >= 0 ? "+" : "") + _utilities.DegreesToDMS(degrees, degSep, minSep, secondSep);
 		}

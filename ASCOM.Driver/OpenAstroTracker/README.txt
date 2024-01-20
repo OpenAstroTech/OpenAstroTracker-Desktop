@@ -29,6 +29,10 @@ Support
 
 Testing
 -------
+ * 6.6.6.8 Conformance Test (2024-Jan-20) 
+    - Telescope: All tests passed, no errors, no warnings, 8 issues. 
+    - Focuser:  All tests passed, no errors, no warnings, no issues. 
+
  * 6.6.6.7 Conformance Test (2024-Jan-19) 
     - Telescope: All tests passed, no errors, no warnings, 8 issues. 
     - Focuser:  All tests passed, no errors, no warnings, no issues. 
@@ -53,6 +57,9 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
+ - 6.6.6.8 : Released 2024-01-20
+   Added support for actually, really setting Longitude and Latitude.
+
  - 6.6.6.7 : Released 2024-01-19
    Added support for setting Longitude and Latitude.
    Increased allowed range of DEC and RA steps for OAM support.
