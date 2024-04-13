@@ -1244,7 +1244,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 		}
 
-		private string DegreesToDmsWithSign(double degrees, string degSep = "�", string minSep = "'", string secondSep = "\"")
+		private string DegreesToDmsWithSign(double degrees, string degSep = "°", string minSep = "'", string secondSep = "\"")
 		{
 			return (degrees >= 0 ? "+" : "") + _utilities.DegreesToDMS(degrees, degSep, minSep, secondSep);
 		}

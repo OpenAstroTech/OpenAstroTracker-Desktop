@@ -194,7 +194,7 @@ namespace OATCommunications.CommunicationHandlers
 
 		private void OnWifiClientFound(object sender, ClientFoundEventArgs e)
 		{
-			Log.WriteLine($"COMMFACTORY: Wifi device {e.Name} replied from {e.Address}:4030!");
+			Log.WriteLine($"COMMFACTORY: Wifi device {e.Name} replied from {e.Address}:4031!");
 			var deviceName = $"WiFi: {e.Name} ({e.Address}:4030)";
 			_available.Insert(0, deviceName);
 			_addCallback(deviceName);

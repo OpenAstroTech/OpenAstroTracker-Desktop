@@ -259,7 +259,7 @@ namespace OATControl.ViewModels
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
-			_factoryResetCommand = new DelegateCommand(() => OnPerformFactoryReset(), () => MountConnected);
+			_factoryResetCommand = new DelegateCommand(async () => await OnPerformFactoryReset(), () => MountConnected);
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 			_chooseTargetCommand = new DelegateCommand(async (p) => await OnShowTargetChooser(), () => MountConnected);
 			_setDecLowerLimitCommand = new DelegateCommand((p) => SetDecLowLimit(), () => MountConnected);
@@ -296,7 +296,7 @@ namespace OATControl.ViewModels
 				_selectedPointOfInterest = null;
 				_pointsOfInterest.CalcDistancesFrom(CurrentRATotalHours, CurrentDECTotalHours, 0, 0);
 				Log.WriteLine("MOUNT: Successfully read {0} Points of Interest.", _pointsOfInterest.Count - 1);
-				
+
 				// Make sure we point it to the users documents folder, in case it is saved.
 				_poiFile = Path.Combine(documentsPath, "PointsOfInterest.xml");
 			}
@@ -1071,11 +1071,21 @@ namespace OATControl.ViewModels
 										_isGuiding = false;
 										MountStatus = parts[0];
 
-										_currentRA.SetTime(int.Parse(parts[5].Substring(0, 2)), int.Parse(parts[5].Substring(2, 2)), int.Parse(parts[5].Substring(4, 2)));
-										_currentDEC.SetTime(int.Parse(parts[6].Substring(1, 2)), int.Parse(parts[6].Substring(3, 2)), int.Parse(parts[6].Substring(5, 2)));
-										if (parts[6][0] == '-')
+										int h = 0, m = 0, s = 0;
+										bool parsed = int.TryParse(parts[5].Substring(0, 2), out h) && int.TryParse(parts[5].Substring(2, 2), out m) && int.TryParse(parts[5].Substring(4, 2), out s);
+										if (parsed)
 										{
-											_currentDEC = Declination.FromSeconds(-_currentDEC.TotalSeconds);
+											_currentRA.SetTime(h, m, s);
+
+										}
+										parsed = int.TryParse(parts[6].Substring(1, 2), out h) && int.TryParse(parts[6].Substring(3, 2), out m) && int.TryParse(parts[6].Substring(5, 2), out s);
+										if (parsed)
+										{
+											_currentDEC.SetTime(h, m, s);
+											if (parts[6][0] == '-')
+											{
+												_currentDEC = Declination.FromSeconds(-_currentDEC.TotalSeconds);
+											}
 										}
 
 										if ((MountStatus == "SlewToTarget") && (prevStatus != "SlewToTarget"))
@@ -1087,17 +1097,32 @@ namespace OATControl.ViewModels
 											{
 												if (raRes.Success)
 												{
-													_targetRA.SetTime(int.Parse(raRes.Data.Substring(0, 2)), int.Parse(raRes.Data.Substring(3, 2)), int.Parse(raRes.Data.Substring(6, 2)));
-													_slewTargetRA = _targetRA.TotalSeconds;
+													parsed = int.TryParse(raRes.Data.Substring(0, 2), out h) && int.TryParse(raRes.Data.Substring(3, 2), out m) && int.TryParse(raRes.Data.Substring(6, 2), out s);
+													if (parsed)
+													{
+														_targetRA.SetTime(h, m, s);
+														_slewTargetRA = _targetRA.TotalSeconds;
+													}
 												}
 											});
 
 											this.SendOatCommand(":Gd#,#", (decRes) =>
 											{
-												if (decRes.Success)
+												try
 												{
-													_targetDEC.SetTime(int.Parse(decRes.Data.Substring(0, 3)), int.Parse(decRes.Data.Substring(4, 2)), int.Parse(decRes.Data.Substring(7, 2)));
-													_slewTargetDEC = _targetDEC.TotalSeconds;
+													if (decRes.Success)
+													{
+														parsed = int.TryParse(decRes.Data.Substring(0, 3), out h) && int.TryParse(decRes.Data.Substring(4, 2), out m) && int.TryParse(decRes.Data.Substring(7, 2), out s);
+														if (parsed)
+														{
+															_targetDEC.SetTime(h, m, s);
+															_slewTargetDEC = _targetDEC.TotalSeconds;
+														}
+													}
+												}
+												catch
+												{
+													Log.WriteLine("UPDATE: Gd command generated exception. Reply was [" + decRes.Data + "]");
 												}
 												waitForTarget.Set();
 											});
@@ -1110,13 +1135,20 @@ namespace OATControl.ViewModels
 											{
 												this.SendOatCommand(string.Format(_oatCulture, ":XGC{0:0.000}*{1:0.000}#,#", TargetRATotalHours, TargetDECTotalHours), (posRes) =>
 												{
-													if (posRes.Success)
+													try
 													{
-														var posParts = posRes.Data.Split('|');
-														_slewTargetRA = float.Parse(posParts[0], _oatCulture);
-														_slewTargetDEC = float.Parse(posParts[1], _oatCulture);
-														Log.WriteLine("UPDATE: Slewing. Target is RA: {0} ({2}), DEC: {1} ({3})", _targetRA.ToString(), _targetDEC.ToString(), _slewTargetRA, _slewTargetDEC);
-														_slewTargetValid = true;
+														if (posRes.Success)
+														{
+															var posParts = posRes.Data.Split('|');
+															_slewTargetRA = float.Parse(posParts[0], _oatCulture);
+															_slewTargetDEC = float.Parse(posParts[1], _oatCulture);
+															Log.WriteLine("UPDATE: Slewing. Target is RA: {0} ({2}), DEC: {1} ({3})", _targetRA.ToString(), _targetDEC.ToString(), _slewTargetRA, _slewTargetDEC);
+															_slewTargetValid = true;
+														}
+													}
+													catch
+													{
+														Log.WriteLine("UPDATE: XGC command generated exception. Reply was [" + posRes.Data + "]");
 													}
 													waitForTarget.Set();
 												});
@@ -1180,9 +1212,9 @@ namespace OATControl.ViewModels
 
 										if (FirmwareVersion >= 20000)
 										{
-											RAStepper = float.Parse(parts[2]);
-											DECStepper = float.Parse(parts[3]);
-											TrkStepper = float.Parse(parts[4]);
+											RAStepper = float.Parse(parts[2], _oatCulture);
+											DECStepper = float.Parse(parts[3], _oatCulture);
+											TrkStepper = float.Parse(parts[4], _oatCulture);
 										}
 										else
 										{
@@ -1209,7 +1241,7 @@ namespace OATControl.ViewModels
 											}
 										}
 									}
-									catch (Exception ex)
+									catch (Exception)
 									{
 										Log.WriteLine("UPDATE: Failed to process GX reply [{0}]", status);
 									}
@@ -1300,7 +1332,12 @@ namespace OATControl.ViewModels
 				if (siderealTime.Length == 6)
 				{
 					ScopeSiderealTime = $"{siderealTime.Substring(0, 2)}:{siderealTime.Substring(2, 2)}:{siderealTime.Substring(4)}";
-					_siderealTime = new DateTime(2022, 1, 1, int.Parse(siderealTime.Substring(0, 2)), int.Parse(siderealTime.Substring(2, 2)), int.Parse(siderealTime.Substring(4)));
+					int h = 0, m = 0, s = 0;
+					bool parsed = int.TryParse(siderealTime.Substring(0, 2), out h) && int.TryParse(siderealTime.Substring(2, 2), out m) && int.TryParse(siderealTime.Substring(4), out s);
+					if (parsed)
+					{
+						_siderealTime = new DateTime(2022, 1, 1, h, m, s);
+					}
 				}
 				else
 				{
@@ -1405,8 +1442,11 @@ namespace OATControl.ViewModels
 								if (FirmwareVersion >= 11105)
 								{
 									// UTC offset bug was corrected in V1.11.5
-									int offset = -int.Parse(utcOffset);
-									utcOffset = string.Format("{0}{1:00}", offset < 0 ? '-' : '+', Math.Abs(offset));
+									if (int.TryParse(utcOffset, out int offset))
+									{
+										offset = -offset;
+										utcOffset = string.Format("{0}{1:00}", offset < 0 ? '-' : '+', Math.Abs(offset));
+									}
 								}
 								ScopeTime += " T" + utcOffset + ":00";
 							}
@@ -1694,10 +1734,19 @@ namespace OATControl.ViewModels
 			{
 				if (res.Success)
 				{
+					int correctParses = 0;
 					var parts = res.Data.Split('|');
-					_slewTargetRA = float.Parse(parts[0]);
-					_slewTargetDEC = float.Parse(parts[1]);
-					_slewTargetValid = true;
+					if (float.TryParse(parts[0], out float ra))
+					{
+						_slewTargetRA = ra;
+						correctParses++;
+					}
+					if (float.TryParse(parts[1], out float dec))
+					{
+						_slewTargetDEC = dec;
+						correctParses++;
+					}
+					_slewTargetValid = correctParses == 2;
 				}
 				waitFor.Set();
 			});
@@ -2001,7 +2050,7 @@ namespace OATControl.ViewModels
 					IsDriftAligning = a.Success;
 					doneEvent.Set();
 				});
-				doneEvent.WaitAsync();
+				await doneEvent.WaitAsync();
 				RequeryCommands();
 			}
 			finally
@@ -2301,15 +2350,15 @@ namespace OATControl.ViewModels
 				}
 				else if (hwParts[i] == "LCD_I2C_MCP23008")
 				{
-					ScopeDisplay = "LCD (I2C MCP23008) ";
+					ScopeDisplay = "LCD (MCP23008 on I2C) ";
 				}
 				else if (hwParts[i] == "LCD_I2C_MCP23017")
 				{
-					ScopeDisplay = "LCD (I2C MCP23017)";
+					ScopeDisplay = "LCD (MCP23017 on I2C)";
 				}
 				else if (hwParts[i] == "LCD_JOY_I2C_SSD1306")
 				{
-					ScopeDisplay = "Pixel OLED (SSD1306)";
+					ScopeDisplay = "Pixel OLED (SSD1306 on I2C) w/ joystick";
 				}
 				else if (hwParts[i] == "FOC")
 				{
@@ -2325,6 +2374,18 @@ namespace OATControl.ViewModels
 				{
 					ScopeHasHSAV = true;
 					ScopeFeatures += "DEC Auto Home, ";
+				}
+				else if (hwParts[i].StartsWith("INFO_"))
+				{
+					var infoParts = hwParts[i].Split('_');
+					if (infoParts.Length == 4)
+					{
+						ScopeDisplay = String.Format("{0} Info Display ({1} on {2})", infoParts[3], infoParts[2], infoParts[1]);
+					}
+					else
+					{
+						ScopeDisplay = "Info Display";
+					}
 				}
 			}
 			if (string.IsNullOrEmpty(ScopeFeatures))
@@ -2750,10 +2811,10 @@ namespace OATControl.ViewModels
 					var parts = res.Data.Split('|');
 					if (parts.Length == 2)
 					{
-						var raSteps = float.Parse(parts[0]);
+						var raSteps = float.Parse(parts[0], _oatCulture);
 						raSteps += TrkStepper * long.Parse(ScopeRASlewMS) / long.Parse(this.ScopeRATrackMS);
 						RAStepperTargetHours = raSteps / RAStepsPerDegree / 15.0;
-						DECStepperTargetDegrees = float.Parse(parts[1]) / DECStepsPerDegree;
+						DECStepperTargetDegrees = float.Parse(parts[1], _oatCulture) / DECStepsPerDegree;
 					}
 				}
 			});
