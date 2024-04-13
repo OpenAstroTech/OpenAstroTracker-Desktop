@@ -664,7 +664,7 @@ namespace OATControl
 									var gxSplit = gxValue.Split(",".ToCharArray());
 									if (_mountViewModel.FirmwareVersion >= 20000)
 									{
-										if (float.Parse(gxSplit[3]) != 0.0) { RunDECOffsetHoming = false; }
+										if (float.Parse(gxSplit[3], _oatCulture) != 0.0) { RunDECOffsetHoming = false; }
 									}
 									else
 									{

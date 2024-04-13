@@ -110,7 +110,7 @@
 		<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ScopeBoard}"  Style="{StaticResource TextBlockLabelValue}" />
 
 		<TextBlock Grid.Row="2" Grid.Column="0" Text="Display:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" />
-		<TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ScopeDisplay}"  Style="{StaticResource TextBlockLabelValue}" />
+		<TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ScopeDisplay}" TextWrapping="Wrap" Style="{StaticResource TextBlockLabelValue}" />
 
 		<TextBlock Grid.Row="3" Grid.Column="0" Text="Additional Features:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" />
 		<TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ScopeFeatures}"  Style="{StaticResource TextBlockLabelValue}" TextWrapping="Wrap"/>

@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.1.1.0                                          13 April 2024
+- Added support for showing Info Displays from mount firmware.
+- Hardened some parsing from OAT replies to avoid crashes.
+
 OATControl V1.1.0.0                                          14 January 2024
 - Added an application Settings dialog that allows configuring the Autohome
   settings, the default baudrate, and the Targets list.

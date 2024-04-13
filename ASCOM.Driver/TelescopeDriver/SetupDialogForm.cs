@@ -444,6 +444,18 @@ namespace ASCOM.OpenAstroTracker
 						{
 							scopeFeatures.Add("AutoHomeRA");
 						}
+						else if (hwParts[i].StartsWith("INFO_"))
+						{
+							var infoParts = hwParts[i].Split('_');
+							if (infoParts.Length == 3)
+							{
+								scopeFeatures.Add(String.Format("{0} Info ({1} on {2})", infoParts[3], infoParts[2], infoParts[1]));
+							}
+							else
+							{
+								scopeFeatures.Add("Info Display");
+							}
+						}
 					}
 
 					if (!scopeFeatures.Any())
