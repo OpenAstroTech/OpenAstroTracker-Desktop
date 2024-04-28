@@ -1201,8 +1201,8 @@ namespace OATControl.ViewModels
 
 										// Don't use property here since it sends a command.
 										_isTracking = (parts[1][2] == 'T') || _isGuiding;
-										_isSlewingAlt = (parts[1][3] != '-');
-										_isSlewingAz = (parts[1][4] != '-');
+										_isSlewingAz = (parts[1][3] != '-');
+										_isSlewingAlt = (parts[1][4] != '-');
 										_isSlewingFocus = (parts[1][5] != '-');
 										OnPropertyChanged("IsTracking");
 										OnPropertyChanged("IsGuiding");
