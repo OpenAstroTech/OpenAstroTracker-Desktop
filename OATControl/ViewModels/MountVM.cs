@@ -788,9 +788,9 @@ namespace OATControl.ViewModels
 				}
 				else
 				{
-					SetDECHomeOffsetOnMount(decPos);
+					SetDECHomeOffsetOnMount(-decPos);
 					// AppSettings.Instance.DECHomeOffset = decPos;
-					AppSettings.Instance.Save();
+					// AppSettings.Instance.Save();
 				}
 			}
 		}
