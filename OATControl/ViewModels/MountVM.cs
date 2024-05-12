@@ -659,7 +659,7 @@ namespace OATControl.ViewModels
 			if (decOffset != 0)
 			{
 				//_oatMount.SendCommand($":MXd{AppSettings.Instance.DECHomeOffset}#,n", (a) => { });
-				_oatMount.SendCommand($":MXd{decOffset}#,n", (a) => { });
+				_oatMount.SendCommand($":MXd{-decOffset}#,n", (a) => { });
 			}
 			else
 			{
@@ -682,7 +682,7 @@ namespace OATControl.ViewModels
 				else
 				{
 					// _oatMount.SendCommand($":MXd{-AppSettings.Instance.DECHomeOffset}#,n", (a) => { });
-					_oatMount.SendCommand($":MXd{-decOffset}#,n", (a) => { });
+					_oatMount.SendCommand($":MXd{decOffset}#,n", (a) => { });
 				}
 			}
 		}
