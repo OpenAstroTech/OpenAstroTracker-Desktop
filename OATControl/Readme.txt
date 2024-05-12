@@ -1,6 +1,9 @@
 Revision History
 ----------------
 
+OATControl V1.1.2.0                                          11 May 2024
+- Inverted DEC Parking Offset (park/unpark) for OAT
+
 OATControl V1.1.1.0                                          13 April 2024
 - Added support for showing Info Displays from mount firmware.
 - Hardened some parsing from OAT replies to avoid crashes.
