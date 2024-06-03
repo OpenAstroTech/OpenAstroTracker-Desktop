@@ -642,13 +642,15 @@ namespace OATControl.ViewModels
 		public void OnAutoHomeRA()
 		{
 			string dir = AutoHomeRaDirection == "East" ? "R" : "L";
-			string dist = AutoHomeRaDistance.ToString("0.0");
-			_oatMount.SendCommand($":MHRR#,n", (a) => { });
+			string dist = AutoHomeRaDistance.ToString("0");
+			_oatMount.SendCommand($":MHR{dir}{dist}#,n", (a) => { });
 		}
 
 		public void OnAutoHomeDEC()
 		{
-			_oatMount.SendCommand($":MHDU#,n", (a) => { });
+			string dir = AutoHomeDecDirection == "South" ? "D" : "U";
+			string dist = AutoHomeDecDistance.ToString("0");
+			_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => { });
 		}
 
 

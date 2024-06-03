@@ -212,6 +212,11 @@ namespace OATControl
 			AppSettings.Instance.AutoHomeRaDistance = RaDistance;
 			AppSettings.Instance.AutoHomeDecDirection = DecStartSouth ? "South" : "North";
 			AppSettings.Instance.AutoHomeDecDistance = DecDistance;
+			AppSettings.Instance.Save();
+			_mount.AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
+			_mount.AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
+			_mount.AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
+			_mount.AutoHomeRaDistance = AppSettings.Instance.AutoHomeRaDistance;
 			_mount.SavePointsOfInterest();
 			Close();
 		}

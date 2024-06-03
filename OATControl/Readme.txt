@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.1.3.0                                          2 June 2024
+- Actually send (and save) the direction and distance set in settings 
+  for Autohoming to OAT.
+
 OATControl V1.1.2.0                                          11 May 2024
 - Inverted DEC Parking Offset (park/unpark) for OAT
 
