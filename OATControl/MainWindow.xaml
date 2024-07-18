@@ -20,7 +20,7 @@
 		<converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int5ToBool" TrueValue="5" Operator="==" />
-		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Hidden" />
+		<converters:StringToVisibilityConverter x:Key="ShowOnStringEqual" EqualState="Visible" />
 
 		<Path x:Key="IconArrowUp" x:Shared="false" Data="M16,0L32,19.745 0,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
 		<Path x:Key="IconArrowLeft" x:Shared="false" Data="M25.3,0L25.3,32 0,16z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
@@ -187,6 +187,9 @@
 			<Setter Property="FontSize" Value="14" />
 			<Setter Property="Padding" Value="4,0" />
 			<Setter Property="HorizontalAlignment" Value="Right" />
+		</Style>
+		<Style x:Key="TextBlockLabelTiny" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+			<Setter Property="FontSize" Value="10" />
 		</Style>
 		<Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
 			<Setter Property="Padding" Value="12,2" />
@@ -686,6 +689,26 @@
 			</Grid>
 			<TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScopeName}" Style="{StaticResource TextBlockLabel}" Margin="0,2,0,0" HorizontalAlignment="Right" />
 			<TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ConnectionState}" Style="{StaticResource TextBlockLabelSmall}" Margin="0,2,0,0" HorizontalAlignment="Right" />
+			<Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" Visibility="{Binding ScopeHasHSA, Converter={StaticResource TrueBoolToVisible}}" >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*" />
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+				<StackPanel Orientation="Horizontal" Grid.Column="1">
+					<TextBlock Text="Autohoming:" VerticalAlignment="Center" Margin="0,0,2,0" Style="{StaticResource TextBlockLabelSmall}" />
+					<Button Content="RA" Command="{Binding AutoHomeRACommand}" Style="{StaticResource AccentedSquareButtonStyle}" Width="40" Margin="0,0,8,0"/>
+					<Button Content="DEC" Command="{Binding AutoHomeDECCommand}" Style="{StaticResource AccentedSquareButtonStyle}" Width="40" />
+				</StackPanel>
+				<StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding ShowHomingResult, Converter={StaticResource TrueBoolToVisible}}">
+					<TextBlock Text="{Binding RaHomingState}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource TextBlockLabelTiny}" />
+					<TextBlock Text="{Binding DecHomingState}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource TextBlockLabelTiny}" />
+				</StackPanel>
+			</Grid>
 		</Grid>
 	</Grid>
 </Controls:MetroWindow>

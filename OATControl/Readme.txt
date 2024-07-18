@@ -1,6 +1,11 @@
 Revision History
 ----------------
 
+OATControl V1.1.4.0                                          17 July 2024
+- Added RA/DEC autohoming buttons and status to main window.
+- Added support for AZ/ALT homing support. Mount keeps track of AZ and ALT
+  movements across sessions and can slew back to home.
+
 OATControl V1.1.3.0                                          2 June 2024
 - Actually send (and save) the direction and distance set in settings 
   for Autohoming to OAT.

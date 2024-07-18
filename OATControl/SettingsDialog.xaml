@@ -7,7 +7,7 @@
 		xmlns:controls="clr-namespace:OATControl.Controls" 
         xmlns:local="clr-namespace:OATControl" xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Settings" MinHeight="650" Width="770" MinWidth="685" Height="690">
+        Title="Settings" MinHeight="700" Width="770" MinWidth="820" Height="700">
 	<Window.Resources>
 		<converters:IntToVisibilityConverter x:Key="V1_8_76OrLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
 		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Collapsed" />
@@ -323,13 +323,26 @@
 			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Set DEC Home offset from power on position" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.16 or later)" ToolTip="If the DEC axis is currently in the Home position and was moved there immediatey after boot, use this button to store the offset." TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
 		</StackPanel>
-		<Button Grid.Row ="11" Grid.Column="4" Margin="8,12,8,4" Padding="15,0" Content="Set DEC Home Offset " HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding SetDECHomeOffsetFromPowerOnCommand}" ToolTip="Requires firwmare V1.9.16 or later." />
+		<Button Grid.Row ="11" Grid.Column="4" Margin="8,8,8,8" Padding="15,0" Content="Set DEC Home Offset " HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding SetDECHomeOffsetFromPowerOnCommand}" ToolTip="Requires firwmare V1.9.16 or later." />
 
-		<TextBlock Grid.Row ="13" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Reset the EEPROM on the OAT to its defaults" ToolTip="If you change firmware parameters and reflash the mount, we strongly suggest clearing the EEPROM of any stored configuration." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<Button Grid.Row="13" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FactoryResetCommand}"/>
+		<StackPanel Grid.Row ="13" Grid.Column="3" Orientation="Vertical">
+			<TextBlock Margin="0,4,0,0" HorizontalAlignment="Left" Text="Set current AZ/ALT position as Home" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.13.7 or later)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+		</StackPanel>
 
-		<TextBlock Grid.Row ="14" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Open the OATControl logfile folder" ToolTip="OATControl keeps logfiles from the last 6 sessions around in case you need to check something or the devs ask for them to debug a issue yopu might have." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<Button Grid.Row="14" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
+		<Button Grid.Row="13" Grid.Column="4" Margin="8,4" Padding="20,0,20,4" Content="Set AZ/ALT Home" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding SetAzAltHomeCommand}"/>
+
+		<StackPanel Grid.Row ="14" Grid.Column="3" Orientation="Vertical">
+			<TextBlock Margin="0,4,0,0" HorizontalAlignment="Left" Text="Move the AZ/ALT axis to their home position" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.13.7 or later)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+		</StackPanel>
+		<Button Grid.Row="14" Grid.Column="4" Margin="8,4" Padding="10,0,10,4" Content="Move AZ/ALT to Home" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding MoveAzAltToHomeCommand}"/>
+
+		<TextBlock Grid.Row ="16" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Reset the EEPROM on the OAT to its defaults" ToolTip="If you change firmware parameters and reflash the mount, we strongly suggest clearing the EEPROM of any stored configuration." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row="16" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FactoryResetCommand}"/>
+
+		<TextBlock Grid.Row ="17" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Open the OATControl logfile folder" ToolTip="OATControl keeps logfiles from the last 6 sessions around in case you need to check something or the devs ask for them to debug a issue yopu might have." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<Button Grid.Row="17" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 
 		<StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
 			<Button Margin="16,8" Padding="20,0" Content="Close" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" IsCancel="True"/>

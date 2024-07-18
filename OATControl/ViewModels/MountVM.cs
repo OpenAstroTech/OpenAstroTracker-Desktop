@@ -30,6 +30,7 @@ namespace OATControl.ViewModels
 		Declination _targetDEC = new Declination();
 		DayTime _currentRA = new DayTime();
 		Declination _currentDEC = new Declination();
+		DateTime _lastHomingActive = DateTime.MinValue;
 
 		float _raStepper = 0;
 		float _decStepper = 0;
@@ -108,6 +109,9 @@ namespace OATControl.ViewModels
 		string _scopeNetworkSSID = string.Empty;
 		string _connectionState = string.Empty;
 		string _mountStatus = string.Empty;
+		string _raHomingState = string.Empty;
+		string _decHomingState = string.Empty;
+		bool _homingResult = false;
 		string _currentHA = string.Empty;
 		CultureInfo _oatCulture = new CultureInfo("en-US");
 		List<string> _oatAddonStates = new List<string>();
@@ -135,13 +139,16 @@ namespace OATControl.ViewModels
 		DelegateCommand _startChangingCommand;
 		DelegateCommand _chooseTargetCommand;
 		DelegateCommand _setDecLowerLimitCommand;
-		DelegateCommand _setDECHomeOffsetFromPowerOn;
+		DelegateCommand _setDECHomeOffsetFromPowerOnCommand;
+		DelegateCommand _setAzAltHomeCommand;
+		DelegateCommand _moveAzAltToHomeCommand;
+
 		DelegateCommand _setRAHomeOffsetCommand;
 		DelegateCommand _setDECHomeOffsetCommand;
-		DelegateCommand _gotoDECHomeFromPowerOn;
+		DelegateCommand _gotoDECHomeFromPowerOnCommand;
 		DelegateCommand _autoHomeRACommand;
 		DelegateCommand _autoHomeDECCommand;
-		DelegateCommand _gotoDECParkBeforePowerOff;
+		DelegateCommand _gotoDECParkBeforePowerOffCommand;
 		DelegateCommand _focuserResetCommand;
 		DelegateCommand _customActionCommand;
 		DelegateCommand _runStepCalibrationCommand;
@@ -263,8 +270,11 @@ namespace OATControl.ViewModels
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 			_chooseTargetCommand = new DelegateCommand(async (p) => await OnShowTargetChooser(), () => MountConnected);
 			_setDecLowerLimitCommand = new DelegateCommand((p) => SetDecLowLimit(), () => MountConnected);
-			_setDECHomeOffsetFromPowerOn = new DelegateCommand((p) => OnSetDECHomeOffsetFromPowerOn(), () => MountConnected);
-			_gotoDECHomeFromPowerOn = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10915));
+			_setDECHomeOffsetFromPowerOnCommand = new DelegateCommand((p) => OnSetDECHomeOffsetFromPowerOn(), () => MountConnected);
+			_gotoDECHomeFromPowerOnCommand = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10915));
+			_setAzAltHomeCommand = new DelegateCommand((p) => OnSetAzAltHome(), () => MountConnected && (FirmwareVersion > 11306));
+			_moveAzAltToHomeCommand = new DelegateCommand((p) => OnMoveAzAltToHome(), () => MountConnected && (FirmwareVersion > 11306));
+
 
 			_setRAHomeOffsetCommand = new DelegateCommand((p) => OnSetRAHomeOffset(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAH);
 			_autoHomeRACommand = new DelegateCommand((p) => OnAutoHomeRA(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAH);
@@ -272,7 +282,7 @@ namespace OATControl.ViewModels
 			_setDECHomeOffsetCommand = new DelegateCommand((p) => OnSetDECHomeOffset(), () => MountConnected && (FirmwareVersion >= 11201) && ScopeHasHSAV);
 			_autoHomeDECCommand = new DelegateCommand((p) => OnAutoHomeDEC(), () => MountConnected && (FirmwareVersion >= 11201) && ScopeHasHSAV);
 
-			_gotoDECParkBeforePowerOff = new DelegateCommand((p) => OnGotoDECParkBeforePowerOff(), () => MountConnected && (FirmwareVersion > 10915));
+			_gotoDECParkBeforePowerOffCommand = new DelegateCommand((p) => OnGotoDECParkBeforePowerOff(), () => MountConnected && (FirmwareVersion > 10915));
 			_focuserResetCommand = new DelegateCommand((p) => OnResetFocuserPosition(), () => MountConnected && (FirmwareVersion > 10918));
 			_customActionCommand = new DelegateCommand((p) => OnCustomAction(p as string), () => MountConnected);
 			_runStepCalibrationCommand = new DelegateCommand((p) => OnRunStepCalibration(), () => MountConnected);
@@ -653,6 +663,15 @@ namespace OATControl.ViewModels
 			_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => { });
 		}
 
+		public void OnSetAzAltHome()
+		{
+			_oatMount.SendCommand(":hZ#,n", (a) => { });
+		}
+
+		public void OnMoveAzAltToHome()
+		{
+			_oatMount.SendCommand(":MAAH#,n", (a) => { });
+		}
 
 		public void OnGotoDECHomeFromPowerOn()
 		{
@@ -1186,6 +1205,55 @@ namespace OATControl.ViewModels
 										{
 											_isGuiding = true;
 											_isTracking = true;
+										}
+
+										if ((MountStatus == "Homing") || (_lastHomingActive != DateTime.MinValue))
+										{
+											ShowHomingResult = true;
+											string raHomingState = string.Empty;
+											string decHomingState = string.Empty;
+											if (FirmwareVersion >= 11306)
+											{
+												AsyncAutoResetEvent waitForHomingState = new AsyncAutoResetEvent();
+												this.SendOatCommand(":XGAH#,#", (ahRes) =>
+												{
+													try
+													{
+														if (ahRes.Success)
+														{
+															var ahParts = ahRes.Data.Split('|');
+															raHomingState = ahParts[0];
+															decHomingState = ahParts[1];
+															Log.WriteLine("UPDATE: Homing. RA state: {0}, DEC state: {1}", raHomingState, decHomingState);
+														}
+													}
+													catch
+													{
+														Log.WriteLine("UPDATE: XGAH command generated exception. Reply was [" + ahRes.Data + "]");
+													}
+													waitForHomingState.Set();
+												});
+												await waitForHomingState.WaitAsync();
+												RaHomingState = raHomingState;
+												DecHomingState = decHomingState;
+											}
+											if (MountStatus == "Homing")
+											{
+												_lastHomingActive = DateTime.UtcNow;
+											}
+										}
+
+										// Turn off Autohoming result display after 5 seconds
+										if (_lastHomingActive != DateTime.MinValue)
+										{
+											TimeSpan elapsedSinceHoming = DateTime.UtcNow - _lastHomingActive;
+											if (elapsedSinceHoming.TotalSeconds > 5)
+											{
+												ShowHomingResult = false;
+												RaHomingState = string.Empty;
+												DecHomingState = string.Empty;
+												_lastHomingActive = DateTime.MinValue;
+											}
 										}
 
 										switch (parts[1][0])
@@ -2095,13 +2163,16 @@ namespace OATControl.ViewModels
 			_showMiniControllerCommand.Requery();
 			_chooseTargetCommand.Requery();
 			_setDecLowerLimitCommand.Requery();
-			_setDECHomeOffsetFromPowerOn.Requery();
+			_setDECHomeOffsetFromPowerOnCommand.Requery();
+			_setAzAltHomeCommand.Requery();
+			_moveAzAltToHomeCommand.Requery();
+
 			_setRAHomeOffsetCommand.Requery();
 			_setDECHomeOffsetCommand.Requery();
-			_gotoDECHomeFromPowerOn.Requery();
+			_gotoDECHomeFromPowerOnCommand.Requery();
 			_autoHomeRACommand.Requery();
 			_autoHomeDECCommand.Requery();
-			_gotoDECParkBeforePowerOff.Requery();
+			_gotoDECParkBeforePowerOffCommand.Requery();
 			_focuserResetCommand.Requery();
 			_customActionCommand.Requery();
 			_runStepCalibrationCommand.Requery();
@@ -2741,13 +2812,15 @@ namespace OATControl.ViewModels
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 		public ICommand ChooseTargetCommand { get { return _chooseTargetCommand; } }
 		public ICommand SetDecLowerLimitCommand { get { return _setDecLowerLimitCommand; } }
-		public ICommand SetDECHomeOffsetFromPowerOnCommand { get { return _setDECHomeOffsetFromPowerOn; } }
+		public ICommand SetDECHomeOffsetFromPowerOnCommand { get { return _setDECHomeOffsetFromPowerOnCommand; } }
+		public ICommand SetAzAltHomeCommand { get { return _setAzAltHomeCommand; } }
+		public ICommand MoveAzAltToHomeCommand { get { return _moveAzAltToHomeCommand; } }
 		public ICommand SetRAHomeOffsetCommand { get { return _setRAHomeOffsetCommand; } }
 		public ICommand SetDECHomeOffsetCommand { get { return _setDECHomeOffsetCommand; } }
-		public ICommand GotoDECHomeFromPowerOnCommand { get { return _gotoDECHomeFromPowerOn; } }
+		public ICommand GotoDECHomeFromPowerOnCommand { get { return _gotoDECHomeFromPowerOnCommand; } }
 		public ICommand AutoHomeRACommand { get { return _autoHomeRACommand; } }
 		public ICommand AutoHomeDECCommand { get { return _autoHomeDECCommand; } }
-		public ICommand GotoDECParkBeforePowerOffCommand { get { return _gotoDECParkBeforePowerOff; } }
+		public ICommand GotoDECParkBeforePowerOffCommand { get { return _gotoDECParkBeforePowerOffCommand; } }
 		public ICommand FocuserResetCommand { get { return _focuserResetCommand; } }
 		public ICommand CustomActionCommand { get { return _customActionCommand; } }
 		public ICommand RunStepCalibrationCommand { get { return _runStepCalibrationCommand; } }
@@ -3436,16 +3509,27 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _scopeHasFOC, value); }
 		}
 
+		public bool ScopeHasHSA
+		{
+			get { return _scopeHasHSAH || _scopeHasHSAV; }
+		}
+
 		public bool ScopeHasHSAH
 		{
 			get { return _scopeHasHSAH; }
-			set { SetPropertyValue(ref _scopeHasHSAH, value); }
+			set { SetPropertyValue(ref _scopeHasHSAH, value); OnPropertyChanged("ScopeHasHSA"); }
 		}
 
 		public bool ScopeHasHSAV
 		{
 			get { return _scopeHasHSAV; }
-			set { SetPropertyValue(ref _scopeHasHSAV, value); }
+			set { SetPropertyValue(ref _scopeHasHSAV, value); OnPropertyChanged("ScopeHasHSA"); }
+		}
+
+		public bool ShowHomingResult
+		{
+			get { return _homingResult; }
+			set { SetPropertyValue(ref _homingResult, value); }
 		}
 
 
@@ -3545,6 +3629,24 @@ namespace OATControl.ViewModels
 		{
 			get { return _mountStatus; }
 			set { SetPropertyValue(ref _mountStatus, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the homing state of the RA axis of the scope
+		/// </summary>
+		public string RaHomingState
+		{
+			get { return _raHomingState; }
+			set { SetPropertyValue(ref _raHomingState, value); }
+		}
+
+		/// <summary>
+		/// Gets or sets the homing state of the DEC axis of the scope
+		/// </summary>
+		public string DecHomingState
+		{
+			get { return _decHomingState; }
+			set { SetPropertyValue(ref _decHomingState, value); }
 		}
 
 		/// <summary>
