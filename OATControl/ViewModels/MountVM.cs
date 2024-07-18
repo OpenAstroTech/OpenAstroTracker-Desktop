@@ -272,8 +272,8 @@ namespace OATControl.ViewModels
 			_setDecLowerLimitCommand = new DelegateCommand((p) => SetDecLowLimit(), () => MountConnected);
 			_setDECHomeOffsetFromPowerOnCommand = new DelegateCommand((p) => OnSetDECHomeOffsetFromPowerOn(), () => MountConnected);
 			_gotoDECHomeFromPowerOnCommand = new DelegateCommand((p) => OnGotoDECHomeFromPowerOn(), () => MountConnected && (FirmwareVersion > 10915));
-			_setAzAltHomeCommand = new DelegateCommand((p) => OnSetAzAltHome(), () => MountConnected && (FirmwareVersion > 11306));
-			_moveAzAltToHomeCommand = new DelegateCommand((p) => OnMoveAzAltToHome(), () => MountConnected && (FirmwareVersion > 11306));
+			_setAzAltHomeCommand = new DelegateCommand((p) => OnSetAzAltHome(), () => MountConnected && (FirmwareVersion > 11306) && (ScopeHasAZ || ScopeHasALT));
+			_moveAzAltToHomeCommand = new DelegateCommand((p) => OnMoveAzAltToHome(), () => MountConnected && (FirmwareVersion > 11306) && (ScopeHasAZ || ScopeHasALT));
 
 
 			_setRAHomeOffsetCommand = new DelegateCommand((p) => OnSetRAHomeOffset(), () => MountConnected && (FirmwareVersion >= 10921) && ScopeHasHSAH);
