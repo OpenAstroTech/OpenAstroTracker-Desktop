@@ -12,8 +12,7 @@
         </Grid.RowDefinitions>
         <!-- Multi-line TextBox for editing -->
         <Border BorderBrush="#622" BorderThickness="1" Grid.Row="0">
-        <TextBox x:Name="ChecklistTextBox"
-                 
+        <TextBox x:Name="ChecklistTextBox"                 
                  AcceptsReturn="True"
                  VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto"

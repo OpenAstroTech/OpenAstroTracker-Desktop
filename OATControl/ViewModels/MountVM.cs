@@ -329,7 +329,8 @@ namespace OATControl.ViewModels
 				}
 				catch (Exception ex)
 				{
-					_listFilePath = "";
+					_listFilePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OpenAstroTracker", "Checklist.txt");
+					File.WriteAllText(_listFilePath, "<b>Power On</b>\n<b>SharpCap</b>CheckFocus\\nPolar Align\n<b>N.I.N.A</b>Image\n");
 				}
 			}
 

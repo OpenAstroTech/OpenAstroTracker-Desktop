@@ -7,19 +7,18 @@ namespace OATControl
 {
 	public partial class DlgChecklistEditor : MetroWindow, INotifyPropertyChanged
 	{
-		private string checklistText;
-		private string originalText;
+		private string _checklistText;
 		string _filePath;
 
 		public string ChecklistText
 		{
-			get { return checklistText; }
+			get { return _checklistText; }
 			set
 			{
-				if (checklistText != value)
+				if (_checklistText != value)
 				{
-					checklistText = value;
-					OnPropertyChanged(nameof(ChecklistText));
+					_checklistText = value;
+					OnPropertyChanged("ChecklistText");
 				}
 			}
 		}
@@ -30,15 +29,22 @@ namespace OATControl
 			InitializeComponent();
 			DataContext = this;
 
-			ChecklistText = File.ReadAllText(_filePath);
-			originalText = ChecklistText;
+			try
+			{
+				var content = File.ReadAllText(_filePath);
+				ChecklistText = content;
+			}
+			catch
+			{
+				MessageBox.Show("No checklist found");
+			}
 		}
 
 		private void OKButton_Click(object sender, RoutedEventArgs e)
 		{
 			// Indicate success, save changes and close the window
 			this.DialogResult = true;
-			File.WriteAllText(_filePath, checklistText);
+			File.WriteAllText(_filePath, _checklistText);
 			this.Close();
 		}
 

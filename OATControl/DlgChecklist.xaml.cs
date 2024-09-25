@@ -19,19 +19,20 @@ namespace OATControl
 	{
 		string _listFilePath;
 		private ObservableCollection<ChecklistItem> checklistItems;
+		DateTime _lastCreationDate;
 
 		public DlgChecklist(string listFilePath)
 		{
 
 			this.DataContext = this;
 
-
 			InitializeComponent();
+			InitializeWebView();
+
 			_listFilePath = listFilePath;
 
-			InitializeWebView();
-			var items = LoadChecklistItemsFromFile(_listFilePath);
-			checklistItems = new ObservableCollection<ChecklistItem>(items);
+			LoadChecklistItemsFromFile(_listFilePath);
+			
 		}
 
 		private void UpdateChecklistHtml()
@@ -67,8 +68,6 @@ namespace OATControl
 				.item-text >b {
 					color: #F86;
 					font-size: 115%;
-					margin-top: -1px;
-					position: absolute;
 				}
 				.item-text.checked >b {
 					color: #A43;
@@ -138,6 +137,14 @@ namespace OATControl
 
 		private async void InitializeWebView()
 		{
+			string userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OATControl", "WebView2");
+
+			// Ensure the directory exists
+			Directory.CreateDirectory(userDataFolder);
+
+			// Create the WebView2 environment with the custom user data folder
+			var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+			
 			ChecklistWebView.CoreWebView2InitializationCompleted += async (sender, args) =>
 			{
 				if (args.IsSuccess)
@@ -146,8 +153,7 @@ namespace OATControl
 					UpdateChecklistHtml();
 				}
 			};
-			await ChecklistWebView.EnsureCoreWebView2Async(null);
-			UpdateChecklistHtml();
+			await ChecklistWebView.EnsureCoreWebView2Async(env);
 		}
 
 		private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -190,9 +196,11 @@ namespace OATControl
 		}
 
 
-		private List<ChecklistItem> LoadChecklistItemsFromFile(string filePath)
+		private void LoadChecklistItemsFromFile(string filePath)
 		{
 			List<ChecklistItem> items = new List<ChecklistItem>();
+			FileInfo fi = new FileInfo(_listFilePath);
+			_lastCreationDate = fi.LastWriteTimeUtc;
 
 			try
 			{
@@ -202,13 +210,13 @@ namespace OATControl
 					Text = line,
 					IsChecked = false
 				}).ToList();
+
+				checklistItems = new ObservableCollection<ChecklistItem>(items);
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show("Error loading checklist: " + ex.Message);
 			}
-
-			return items;
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -238,6 +246,20 @@ namespace OATControl
 			AppSettings.Instance.Save();
 		}
 
+		public string TempFolder
+		{
+			get { return Path.GetTempPath();  }
+		}
+
+		private void Window_Activated(object sender, EventArgs e)
+		{
+			FileInfo fi = new FileInfo(_listFilePath);
+			if (_lastCreationDate != fi.LastWriteTimeUtc)
+			{
+				LoadChecklistItemsFromFile(_listFilePath);
+				UpdateChecklistHtml();
+			}
+		}
 	}
 
 }
