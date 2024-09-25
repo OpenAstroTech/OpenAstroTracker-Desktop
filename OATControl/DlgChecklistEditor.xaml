@@ -1,0 +1,49 @@
+﻿<mah:MetroWindow x:Class="OATControl.DlgChecklistEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        Title="Edit Startup Checklist" Height="400" Width="600"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <!-- Multi-line TextBox for editing -->
+        <Border BorderBrush="#622" BorderThickness="1" Grid.Row="0">
+        <TextBox x:Name="ChecklistTextBox"
+                 
+                 AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 FontFamily="Consolas"
+                 FontSize="14"
+                 TextWrapping="NoWrap"
+                 Text="{Binding ChecklistText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 Foreground="#F40"
+                 Background="#400000"
+                 BorderThickness="0"
+                 CaretBrush="#FFF"
+                 />
+        </Border>
+        <TextBlock Grid.Row="1" Text="One checklist item line. You can use &lt;b&gt; for bold. Use \n for new line." Foreground="#A30"/>
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="2"
+                    HorizontalAlignment="Right"
+                    Margin="0,10,0,0">
+            <Button Content="OK"
+                    Width="75"
+                    Margin="0,0,10,0"
+                    IsDefault="True"
+                    Style="{StaticResource AccentedDialogSquareButton}" 
+                    Click="OKButton_Click" />
+            <Button Content="Cancel"
+                    Width="75"
+                    IsCancel="True"
+                    Style="{StaticResource AccentedDialogSquareButton}" 
+                    Click="CancelButton_Click" />
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>

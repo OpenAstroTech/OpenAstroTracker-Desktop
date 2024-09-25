@@ -4,20 +4,12 @@ using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Common;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace OATControl
@@ -44,6 +36,7 @@ namespace OATControl
 
 		private MountVM _mount;
 		private string _serialBaudRate;
+		private bool _showChecklist;
 		private bool _raStartEast;
 		private bool _decStartSouth;
 		private float _raDistance;
@@ -54,6 +47,7 @@ namespace OATControl
 		private int sortDirection = 1;
 		DelegateCommand _editPointCommand;
 		DelegateCommand _addPointCommand;
+		DelegateCommand _configureChecklistCommand;
 		private GridViewColumnHeader _lastHeaderClicked;
 
 		public DlgAppSettings(MountVM mount)
@@ -62,6 +56,7 @@ namespace OATControl
 			this.AllPointsOfInterest = _mount.AllPointsOfInterest.ToList();
 			_editPointCommand = new DelegateCommand(() => OnEditPoint());
 			_addPointCommand = new DelegateCommand(() => OnAddPoint());
+			_configureChecklistCommand = new DelegateCommand(() => OnConfigureChecklist());
 
 			this.DataContext = this;
 
@@ -71,14 +66,16 @@ namespace OATControl
 			RaDistance = AppSettings.Instance.AutoHomeRaDistance;
 			DecStartSouth = AppSettings.Instance.AutoHomeDecDirection == "South";
 			DecDistance = AppSettings.Instance.AutoHomeDecDistance;
+			ShowChecklist = AppSettings.Instance.ShowChecklistOnConnect;
 
 			ContentTabs.SelectedIndex = 0;
 			CategorySelector.SelectedIndex = 0;
 		}
 
-		
+
 		public ICommand EditPointCommand { get { return _editPointCommand; } }
 		public ICommand AddPointCommand { get { return _addPointCommand; } }
+		public ICommand ConfigureChecklistCommand { get { return _configureChecklistCommand; } }
 
 		public void OnEditPoint()
 		{
@@ -132,6 +129,16 @@ namespace OATControl
 			}
 		}
 
+		public bool ShowChecklist
+		{
+			get { return _showChecklist; }
+			set
+			{
+				_showChecklist = value;
+				OnPropertyChanged();
+			}
+		}
+
 		public bool DecStartSouth
 		{
 			get { return _decStartSouth; }
@@ -141,6 +148,7 @@ namespace OATControl
 				OnPropertyChanged();
 			}
 		}
+
 		public float DecDistance
 		{
 			get { return _decDistance; }
@@ -204,6 +212,13 @@ namespace OATControl
 			}
 		}
 
+		public void OnConfigureChecklist()
+		{
+			DlgChecklistEditor dlg = new DlgChecklistEditor(_mount.ChecklistFilePath);
+			dlg.ShowDialog();
+		}
+
+
 		private void OnCloseClick(object sender, RoutedEventArgs e)
 		{
 			// Transfer to MountVM
@@ -212,11 +227,14 @@ namespace OATControl
 			AppSettings.Instance.AutoHomeRaDistance = RaDistance;
 			AppSettings.Instance.AutoHomeDecDirection = DecStartSouth ? "South" : "North";
 			AppSettings.Instance.AutoHomeDecDistance = DecDistance;
+			AppSettings.Instance.ShowChecklistOnConnect = ShowChecklist;
 			AppSettings.Instance.Save();
 			_mount.AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
 			_mount.AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
 			_mount.AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
 			_mount.AutoHomeRaDistance = AppSettings.Instance.AutoHomeRaDistance;
+			_mount.ShowChecklistOnConnect = AppSettings.Instance.ShowChecklistOnConnect;
+
 			_mount.SavePointsOfInterest();
 			Close();
 		}
@@ -269,7 +287,7 @@ namespace OATControl
 			// Clear the existing sort indicator
 			if (_lastHeaderClicked != null)
 			{
-				var lastSortArrow = _lastHeaderClicked.Template.FindName("SortArrow", _lastHeaderClicked) as Path;
+				var lastSortArrow = _lastHeaderClicked.Template.FindName("SortArrow", _lastHeaderClicked) as System.Windows.Shapes.Path;
 				if (lastSortArrow != null)
 				{
 					lastSortArrow.Visibility = Visibility.Hidden;
@@ -277,7 +295,7 @@ namespace OATControl
 			}
 
 			// Set the new sort indicator
-			var newSortArrow = column.Template.FindName("SortArrow", column) as Path;
+			var newSortArrow = column.Template.FindName("SortArrow", column) as System.Windows.Shapes.Path;
 			if (newSortArrow != null)
 			{
 				newSortArrow.Visibility = Visibility.Visible;

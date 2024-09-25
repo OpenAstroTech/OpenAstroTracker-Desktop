@@ -1,6 +1,9 @@
 Revision History
 ----------------
 
+OATControl V1.1.5.0                                          24 Sept 2024
+- Added support for a checklist to get setup for imaging.
+
 OATControl V1.1.4.0                                          17 July 2024
 - Added RA/DEC autohoming buttons and status to main window.
 - Added support for AZ/ALT homing support. Mount keeps track of AZ and ALT

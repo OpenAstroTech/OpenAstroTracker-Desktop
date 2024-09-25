@@ -1,0 +1,5 @@
+﻿<b>Power on</b>
+Remove scope cap
+<b>OATControl</b>\nAutohome RA and DEC
+<b>SharpCap</b>\nConnect Main Camera and focus
+<b>SharpCap</b>\nPolar Align

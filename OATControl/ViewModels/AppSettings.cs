@@ -152,6 +152,20 @@ namespace OATControl.ViewModels
 			set { this["MiniControllerPos"] = FromPoint(value); }
 		}
 
+		[DefaultValueAttribute("0|50")]
+		public Point ChecklistPos
+		{
+			get { return ToPoint(this["ChecklistPos"]); }
+			set { this["ChecklistPos"] = FromPoint(value); }
+		}
+
+		[DefaultValueAttribute("0|50")]
+		public Size ChecklistSize
+		{
+			get { return ToSize(this["ChecklistSize"]); }
+			set { this["ChecklistSize"] = FromSize(value); }
+		}
+
 		[DefaultValueAttribute("100|100")]
 		public Point WindowPos
 		{
@@ -283,6 +297,13 @@ namespace OATControl.ViewModels
 		{
 			get { return Convert.ToSingle(this["AutoHomeDecDistance"]); }
 			set { this["AutoHomeDecDistance"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("false")]
+		public bool ShowChecklistOnConnect
+		{
+			get { return Convert.ToBoolean(this["ShowChecklistOnConnect"]); }
+			set { this["ShowChecklistOnConnect"] = value.ToString(); }
 		}
 	}
 }

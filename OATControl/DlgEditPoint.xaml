@@ -10,8 +10,6 @@
 		mc:Ignorable="d"
         Title="" MinHeight="310" Width="300" MinWidth="300" Height="310" WindowStyle="ToolWindow" >
 	<Window.Resources>
-		<converters:DoubleToHMSConverter x:Key="RAConverter" />
-		<converters:DoubleToHMSConverter x:Key="DECConverter" Formatter = "[0:+00;-00]° [1:00]&quot; [2:00]'"/>
 		<Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
 			<Setter Property="Margin" Value="10,2,10,2" />
 			<Setter Property="Height" Value="11" />

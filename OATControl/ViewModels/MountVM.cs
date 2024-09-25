@@ -19,7 +19,6 @@ using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
-using System.Windows.Controls;
 
 namespace OATControl.ViewModels
 {
@@ -119,6 +118,7 @@ namespace OATControl.ViewModels
 		string[] _customCommandText = new string[4];
 		string[] _customButtonResultText = new string[4];
 		string[] _customButtonResultStatus = new string[4];
+		bool _showChecklistOnConnect = false;
 
 		DelegateCommand _arrowCommand;
 		DelegateCommand _connectScopeCommand;
@@ -133,6 +133,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _driftAlignCommand;
 		DelegateCommand _polarAlignCommand;
 		DelegateCommand _showLogFolderCommand;
+		DelegateCommand _showChecklistCommand;
 		DelegateCommand _showSettingsCommand;
 		DelegateCommand _showMiniControllerCommand;
 		DelegateCommand _factoryResetCommand;
@@ -156,6 +157,7 @@ namespace OATControl.ViewModels
 		private string _poiFile;
 		MiniController _miniController;
 		TargetChooser _targetChooser;
+		DlgChecklist _checklist;
 
 		DispatcherTimer _timerStatus;
 		DispatcherTimer _timerFineSlew;
@@ -179,6 +181,7 @@ namespace OATControl.ViewModels
 		DateTime _startTime;
 		private string _parkString = "Park";
 		private string _remainingRATime;
+		private string _listFilePath;
 		private TimeSpan _remainingRATimeSpan;
 		private float _slewStartRA;
 		private float _slewStartDEC;
@@ -264,6 +267,7 @@ namespace OATControl.ViewModels
 			_driftAlignCommand = new DelegateCommand(async dur => await OnRunDriftAlignment(int.Parse(dur.ToString())), () => MountConnected);
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
+			_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
 			_factoryResetCommand = new DelegateCommand(async () => await OnPerformFactoryReset(), () => MountConnected);
@@ -311,12 +315,31 @@ namespace OATControl.ViewModels
 				_poiFile = Path.Combine(documentsPath, "PointsOfInterest.xml");
 			}
 
+			_listFilePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OpenAstroTracker", "Checklist.txt");
+			if (!File.Exists(_listFilePath))
+			{
+				_listFilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Checklist.txt");
+				try
+				{
+					while (!File.Exists(_listFilePath))
+					{
+						_listFilePath = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(_listFilePath));
+						_listFilePath = System.IO.Path.Combine(_listFilePath, "Checklist.txt");
+					}
+				}
+				catch (Exception ex)
+				{
+					_listFilePath = "";
+				}
+			}
+
 			this.Version = Assembly.GetExecutingAssembly().GetName().Version;
 			Log.WriteLine("MOUNT: Initialization of OATControl {0} complete...", this.Version);
 
 			AppSettings.Instance.UpgradeVersion += OnUpgradeSettings;
 			AppSettings.Instance.Load();
 			LoadCustomCommands();
+			_showChecklistOnConnect = AppSettings.Instance.ShowChecklistOnConnect;
 
 			// Start Simulation Server
 			_oatSimComm.Start(4035);
@@ -940,6 +963,28 @@ namespace OATControl.ViewModels
 			else
 			{
 				_miniController.Show();
+			}
+		}
+
+		public string ChecklistFilePath
+		{
+			get { return _listFilePath; }
+		}
+
+		private void OnShowChecklist()
+		{
+			if (_checklist != null)
+			{
+				if (!_checklist.IsVisible)
+				{
+					_checklist.Show();
+				}
+			}
+			else
+			{
+				_checklist = new DlgChecklist(_listFilePath);
+				_checklist.Topmost = true;
+				_checklist.Show();
 			}
 		}
 
@@ -1891,6 +1936,15 @@ namespace OATControl.ViewModels
 				_miniController = null;
 			}
 
+			if (_checklist != null)
+			{
+				if (_checklist.IsVisible)
+				{
+					_checklist.Close();
+				}
+				_checklist = null;
+			}
+
 			if (_targetChooser != null)
 			{
 				_targetChooser.Close();
@@ -2040,11 +2094,14 @@ namespace OATControl.ViewModels
 				RequeryCommands();
 
 				Log.WriteLine("MOUNT: Connect to OAT requested");
-
 				if (await this.ChooseTelescope())
 				{
 					await RecalculatePointsPositions(true);
 					OnSimulationClientConnect();
+				}
+				if (_showChecklistOnConnect)
+				{
+					OnShowChecklist();
 				}
 			}
 		}
@@ -2159,6 +2216,7 @@ namespace OATControl.ViewModels
 			_driftAlignCommand.Requery();
 			_polarAlignCommand.Requery();
 			_showLogFolderCommand.Requery();
+			_showChecklistCommand.Requery();
 			_showSettingsCommand.Requery();
 			_showMiniControllerCommand.Requery();
 			_chooseTargetCommand.Requery();
@@ -2806,6 +2864,7 @@ namespace OATControl.ViewModels
 		public ICommand DriftAlignCommand { get { return _driftAlignCommand; } }
 		public ICommand PolarAlignCommand { get { return _polarAlignCommand; } }
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
+		public ICommand ShowChecklistCommand { get { return _showChecklistCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
 		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
 		public ICommand FactoryResetCommand { get { return _factoryResetCommand; } }
@@ -3616,6 +3675,12 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _autoHomeRaDistance, value); }
 		}
 
+		public bool ShowChecklistOnConnect
+		{
+			get { return _showChecklistOnConnect; }
+			set { SetPropertyValue(ref _showChecklistOnConnect, value); }
+		}
+
 		public float AutoHomeDecDistance
 		{
 			get { return _autoHomeDecDistance; }
@@ -4089,37 +4154,37 @@ namespace OATControl.ViewModels
 			switch (sep)
 			{
 				case CoordSeparators.NoSeparators:
-					{
-						var ra = new DayTime(pos);
-						int hours, mins, secs;
-						ra.GetTime(out hours, out mins, out secs);
-						return string.Format("{0} {1} {2}", hours, mins, secs);
-					}
+				{
+					var ra = new DayTime(pos);
+					int hours, mins, secs;
+					ra.GetTime(out hours, out mins, out secs);
+					return string.Format("{0} {1} {2}", hours, mins, secs);
+				}
 				case CoordSeparators.Colons:
-					{
-						var ra = new DayTime(pos);
-						int hours, mins, secs;
-						ra.GetTime(out hours, out mins, out secs);
-						return string.Format("{0:00}:{1:00}:{2:00}", hours, mins, secs);
-					}
+				{
+					var ra = new DayTime(pos);
+					int hours, mins, secs;
+					ra.GetTime(out hours, out mins, out secs);
+					return string.Format("{0:00}:{1:00}:{2:00}", hours, mins, secs);
+				}
 				case CoordSeparators.RaSeparators:
-					{
-						var ra = new DayTime(pos);
-						int hours, mins, secs;
-						ra.GetTime(out hours, out mins, out secs);
-						int absHours = Math.Abs(hours);
-						string sign = ra.TotalSeconds < 0 ? "-" : "";
-						return string.Format($"{sign}{absHours:00}h {mins:00}m {secs:00}s");
-					}
+				{
+					var ra = new DayTime(pos);
+					int hours, mins, secs;
+					ra.GetTime(out hours, out mins, out secs);
+					int absHours = Math.Abs(hours);
+					string sign = ra.TotalSeconds < 0 ? "-" : "";
+					return string.Format($"{sign}{absHours:00}h {mins:00}m {secs:00}s");
+				}
 				case CoordSeparators.DecSeparators:
-					{
-						var dec = new Declination(pos);
-						int degrees, mins, secs;
-						dec.GetTime(out degrees, out mins, out secs);
-						int absDegrees = Math.Abs(degrees);
-						string sign = dec.TotalSeconds < 0 ? "-" : "";
-						return string.Format($"{sign}{absDegrees:00}° {mins:00}\" {secs:00}'");
-					}
+				{
+					var dec = new Declination(pos);
+					int degrees, mins, secs;
+					dec.GetTime(out degrees, out mins, out secs);
+					int absDegrees = Math.Abs(degrees);
+					string sign = dec.TotalSeconds < 0 ? "-" : "";
+					return string.Format($"{sign}{absDegrees:00}° {mins:00}\" {secs:00}'");
+				}
 			}
 			return "what";
 		}

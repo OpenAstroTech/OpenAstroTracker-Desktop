@@ -1,0 +1,101 @@
+﻿<Window x:Class="OATControl.DlgChecklist"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+		xmlns:controls="clr-namespace:OATControl.Controls" 
+		xmlns:converters="clr-namespace:OATControl.Converters"
+		mc:Ignorable="d"
+        Title="Checklist" MinHeight="250" Width="600" MinWidth="200" Height="500" 
+        WindowStyle="None" 
+        WindowStartupLocation="Manual"
+        Closing="Window_Closing"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" Collapse="True"/>
+        <converters:BoolToStringConverter x:Key="BoolToTextConverter" TrueString="Save" FalseString="Edit"/>
+        <Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
+            <Setter Property="Margin" Value="10,2,10,2" />
+            <Setter Property="Height" Value="11" />
+            <Setter Property="Background" Value="#770000" />
+            <Setter Property="Foreground" Value="#F00" />
+            <Setter Property="Width" Value="60" />
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+        <Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="TextBlockOptionHelp" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+            <Setter Property="FontSize" Value="8" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Width" Value="190" />
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+
+        <Style x:Key="TextBlockOptionHelpNoWidth" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+            <Setter Property="FontSize" Value="8" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+        <Style x:Key="TextBlockDescription" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Margin" Value="0,0,0,0" />
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+    </Window.Resources>
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="Startup Checklist" HorizontalAlignment="Center" Foreground="#C44" FontSize="16" FontWeight="Bold" Margin="0,8,0,0"/>
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!-- Webview -->
+            <Border Grid.Row="0" BorderThickness="1" BorderBrush="#FF880000" Margin="0,0,0,10" >
+                <wv2:WebView2 x:Name="ChecklistWebView" Margin="0,0,0,0"  />
+            </Border>
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center" Margin="0,5,0,0">
+                <Button Content="Close" 
+                        Width="80" 
+                        Click="OnCloseClick" 
+                        Style="{StaticResource AccentedDialogSquareButton}" 
+                        Margin="5,0,5,0"/>
+                <Button Content="Reset" 
+                        Width="80" 
+                        Click="OnResetClick" 
+                        Style="{StaticResource AccentedDialogSquareButton}" 
+                        Margin="5,0,5,0"/>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</Window>
+	
+	
