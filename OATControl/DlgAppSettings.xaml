@@ -7,6 +7,7 @@
         xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
 		xmlns:controls="clr-namespace:OATControl.Controls" 
         xmlns:local="clr-namespace:OATControl" 
+        xmlns:localVM="clr-namespace:OATControl.ViewModels" 
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		Loaded="OnWindowLoaded"
 		mc:Ignorable="d"
@@ -200,8 +201,8 @@
 				</TextBlock.Text>
 			</TextBlock>
 		</DataTemplate>
-
-	</Window.Resources>
+        <ObjectDataProvider ObjectType="{x:Type localVM:ChecklistShowOnEnumHelper}" MethodName="get_ChecklistShowOnValues" x:Key="ChecklistShowOnValues"/>
+    </Window.Resources>
 	<DockPanel Margin="8">
 		<!-- Close Button -->
 		<StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
@@ -262,25 +263,22 @@
 
 					<StackPanel Grid.Row="1" Grid.Column="0" VerticalAlignment="Top">
 						<TextBlock Text="Checklist" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="Show a checklist after connecting to the mount. " Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+						<TextBlock Text="When do you want the checklist to appear. " Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
 					</StackPanel>
 					<StackPanel Grid.Row="1" Grid.Column="1" Grid.RowSpan="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,4,20,0" Orientation="Horizontal">
-						<Grid Width="120" HorizontalAlignment="Left">
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto" />
-								<RowDefinition Height="Auto" />
-							</Grid.RowDefinitions>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="42" />
-								<ColumnDefinition Width="*" />
-								<ColumnDefinition Width="42" />
-							</Grid.ColumnDefinitions>
-							<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding ShowChecklist}"/>
-							<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="22,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-							<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="-5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-						</Grid>
+                        <ComboBox
+          					  ItemsSource="{Binding Source={StaticResource ChecklistShowOnValues}}" 
+							  SelectedValue="{Binding ShowChecklist}"
+							  Width="130" 
+							  Height="24"
+							  Margin="10,4,10,0"
+							  FontSize="16" 
+							  HorizontalAlignment="Left" 
+							  Foreground="Red" 
+							  FontWeight="Bold" 
+							  BorderBrush="#FF880000" />
                         <Button HorizontalAlignment="Center" Width="28" Height="28"
-								Margin="0,0,0,6"
+								Margin="0,2,0,0"
 								Command="{Binding ConfigureChecklistCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}" ToolTip="Configure the items on the checklist to display." />
                     </StackPanel>
 				</Grid>

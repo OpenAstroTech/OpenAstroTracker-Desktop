@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.1.6.0                                          27 Sept 2024
+- Checklist can now be moved and shown either at startup, on connect, or 
+  on demand.
+
 OATControl V1.1.5.0                                          24 Sept 2024
 - Added support for a checklist to get setup for imaging.
 

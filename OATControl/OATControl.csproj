@@ -283,9 +283,6 @@
     <Resource Include="Resources\SettingsHoverIcon.png" />
     <Resource Include="Resources\SettingsIcon.png" />
     <Resource Include="oat.ico" />
-    <Content Include="Checklist.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="PointsOfInterest.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

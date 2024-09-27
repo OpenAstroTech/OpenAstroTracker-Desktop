@@ -5,9 +5,16 @@ using System.Xml.Linq;
 using System.Windows;
 using System.IO;
 using System.Reflection;
+using OATControl;
 
 namespace OATControl.ViewModels
 {
+	public enum ChecklistShowOn { OnStartup, OnConnect, OnDemand };
+	public static class ChecklistShowOnEnumHelper
+	{
+		public static Array ChecklistShowOnValues => Enum.GetValues(typeof(ChecklistShowOn));
+	}
+
 	public class UpgradeEventArgs : EventArgs
 	{
 		public UpgradeEventArgs(long loaded, long current)
@@ -304,6 +311,13 @@ namespace OATControl.ViewModels
 		{
 			get { return Convert.ToBoolean(this["ShowChecklistOnConnect"]); }
 			set { this["ShowChecklistOnConnect"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("OnDemand")]
+		public ChecklistShowOn ShowChecklist
+		{
+			get { return (ChecklistShowOn)Enum.Parse(typeof (ChecklistShowOn) , this["ShowChecklist"]); }
+			set { this["ShowChecklist"] = value.ToString(); }
 		}
 	}
 }

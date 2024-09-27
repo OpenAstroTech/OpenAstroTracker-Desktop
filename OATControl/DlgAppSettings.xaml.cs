@@ -36,7 +36,7 @@ namespace OATControl
 
 		private MountVM _mount;
 		private string _serialBaudRate;
-		private bool _showChecklist;
+		private ChecklistShowOn _showChecklist;
 		private bool _raStartEast;
 		private bool _decStartSouth;
 		private float _raDistance;
@@ -66,7 +66,7 @@ namespace OATControl
 			RaDistance = AppSettings.Instance.AutoHomeRaDistance;
 			DecStartSouth = AppSettings.Instance.AutoHomeDecDirection == "South";
 			DecDistance = AppSettings.Instance.AutoHomeDecDistance;
-			ShowChecklist = AppSettings.Instance.ShowChecklistOnConnect;
+			ShowChecklist = AppSettings.Instance.ShowChecklist;
 
 			ContentTabs.SelectedIndex = 0;
 			CategorySelector.SelectedIndex = 0;
@@ -129,7 +129,7 @@ namespace OATControl
 			}
 		}
 
-		public bool ShowChecklist
+		public ChecklistShowOn ShowChecklist
 		{
 			get { return _showChecklist; }
 			set
@@ -227,13 +227,13 @@ namespace OATControl
 			AppSettings.Instance.AutoHomeRaDistance = RaDistance;
 			AppSettings.Instance.AutoHomeDecDirection = DecStartSouth ? "South" : "North";
 			AppSettings.Instance.AutoHomeDecDistance = DecDistance;
-			AppSettings.Instance.ShowChecklistOnConnect = ShowChecklist;
+			AppSettings.Instance.ShowChecklist = ShowChecklist;
 			AppSettings.Instance.Save();
 			_mount.AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
 			_mount.AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
 			_mount.AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
 			_mount.AutoHomeRaDistance = AppSettings.Instance.AutoHomeRaDistance;
-			_mount.ShowChecklistOnConnect = AppSettings.Instance.ShowChecklistOnConnect;
+			_mount.ShowChecklist = AppSettings.Instance.ShowChecklist;
 
 			_mount.SavePointsOfInterest();
 			Close();

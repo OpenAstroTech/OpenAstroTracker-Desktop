@@ -9,7 +9,7 @@
 		xmlns:controls="clr-namespace:OATControl.Controls" 
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Checklist" MinHeight="250" Width="600" MinWidth="200" Height="500" 
+        Title="Checklist" MinHeight="310" Width="600" MinWidth="204" Height="500" 
         WindowStyle="None" 
         WindowStartupLocation="Manual"
         Activated="Window_Activated"
@@ -71,7 +71,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text="Startup Checklist" HorizontalAlignment="Center" Foreground="#C44" FontSize="16" FontWeight="Bold" Margin="0,8,0,0"/>
+        <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" MouseDown="OnTitleMouseDown" MouseMove="OnTitleMouseMove" MouseUp="OnTitleMouseUp" Cursor="SizeAll">
+        <TextBlock Text="Startup Checklist" Foreground="#C44" FontSize="16" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+        </DockPanel>
         <Grid Grid.Row="1" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />

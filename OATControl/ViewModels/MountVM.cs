@@ -118,7 +118,7 @@ namespace OATControl.ViewModels
 		string[] _customCommandText = new string[4];
 		string[] _customButtonResultText = new string[4];
 		string[] _customButtonResultStatus = new string[4];
-		bool _showChecklistOnConnect = false;
+		ChecklistShowOn _showChecklist = ChecklistShowOn.OnDemand;
 
 		DelegateCommand _arrowCommand;
 		DelegateCommand _connectScopeCommand;
@@ -330,7 +330,7 @@ namespace OATControl.ViewModels
 				catch (Exception ex)
 				{
 					_listFilePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OpenAstroTracker", "Checklist.txt");
-					File.WriteAllText(_listFilePath, "<b>Power On</b>\n<b>SharpCap</b>CheckFocus\\nPolar Align\n<b>N.I.N.A</b>Image\n");
+					File.WriteAllText(_listFilePath, @"<b>Mount</b>\nRemove lens cap\n<b>OATControl</b>\nAutohome RA\nAutohome DEC\nSlew DEC to 45deg\n<b>SharpCap</b>\nPolar Align");
 				}
 			}
 
@@ -340,7 +340,7 @@ namespace OATControl.ViewModels
 			AppSettings.Instance.UpgradeVersion += OnUpgradeSettings;
 			AppSettings.Instance.Load();
 			LoadCustomCommands();
-			_showChecklistOnConnect = AppSettings.Instance.ShowChecklistOnConnect;
+			ShowChecklist = AppSettings.Instance.ShowChecklist;
 
 			// Start Simulation Server
 			_oatSimComm.Start(4035);
@@ -348,6 +348,11 @@ namespace OATControl.ViewModels
 			_oatSimComm.ClientCommand += OnSimationClientCommand;
 
 			ScopeType = "OAM";
+
+			if (ShowChecklist == ChecklistShowOn.OnStartup)
+			{
+				OnShowChecklist();
+			}
 		}
 
 		internal async Task SetSteps(float raStepsAfter, float decStepsAfter)
@@ -417,6 +422,11 @@ namespace OATControl.ViewModels
 				AutoHomeDecDirection = "South";
 				AutoHomeRaDistance = 15;
 				AutoHomeDecDistance = 15;
+			}
+			// In 1.1.6.0 we switched to a combobox for checklist opening
+			if (e.LoadedVersion < 1010600)
+			{
+				ShowChecklist = AppSettings.Instance.ShowChecklistOnConnect ? ChecklistShowOn.OnConnect : ChecklistShowOn.OnDemand;
 			}
 		}
 
@@ -2100,7 +2110,7 @@ namespace OATControl.ViewModels
 					await RecalculatePointsPositions(true);
 					OnSimulationClientConnect();
 				}
-				if (_showChecklistOnConnect)
+				if (_showChecklist == ChecklistShowOn.OnConnect)
 				{
 					OnShowChecklist();
 				}
@@ -3676,10 +3686,10 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _autoHomeRaDistance, value); }
 		}
 
-		public bool ShowChecklistOnConnect
+		public ChecklistShowOn ShowChecklist
 		{
-			get { return _showChecklistOnConnect; }
-			set { SetPropertyValue(ref _showChecklistOnConnect, value); }
+			get { return _showChecklist; }
+			set { SetPropertyValue(ref _showChecklist, value); }
 		}
 
 		public float AutoHomeDecDistance

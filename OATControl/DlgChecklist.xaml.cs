@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 
 namespace OATControl
 {
@@ -20,6 +21,8 @@ namespace OATControl
 		string _listFilePath;
 		private ObservableCollection<ChecklistItem> checklistItems;
 		DateTime _lastCreationDate;
+		private Point _startCapturePos;
+		private Point _startWindowPos;
 
 		public DlgChecklist(string listFilePath)
 		{
@@ -258,6 +261,41 @@ namespace OATControl
 			{
 				LoadChecklistItemsFromFile(_listFilePath);
 				UpdateChecklistHtml();
+			}
+		}
+
+		private void OnTitleMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			UIElement el = (UIElement)sender;
+			if (el.IsEnabled)
+			{
+				el.CaptureMouse();
+				_startCapturePos = PointToScreen(e.GetPosition(el));
+				_startWindowPos = new Point(this.Left, this.Top);
+				e.Handled = true;
+			}
+		}
+
+		private void OnTitleMouseUp(object sender, MouseButtonEventArgs e)
+		{
+			UIElement el = (UIElement)sender;
+			if (el.IsMouseCaptured)
+			{
+				el.ReleaseMouseCapture();
+				e.Handled = true;
+			}
+		}
+
+		private void OnTitleMouseMove(object sender, MouseEventArgs e)
+		{
+			UIElement el = (UIElement)sender;
+			if (el.IsMouseCaptured)
+			{
+				var mousePos = PointToScreen(e.GetPosition(el));
+				var delta = new Point(_startCapturePos.X - mousePos.X, _startCapturePos.Y - mousePos.Y);
+				this.Left = _startWindowPos.X - delta.X;
+				this.Top = _startWindowPos.Y - delta.Y;
+				e.Handled = true;
 			}
 		}
 	}
