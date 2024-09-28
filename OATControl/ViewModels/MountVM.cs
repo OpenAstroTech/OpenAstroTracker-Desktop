@@ -975,7 +975,7 @@ namespace OATControl.ViewModels
 			get { return _listFilePath; }
 		}
 
-		private void OnShowChecklist()
+		void OnShowChecklist()
 		{
 			if (_checklist != null)
 			{

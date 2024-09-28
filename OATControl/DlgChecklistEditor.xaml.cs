@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using OATControl.ViewModels;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -9,22 +10,11 @@ namespace OATControl
 	{
 		private string _checklistText;
 		string _filePath;
-
-		public string ChecklistText
-		{
-			get { return _checklistText; }
-			set
-			{
-				if (_checklistText != value)
-				{
-					_checklistText = value;
-					OnPropertyChanged("ChecklistText");
-				}
-			}
-		}
+		string _listTitle;
 
 		public DlgChecklistEditor(string filePath)
 		{
+			_listTitle = AppSettings.Instance.ChecklistTitle;
 			_filePath = filePath;
 			InitializeComponent();
 			DataContext = this;
@@ -40,11 +30,30 @@ namespace OATControl
 			}
 		}
 
+		public string ChecklistText
+		{
+			get { return _checklistText; }
+			set
+			{
+				if (_checklistText != value)
+				{
+					_checklistText = value;
+					OnPropertyChanged("ChecklistText");
+				}
+			}
+		}
+
+
 		private void OKButton_Click(object sender, RoutedEventArgs e)
 		{
 			// Indicate success, save changes and close the window
 			this.DialogResult = true;
 			File.WriteAllText(_filePath, _checklistText);
+			if (AppSettings.Instance.ChecklistTitle != _listTitle)
+			{
+				AppSettings.Instance.ChecklistTitle = _listTitle;
+				AppSettings.Instance.Save();
+			}
 			this.Close();
 		}
 
@@ -52,6 +61,19 @@ namespace OATControl
 		{
 			this.DialogResult = false;
 			this.Close();
+		}
+
+		public string ListTitle
+		{
+			get { return _listTitle; }
+			set
+			{
+				if (_listTitle != value)
+				{
+					_listTitle = value;
+					OnPropertyChanged("ListTitle");
+				}
+			}
 		}
 
 		// Implement INotifyPropertyChanged

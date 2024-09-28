@@ -1,26 +1,31 @@
 Revision History
 ----------------
 
-OATControl V1.1.6.0                                          27 Sept 2024
+OATControl V1.1.7.0                                             28 Sept 2024
+- Removed OAT Simulation code for standalone tool.
+- Checklist title can be changed and the list can be edited directly from 
+  the list.
+
+OATControl V1.1.6.0                                             27 Sept 2024
 - Checklist can now be moved and shown either at startup, on connect, or 
   on demand.
 
-OATControl V1.1.5.0                                          24 Sept 2024
+OATControl V1.1.5.0                                             24 Sept 2024
 - Added support for a checklist to get setup for imaging.
 
-OATControl V1.1.4.0                                          17 July 2024
+OATControl V1.1.4.0                                             17 July 2024
 - Added RA/DEC autohoming buttons and status to main window.
 - Added support for AZ/ALT homing support. Mount keeps track of AZ and ALT
   movements across sessions and can slew back to home.
 
-OATControl V1.1.3.0                                          2 June 2024
+OATControl V1.1.3.0                                              2 June 2024
 - Actually send (and save) the direction and distance set in settings 
   for Autohoming to OAT.
 
-OATControl V1.1.2.0                                          11 May 2024
+OATControl V1.1.2.0                                              11 May 2024
 - Inverted DEC Parking Offset (park/unpark) for OAT
 
-OATControl V1.1.1.0                                          13 April 2024
+OATControl V1.1.1.0                                            13 April 2024
 - Added support for showing Info Displays from mount firmware.
 - Hardened some parsing from OAT replies to avoid crashes.
 

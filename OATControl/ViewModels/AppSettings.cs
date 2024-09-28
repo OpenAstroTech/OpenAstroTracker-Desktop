@@ -316,8 +316,15 @@ namespace OATControl.ViewModels
 		[DefaultValueAttribute("OnDemand")]
 		public ChecklistShowOn ShowChecklist
 		{
-			get { return (ChecklistShowOn)Enum.Parse(typeof (ChecklistShowOn) , this["ShowChecklist"]); }
+			get { return (ChecklistShowOn)Enum.Parse(typeof(ChecklistShowOn), this["ShowChecklist"]); }
 			set { this["ShowChecklist"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("Checklist")]
+		public string ChecklistTitle
+		{
+			get { return this["ChecklistTitle"]; }
+			set { this["ChecklistTitle"] = value; }
 		}
 	}
 }

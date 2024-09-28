@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using DelegateCommand = OATCommunications.WPF.DelegateCommand;
 
 namespace OATControl
 {
@@ -19,24 +20,38 @@ namespace OATControl
 	public partial class DlgChecklist : Window, INotifyPropertyChanged
 	{
 		string _listFilePath;
+		string _listTitle;
 		private ObservableCollection<ChecklistItem> checklistItems;
 		DateTime _lastCreationDate;
 		private Point _startCapturePos;
 		private Point _startWindowPos;
+		private DelegateCommand _editChecklistCommand;
 
 		public DlgChecklist(string listFilePath)
 		{
 
 			this.DataContext = this;
-
+			_editChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => true);
+			_listTitle = AppSettings.Instance.ChecklistTitle;
 			InitializeComponent();
 			InitializeWebView();
-
+			
 			_listFilePath = listFilePath;
 
 			LoadChecklistItemsFromFile(_listFilePath);
-			
 		}
+
+		private void OnShowChecklist()
+		{
+			DlgChecklistEditor dlg = new DlgChecklistEditor(_listFilePath);
+			dlg.ShowDialog();
+			_listTitle = AppSettings.Instance.ChecklistTitle;
+			OnPropertyChanged("ListTitle");
+			LoadChecklistItemsFromFile(_listFilePath);
+			UpdateChecklistHtml();
+		}
+
+		public ICommand EditChecklistCommand { get { return _editChecklistCommand; } }
 
 		private void UpdateChecklistHtml()
 		{
@@ -147,7 +162,7 @@ namespace OATControl
 
 			// Create the WebView2 environment with the custom user data folder
 			var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
-			
+
 			ChecklistWebView.CoreWebView2InitializationCompleted += async (sender, args) =>
 			{
 				if (args.IsSuccess)
@@ -180,7 +195,7 @@ namespace OATControl
 			public bool IsChecked { get; set; }
 		}
 
-		
+
 		private void OnResetClick(object sender, RoutedEventArgs e)
 		{
 			foreach (var item in checklistItems)
@@ -251,7 +266,7 @@ namespace OATControl
 
 		public string TempFolder
 		{
-			get { return Path.GetTempPath();  }
+			get { return Path.GetTempPath(); }
 		}
 
 		private void Window_Activated(object sender, EventArgs e)
@@ -297,6 +312,11 @@ namespace OATControl
 				this.Top = _startWindowPos.Y - delta.Y;
 				e.Handled = true;
 			}
+		}
+
+		public string ListTitle
+		{
+			get { return _listTitle; }
 		}
 	}
 

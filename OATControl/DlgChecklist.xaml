@@ -9,7 +9,7 @@
 		xmlns:controls="clr-namespace:OATControl.Controls" 
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Checklist" MinHeight="310" Width="600" MinWidth="204" Height="500" 
+        MinHeight="310" Width="600" MinWidth="204" Height="500" 
         WindowStyle="None" 
         WindowStartupLocation="Manual"
         Activated="Window_Activated"
@@ -65,16 +65,74 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Top" />
         </Style>
+        <Style x:Key="ImageSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border BorderBrush="#401111" BorderThickness="2" x:Name="ImageBorder" Height="20" Padding="1" Background="#800000">
+                            <Viewbox>
+                                <Grid>
+                                    <Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+                                        <Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+                                    </Grid>
+                                    <Path Data="M20.638062,9.6380005L6.6380615,23.638 8.3620605,25.362 22.362061,11.362z M20.5,4.5L27.5,11.5 9,30 0,32 2,23z M27,0C29.760986,0 32,2.2389832 32,5 32,6.1259766 31.628052,7.1640015 31,8L29,10 22,3 24,1C24.83606,0.37197876,25.874023,0,27,0z" 
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+                                        <Path.RenderTransform>
+                                            <TransformGroup>
+                                                <TransformGroup.Children>
+                                                    <RotateTransform Angle="0" />
+                                                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                                                </TransformGroup.Children>
+                                            </TransformGroup>
+                                        </Path.RenderTransform>
+                                    </Path>
+                                </Grid>
+                            </Viewbox>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+                                <Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+                                <Setter TargetName="colorGear" Property="Fill" Value="#C00" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <!--<Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#700" />
+                    <Setter Property="BorderBrush" Value="#600" />
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#400" />
+                    <Setter Property="BorderBrush" Value="#500" />
+                </Trigger>
+            </Style.Triggers>-->
+        </Style>
     </Window.Resources>
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" MouseDown="OnTitleMouseDown" MouseMove="OnTitleMouseMove" MouseUp="OnTitleMouseUp" Cursor="SizeAll">
-        <TextBlock Text="Startup Checklist" Foreground="#C44" FontSize="16" FontWeight="Bold" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+        <DockPanel Grid.Row="0" HorizontalAlignment="Stretch">
+            <Grid HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding ListTitle}" Foreground="#C44" FontSize="16" FontWeight="Bold" Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" MouseDown="OnTitleMouseDown" MouseMove="OnTitleMouseMove" MouseUp="OnTitleMouseUp" Cursor="SizeAll"/>
+                <Button Grid.Column="1" HorizontalAlignment="Right" Width="20" Height="20" Margin="8,2,5,0" Command="{Binding EditChecklistCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}" ToolTip="Edit this checklist" Cursor="Arrow"/>
+            </Grid>
         </DockPanel>
-        <Grid Grid.Row="1" Margin="10">
+        <Grid Grid.Row="1" Margin="5,2,5,5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -89,12 +147,12 @@
                         Width="80" 
                         Click="OnCloseClick" 
                         Style="{StaticResource AccentedDialogSquareButton}" 
-                        Margin="5,0,5,0"/>
+                        Margin="0,0,3,0"/>
                 <Button Content="Reset" 
                         Width="80" 
                         Click="OnResetClick" 
                         Style="{StaticResource AccentedDialogSquareButton}" 
-                        Margin="5,0,5,0"/>
+                        Margin="2,0,0,0"/>
             </StackPanel>
         </Grid>
 
