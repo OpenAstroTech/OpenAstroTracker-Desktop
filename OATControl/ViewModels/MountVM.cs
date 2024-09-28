@@ -165,8 +165,6 @@ namespace OATControl.ViewModels
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
 
-		private SimulationServer _oatSimComm = new SimulationServer();
-
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
 		PointOfInterest _selectedPointOfInterest;
@@ -341,11 +339,6 @@ namespace OATControl.ViewModels
 			AppSettings.Instance.Load();
 			LoadCustomCommands();
 			ShowChecklist = AppSettings.Instance.ShowChecklist;
-
-			// Start Simulation Server
-			_oatSimComm.Start(4035);
-			_oatSimComm.ClientConnected += OnSimulationClientConnect;
-			_oatSimComm.ClientCommand += OnSimationClientCommand;
 
 			ScopeType = "OAM";
 
@@ -1349,8 +1342,6 @@ namespace OATControl.ViewModels
 											TrkStepper = int.Parse(parts[4]);
 										}
 
-										UpdateSimulationClient();
-
 										CurrentRAHour = int.Parse(parts[5].Substring(0, 2));
 										CurrentRAMinute = int.Parse(parts[5].Substring(2, 2));
 										CurrentRASecond = int.Parse(parts[5].Substring(4, 2));
@@ -1974,12 +1965,6 @@ namespace OATControl.ViewModels
 
 			ShowDECLimits = false;
 
-			if (_oatSimComm != null)
-			{
-				_oatSimComm.Stop();
-				_oatSimComm = null;
-			}
-
 			if (_commHandler != null)
 			{
 				_commHandler.Disconnect();
@@ -2108,7 +2093,6 @@ namespace OATControl.ViewModels
 				if (await this.ChooseTelescope())
 				{
 					await RecalculatePointsPositions(true);
-					OnSimulationClientConnect();
 				}
 				if (_showChecklist == ChecklistShowOn.OnConnect)
 				{
@@ -4113,37 +4097,6 @@ namespace OATControl.ViewModels
 				{
 					_miniController.Topmost = value;
 				}
-			}
-		}
-		private void OnSimulationClientConnect()
-		{
-			if (_oatSimComm != null && _oatSimComm.IsClientConnected == true)
-			{
-				_oatSimComm.Send($"Version|{Version}");
-				_oatSimComm.Send($"FirmwareVersion|{ScopeVersion}");
-				_oatSimComm.Send($"ScopeRASlewMS|{ScopeRASlewMS}");
-				_oatSimComm.Send($"ScopeRATrackMS|{ScopeRATrackMS}");
-				_oatSimComm.Send($"ScopeDECSlewMS|{ScopeDECSlewMS}");
-				_oatSimComm.Send($"ScopeDECGuideMS|{ScopeDECGuideMS}");
-				_oatSimComm.Send($"ScopeLongitude|{ScopeLongitude}");
-				_oatSimComm.Send($"ScopeLatitude|{ScopeLatitude}");
-				_oatSimComm.Send($"RAStepsPerDegree|{RAStepsPerDegree}");
-				_oatSimComm.Send($"DECStepsPerDegree|{DECStepsPerDegree}");
-			}
-		}
-
-		private void UpdateSimulationClient()
-		{
-			if (_oatSimComm != null && _oatSimComm.IsClientConnected == true)
-			{
-				_oatSimComm.Send($"CurrentRAString|{CurrentRAHour},{CurrentRAMinute},{CurrentRASecond}");
-				_oatSimComm.Send($"CurrentDECString|{CurrentDECSign}{CurrentDECDegree},{CurrentDECMinute},{CurrentDECSecond}");
-				_oatSimComm.Send($"RAStepper|{RAStepper}");
-				_oatSimComm.Send($"DECStepper|{DECStepper}");
-				_oatSimComm.Send($"TrkStepper|{TrkStepper}");
-				_oatSimComm.Send($"ScopeSiderealTime|{ScopeSiderealTime}");
-				_oatSimComm.Send($"ScopePolarisHourAngle|{ScopePolarisHourAngle}");
-				_oatSimComm.Send($"ScopeTime|{ScopeTime}");
 			}
 		}
 
