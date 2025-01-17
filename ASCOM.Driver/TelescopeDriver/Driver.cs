@@ -354,8 +354,8 @@ namespace ASCOM.OpenAstroTracker
 			{
 				if (!IsConnected)
 					throw new ASCOM.NotConnectedException("CanFindHome");
-				LogMessage(LoggingFlags.Scope, "CanFindHome Get => false");
-				return false;
+				LogMessage(LoggingFlags.Scope, "CanFindHome Get => true");
+				return true;
 			}
 		}
 
@@ -576,9 +576,18 @@ namespace ASCOM.OpenAstroTracker
 
 		public void FindHome()
 		{
-			LogMessage(LoggingFlags.Scope, "FindHome - Not implemented");
-			throw new ASCOM.MethodNotImplementedException("FindHome");
-		}
+            if (!AtPark)
+            {
+                LogMessage(LoggingFlags.Scope, "FindHome() called");
+                CommandBlind(":hF");
+                PollUntilZero(":GIS#,#");
+            }
+            else
+            {
+                LogMessage(LoggingFlags.Scope, "FindHome - Scope is parked");
+                throw new ASCOM.ParkedException("FindHome");
+            }
+        }
 
 		public double FocalLength
 		{
