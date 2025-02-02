@@ -630,7 +630,6 @@ namespace ASCOM.OpenAstroTracker
 
 
 		private bool _trackingPriorToMove;
-		private double _ratePriorToMove;
 		public void MoveAxis(TelescopeAxes Axis, double Rate)
 		{
 			LogMessage(LoggingFlags.Scope, $"MoveAxis({Axis}, {Rate:0.00})");
@@ -672,7 +671,6 @@ namespace ASCOM.OpenAstroTracker
 			{
 				cmd = "S";
 				_trackingPriorToMove = Tracking;
-				//_ratePriorToMove = Rate;
 				double rate = Math.Abs(Rate);
 				string rateCommandParam = "GCMS";
 				int index = 0;

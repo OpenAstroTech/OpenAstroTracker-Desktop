@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("OpenAstroTech")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("Copyright © 2020-2024, OpenAstroTech")]
+[assembly: AssemblyCopyright("Copyright © 2020-2025, OpenAstroTech")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("6.6.6.8")]
-[assembly: AssemblyFileVersion("6.6.6.8")]
+[assembly: AssemblyVersion("6.6.6.9")]
+[assembly: AssemblyFileVersion("6.6.6.9")]
 
 [assembly: ComVisibleAttribute(false)]

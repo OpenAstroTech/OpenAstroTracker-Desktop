@@ -15,7 +15,7 @@ AppSupportURL=https://old.reddit.com/r/OpenAstroTech/
 AppUpdatesURL=https://old.reddit.com/r/OpenAstroTech/
 VersionInfoVersion=1.0.0
 MinVersion=0,6.0
-DefaultDirName="{cf}\ASCOM\Telescope"
+DefaultDirName="{commoncf}\ASCOM\Telescope"
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 OutputDir="."
@@ -25,14 +25,14 @@ SolidCompression=yes
 ; Put there by Platform if Driver Installer Support selected
 WizardImageFile="Assets\WizardImage.bmp"
 LicenseFile="Assets\CreativeCommons.txt"
-; {cf}\ASCOM\Uninstall\Telescope folder created by Platform, always
-UninstallFilesDir="{cf}\ASCOM\Uninstall\Telescope\OpenAstroTracker"
+; {commoncf}\ASCOM\Uninstall\Telescope folder created by Platform, always
+UninstallFilesDir="{commoncf}\ASCOM\Uninstall\Telescope\OpenAstroTracker"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Dirs]
-Name: "{cf}\ASCOM\Uninstall\Telescope\OpenAstroTracker"
+Name: "{commoncf}\ASCOM\Uninstall\Telescope\OpenAstroTracker"
 Name: "{app}\OpenAstroTracker"
 ; TODO: Add subfolders below {app} as needed (e.g. Name: "{app}\MyFolder")
 
