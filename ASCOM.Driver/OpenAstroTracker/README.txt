@@ -1,12 +1,14 @@
 +==========================================================================+
-| OpenAstroTracker ASCOM Driver V6.6.6.7 Release                           |
-| Published: 19. January 2024                                              |
+| OpenAstroTracker ASCOM Driver V6.6.6.9 Release                           |
+| Published: 2. February 2025
 +==========================================================================+
 
 This is the latest ASCOM driver available for the OAT and OAM. It allows 
 various client programs to communicate with the OAT using both standard 
 LX200 Meade protocol commands, as well as proprietary OAT extensions to 
 that protocol.
+
+The driver is compatible with ASCOM 6.5 and 7.0.
 
 The driver also contains controls for the OAT and OAM so that it can be 
 initialized, configured, slewed, unparked, homed, focused and parked 
@@ -16,7 +18,7 @@ from the driver Properties dialog.
    Arduino have been tested, or are officially supported.
  * Tested with V1.10.4 firmware.
  * Tested with V1.11.0 firmware.
- * Tested with V1.13.5 firmware (RECOMMENDED).
+ * Tested with V1.13.12 firmware (RECOMMENDED).
  * It will probably work with earlier version (down to V1.6.32 and later).
 
 
@@ -29,6 +31,10 @@ Support
 
 Testing
 -------
+ * 6.6.6.9 Conformance Test (2025-Feb-02) 
+    - Telescope: All tests passed, no errors, no warnings, 23 issues (all expected). 
+    - Focuser:  All tests passed, no errors, no warnings, no issues. 
+
  * 6.6.6.8 Conformance Test (2024-Jan-20) 
     - Telescope: All tests passed, no errors, no warnings, 8 issues. 
     - Focuser:  All tests passed, no errors, no warnings, no issues. 
@@ -57,6 +63,10 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
+ - 6.6.6.9 : Released 2025-02-02
+   Fixed a bug that caused an Exception when a floating point Elevation was entered.
+   Fixed a bug where pressing the Stop button caused a communication timeout error.
+
  - 6.6.6.8 : Released 2024-01-20
    Added support for actually, really setting Longitude and Latitude.
 

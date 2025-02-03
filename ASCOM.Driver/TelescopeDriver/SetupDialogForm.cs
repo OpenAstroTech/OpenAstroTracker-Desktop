@@ -220,7 +220,7 @@ namespace ASCOM.OpenAstroTracker
 					this._oat = null;
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				this._oat = null;
 			}
@@ -810,6 +810,7 @@ namespace ASCOM.OpenAstroTracker
 			lblDECCoordinate.Text = $"{statusParts[6].Substring(1, 2)}° {statusParts[6].Substring(3, 2)}\" {statusParts[6].Substring(5, 2)}'";
 			lblRAPosition.Text = statusParts[2];
 			lblDECPosition.Text = statusParts[3];
+			lblTRKPosition.Text = statusParts[4];
 			if (statusParts.Length > 8)
 			{
 				lblFocusPosition.Text = statusParts[7];
@@ -821,7 +822,7 @@ namespace ASCOM.OpenAstroTracker
 		private void btnStop_Click(object sender, EventArgs e)
 		{
 			_logger("Stop Clicked -> Sending Stop command to OAT");
-			_oat.Action("Serial:PassThroughCommand", ":Q#,#");
+			_oat.Action("Serial:PassThroughCommand", ":Q#");
 		}
 
 		private void btnSetLST_Click(object sender, EventArgs e)
@@ -930,7 +931,7 @@ namespace ASCOM.OpenAstroTracker
 			{
 				_profile.Latitude = System.Convert.ToDouble(txtLat.Text, _oatCulture);
 				_profile.Longitude = System.Convert.ToDouble(txtLong.Text, _oatCulture);
-				_profile.Elevation = System.Convert.ToInt32(txtElevation.Text, _oatCulture);
+				_profile.Elevation = Math.Round(System.Convert.ToDouble(txtElevation.Text, _oatCulture));
 
 				// convert to degs/mins
 				long secs = (long)Math.Floor(Math.Abs(_profile.Longitude * 3600));

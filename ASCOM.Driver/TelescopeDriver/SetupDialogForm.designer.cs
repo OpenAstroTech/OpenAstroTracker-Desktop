@@ -98,6 +98,7 @@ namespace ASCOM.OpenAstroTracker
 			this.lblRACoordinate = new System.Windows.Forms.Label();
 			this.lblDECCoordinate = new System.Windows.Forms.Label();
 			this.btnUpdateLoc = new System.Windows.Forms.Button();
+			this.lblTRKPosition = new System.Windows.Forms.Label();
 			this.lblAzAltControl = new System.Windows.Forms.Label();
 			this.label29 = new System.Windows.Forms.Label();
 			this.lblFocusControl = new System.Windows.Forms.Label();
@@ -122,6 +123,7 @@ namespace ASCOM.OpenAstroTracker
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.panel3 = new System.Windows.Forms.Panel();
+			this.label2 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.PictureBox1)).BeginInit();
 			this.TableLayoutPanel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -976,6 +978,19 @@ namespace ASCOM.OpenAstroTracker
 			this.toolTip1.SetToolTip(this.btnUpdateLoc, "Send the location settings to the mount");
 			this.btnUpdateLoc.Click += new System.EventHandler(this.btnUpdateLoc_Click);
 			// 
+			// lblTRKPosition
+			// 
+			this.lblTRKPosition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.lblTRKPosition.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.lblTRKPosition.Location = new System.Drawing.Point(585, 135);
+			this.lblTRKPosition.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+			this.lblTRKPosition.Name = "lblTRKPosition";
+			this.lblTRKPosition.Size = new System.Drawing.Size(55, 17);
+			this.lblTRKPosition.TabIndex = 114;
+			this.lblTRKPosition.Text = "-";
+			this.lblTRKPosition.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			this.toolTip1.SetToolTip(this.lblTRKPosition, "RA stepper position");
+			// 
 			// lblAzAltControl
 			// 
 			this.lblAzAltControl.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -1232,12 +1247,25 @@ namespace ASCOM.OpenAstroTracker
 			this.panel3.Size = new System.Drawing.Size(775, 4);
 			this.panel3.TabIndex = 112;
 			// 
+			// label2
+			// 
+			this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(556, 137);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(29, 13);
+			this.label2.TabIndex = 115;
+			this.label2.Text = "TRK";
+			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
 			// SetupDialogForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.Control;
 			this.ClientSize = new System.Drawing.Size(800, 528);
+			this.Controls.Add(this.label2);
+			this.Controls.Add(this.lblTRKPosition);
 			this.Controls.Add(this.btnUpdateLoc);
 			this.Controls.Add(this.panel3);
 			this.Controls.Add(this.panel2);
@@ -1442,5 +1470,7 @@ namespace ASCOM.OpenAstroTracker
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.Panel panel3;
 		internal System.Windows.Forms.Button btnUpdateLoc;
+		internal System.Windows.Forms.Label label2;
+		internal System.Windows.Forms.Label lblTRKPosition;
 	}
 }
