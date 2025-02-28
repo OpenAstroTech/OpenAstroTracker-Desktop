@@ -807,7 +807,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 			lblLST.Text = lst;
 			lblRACoordinate.Text = $"{statusParts[5].Substring(0, 2)}h {statusParts[5].Substring(2, 2)}m {statusParts[5].Substring(4, 2)}s";
-			lblDECCoordinate.Text = $"{statusParts[6].Substring(1, 2)}� {statusParts[6].Substring(3, 2)}\" {statusParts[6].Substring(5, 2)}'";
+			lblDECCoordinate.Text = $"{statusParts[6].Substring(1, 2)}° {statusParts[6].Substring(3, 2)}\" {statusParts[6].Substring(5, 2)}'";
 			lblRAPosition.Text = statusParts[2];
 			lblDECPosition.Text = statusParts[3];
 			lblTRKPosition.Text = statusParts[4];
