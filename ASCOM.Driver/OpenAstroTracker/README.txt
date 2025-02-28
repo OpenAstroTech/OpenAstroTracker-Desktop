@@ -1,7 +1,9 @@
-+==========================================================================+
-| OpenAstroTracker ASCOM Driver V6.6.6.9 Release                           |
-| Published: 2. February 2025
-+==========================================================================+
++--------------------------------------------------------------------------+
+|                                                                          |
+|   OpenAstroTracker ASCOM Driver V6.6.7.1 Pre-Release                     |
+|   Published: 28. February 2025                                           |
+|                                                                          |
++--------------------------------------------------------------------------+
 
 This is the latest ASCOM driver available for the OAT and OAM. It allows 
 various client programs to communicate with the OAT using both standard 
@@ -25,12 +27,17 @@ from the driver Properties dialog.
 Support
 -------
  * For any issues or questions arising from the use of this driver, or any
-   other OAT-related questions or to interact with the OAT community, please
-   visit our Discord server.
+   other OAT-related questions or to interact with the OAT community, 
+   please visit our Discord server.
 
 
 Testing
 -------
+ * 6.6.7.1 Conformance Test (2025-Feb-28) 
+    - Telescope: All tests passed, no errors, no warnings, 23 issues (all expected). 
+
+ * 6.6.7.0 No Conformance Test (2025-Feb-05) 
+
  * 6.6.6.9 Conformance Test (2025-Feb-02) 
     - Telescope: All tests passed, no errors, no warnings, 23 issues (all expected). 
     - Focuser:  All tests passed, no errors, no warnings, no issues. 
@@ -63,6 +70,13 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
+ - 6.6.7.1 : Pre-Released 2025-02-28
+   Fixed a bug that caused errors when syncing location.
+   Propagated location changes to the mount if connected.
+
+ - 6.6.7.0 : Pre-Released 2025-02-05
+   Fixed a bug that would parse user-entered numbers in the en-US culture.
+
  - 6.6.6.9 : Released 2025-02-02
    Fixed a bug that caused an Exception when a floating point Elevation was entered.
    Fixed a bug where pressing the Stop button caused a communication timeout error.
