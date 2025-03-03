@@ -116,26 +116,26 @@ namespace ASCOM.OpenAstroTracker
 				switch (ActionName)
 				{
 					case "Telescope:getFirmwareVer":
-					{
-						retVal = CommandString(":GVP#,#"); // Get firmware name
-						retVal = retVal + " " + CommandString(":GVN#,#"); // Get firmware version number
-						break;
-					}
+						{
+							retVal = CommandString(":GVP#,#"); // Get firmware name
+							retVal = retVal + " " + CommandString(":GVN#,#"); // Get firmware version number
+							break;
+						}
 
 					case "Utility:JNowtoJ2000":
-					{
-						_transform.SetTopocentric(System.Convert.ToDouble(ActionParameters.Split(',')[0]),
-							System.Convert.ToDouble(ActionParameters.Split(',')[1]));
-						retVal = _utilities.HoursToHMS(_transform.RAJ2000, ":", ":", string.Empty) + "&" +
-									DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
-						break;
-					}
+						{
+							_transform.SetTopocentric(System.Convert.ToDouble(ActionParameters.Split(',')[0]),
+								System.Convert.ToDouble(ActionParameters.Split(',')[1]));
+							retVal = _utilities.HoursToHMS(_transform.RAJ2000, ":", ":", string.Empty) + "&" +
+										DegreesToDmsWithSign(_transform.DecJ2000, "*", ":", string.Empty);
+							break;
+						}
 
 					case "Serial:PassThroughCommand":
-					{
-						retVal = SharedResources.SendPassThroughCommand(ActionParameters);
-						break;
-					}
+						{
+							retVal = SharedResources.SendPassThroughCommand(ActionParameters);
+							break;
+						}
 				}
 				LogMessage(LoggingFlags.Scope, $"Action < result: {retVal}");
 
@@ -871,7 +871,7 @@ namespace ASCOM.OpenAstroTracker
 				else
 				{
 					LogMessage(LoggingFlags.Scope, $"SiteElevation Set {value:0.0} out of range, Atlantis or Mt Everest no supported.");
-					throw new ASCOM.InvalidValueException("SiteElevation");
+					throw new ASCOM.InvalidValueException("SiteElevation is out of range (-300 to 10000 is valid, got " + value.ToString("0") + ")");
 				}
 			}
 		}
@@ -892,8 +892,22 @@ namespace ASCOM.OpenAstroTracker
 					LogMessage(LoggingFlags.Scope, $"SiteLatitude Setting from {profile.Latitude:0.00} to {value:0.00}");
 					profile.Latitude = value;
 					SharedResources.WriteProfile(profile);
-					_transform.SiteLatitude = SiteLatitude;
-					_azAltTransform.SiteLatitude = SiteLatitude;
+					_transform.SiteLatitude = value;
+					_azAltTransform.SiteLatitude = value;
+					if (_isConnected)
+					{
+						char sign = value < 0 ? '-' : '+';
+						value = Math.Abs(value);
+						int degs = (int)Math.Floor(value);
+						int mins = (int)Math.Floor((value - degs) * 60);
+						string cmd = $":St{sign}{degs.ToString("00")}*{mins.ToString("00")}#,n";
+						LogMessage(LoggingFlags.Scope, $"SiteLatitude sending {value:0.00} to mount as [${cmd}].");
+						if (CommandString(cmd) != "1")
+						{
+							LogMessage(LoggingFlags.Scope, $"SiteLatitude rejected by mount.");
+							throw new ASCOM.InvalidValueException("Mount failed to process command: [" + cmd + "].");
+						}
+					}
 				}
 			}
 		}
@@ -902,19 +916,33 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				LogMessage(LoggingFlags.Scope, $"SiteLongitude Get => {Profile.Longitude:0.00}");
+				LogMessage(LoggingFlags.Scope, $"SiteLongitude Get (profile) => {Profile.Longitude:0.00}");
 				return Profile.Longitude;
 			}
 			set
 			{
 				var profile = Profile;
-				if (profile.Longitude!= value)
+				if (profile.Longitude != value)
 				{
 					LogMessage(LoggingFlags.Scope, $"SiteLongitude Setting from {profile.Longitude:0.00} to {value:0.00}");
 					profile.Longitude = value;
 					SharedResources.WriteProfile(profile);
-					_transform.SiteLongitude = SiteLongitude;
-					_azAltTransform.SiteLongitude = SiteLongitude;
+					_transform.SiteLongitude = value;
+					_azAltTransform.SiteLongitude = value;
+					if (_isConnected)
+					{
+						char sign = value < 0 ? '+' : '-'; // Oat coordinates are negative going East!
+						value = Math.Abs(value);
+						int degs = (int)Math.Floor(value);
+						int mins = (int)Math.Floor((value - degs) * 60);
+						string cmd = $":Sg{sign}{degs.ToString("000")}*{mins.ToString("00")}#,n";
+						LogMessage(LoggingFlags.Scope, $"SiteLongitude sending {value:0.00} to mount as [${cmd}].");
+						if (CommandString(cmd) != "1")
+						{
+							LogMessage(LoggingFlags.Scope, $"SiteLongitude rejected by mount.");
+							throw new ASCOM.InvalidValueException("Mount failed to process command: [" + cmd + "].");
+						}
+					}
 				}
 			}
 		}
@@ -1211,6 +1239,10 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage(LoggingFlags.Scope, $"TrackingRate Set - Ignoring value {value}. Only sidereal supported.");
 				driveRate = DriveRates.driveSidereal;
+				if (value != DriveRates.driveSidereal)
+				{
+					throw new InvalidValueException("Only sidereal tracking rate supported.");
+				}
 			}
 		}
 

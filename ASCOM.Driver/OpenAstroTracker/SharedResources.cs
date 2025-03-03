@@ -49,7 +49,7 @@ namespace ASCOM.OpenAstroTracker
 		private static TraceLogger traceLogger;
 		public static string driverID = "ASCOM.OpenAstroTracker.Telescope";
 		private static long messageNumber = 1;
-		private static LoggingFlags currentLogFlags = LoggingFlags.Scope| LoggingFlags.Focuser;
+		private static LoggingFlags currentLogFlags = LoggingFlags.Scope | LoggingFlags.Focuser;
 
 		private static string comPortProfileName = "COM Port";
 		private static string baudRateProfileName = "Baud Rate";
@@ -139,12 +139,11 @@ namespace ASCOM.OpenAstroTracker
 				driverProfile.DeviceType = "Telescope";
 				driverProfile.WriteValue(driverID, traceStateProfileName, profile.TraceState.ToString());
 				driverProfile.WriteValue(driverID, traceFlagsProfileName, profile.TraceFlags.ToString());
-				driverProfile.WriteValue(driverID, comPortProfileName, profile.ComPort.ToString());
+				driverProfile.WriteValue(driverID, comPortProfileName, profile.ComPort?.ToString() ?? "");
 				driverProfile.WriteValue(driverID, baudRateProfileName, profile.BaudRate.ToString());
 				driverProfile.WriteValue(driverID, latitudeProfileName, profile.Latitude.ToString());
 				driverProfile.WriteValue(driverID, longitudeProfileName, profile.Longitude.ToString());
 				driverProfile.WriteValue(driverID, elevationProfileName, profile.Elevation.ToString());
-
 				currentLogFlags = profile.TraceFlags;
 			}
 		}

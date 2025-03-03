@@ -636,13 +636,13 @@ namespace ASCOM.OpenAstroTracker
 			_logger($"Unpark - GX returned {status}");
 			var statusParts = status.Split(',');
 			_logger($"Unpark - DEC is {statusParts[3]}");
-			long decSteps = long.Parse(statusParts[3]);
+			long decSteps = long.Parse(statusParts[3], _oatCulture);
 			if (decSteps == 0)
 			{
 				_logger($"Unpark - DEC parsed {decSteps}, getting offset");
 				status = this._oat.Action("Serial:PassThroughCommand", ":XGDP#,#");
 				_logger($"Unpark - XGDP returned {status}");
-				decSteps = long.Parse(status);
+				decSteps = long.Parse(status, _oatCulture);
 				_logger($"Unpark - XGDP dec offset is {decSteps}");
 				if (decSteps != 0)
 				{
@@ -667,13 +667,13 @@ namespace ASCOM.OpenAstroTracker
 			_logger($"Park - GX returned {status}");
 			var statusParts = status.Split(',');
 			_logger($"Park - DEC is {statusParts[3]}");
-			long decSteps = long.Parse(statusParts[3]);
+			long decSteps = long.Parse(statusParts[3], _oatCulture);
 			if (decSteps == 0)
 			{
 				_logger($"Park - DEC parsed {decSteps}, getting offset");
 				status = this._oat.Action("Serial:PassThroughCommand", ":XGDP#,#");
 				_logger($"Park - XGDP returned {status}");
-				decSteps = long.Parse(status);
+				decSteps = long.Parse(status, _oatCulture);
 				_logger($"Park - XGDP dec offset is {decSteps}");
 				if (decSteps != 0)
 				{
@@ -705,7 +705,7 @@ namespace ASCOM.OpenAstroTracker
 				_logger($"GX returned {status}");
 				var statusParts = status.Split(',');
 				_logger($"DEC is {statusParts[3]}");
-				long decSteps = long.Parse(statusParts[3]);
+				long decSteps = long.Parse(statusParts[3], _oatCulture);
 				if (decSteps != 0)
 				{
 					var result = MessageBox.Show($"Mount has moved {decSteps} in DEC. Is this the distance from parked position to home?", "Confirm Parking DEC offset", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -807,7 +807,7 @@ namespace ASCOM.OpenAstroTracker
 			}
 			lblLST.Text = lst;
 			lblRACoordinate.Text = $"{statusParts[5].Substring(0, 2)}h {statusParts[5].Substring(2, 2)}m {statusParts[5].Substring(4, 2)}s";
-			lblDECCoordinate.Text = $"{statusParts[6].Substring(1, 2)}° {statusParts[6].Substring(3, 2)}\" {statusParts[6].Substring(5, 2)}'";
+			lblDECCoordinate.Text = $"{statusParts[6].Substring(1, 2)}Â° {statusParts[6].Substring(3, 2)}\" {statusParts[6].Substring(5, 2)}'";
 			lblRAPosition.Text = statusParts[2];
 			lblDECPosition.Text = statusParts[3];
 			lblTRKPosition.Text = statusParts[4];
@@ -929,9 +929,9 @@ namespace ASCOM.OpenAstroTracker
 
 			try
 			{
-				_profile.Latitude = System.Convert.ToDouble(txtLat.Text, _oatCulture);
-				_profile.Longitude = System.Convert.ToDouble(txtLong.Text, _oatCulture);
-				_profile.Elevation = Math.Round(System.Convert.ToDouble(txtElevation.Text, _oatCulture));
+				_profile.Latitude = System.Convert.ToDouble(txtLat.Text);
+				_profile.Longitude = System.Convert.ToDouble(txtLong.Text);
+				_profile.Elevation = Math.Round(System.Convert.ToDouble(txtElevation.Text));
 
 				// convert to degs/mins
 				long secs = (long)Math.Floor(Math.Abs(_profile.Longitude * 3600));
