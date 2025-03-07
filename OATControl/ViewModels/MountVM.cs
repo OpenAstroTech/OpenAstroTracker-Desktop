@@ -680,6 +680,7 @@ namespace OATControl.ViewModels
 		{
 			string dir = AutoHomeRaDirection == "East" ? "R" : "L";
 			string dist = AutoHomeRaDistance.ToString("0");
+			Log.WriteLine($"MOUNT: Sending Autohome command MHR{dir} command in direction {AutoHomeRaDirection} for {AutoHomeRaDistance} degrees");
 			_oatMount.SendCommand($":MHR{dir}{dist}#,n", (a) => { });
 		}
 
@@ -687,6 +688,7 @@ namespace OATControl.ViewModels
 		{
 			string dir = AutoHomeDecDirection == "South" ? "D" : "U";
 			string dist = AutoHomeDecDistance.ToString("0");
+			Log.WriteLine($"MOUNT: Sending Autohome command MHD{dir} command in direction {AutoHomeDecDirection} for {AutoHomeDecDistance} degrees");
 			_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => { });
 		}
 
@@ -2623,9 +2625,11 @@ namespace OATControl.ViewModels
 					Log.WriteLine("MOUNT: RA Auto Home starting");
 					var statuses = new List<string>();
 					var doneEvent = new AsyncAutoResetEvent();
-					// The MHRR command actually returns 0 or 1, but we ignore it, so that we can monitor progress
-					Log.WriteLine("MOUNT: Sending MHRR command....");
-					_oatMount.SendCommand($":MHRR#", (a) => { doneEvent.Set(); });
+					// The MHRR/L command actually returns 0 or 1, but we ignore it, so that we can monitor progress
+					string dir = AutoHomeRaDirection == "East" ? "R" : "L";
+					string dist = AutoHomeRaDistance.ToString("0");
+					Log.WriteLine($"MOUNT: Sending Autohome command MHR{dir} command in direction {AutoHomeRaDirection} for {AutoHomeRaDistance} degrees"); 
+					_oatMount.SendCommand($":MHR{dir}{dist}#,n", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
 
 					Log.WriteLine("MOUNT: Waiting for homing to end....");
@@ -2657,9 +2661,11 @@ namespace OATControl.ViewModels
 					Log.WriteLine("MOUNT: DEC Auto Home starting");
 					var statuses = new List<string>();
 					var doneEvent = new AsyncAutoResetEvent();
-					// The MHDU command actually returns 0 or 1, but we ignore it, so that we can monitor progress
-					Log.WriteLine("MOUNT: Sending MHDU command");
-					_oatMount.SendCommand($":MHDU#", (a) => { doneEvent.Set(); });
+					// The MHDU/D command actually returns 0 or 1, but we ignore it, so that we can monitor progress
+					string dir = AutoHomeDecDirection == "South" ? "D" : "U";
+					string dist = AutoHomeDecDistance.ToString("0");
+					Log.WriteLine($"MOUNT: Sending Autohome command MHD{dir} command in {AutoHomeDecDirection} for {AutoHomeDecDistance} degrees");
+					_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => {  doneEvent.Set(); });
 					await doneEvent.WaitAsync();
 					Log.WriteLine("MOUNT: Waiting for homing to end....");
 
@@ -4118,37 +4124,37 @@ namespace OATControl.ViewModels
 			switch (sep)
 			{
 				case CoordSeparators.NoSeparators:
-				{
-					var ra = new DayTime(pos);
-					int hours, mins, secs;
-					ra.GetTime(out hours, out mins, out secs);
-					return string.Format("{0} {1} {2}", hours, mins, secs);
-				}
+					{
+						var ra = new DayTime(pos);
+						int hours, mins, secs;
+						ra.GetTime(out hours, out mins, out secs);
+						return string.Format("{0} {1} {2}", hours, mins, secs);
+					}
 				case CoordSeparators.Colons:
-				{
-					var ra = new DayTime(pos);
-					int hours, mins, secs;
-					ra.GetTime(out hours, out mins, out secs);
-					return string.Format("{0:00}:{1:00}:{2:00}", hours, mins, secs);
-				}
+					{
+						var ra = new DayTime(pos);
+						int hours, mins, secs;
+						ra.GetTime(out hours, out mins, out secs);
+						return string.Format("{0:00}:{1:00}:{2:00}", hours, mins, secs);
+					}
 				case CoordSeparators.RaSeparators:
-				{
-					var ra = new DayTime(pos);
-					int hours, mins, secs;
-					ra.GetTime(out hours, out mins, out secs);
-					int absHours = Math.Abs(hours);
-					string sign = ra.TotalSeconds < 0 ? "-" : "";
-					return string.Format($"{sign}{absHours:00}h {mins:00}m {secs:00}s");
-				}
+					{
+						var ra = new DayTime(pos);
+						int hours, mins, secs;
+						ra.GetTime(out hours, out mins, out secs);
+						int absHours = Math.Abs(hours);
+						string sign = ra.TotalSeconds < 0 ? "-" : "";
+						return string.Format($"{sign}{absHours:00}h {mins:00}m {secs:00}s");
+					}
 				case CoordSeparators.DecSeparators:
-				{
-					var dec = new Declination(pos);
-					int degrees, mins, secs;
-					dec.GetTime(out degrees, out mins, out secs);
-					int absDegrees = Math.Abs(degrees);
-					string sign = dec.TotalSeconds < 0 ? "-" : "";
-					return string.Format($"{sign}{absDegrees:00}° {mins:00}\" {secs:00}'");
-				}
+					{
+						var dec = new Declination(pos);
+						int degrees, mins, secs;
+						dec.GetTime(out degrees, out mins, out secs);
+						int absDegrees = Math.Abs(degrees);
+						string sign = dec.TotalSeconds < 0 ? "-" : "";
+						return string.Format($"{sign}{absDegrees:00}° {mins:00}\" {secs:00}'");
+					}
 			}
 			return "what";
 		}

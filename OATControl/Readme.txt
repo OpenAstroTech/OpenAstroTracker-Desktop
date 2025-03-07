@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.1.8.0                                              7 Mar 2025
+- Made Autohoming from connection screen use the same settings as the homing
+  commands from the main UI and Settings dialog.
+
 OATControl V1.1.7.0                                             28 Sept 2024
 - Removed OAT Simulation code for standalone tool.
 - Checklist title can be changed and the list can be edited directly from 
