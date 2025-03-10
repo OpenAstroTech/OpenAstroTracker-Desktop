@@ -1581,22 +1581,7 @@ namespace OATControl.ViewModels
 				{
 					try
 					{
-						if(trkMode == "Sidereal")
-						{
-							
-						}
-						else if(trkMode == "Lunar")
-						{
-
-						}
-						else if(trkMode == "Solar")
-						{
-
-						}
-						else if(trkMode == "King")
-						{
-
-						}
+						TrackingMode = trkMode;
 
 						if (localTime.Length == 8)
 						{
@@ -4077,6 +4062,12 @@ namespace OATControl.ViewModels
 			get { return _pointsOfInterest; }
 		}
 
+		public string TrackingMode
+		{
+			get { return _trackingMode; }
+			set { SetPropertyValue(ref _trackingMode, value); OnPropertyChanged("SelectedTrackingMode"); }
+		}
+
 		/// <summary>
 		/// Gets the string for the connect button
 		/// </summary>
@@ -4122,15 +4113,15 @@ namespace OATControl.ViewModels
 				{
 					this.SendOatCommand(":TQ#,n", (a) => { });
 				}
-				else if (_trkRateString == "Lunar")
+				else if (value == "Lunar")
 				{
 					this.SendOatCommand(":TL#,n", (a) => { });
 				}
-				else if (_trkRateString == "Solar")
+				else if (value == "Solar")
 				{
 					this.SendOatCommand(":TS#,n", (a) => { });
 				}
-				else if (_trkRateString == "King")
+				else if (value == "King")
 				{
 					this.SendOatCommand(":TK#,n", (a) => { });
 				}
