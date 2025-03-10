@@ -375,8 +375,8 @@
 
         <TextBlock Grid.Row ="18" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Tracking Rate" ToolTip="Change mount tracking rate" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
         <ComboBox Grid.Row="18" Grid.Column="4" 
-					  ItemsSource="{Binding AvailableTrackingRates}" 
-					  SelectedValue="{Binding SelectedTrackingRate}"
+					  ItemsSource="{Binding AvailableTrackingModes}" 
+					  SelectedValue="{Binding SelectedTrackingMode}"
 					  Width="120" 
 					  Height="24"
 					  Margin="10,4,0,0"
