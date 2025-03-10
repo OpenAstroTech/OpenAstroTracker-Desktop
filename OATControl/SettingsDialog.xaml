@@ -344,7 +344,22 @@
 		<TextBlock Grid.Row ="17" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Open the OATControl logfile folder" ToolTip="OATControl keeps logfiles from the last 6 sessions around in case you need to check something or the devs ask for them to debug a issue yopu might have." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 		<Button Grid.Row="17" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 
-		<StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
+        <TextBlock Grid.Row ="18" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Tracking Rate" ToolTip="Change mount tracking rate" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+        <ComboBox Grid.Row="18" Grid.Column="4" 
+					  ItemsSource="{Binding AvailableTrackingRates}" 
+					  SelectedValue="{Binding SelectedTrackingRate}"
+					  Width="120" 
+					  Height="24"
+					  Margin="10,4,0,0"
+					  FontSize="16" 
+					  HorizontalAlignment="Left" 
+					  Foreground="Red" 
+					  FontWeight="Bold" 
+					  BorderBrush="#FF880000" />
+        <!--<Button Grid.Row="18" Grid.Column="4" Margin="8,4" Padding="20,0" Content="SideReal" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ChangeTrackingRateCommand}"/>-->
+
+
+        <StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
 			<Button Margin="16,8" Padding="20,0" Content="Close" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" IsCancel="True"/>
 		</StackPanel>
 	</Grid>
