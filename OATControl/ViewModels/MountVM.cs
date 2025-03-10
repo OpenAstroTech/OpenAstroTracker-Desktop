@@ -4101,19 +4101,19 @@ namespace OATControl.ViewModels
 			{
 				if (value == "Sidereal")
 				{
-					this.SendOatCommand(":MTR0#,n", (a) => { });
+					this.SendOatCommand(":TQ#,n", (a) => { });
 				}
 				else if (_trkRateString == "Lunar")
 				{
-					this.SendOatCommand(":MTR1#,n", (a) => { });
+					this.SendOatCommand(":TL#,n", (a) => { });
 				}
 				else if (_trkRateString == "Solar")
 				{
-					this.SendOatCommand(":MTR2#,n", (a) => { });
+					this.SendOatCommand(":TS#,n", (a) => { });
 				}
 				else if (_trkRateString == "King")
 				{
-					this.SendOatCommand(":MTR3#,n", (a) => { });
+					this.SendOatCommand(":TK#,n", (a) => { });
 				}
 				else
 				{
