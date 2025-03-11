@@ -133,7 +133,6 @@ namespace OATControl.ViewModels
 		DelegateCommand _driftAlignCommand;
 		DelegateCommand _polarAlignCommand;
 		DelegateCommand _showLogFolderCommand;
-		DelegateCommand _switchTrackingRateCommand;
 		DelegateCommand _showChecklistCommand;
 		DelegateCommand _showSettingsCommand;
 		DelegateCommand _showMiniControllerCommand;
@@ -197,7 +196,6 @@ namespace OATControl.ViewModels
 		private DateTime _siderealTime;
 		private DateTime _lastSiderealSync = DateTime.UtcNow - TimeSpan.FromMinutes(10);
 
-		private string _trkRateString = "sidereal";
 
 		public float RASpeed
 		{
@@ -269,8 +267,6 @@ namespace OATControl.ViewModels
 			_driftAlignCommand = new DelegateCommand(async dur => await OnRunDriftAlignment(int.Parse(dur.ToString())), () => MountConnected);
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
-			//_switchTrackingRateCommand = new DelegateCommand(() => OnSwitchTrackingRate(), () => true);
-			_switchTrackingRateCommand = new DelegateCommand(async () => await OnSwitchTrackingRate(), () => MountConnected);
 			_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
@@ -1012,26 +1008,6 @@ namespace OATControl.ViewModels
 			Process.Start(info);
 		}
 
-		private async Task OnSwitchTrackingRate()
-		{
-			// MTR0 - Sidereal Tracking
-			// MTR1 - Lunar Tracking
-			if(_trkRateString == "sidereal")
-			{
-				Log.WriteLine("MOUNT: Changing tracking rate to lunar");
-				this.SendOatCommand(":MTR1#,n", (a) => { });
-				_trkRateString = "lunar";
-			}
-			else if(_trkRateString == "lunar")
-			{
-				Log.WriteLine("MOUNT: Changing tracking rate to sidereal");
-				this.SendOatCommand(":MTR0#,n", (a) => { });
-				_trkRateString = "sidereal";
-			}
-			await ReadHA();
-
-		}
-
 		public bool IsLoggingEnabled
 		{
 			get
@@ -1561,7 +1537,7 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GG#,#", (a) => { utcOffset = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GL#,#", (a) => { localTime = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
-					this.SendOatCommand(":TM#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
+					this.SendOatCommand(":TZ#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
 					//this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11206)
 					{
@@ -1581,8 +1557,11 @@ namespace OATControl.ViewModels
 				{
 					try
 					{
-						TrackingMode = trkMode;
-
+						if(!string.IsNullOrEmpty(trkMode))
+						{
+							TrackingMode = trkMode;
+						}
+							
 						if (localTime.Length == 8)
 						{
 							ScopeTime = localTime;
@@ -2243,7 +2222,6 @@ namespace OATControl.ViewModels
 			_driftAlignCommand.Requery();
 			_polarAlignCommand.Requery();
 			_showLogFolderCommand.Requery();
-			_switchTrackingRateCommand.Requery();
 			_showChecklistCommand.Requery();
 			_showSettingsCommand.Requery();
 			_showMiniControllerCommand.Requery();
@@ -2896,7 +2874,6 @@ namespace OATControl.ViewModels
 		public ICommand DriftAlignCommand { get { return _driftAlignCommand; } }
 		public ICommand PolarAlignCommand { get { return _polarAlignCommand; } }
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
-		public ICommand ChangeTrackingRateCommand { get { return _switchTrackingRateCommand; } }
 		public ICommand ShowChecklistCommand { get { return _showChecklistCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
 		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
@@ -4156,16 +4133,19 @@ namespace OATControl.ViewModels
 					"300",
 				};
 
+		/// <summary>
+		/// Gets or sets tracking modes
+		/// </summary>
 		public IEnumerable<String> AvailableTrackingModes
 		{
 			get { return _trackingModes; }
 		}
+
 		List<String> _trackingModes = new List<string>() {
 					"Sidereal",
 					"Lunar",
 					"Solar",
-					"King",
-
+					"King"
 				};
 
 
