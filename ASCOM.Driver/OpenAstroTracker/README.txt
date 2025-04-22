@@ -1,7 +1,7 @@
 +--------------------------------------------------------------------------+
 |                                                                          |
-|   OpenAstroTracker ASCOM Driver V6.6.7.1 Pre-Release                     |
-|   Published: 28. February 2025                                           |
+|   OpenAstroTracker ASCOM Driver V6.6.7.2 Release                         |
+|   Published: 20. April 2025                                              |
 |                                                                          |
 +--------------------------------------------------------------------------+
 
@@ -33,6 +33,9 @@ Support
 
 Testing
 -------
+ * 6.6.7.2 Conformance Test (2025-Apr-20) 
+    - Telescope: All tests passed, no errors, no warnings, 18 issues (all expected). 
+
  * 6.6.7.1 Conformance Test (2025-Feb-28) 
     - Telescope: All tests passed, no errors, no warnings, 23 issues (all expected). 
 

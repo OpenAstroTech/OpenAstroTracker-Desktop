@@ -316,10 +316,13 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				// This property must be False if the telescope does not support homing.
-				// TODO : We'll try to implement homing later.
-				LogMessage(LoggingFlags.Scope, "AtHome Get => false");
-				return false;
+				LogMessage(LoggingFlags.Scope, "AtHome Get, query mount");
+				var cmdResult = CommandString(":GX#,#"); // Get status and split
+				LogMessage(LoggingFlags.Scope, "AtHome Get, mount replied " + cmdResult);
+				var result = cmdResult.Split(','); // Get status and split
+				var atHome = result[2] == "0" && result[3] == "0"; // Check if the mount is at home position
+				LogMessage(LoggingFlags.Scope, "AtHome Get => " + atHome);
+				return atHome;
 			}
 		}
 
@@ -576,18 +579,24 @@ namespace ASCOM.OpenAstroTracker
 
 		public void FindHome()
 		{
-            if (!AtPark)
-            {
-                LogMessage(LoggingFlags.Scope, "FindHome() called");
-                CommandBlind(":hF");
-                PollUntilZero(":GIS#,#");
-            }
-            else
-            {
-                LogMessage(LoggingFlags.Scope, "FindHome - Scope is parked");
-                throw new ASCOM.ParkedException("FindHome");
-            }
-        }
+			if (!AtPark)
+			{
+				if (!IsConnected)
+					throw new ASCOM.NotConnectedException("FindHome");
+				LogMessage(LoggingFlags.Scope, "FindHome() called, issuing :hF#");
+				CommandBlind(":hF#");
+				LogMessage(LoggingFlags.Scope, "FindHome - polling :GIS#");
+				PollUntilZero(":GIS#,#");
+				LogMessage(LoggingFlags.Scope, "FindHome -issuing :SHP#");
+				CommandString(":SHP#,#"); // Set stepper positions to 0 (they might be off due to tracking).
+				LogMessage(LoggingFlags.Scope, "FindHome - completed");
+			}
+			else
+			{
+				LogMessage(LoggingFlags.Scope, "FindHome - Scope is parked");
+				throw new ASCOM.ParkedException("FindHome");
+			}
+		}
 
 		public double FocalLength
 		{
@@ -1335,6 +1344,9 @@ namespace ASCOM.OpenAstroTracker
 			while (retVal != "0")
 			{
 				retVal = CommandString(command);
+				LogMessage(LoggingFlags.Scope, $"PollUntilZero - Command: {command}, Response: {retVal}");
+				if (retVal == "0")
+					break;
 				Thread.Sleep(1000);
 			}
 
