@@ -71,6 +71,7 @@ namespace OATControl.ViewModels
 		float _driftPhase = 0;
 		DateTime _connectedAt = DateTime.UtcNow;
 		string _lastDirection = string.Empty;
+		bool _useCustomParkPosition = false;
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
@@ -133,6 +134,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _driftAlignCommand;
 		DelegateCommand _polarAlignCommand;
 		DelegateCommand _showLogFolderCommand;
+		DelegateCommand _saveParkPositionCommand;
 		DelegateCommand _showChecklistCommand;
 		DelegateCommand _showSettingsCommand;
 		DelegateCommand _showMiniControllerCommand;
@@ -265,7 +267,11 @@ namespace OATControl.ViewModels
 			_driftAlignCommand = new DelegateCommand(async dur => await OnRunDriftAlignment(int.Parse(dur.ToString())), () => MountConnected);
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
-			_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
+
+			_saveParkPositionCommand = new DelegateCommand(async () => await OnSaveParkPosition(), () => MountConnected);
+			
+			
+				_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
 			_factoryResetCommand = new DelegateCommand(async () => await OnPerformFactoryReset(), () => MountConnected);
@@ -1029,6 +1035,13 @@ namespace OATControl.ViewModels
 			await RecalculatePointsPositions(true);
 		}
 
+		private async Task OnSaveParkPosition()
+		{
+
+			Log.WriteLine("MOUNT: Setting custom park position...");
+			this.SendOatCommand(":hS#,n", (a) => { });
+		}
+
 		private async Task RecalculatePointsPositions(bool force = false)
 		{
 			// For newer firmware, calculate the stepper positions for each point of interest.
@@ -1546,6 +1559,19 @@ namespace OATControl.ViewModels
 						this.SendOatCommand(":XGT#,#", (a) => { speed = a.Data; failed |= !a.Success; });
 					}
 					this.SendOatCommand(":XLGT#,#", (a) => { temperature = a.Success ? a.Data : "0"; failed |= !a.Success; allDone.Set(); });
+
+					this.SendOatCommand(":hCq#,#", (a) => { 
+						if(a.Data == "0")
+						{
+							UseCustomParkPosition = false;
+						}
+						else
+						{
+							UseCustomParkPosition = true;
+						}
+						failed |= !a.Success;
+					});
+
 					allDone.WaitOne(10000);
 				}
 
@@ -2213,6 +2239,7 @@ namespace OATControl.ViewModels
 			_driftAlignCommand.Requery();
 			_polarAlignCommand.Requery();
 			_showLogFolderCommand.Requery();
+			_saveParkPositionCommand.Requery();
 			_showChecklistCommand.Requery();
 			_showSettingsCommand.Requery();
 			_showMiniControllerCommand.Requery();
@@ -2865,6 +2892,7 @@ namespace OATControl.ViewModels
 		public ICommand DriftAlignCommand { get { return _driftAlignCommand; } }
 		public ICommand PolarAlignCommand { get { return _polarAlignCommand; } }
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
+		public ICommand SaveParkPositionCommand { get { return _saveParkPositionCommand; } }
 		public ICommand ShowChecklistCommand { get { return _showChecklistCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
 		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
@@ -3779,6 +3807,39 @@ namespace OATControl.ViewModels
 				catch (Exception ex)
 				{
 					Debug.WriteLine("Unable to set Tracking mode." + ex.Message);
+				}
+			}
+		}
+		/// <summary>
+		/// Gets or sets if we use Custom Parking Position
+		/// </summary>
+		public bool UseCustomParkPosition
+		{
+			get { return _useCustomParkPosition; }
+			set { SetPropertyValue(ref _useCustomParkPosition, value, OnUseCustomParkPositionChanged); }
+		}
+
+		/// <summary>
+		/// Sends command to enable/disable Custom Park Position to the mount
+		/// </summary>
+		private void OnUseCustomParkPositionChanged(bool oldVal, bool newVal)
+		{
+			if (MountConnected)
+			{
+				try
+				{
+					if(newVal ==  true)
+					{
+						this.SendOatCommand(":hC1#,n", (a) => { });
+					}
+					else
+					{
+						this.SendOatCommand(":hC0#,n", (a) => { });
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine("Unable to set UseCustomParkPosition." + ex.Message);
 				}
 			}
 		}
