@@ -1,0 +1,100 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Controls"
+        xmlns:converters="clr-namespace:OATControl.Converters"
+        x:Class="OATControl.SlewPointsWindow"
+        mc:Ignorable="d"
+        Background="#600"
+        Title="Custom Slew Positions" Height="381" Width="320" WindowStyle="None" SizeToContent="Width">
+    <Window.Resources>
+        <Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="TextBlockTitle" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="Foreground" Value="#F00" />
+        </Style>
+        <Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="TextBlockLabelSmall" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="4,4" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+        <Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+            <Setter Property="Padding" Value="12,2" />
+            <Setter Property="Margin" Value="0,4" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
+            <Setter Property="Foreground" Value="#F00" />
+        </Style>
+        <Style x:Key="CustomButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="Background" Value="#800" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#A00" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Positions" Style="{StaticResource TextBlockTitle}" Margin="0,0,0,10"/>
+
+        <ListBox x:Name="slewPointsList" Grid.Row="1"
+                 ItemsSource="{Binding SlewPoints}" 
+                 Background="#300" 
+                 BorderBrush="#900" 
+                 Foreground="White"
+                 Margin="0,0,0,10"
+                 HorizontalContentAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Name}" Foreground="White" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock Text="RA: " Foreground="#CCC" Margin="0,0,2,0"/>
+                            <TextBlock Text="{Binding RaStepperPosition}" Foreground="#CCC" Margin="0,0,10,0"/>
+                            <TextBlock Text="DEC: " Foreground="#CCC" Margin="0,0,2,0"/>
+                            <TextBlock Text="{Binding DecStepperPosition}" Foreground="#CCC"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Margin="8,4" Padding="10,0" Content="Add Current Position" Click="AddButton_Click" Style="{StaticResource AccentedSquareButtonStyle}"/>
+            <Button Margin="8,4" Padding="10,0" Content="Remove" Click="RemoveButton_Click" Style="{StaticResource AccentedSquareButtonStyle}"/>
+            <Button Margin="8,4" Padding="10,0" Content="Rename" Click="RenameButton_Click" Style="{StaticResource AccentedSquareButtonStyle}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+            <Button Margin="8,4" Padding="10,0" Content="Update Position" Click="UpdateButton_Click" Style="{StaticResource AccentedSquareButtonStyle}"/>
+            <Button Margin="8,4" Padding="10,0" Content="Go To Position" Click="GoToButton_Click" Style="{StaticResource AccentedSquareButtonStyle}"/>
+        </StackPanel>
+    </Grid>
+</Window>

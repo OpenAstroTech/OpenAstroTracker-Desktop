@@ -6,6 +6,7 @@ using System.Windows;
 using System.IO;
 using System.Reflection;
 using OATControl;
+using System.Xml.Serialization;
 
 namespace OATControl.ViewModels
 {
@@ -42,6 +43,8 @@ namespace OATControl.ViewModels
 		private static AppSettings _instance;
 		private Dictionary<string, string> _dict = new Dictionary<string, string>();
 		private string _settingsLocation;
+
+		private List<SlewPoint> _slewPoints;
 
 		AppSettings()
 		{
@@ -138,6 +141,56 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		private string FromSlewPoints(List<SlewPoint> points)
+		{
+			if (points == null || !points.Any())
+				return string.Empty;
+
+			XmlSerializer serializer = new XmlSerializer(typeof(List<SlewPoint>));
+			using (StringWriter writer = new StringWriter())
+			{
+				serializer.Serialize(writer, points);
+				return writer.ToString();
+			}
+		}
+
+		private List<SlewPoint> ToSlewPoints(string xml)
+		{
+			if (string.IsNullOrEmpty(xml))
+				return new List<SlewPoint>();
+
+			XmlSerializer serializer = new XmlSerializer(typeof(List<SlewPoint>));
+			try
+			{
+				using (StringReader reader = new StringReader(xml))
+				{
+					return (List<SlewPoint>)serializer.Deserialize(reader);
+				}
+			}
+			catch
+			{
+				return new List<SlewPoint>();
+			}
+		}
+
+		[DefaultValueAttribute("")]
+		public List<SlewPoint> SlewPoints
+		{
+			get
+			{
+				if (_slewPoints == null)
+				{
+					_slewPoints = ToSlewPoints(this["SlewPoints"]);
+				}
+				return _slewPoints;
+			}
+			set
+			{
+				_slewPoints = value;
+				this["SlewPoints"] = FromSlewPoints(value);
+			}
+		}
+
 		[DefaultValueAttribute("45")]
 		public float SiteLatitude
 		{
@@ -157,6 +210,13 @@ namespace OATControl.ViewModels
 		{
 			get { return ToPoint(this["MiniControllerPos"]); }
 			set { this["MiniControllerPos"] = FromPoint(value); }
+		}
+
+		[DefaultValueAttribute("0|0")]
+		public Point SlewPointsWindow
+		{
+			get { return ToPoint(this["SlewPointsWindowPos"]); }
+			set { this["SlewPointsWindowPos"] = FromPoint(value); }
 		}
 
 		[DefaultValueAttribute("0|50")]

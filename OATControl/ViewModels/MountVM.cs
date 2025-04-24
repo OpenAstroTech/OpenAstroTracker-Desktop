@@ -138,6 +138,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _showChecklistCommand;
 		DelegateCommand _showSettingsCommand;
 		DelegateCommand _showMiniControllerCommand;
+		DelegateCommand _showSlewPointsCommand;
 		DelegateCommand _factoryResetCommand;
 		DelegateCommand _startChangingCommand;
 		DelegateCommand _chooseTargetCommand;
@@ -158,6 +159,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _openAppSettingsCommand;
 		private string _poiFile;
 		MiniController _miniController;
+		SlewPointsWindow _slewPointsWindow;
 		TargetChooser _targetChooser;
 		DlgChecklist _checklist;
 
@@ -274,6 +276,7 @@ namespace OATControl.ViewModels
 				_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
+			_showSlewPointsCommand = new DelegateCommand(() => OnShowSlewPoints(), () => true);
 			_factoryResetCommand = new DelegateCommand(async () => await OnPerformFactoryReset(), () => MountConnected);
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 			_chooseTargetCommand = new DelegateCommand(async (p) => await OnShowTargetChooser(), () => MountConnected);
@@ -975,6 +978,29 @@ namespace OATControl.ViewModels
 			else
 			{
 				_miniController.Show();
+			}
+		}
+
+		private void OnShowSlewPoints()
+		{
+			if (_slewPointsWindow == null)
+			{
+				_slewPointsWindow = new SlewPointsWindow(this);
+				_slewPointsWindow.Topmost = KeepMiniControlOnTop;
+
+				if (AppSettings.Instance.MiniControllerPos.X != -1)
+				{
+					_slewPointsWindow.Left = AppSettings.Instance.MiniControllerPos.X;
+					_slewPointsWindow.Top = AppSettings.Instance.MiniControllerPos.Y;
+				}
+			}
+			if (_slewPointsWindow.IsVisible)
+			{
+				_slewPointsWindow.Hide();
+			}
+			else
+			{
+				_slewPointsWindow.Show();
 			}
 		}
 
@@ -2243,6 +2269,7 @@ namespace OATControl.ViewModels
 			_showChecklistCommand.Requery();
 			_showSettingsCommand.Requery();
 			_showMiniControllerCommand.Requery();
+			_showSlewPointsCommand.Requery();
 			_chooseTargetCommand.Requery();
 			_setDecLowerLimitCommand.Requery();
 			_setDECHomeOffsetFromPowerOnCommand.Requery();
@@ -2896,6 +2923,7 @@ namespace OATControl.ViewModels
 		public ICommand ShowChecklistCommand { get { return _showChecklistCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
 		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
+		public ICommand ShowSlewPointsCommand { get { return _showSlewPointsCommand; } }
 		public ICommand FactoryResetCommand { get { return _factoryResetCommand; } }
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 		public ICommand ChooseTargetCommand { get { return _chooseTargetCommand; } }
