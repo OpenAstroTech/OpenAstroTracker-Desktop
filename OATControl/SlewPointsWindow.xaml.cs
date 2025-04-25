@@ -149,7 +149,7 @@ namespace OATControl
 			}
 		}
 
-		private void GoToButton_Click(object sender, RoutedEventArgs e)
+		private async void GoToButton_Click(object sender, RoutedEventArgs e)
 		{
 			if (slewPointsList.SelectedItem != null && _mount != null)
 			{
@@ -157,6 +157,7 @@ namespace OATControl
 				//TODO : Implement the logic to move the mount to the selected point
 				//selectedPoint.RaStepperPosition;
 				//selectedPoint.DecStepperPosition;
+				await _mount.MoveMount(selectedPoint.RaStepperPosition, selectedPoint.DecStepperPosition);
 			}
 		}
 

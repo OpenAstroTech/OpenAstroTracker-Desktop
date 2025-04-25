@@ -66,6 +66,7 @@ namespace OATControl.ViewModels
 		bool _isSlewingFocus = false;
 		bool _driftAlignRunning = false;
 		bool _keepMiniControllerOnTop = false;
+		bool _keepSlewToPointControllerOnTop = false;
 		bool _inStartup = false;
 		string _driftAlignStatus = "Drift Alignment";
 		float _driftPhase = 0;
@@ -1990,6 +1991,12 @@ namespace OATControl.ViewModels
 			{
 				_miniController.Close();
 				_miniController = null;
+			}
+
+			if (_slewPointsWindow != null)
+			{
+				_slewPointsWindow.Close();
+				_slewPointsWindow = null;
 			}
 
 			if (_checklist != null)
@@ -4195,9 +4202,20 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		private void OnSimationClientCommand(string cmd)
+		/// <summary>
+		/// Gets or sets the keep slew to point control on-top
+		/// </summary>
+		public bool KeepSlewToPointControlOnTop
 		{
-			this.SendOatCommand(cmd, (a) => { });
+			get { return _keepSlewToPointControllerOnTop; }
+			set
+			{
+				SetPropertyValue(ref _keepSlewToPointControllerOnTop, value);
+				if (_miniController != null)
+				{
+					_slewPointsWindow.Topmost = value;
+				}
+			}
 		}
 
 		public enum CoordSeparators
