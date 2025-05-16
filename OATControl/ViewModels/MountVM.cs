@@ -164,6 +164,7 @@ namespace OATControl.ViewModels
 
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
+		private string _trackingMode;
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -194,6 +195,7 @@ namespace OATControl.ViewModels
 		private string _keyboardFocus = string.Empty;
 		private DateTime _siderealTime;
 		private DateTime _lastSiderealSync = DateTime.UtcNow - TimeSpan.FromMinutes(10);
+
 
 		public float RASpeed
 		{
@@ -1524,6 +1526,7 @@ namespace OATControl.ViewModels
 			string speed = string.Empty;
 			string network = string.Empty;
 			string hemisphere = string.Empty;
+			string trkMode = string.Empty;
 			bool failed = false;
 
 			if (_oatMount != null)
@@ -1534,7 +1537,8 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GG#,#", (a) => { utcOffset = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GL#,#", (a) => { localTime = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
-					this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
+					this.SendOatCommand(":TZ#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
+					//this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11206)
 					{
 						this.SendOatCommand(":XGHS#,#", (a) => { hemisphere = a.Data.Substring(0, 1); failed |= !a.Success; });
@@ -1553,6 +1557,11 @@ namespace OATControl.ViewModels
 				{
 					try
 					{
+						if(!string.IsNullOrEmpty(trkMode))
+						{
+							TrackingMode = trkMode;
+						}
+							
 						if (localTime.Length == 8)
 						{
 							ScopeTime = localTime;
@@ -4030,6 +4039,12 @@ namespace OATControl.ViewModels
 			get { return _pointsOfInterest; }
 		}
 
+		public string TrackingMode
+		{
+			get { return _trackingMode; }
+			set { SetPropertyValue(ref _trackingMode, value); OnPropertyChanged("SelectedTrackingMode"); }
+		}
+
 		/// <summary>
 		/// Gets the string for the connect button
 		/// </summary>
@@ -4066,6 +4081,38 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		public String SelectedTrackingMode
+		{
+			get { return _trackingMode; }
+			set
+			{
+				if (value == "Sidereal")
+				{
+					this.SendOatCommand(":TQ#,n", (a) => { });
+				}
+				else if (value == "Lunar")
+				{
+					this.SendOatCommand(":TL#,n", (a) => { });
+				}
+				else if (value == "Solar")
+				{
+					this.SendOatCommand(":TS#,n", (a) => { });
+				}
+				else if (value == "King")
+				{
+					this.SendOatCommand(":TK#,n", (a) => { });
+				}
+				else
+				{
+					this.SendOatCommand(":TQ#,n", (a) => { });
+				}
+
+				Log.WriteLine("MOUNT: Changing tracking rate to " + value);
+				_trackingMode = value;
+				AppSettings.Instance.TrackingRate = value;
+			}
+		}
+
 		public IEnumerable<String> AvailableBaudRates
 		{
 			get { return _baudRates; }
@@ -4085,6 +4132,23 @@ namespace OATControl.ViewModels
 					"1200",
 					"300",
 				};
+
+		/// <summary>
+		/// Gets or sets tracking modes
+		/// </summary>
+		public IEnumerable<String> AvailableTrackingModes
+		{
+			get { return _trackingModes; }
+		}
+
+		List<String> _trackingModes = new List<string>() {
+					"Sidereal",
+					"Lunar",
+					"Solar",
+					"King"
+				};
+
+
 		private string _autoHomeRaDirection;
 		private float _autoHomeRaDistance;
 		private string _autoHomeDecDirection;
