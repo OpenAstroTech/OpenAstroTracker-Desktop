@@ -229,6 +229,13 @@ namespace OATControl.ViewModels
 			set { this["BaudRate"] = value; }
 		}
 
+		[DefaultValueAttribute("Sidereal")]
+		public string TrackingRate
+		{
+			get { return this["TrackingRate"]; }
+			set { this["TrackingRate"] = value; }
+		}
+
 		[DefaultValueAttribute("False")]
 		public bool KeepMiniControlOnTop
 		{
