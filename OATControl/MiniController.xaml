@@ -118,7 +118,7 @@
 			<ColumnDefinition Width="40"/>
 			<ColumnDefinition Width="65"/>
 		</Grid.ColumnDefinitions>
-		<TextBlock Grid.Row="0" Grid.Column="0" Text="RA:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove"  Cursor="SizeAll" />
+		<TextBlock Grid.Row="0" Grid.Column="0" Text="RA:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseLeftButtonDown="TextBlock_MouseDown" Cursor="SizeAll" />
 		<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentRAString}" Style="{StaticResource TextBlockLabelValue}" />
 
 		<controls:PushButton Grid.RowSpan="2" Grid.Column="2" Width="36" Height="32" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="W" />
@@ -129,7 +129,7 @@
 	
 		<TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" Grid.RowSpan="2" IsHitTestVisible="False" Text="RA/DEC" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0,0,0,3" Style="{StaticResource TextBlockLabelTinyLabel}"/>
 
-		<TextBlock Grid.Row="1" Grid.Column="0" Text="DEC:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseDown="TextBlock_MouseDown" MouseUp="TextBlock_MouseUp" MouseMove="TextBlock_MouseMove" Cursor="SizeAll" />
+		<TextBlock Grid.Row="1" Grid.Column="0" Text="DEC:" Style="{StaticResource TextBlockLabelSmall}" Foreground="#A20" MouseLeftButtonDown="TextBlock_MouseDown" Cursor="SizeAll" />
 		<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentDECString}" Style="{StaticResource TextBlockLabelValue}" />
 
 		<StackPanel Grid.RowSpan="2" Grid.Column="5" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}">

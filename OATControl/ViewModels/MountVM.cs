@@ -71,11 +71,13 @@ namespace OATControl.ViewModels
 		bool _isSlewingFocus = false;
 		bool _driftAlignRunning = false;
 		bool _keepMiniControllerOnTop = false;
+		bool _keepSlewToPointControllerOnTop = false;
 		bool _inStartup = false;
 		string _driftAlignStatus = "Drift Alignment";
 		float _driftPhase = 0;
 		DateTime _connectedAt = DateTime.UtcNow;
 		string _lastDirection = string.Empty;
+		bool _useCustomParkPosition = false;
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
@@ -138,9 +140,11 @@ namespace OATControl.ViewModels
 		DelegateCommand _driftAlignCommand;
 		DelegateCommand _polarAlignCommand;
 		DelegateCommand _showLogFolderCommand;
+		DelegateCommand _saveParkPositionCommand;
 		DelegateCommand _showChecklistCommand;
 		DelegateCommand _showSettingsCommand;
 		DelegateCommand _showMiniControllerCommand;
+		DelegateCommand _showSlewPointsCommand;
 		DelegateCommand _factoryResetCommand;
 		DelegateCommand _startChangingCommand;
 		DelegateCommand _chooseTargetCommand;
@@ -161,6 +165,7 @@ namespace OATControl.ViewModels
 		DelegateCommand _openAppSettingsCommand;
 		private string _poiFile;
 		MiniController _miniController;
+		SlewPointsWindow _slewPointsWindow;
 		TargetChooser _targetChooser;
 		DlgChecklist _checklist;
 
@@ -272,9 +277,13 @@ namespace OATControl.ViewModels
 			_driftAlignCommand = new DelegateCommand(async dur => await OnRunDriftAlignment(int.Parse(dur.ToString())), () => MountConnected);
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
+
+			_saveParkPositionCommand = new DelegateCommand(async () => await OnSaveParkPosition(), () => MountConnected);
+			
 			_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
+			_showSlewPointsCommand = new DelegateCommand(() => OnShowSlewPoints(), () => true);
 			_factoryResetCommand = new DelegateCommand(async () => await OnPerformFactoryReset(), () => MountConnected);
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 			_chooseTargetCommand = new DelegateCommand(async (p) => await OnShowTargetChooser(), () => MountConnected);
@@ -990,6 +999,23 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		public void OnShowSlewPoints()
+		{
+			if (_slewPointsWindow == null)
+			{
+				_slewPointsWindow = new SlewPointsWindow(this);
+				_slewPointsWindow.Topmost = KeepMiniControlOnTop;
+			}
+			if (_slewPointsWindow.IsVisible)
+			{
+				_slewPointsWindow.Hide();
+			}
+			else
+			{
+				_slewPointsWindow.Show();
+			}
+		}
+
 		public string ChecklistFilePath
 		{
 			get { return _listFilePath; }
@@ -1045,6 +1071,13 @@ namespace OATControl.ViewModels
 			this.SendOatCommand(":SHP#,n", (a) => { });
 			await ReadHA();
 			await RecalculatePointsPositions(true);
+		}
+
+		private async Task OnSaveParkPosition()
+		{
+
+			Log.WriteLine("MOUNT: Setting custom park position...");
+			this.SendOatCommand(":hS#,n", (a) => { });
 		}
 
 		private async Task RecalculatePointsPositions(bool force = false)
@@ -1582,6 +1615,19 @@ namespace OATControl.ViewModels
 						this.SendOatCommand(":XGT#,#", (a) => { speed = a.Data; failed |= !a.Success; });
 					}
 					this.SendOatCommand(":XLGT#,#", (a) => { temperature = a.Success ? a.Data : "0"; failed |= !a.Success; allDone.Set(); });
+
+					this.SendOatCommand(":hCq#,#", (a) => { 
+						if(a.Data == "0")
+						{
+							UseCustomParkPosition = false;
+						}
+						else
+						{
+							UseCustomParkPosition = true;
+						}
+						failed |= !a.Success;
+					});
+
 					allDone.WaitOne(10000);
 				}
 
@@ -1981,6 +2027,12 @@ namespace OATControl.ViewModels
 				_miniController = null;
 			}
 
+			if (_slewPointsWindow != null)
+			{
+				_slewPointsWindow.Close();
+				_slewPointsWindow = null;
+			}
+
 			if (_checklist != null)
 			{
 				_checklist.Close();
@@ -2265,9 +2317,11 @@ namespace OATControl.ViewModels
 			_driftAlignCommand.Requery();
 			_polarAlignCommand.Requery();
 			_showLogFolderCommand.Requery();
+			_saveParkPositionCommand.Requery();
 			_showChecklistCommand.Requery();
 			_showSettingsCommand.Requery();
 			_showMiniControllerCommand.Requery();
+			_showSlewPointsCommand.Requery();
 			_chooseTargetCommand.Requery();
 			_setDecLowerLimitCommand.Requery();
 			_setDECHomeOffsetFromPowerOnCommand.Requery();
@@ -2598,7 +2652,7 @@ namespace OATControl.ViewModels
 			await _oatMount.Sync(new TelescopePosition(raHours, decDegrees, Epoch.JNOW));
 		}
 
-		public async Task MoveMount(long raSteps, long decSteps)
+		public async Task MoveMountBy(long raSteps, long decSteps)
 		{
 			var doneEvent = new AsyncAutoResetEvent();
 			lock (_oatLock)
@@ -2917,9 +2971,11 @@ namespace OATControl.ViewModels
 		public ICommand DriftAlignCommand { get { return _driftAlignCommand; } }
 		public ICommand PolarAlignCommand { get { return _polarAlignCommand; } }
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
+		public ICommand SaveParkPositionCommand { get { return _saveParkPositionCommand; } }
 		public ICommand ShowChecklistCommand { get { return _showChecklistCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
 		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
+		public ICommand ShowSlewPointsCommand { get { return _showSlewPointsCommand; } }
 		public ICommand FactoryResetCommand { get { return _factoryResetCommand; } }
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 		public ICommand ChooseTargetCommand { get { return _chooseTargetCommand; } }
@@ -3260,7 +3316,7 @@ namespace OATControl.ViewModels
 		}
 
 		/// <summary>
-		/// Gets or sets the RA Stepper position
+		/// Gets or sets the RA Stepper position in steps
 		/// </summary>
 		public float RAStepper
 		{
@@ -3933,6 +3989,39 @@ namespace OATControl.ViewModels
 				}
 			}
 		}
+		/// <summary>
+		/// Gets or sets if we use Custom Parking Position
+		/// </summary>
+		public bool UseCustomParkPosition
+		{
+			get { return _useCustomParkPosition; }
+			set { SetPropertyValue(ref _useCustomParkPosition, value, OnUseCustomParkPositionChanged); }
+		}
+
+		/// <summary>
+		/// Sends command to enable/disable Custom Park Position to the mount
+		/// </summary>
+		private void OnUseCustomParkPositionChanged(bool oldVal, bool newVal)
+		{
+			if (MountConnected)
+			{
+				try
+				{
+					if(newVal ==  true)
+					{
+						this.SendOatCommand(":hC1#,n", (a) => { });
+					}
+					else
+					{
+						this.SendOatCommand(":hC0#,n", (a) => { });
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine("Unable to set UseCustomParkPosition." + ex.Message);
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the status of the scope
@@ -4316,9 +4405,20 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		private void OnSimationClientCommand(string cmd)
+		/// <summary>
+		/// Gets or sets the keep slew to point control on-top
+		/// </summary>
+		public bool KeepSlewToPointControlOnTop
 		{
-			this.SendOatCommand(cmd, (a) => { });
+			get { return _keepSlewToPointControllerOnTop; }
+			set
+			{
+				SetPropertyValue(ref _keepSlewToPointControllerOnTop, value);
+				if (_miniController != null)
+				{
+					_slewPointsWindow.Topmost = value;
+				}
+			}
 		}
 
 		public enum CoordSeparators

@@ -7,10 +7,11 @@
 		xmlns:controls="clr-namespace:OATControl.Controls" 
         xmlns:local="clr-namespace:OATControl" xmlns:converters="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
-        Title="Settings" MinHeight="700" Width="770" MinWidth="820" Height="700">
+        Title="Settings" MinHeight="700" Width="856" MinWidth="820" Height="766">
 	<Window.Resources>
 		<converters:IntToVisibilityConverter x:Key="V1_8_76OrLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
 		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Collapsed" />
+        <converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
 
 		<Style x:Key="CommandButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
 			<Setter Property="Padding" Value="15,0" />
@@ -102,7 +103,7 @@
             </Setter>
         </Style>
 	</Window.Resources>
-	<Grid>
+    <Grid Margin="0,0,0,-16">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -123,7 +124,7 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
@@ -272,7 +273,7 @@
 		<TextBlock Grid.Row="16" Grid.Column="1" Text="{Binding ScopeNetworkState}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
 
 		<TextBlock Grid.Row="17" Grid.Column="0" Text="IP:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,1.38,2,1.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
-		<TextBlock Grid.Row="17" Grid.Column="1" Text="{Binding ScopeNetworkIPAddress}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,3.38,0,3.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
+        <TextBlock Grid.Row="17" Text="{Binding ScopeNetworkIPAddress}"  Style="{StaticResource TextBlockLabelValue}" Margin="144,6,0,0" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}" Grid.ColumnSpan="2" VerticalAlignment="Top"/>
 
 		<TextBlock Grid.Row="18" Grid.Column="0" Text="SSID:" HorizontalAlignment="Right"  Style="{StaticResource TextBlockLabelSmall}" Margin="0,2.38,1,1.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
 		<TextBlock Grid.Row="18" Grid.Column="1" Text="{Binding ScopeNetworkSSID}"  Style="{StaticResource TextBlockLabelValue}" Margin="0,4.38,0,3.62" Visibility="{Binding ScopeNetworkState, Converter={StaticResource CollapseOnStringEqual}, ConverterParameter={}Disabled}"/>
@@ -295,7 +296,22 @@
 		<TextBlock Grid.Row ="3" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Move DEC to park before power off" ToolTip="If the DEC axis is currently in the Home position and a Home offset was set, use this to move it to the Park position." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 		<Button Grid.Row ="3" Grid.Column="4" Margin="8,4" Padding="15,0" Content="Park DEC" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding GotoDECParkBeforePowerOffCommand}"  ToolTip="Requires firwmare V1.9.16 or later."/>
 
-		<Grid Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="-2,0,6,0">
+		<Grid Grid.Row="4" Grid.Column="3" HorizontalAlignment="Stretch" Margin="0,0,0,0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<TextBlock Grid.Row ="0" Grid.Column="0" Margin="0,0" HorizontalAlignment="Left" Text="Use Custom Park Position" ToolTip="The Park position is different from the Home position" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+			<StackPanel Grid.Column="1" Grid.Row="0"   Orientation="Horizontal">
+				<TextBlock Margin="0,0" HorizontalAlignment="Left" Text="No" Style="{StaticResource TinyTextBlockLabel}" VerticalAlignment="Center"/>
+				<Controls:ToggleSwitchButton  Margin="0,0" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}" IsChecked="{Binding UseCustomParkPosition}" ThumbIndicatorBrush="#E00" />
+				<TextBlock Margin="0,0" HorizontalAlignment="Right" Text="Yes" Style="{StaticResource TinyTextBlockLabel}" VerticalAlignment="Center"/>
+			</StackPanel>
+		</Grid>
+		<Button Grid.Row="4" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Save Park Position" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding SaveParkPositionCommand}" Visibility="{Binding UseCustomParkPosition, Converter={StaticResource TrueBoolToVisible}}"/>
+
+		<Grid Grid.Row="5" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="-2,0,6,0">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*" />
 				<ColumnDefinition Width="*" />
@@ -308,7 +324,7 @@
 			<Button Grid.Column="3"  Content="{Binding CustomAction4Text}" Style="{StaticResource CustomCommandButtonStyle}" Command="{Binding CustomActionCommand}"  CommandParameter="3"/>
 		</Grid>
 
-		<Grid Grid.Row="5" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
+		<Grid Grid.Row="6" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*" />
 				<ColumnDefinition Width="*" />
@@ -333,11 +349,11 @@
 			</StackPanel>
 		</Grid>
 
-		<StackPanel Grid.Row="6" Grid.Column="3" Orientation="Vertical">
+		<StackPanel Grid.Row="7" Grid.Column="3" Orientation="Vertical">
 			<TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Reset Focuser position" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 			<TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="(Requires Firmware V1.9.19 or later)" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
 		</StackPanel>
-		<Button Grid.Row="6" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Reset Focuser" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FocuserResetCommand}"/>
+		<Button Grid.Row="7" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Reset Focuser" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FocuserResetCommand}"/>
 
         <StackPanel Grid.Row ="8" Grid.Column="3" Orientation="Vertical">
             <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Run Steps Calibration procedure"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
@@ -376,8 +392,8 @@
 		<TextBlock Grid.Row ="17" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Open the OATControl logfile folder" ToolTip="OATControl keeps logfiles from the last 6 sessions around in case you need to check something or the devs ask for them to debug a issue yopu might have." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
 		<Button Grid.Row="17" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 
-        <TextBlock Grid.Row ="18" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Tracking Rate" ToolTip="Change mount tracking rate" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-        <ComboBox Grid.Row="18" Grid.Column="4" 
+		<TextBlock Grid.Row ="18" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Tracking Rate" ToolTip="Change mount tracking rate" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+		<ComboBox Grid.Row="18" Grid.Column="4" 
 					  ItemsSource="{Binding AvailableTrackingModes}" 
 					  SelectedValue="{Binding SelectedTrackingMode}"
 					  Width="120" 
@@ -385,11 +401,9 @@
 					  Margin="10,4,0,0"
 					  HorizontalAlignment="Left" 
                   Style="{StaticResource ComboBoxStyle}"/>
-        <!--<Button Grid.Row="18" Grid.Column="4" Margin="8,4" Padding="20,0" Content="SideReal" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ChangeTrackingRateCommand}"/>-->
-
-
-        <StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
-			<Button Margin="16,8" Padding="20,0" Content="Close" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" IsCancel="True"/>
+		
+		<StackPanel Grid.Row="20" Grid.ColumnSpan="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,9.38,0,-0.38" Grid.RowSpan="2">
+            <Button Margin="15,10" Padding="20,0" Content="Close" HorizontalAlignment="Right" Style="{StaticResource AccentedSquareButtonStyle}" IsCancel="True"/>
 		</StackPanel>
 	</Grid>
 </Window>

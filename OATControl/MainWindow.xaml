@@ -686,14 +686,25 @@
 			<Controls:ToggleSwitchButton Grid.Row="3" Grid.Column="1" Margin="0,2" IsEnabled="{Binding MountConnected}" Name="ShowLimits" ThumbIndicatorBrush="#E00" IsChecked="{Binding ShowDECLimits}"/>
 
 
-			<Button Grid.Row="3" Grid.Column="2" Content="Mini-Control" Margin="1,8" Width="125" HorizontalAlignment="Right" Padding="15,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}">
+			
+			<Button Grid.Row="3" Grid.Column="2" Content="Mini-Ctrl" Margin="1,8,65,8" Width="60" HorizontalAlignment="Right" Padding="5,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowMiniControllerCommand}">
 				<Button.ContextMenu>
 					<ContextMenu>
 						<MenuItem Header="Keep On Top" IsCheckable="True" IsChecked="{Binding KeepMiniControlOnTop}" Style="{StaticResource MetroMenuItem}"/>
 					</ContextMenu>
 				</Button.ContextMenu>
 			</Button>
+
+			<Button Grid.Row="3" Grid.Column="2" Content="Slew Pts" Margin="1,8" Width="60" HorizontalAlignment="Right" Padding="5,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSlewPointsCommand}" >
+				<Button.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Keep On Top" IsCheckable="True" IsChecked="{Binding KeepSlewToPointControlOnTop}" Style="{StaticResource MetroMenuItem}"/>
+					</ContextMenu>
+				</Button.ContextMenu>
+			</Button>
+
 			<Button Grid.Row="4" Grid.Column="2" Content="Mount Settings" Margin="1,2" Width="125" HorizontalAlignment="Right" Padding="0,0" IsEnabled="{Binding MountConnected}" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowSettingsCommand}"/>
+
 			<Button Grid.Row="5" Grid.Column="2" Content="Log Files" Margin="0,2,66,2" Width="60" HorizontalAlignment="Right" Padding="0,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowLogFolderCommand}" Visibility="{Binding IsLoggingEnabled, Converter={StaticResource CollapseIfFalse}}"/>
 			<Button Grid.Row="5" Grid.Column="2" Content="Checklist" Margin="1,2" Width="60" HorizontalAlignment="Right" Padding="0,0" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding ShowChecklistCommand}" />
 

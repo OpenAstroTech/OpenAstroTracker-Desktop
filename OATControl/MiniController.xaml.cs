@@ -110,36 +110,9 @@ namespace OATControl
 
 		private void TextBlock_MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			UIElement el = (UIElement)sender;
-			if (el.IsEnabled)
+			if (e.LeftButton == MouseButtonState.Pressed)
 			{
-				el.CaptureMouse();
-				_startCapturePos = PointToScreen(e.GetPosition(el));
-				_startWindowPos = new Point(this.Left, this.Top);
-				e.Handled = true;
-			}
-		}
-
-		private void TextBlock_MouseUp(object sender, MouseButtonEventArgs e)
-		{
-			UIElement el = (UIElement)sender;
-			if (el.IsMouseCaptured)
-			{
-				el.ReleaseMouseCapture();
-				e.Handled = true;
-			}
-		}
-
-		private void TextBlock_MouseMove(object sender, MouseEventArgs e)
-		{
-			UIElement el = (UIElement)sender;
-			if (el.IsMouseCaptured)
-			{
-				var mousePos = PointToScreen(e.GetPosition(el));
-				var delta = new Point(_startCapturePos.X - mousePos.X, _startCapturePos.Y - mousePos.Y);
-				this.Left = _startWindowPos.X - delta.X;
-				this.Top = _startWindowPos.Y - delta.Y;
-				e.Handled = true;
+				DragMove();
 			}
 		}
 	}
