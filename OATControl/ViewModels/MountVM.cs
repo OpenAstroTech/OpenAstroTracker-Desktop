@@ -19,6 +19,7 @@ using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
+using MahApps.Metro.Converters;
 
 namespace OATControl.ViewModels
 {
@@ -41,6 +42,8 @@ namespace OATControl.ViewModels
 		float _raStepperMinimum = -7;
 		float _raStepperMaximum = 7;
 		double _raStepperTargetHours;
+		double _currentAZ = 0;
+		double _currentALT = 0;
 
 		float _decStepsPerDegree = 1;
 		float _decStepsPerDegreeEdit = 1;
@@ -48,6 +51,8 @@ namespace OATControl.ViewModels
 		float _decStepperMaximum = 180;
 		float _decStepperLowerLimit = -90;
 		float _decStepperUpperLimit = 180;
+		float _decLowerLimitDegrees = 0;
+		float _decUpperLimitDegrees = 0;
 		double _decStepperTargetDegrees;
 		bool _showDecLimits = false;
 		string _decTickLabels = string.Empty;
@@ -164,7 +169,7 @@ namespace OATControl.ViewModels
 
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
-		private string _trackingMode;
+		private string _trackingMode = "Sidereal";
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -341,6 +346,11 @@ namespace OATControl.ViewModels
 			AppSettings.Instance.Load();
 			LoadCustomCommands();
 			ShowChecklist = AppSettings.Instance.ShowChecklist;
+			AutoHomeRaDistance = AppSettings.Instance.AutoHomeRaDistance;
+			AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
+			AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
+			AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
+			TrackingMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
 
 			ScopeType = "OAM";
 
@@ -891,6 +901,12 @@ namespace OATControl.ViewModels
 			DECStepsPerDegree = steps;
 		}
 
+		void SetDECLimits(float lower, float upper)
+		{
+			DECLowerLimitDegrees = lower;
+			DECUpperLimitDegrees = upper;
+		}
+
 		private void OnIncrementVariable(object sender, EventArgs e)
 		{
 			_timer.Stop();
@@ -1350,6 +1366,17 @@ namespace OATControl.ViewModels
 										CurrentRAMinute = int.Parse(parts[5].Substring(2, 2));
 										CurrentRASecond = int.Parse(parts[5].Substring(4, 2));
 
+										AstroTools.RaDecToAzAlt(
+											CurrentRATotalHours * 15.0,
+											CurrentDECTotalHours,
+											AppSettings.Instance.SiteLatitude,
+											AppSettings.Instance.SiteLongitude,
+											DateTime.UtcNow,
+											out double azimuth, out double altitude);
+
+										CurrentAZ = azimuth;
+										CurrentALT = altitude;
+
 										OnTargetChanged(0, 0);
 										UpdateCurrentDisplay();
 
@@ -1418,6 +1445,8 @@ namespace OATControl.ViewModels
 			OnPropertyChanged("CurrentDECSecond");
 			OnPropertyChanged("CurrentDECTotalHours");
 			OnPropertyChanged("CurrentDECString");
+			OnPropertyChanged("CurrentAZ");
+			OnPropertyChanged("CurrentALT");
 		}
 
 		public async Task<string> SetSiteLatitude(float latitude)
@@ -1537,8 +1566,11 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GG#,#", (a) => { utcOffset = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GL#,#", (a) => { localTime = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
-					this.SendOatCommand(":TZ#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
-					//this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
+					if (FirmwareVersion >= 11314)
+					{
+						this.SendOatCommand(":TZ#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
+					}
+					this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11206)
 					{
 						this.SendOatCommand(":XGHS#,#", (a) => { hemisphere = a.Data.Substring(0, 1); failed |= !a.Success; });
@@ -1557,11 +1589,11 @@ namespace OATControl.ViewModels
 				{
 					try
 					{
-						if(!string.IsNullOrEmpty(trkMode))
+						if (!string.IsNullOrEmpty(trkMode))
 						{
 							TrackingMode = trkMode;
 						}
-							
+
 						if (localTime.Length == 8)
 						{
 							ScopeTime = localTime;
@@ -1951,10 +1983,7 @@ namespace OATControl.ViewModels
 
 			if (_checklist != null)
 			{
-				if (_checklist.IsVisible)
-				{
-					_checklist.Close();
-				}
+				_checklist.Close();
 				_checklist = null;
 			}
 
@@ -2022,6 +2051,20 @@ namespace OATControl.ViewModels
 					if (steps.Success)
 					{
 						SetDECStepsPerDegree(Math.Max(1, float.Parse(steps.Data, _oatCulture)));
+					}
+				});
+
+				Log.WriteLine("MOUNT: Getting current OAT DEC limits...");
+				this.SendOatCommand(":XGDL#,#", (steps) =>
+				{
+					Log.WriteLine("MOUNT: Current DEC limits are {0}. ", steps.Data);
+					if (steps.Success)
+					{
+						string[] limits = steps.Data.Split('|');
+						if (limits.Length == 2)
+						{
+							SetDECLimits(float.Parse(limits[0], _oatCulture), float.Parse(limits[1], _oatCulture));
+						}
 					}
 				});
 
@@ -2637,7 +2680,7 @@ namespace OATControl.ViewModels
 					// The MHRR/L command actually returns 0 or 1, but we ignore it, so that we can monitor progress
 					string dir = AutoHomeRaDirection == "East" ? "R" : "L";
 					string dist = AutoHomeRaDistance.ToString("0");
-					Log.WriteLine($"MOUNT: Sending Autohome command MHR{dir} command in direction {AutoHomeRaDirection} for {AutoHomeRaDistance} degrees"); 
+					Log.WriteLine($"MOUNT: Sending Autohome command MHR{dir} command in direction {AutoHomeRaDirection} for {AutoHomeRaDistance} degrees");
 					_oatMount.SendCommand($":MHR{dir}{dist}#,n", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
 
@@ -2674,7 +2717,7 @@ namespace OATControl.ViewModels
 					string dir = AutoHomeDecDirection == "South" ? "D" : "U";
 					string dist = AutoHomeDecDistance.ToString("0");
 					Log.WriteLine($"MOUNT: Sending Autohome command MHD{dir} command in {AutoHomeDecDirection} for {AutoHomeDecDistance} degrees");
-					_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => {  doneEvent.Set(); });
+					_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
 					Log.WriteLine("MOUNT: Waiting for homing to end....");
 
@@ -3023,6 +3066,94 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(value, () => _targetDEC.Seconds, _targetDEC.ChangeSecond, OnTargetChanged); }
 		}
 
+		public double CurrentAZ
+		{
+			get { return _currentAZ; }
+			set
+			{
+				if (_currentAZ != value)
+				{
+					_currentAZ = value;
+					OnPropertyChanged("CurrentAZ");
+					OnPropertyChanged("CurrentAZDegrees");
+					OnPropertyChanged("CurrentAZMinutes");
+					OnPropertyChanged("CurrentAZSeconds");
+				}
+			}
+		}
+
+		public double CurrentALT
+		{
+			get { return _currentALT; }
+			set
+			{
+				if (_currentALT != value)
+				{
+					_currentALT = value;
+					OnPropertyChanged("CurrentALT");
+					OnPropertyChanged("CurrentALTDegrees");
+					OnPropertyChanged("CurrentALTMinutes");
+					OnPropertyChanged("CurrentALTSeconds");
+				}
+			}
+		}
+
+		public double CurrentALTDegrees
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentALT);
+				return alt.Hours;
+			}
+		}
+
+		public double CurrentALTMinutes
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentALT);
+				return alt.Minutes;
+			}
+		}
+
+		public double CurrentALTSeconds
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentALT);
+				return alt.Seconds;
+			}
+		}
+
+
+		public double CurrentAZDegrees
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentAZ);
+				return alt.Hours;
+			}
+		}
+
+		public double CurrentAZMinutes
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentAZ);
+				return alt.Minutes;
+			}
+		}
+
+		public double CurrentAZSeconds
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentAZ);
+				return alt.Seconds;
+			}
+		}
+
+
 		public double CurrentRATotalHours
 		{
 			get { return _currentRA.TotalHours; }
@@ -3065,8 +3196,7 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(value, () => _currentRA.Minutes, _currentRA.ChangeMinute, OnRaOrDecChanged); }
 		}
 
-		/// <summary>
-		/// Gets or sets the RASecond
+		/// <summary>		/// Gets or sets the RASecond
 		/// </summary>
 		public int CurrentRASecond
 		{
@@ -3361,6 +3491,18 @@ namespace OATControl.ViewModels
 		{
 			get { return _decStepsPerDegree; }
 			set { SetPropertyValue(ref _decStepsPerDegree, value, OnDECStepsChanged); }
+		}
+
+		public float DECUpperLimitDegrees
+		{
+			get { return _decUpperLimitDegrees; }
+			set { SetPropertyValue(ref _decUpperLimitDegrees, value); }
+		}
+
+		public float DECLowerLimitDegrees
+		{
+			get { return _decLowerLimitDegrees; }
+			set { SetPropertyValue(ref _decLowerLimitDegrees, value); }
 		}
 
 		private void OnDECStepsChanged(float oldVal, float newVal)
@@ -4042,7 +4184,7 @@ namespace OATControl.ViewModels
 		public string TrackingMode
 		{
 			get { return _trackingMode; }
-			set { SetPropertyValue(ref _trackingMode, value); OnPropertyChanged("SelectedTrackingMode"); }
+			set { SetPropertyValue(ref _trackingMode, value); OnPropertyChanged("TrackingMode"); }
 		}
 
 		/// <summary>
@@ -4086,30 +4228,34 @@ namespace OATControl.ViewModels
 			get { return _trackingMode; }
 			set
 			{
-				if (value == "Sidereal")
+				if (FirmwareVersion > 11314)
 				{
-					this.SendOatCommand(":TQ#,n", (a) => { });
-				}
-				else if (value == "Lunar")
-				{
-					this.SendOatCommand(":TL#,n", (a) => { });
-				}
-				else if (value == "Solar")
-				{
-					this.SendOatCommand(":TS#,n", (a) => { });
-				}
-				else if (value == "King")
-				{
-					this.SendOatCommand(":TK#,n", (a) => { });
-				}
-				else
-				{
-					this.SendOatCommand(":TQ#,n", (a) => { });
-				}
+					if (value == "Sidereal")
+					{
+						this.SendOatCommand(":TQ#,n", (a) => { });
+					}
+					else if (value == "Lunar")
+					{
+						this.SendOatCommand(":TL#,n", (a) => { });
+					}
+					else if (value == "Solar")
+					{
+						this.SendOatCommand(":TS#,n", (a) => { });
+					}
+					else if (value == "King")
+					{
+						this.SendOatCommand(":TK#,n", (a) => { });
+					}
+					else
+					{
+						this.SendOatCommand(":TQ#,n", (a) => { });
+					}
 
-				Log.WriteLine("MOUNT: Changing tracking rate to " + value);
-				_trackingMode = value;
-				AppSettings.Instance.TrackingRate = value;
+					Log.WriteLine("MOUNT: Changing tracking rate to " + value);
+					_trackingMode = value;
+					AppSettings.Instance.TrackingRate = value;
+					AppSettings.Instance.Save();
+				}
 			}
 		}
 

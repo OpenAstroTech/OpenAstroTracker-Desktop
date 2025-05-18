@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OATControl.ViewModels
 {
-	internal class ChecklistItem : INotifyPropertyChanged
+	public class ChecklistItem : INotifyPropertyChanged
 	{
 		private string text;
 		private bool isChecked;
@@ -16,7 +17,7 @@ namespace OATControl.ViewModels
 
 		public string Text
 		{
-			get { return text; }
+			get => text; 
 			set
 			{
 				text = value;
@@ -26,13 +27,16 @@ namespace OATControl.ViewModels
 
 		public bool IsChecked
 		{
-			get { return isChecked; }
+			get => isChecked; 
 			set
 			{
 				isChecked = value;
+				SubItems.ToList().ForEach(item => item.IsChecked = value); // Propagate the check state to sub-items	
 				OnPropertyChanged(nameof(IsChecked));
 			}
 		}
+
+		public ObservableCollection<ChecklistItem> SubItems { get; set; } = new ObservableCollection<ChecklistItem>();
 
 		public event PropertyChangedEventHandler PropertyChanged;
 

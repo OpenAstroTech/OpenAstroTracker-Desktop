@@ -1,13 +1,10 @@
-﻿using Microsoft.Web.WebView2.Core;
-using OATControl.ViewModels;
+﻿using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using DelegateCommand = OATCommunications.WPF.DelegateCommand;
@@ -34,7 +31,6 @@ namespace OATControl
 			_editChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => true);
 			_listTitle = AppSettings.Instance.ChecklistTitle;
 			InitializeComponent();
-			InitializeWebView();
 			
 			_listFilePath = listFilePath;
 
@@ -48,144 +44,17 @@ namespace OATControl
 			_listTitle = AppSettings.Instance.ChecklistTitle;
 			OnPropertyChanged("ListTitle");
 			LoadChecklistItemsFromFile(_listFilePath);
-			UpdateChecklistHtml();
 		}
 
 		public ICommand EditChecklistCommand { get { return _editChecklistCommand; } }
 
-		private void UpdateChecklistHtml()
+		public ObservableCollection<ChecklistItem> ChecklistItems
 		{
-			string htmlContent = GenerateChecklistHtml(checklistItems);
-			ChecklistWebView.NavigateToString(htmlContent);
-		}
-
-		private string GenerateChecklistHtml(ObservableCollection<ChecklistItem> items)
-		{
-			StringBuilder htmlBuilder = new StringBuilder();
-			htmlBuilder.Append("<!DOCTYPE html><html><head><meta charset='UTF-8'><style>");
-			// Include CSS styles
-			htmlBuilder.Append(@"
-				.app {
-					margin:0;
-					padding:0;
-					height:100%;
-				}
-				body {
-					font-family: Arial, sans-serif;
-					padding: 10px;
-					font-size: 10pt;
-					background: #600;
-					margin: 0;
-				}
-				.item { margin-bottom: 10px; display: flex;  }
-				.item-checkbox { margin-right: 10px; }
-				.item-text {
-					color: #F40;
-					margin-top: 4px;
-				}
-				.item-text >b {
-					color: #F86;
-					font-size: 115%;
-				}
-				.item-text.checked >b {
-					color: #A43;
-				}
-				.item-text.checked { color: #930; }
-				input[type='checkbox'] {
-					-webkit-appearance: none;
-					-moz-appearance: none;
-					appearance: none;
-					width: 16px;
-					min-width: 16px;
-					height: 16px;
-					border: 1px solid #D22;
-					border-radius: 3px;
-					outline: none;
-					cursor: pointer;
-					position: relative;
-					margin-top: 4px;
-				}
-
-				/* Checked state */
-				input[type = 'checkbox']:checked {
-					width: 16px;
-					min-width: 16px;
-					background-color: #B22; /* Desired fill color */
-					border-color: #D22;     /* Desired border color */
-				}
-
-				/* Checkmark */
-				input[type = 'checkbox']:checked::after {
-					content: '';
-					position: absolute;
-					top: 0px;
-					left: 3px;
-					width: 5px;
-					height: 9px;
-					border: solid #F88;
-					border-width: 0 3px 3px 0;
-					transform: rotate(37deg);
-				}
-			");
-			htmlBuilder.Append("</style><script type='text/javascript'>");
-			htmlBuilder.Append(@"
-				function checkboxChanged(id) {
-					console.log('clicked', id);
-					const isChecked = document.getElementById(id).checked;
-					console.log('posting', id, isChecked);
-					window.chrome.webview.postMessage({ id: id, isChecked: isChecked });
-				}
-				</script>");
-			htmlBuilder.Append("</head><body><div class='app'>");
-
-			foreach (var item in items)
+			get => checklistItems;
+			set
 			{
-				string textClass = "item-text" + (item.IsChecked ? " checked" : "");
-				string htmlText = item.Text.Replace("\\n", "<br />");
-				string checkbox = $"<input type='checkbox' class='item-checkbox' id='{item.Id}' {(item.IsChecked ? "checked" : "")} onclick='checkboxChanged(\"{item.Id}\")' />";
-
-				htmlBuilder.AppendFormat("<div class='item'>{0}<div class='{1}'>{2}</div></div>", checkbox, textClass, htmlText, item.Id);
-			}
-
-			htmlBuilder.Append("</div></body></html>");
-			htmlBuilder.Append("</script>");
-
-			return htmlBuilder.ToString();
-		}
-
-		private async void InitializeWebView()
-		{
-			string userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OATControl", "WebView2");
-
-			// Ensure the directory exists
-			Directory.CreateDirectory(userDataFolder);
-
-			// Create the WebView2 environment with the custom user data folder
-			var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
-
-			ChecklistWebView.CoreWebView2InitializationCompleted += async (sender, args) =>
-			{
-				if (args.IsSuccess)
-				{
-					ChecklistWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
-					UpdateChecklistHtml();
-				}
-			};
-			await ChecklistWebView.EnsureCoreWebView2Async(env);
-		}
-
-		private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
-		{
-			var message = e.WebMessageAsJson;
-			if (!string.IsNullOrEmpty(message))
-			{
-				var json = Newtonsoft.Json.JsonConvert.DeserializeObject<CheckboxMessage>(message);
-				var item = checklistItems.FirstOrDefault(i => i.Id == json.Id);
-				if (item != null)
-				{
-					item.IsChecked = json.IsChecked;
-					UpdateChecklistHtml();
-				}
+				checklistItems = value;
+				OnPropertyChanged(nameof(ChecklistItems));
 			}
 		}
 
@@ -202,7 +71,6 @@ namespace OATControl
 			{
 				item.IsChecked = false;
 			}
-			UpdateChecklistHtml();
 		}
 
 		private void OnCloseClick(object sender, RoutedEventArgs e)
@@ -215,21 +83,42 @@ namespace OATControl
 
 
 		private void LoadChecklistItemsFromFile(string filePath)
-		{
-			List<ChecklistItem> items = new List<ChecklistItem>();
+		 {
+			var items = new List<ChecklistItem>();
+			ChecklistItem currentHeading = null;
 			FileInfo fi = new FileInfo(_listFilePath);
 			_lastCreationDate = fi.LastWriteTimeUtc;
 
 			try
 			{
 				var lines = File.ReadAllLines(filePath);
-				items = lines.Select(line => new ChecklistItem
+
+				foreach (var line in lines)
 				{
-					Text = line,
-					IsChecked = false
-				}).ToList();
+					if (line.StartsWith("*"))
+					{
+						// Create a new heading
+						currentHeading = new ChecklistItem
+						{
+							Text = line.Substring(1).Trim(),
+							IsChecked = false,
+							SubItems = new ObservableCollection<ChecklistItem>()
+						};
+						items.Add(currentHeading);
+					}
+					else if (line.StartsWith("-") && currentHeading != null)
+					{
+						// Add subitem to the current heading
+						currentHeading.SubItems.Add(new ChecklistItem
+						{
+							Text = line.Substring(1).Trim(),
+							IsChecked = false
+						});
+					}
+				}
 
 				checklistItems = new ObservableCollection<ChecklistItem>(items);
+				OnPropertyChanged(nameof(ChecklistItems));
 			}
 			catch (Exception ex)
 			{
@@ -275,7 +164,6 @@ namespace OATControl
 			if (_lastCreationDate != fi.LastWriteTimeUtc)
 			{
 				LoadChecklistItemsFromFile(_listFilePath);
-				UpdateChecklistHtml();
 			}
 		}
 

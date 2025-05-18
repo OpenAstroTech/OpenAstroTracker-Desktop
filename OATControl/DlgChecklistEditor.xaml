@@ -55,7 +55,7 @@
                  CaretBrush="#FFF"
                  />
         </Border>
-        <TextBlock Grid.Row="1" Text="One checklist item line. You can use &lt;b&gt; for bold. Use \n for new line." Foreground="#A30"/>
+        <TextBlock Grid.Row="1" Text="One checklist item line. Headers start with '*', subitems with '-'." Foreground="#A30"/>
         <!-- Buttons -->
         <Grid Grid.Row="2"
                     HorizontalAlignment="Stretch"

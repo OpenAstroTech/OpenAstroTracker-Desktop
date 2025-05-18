@@ -70,15 +70,18 @@
 			<Setter Property="MaxWidth"  Value="250" />
 		</Style>
         <Style x:Key="ComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-            <Setter Property="Foreground" Value="Red" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="BorderBrush" Value="#FF880000" />
-            <Setter Property="FontSize" Value="14" />
+			<Setter Property="Foreground" Value="Red" />
+			<Setter Property="Background" Value="#800" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="BorderBrush" Value="#FF880000" />
+			<Setter Property="BorderThickness" Value="2" />
+			<Setter Property="FontSize" Value="12" />
             <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="ItemContainerStyle">
+			<Setter Property="ItemContainerStyle">
+				
                 <Setter.Value>
                     <Style TargetType="ComboBoxItem">
-                        <Setter Property="FontSize" Value="14" />
+                        <Setter Property="FontSize" Value="12" />
                         <Setter Property="Foreground" Value="Red" />
                         <Setter Property="FontWeight" Value="Bold" />
                         <Setter Property="Background" Value="#F600" />
@@ -380,11 +383,7 @@
 					  Width="120" 
 					  Height="24"
 					  Margin="10,4,0,0"
-					  FontSize="16" 
 					  HorizontalAlignment="Left" 
-					  Foreground="Red" 
-					  FontWeight="Bold" 
-					  BorderBrush="#FF880000"
                   Style="{StaticResource ComboBoxStyle}"/>
         <!--<Button Grid.Row="18" Grid.Column="4" Margin="8,4" Padding="20,0" Content="SideReal" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ChangeTrackingRateCommand}"/>-->
 
