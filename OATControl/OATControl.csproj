@@ -138,9 +138,6 @@
     <Compile Include="MiniController.xaml.cs">
       <DependentUpon>MiniController.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RenameSlewPointDialog.xaml.cs">
-      <DependentUpon>RenameSlewPointDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
@@ -218,10 +215,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MiniController.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="RenameSlewPointDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

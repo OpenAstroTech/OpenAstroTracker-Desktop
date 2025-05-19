@@ -23,8 +23,15 @@ namespace OATControl
 	public class SlewPoint : INotifyPropertyChanged
 	{
 		private string _name;
+		private string _savedName;
 		private int _raStepperPosition;
 		private int _decStepperPosition;
+		private bool _isEditing;
+
+		public string SavedName
+		{
+			get { return _savedName; }
+		}
 
 		public string Name
 		{
@@ -38,6 +45,24 @@ namespace OATControl
 				}
 			}
 		}
+
+		public bool IsEditing
+		{
+			get => _isEditing;
+			set
+			{
+				if (_isEditing != value)
+				{
+					_isEditing = value;
+					if (_isEditing)
+					{
+						_savedName = _name;
+					}
+					OnPropertyChanged(nameof(IsEditing));
+				}
+			}
+		}
+
 
 		public int RaStepperPosition
 		{
@@ -168,11 +193,9 @@ namespace OATControl
 
 		private void RenameSlewPoint(SlewPoint point)
 		{
-			RenameSlewPointDialog dialog = new RenameSlewPointDialog(point.Name) { Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-			if (dialog.ShowDialog() == true)
-			{
-				point.Name = dialog.PointName;
-			}
+
+			point.IsEditing = true;
+			
 		}
 
 		private async void GoToSlewPoint(SlewPoint point)
@@ -180,6 +203,33 @@ namespace OATControl
 			if ((_mount != null) && _mount.MountConnected)
 			{
 				await _mount.MoveMountBy(point.RaStepperPosition - (int)_mount.RAStepper, point.DecStepperPosition - (int)_mount.DECStepper);
+			}
+		}
+		
+		private void NameTextBox_KeyDown(object sender, KeyEventArgs e)
+		{
+			var tb = sender as TextBox;
+			SlewPoint point = (tb?.DataContext as SlewPoint);
+			if (point != null)
+			{
+				if (e.Key == Key.Enter)
+				{
+					point.IsEditing = false;
+				}
+				else if (e.Key == Key.Escape)
+				{
+					point.Name = point.SavedName;
+					point.IsEditing = false;
+				}
+			}
+		}
+
+		private void NameTextBox_LostFocus(object sender, RoutedEventArgs e)
+		{
+			var tb = sender as TextBox;
+			if (tb?.DataContext is SlewPoint point)
+			{
+				point.IsEditing = false;
 			}
 		}
 
@@ -204,6 +254,16 @@ namespace OATControl
 		protected void OnPropertyChanged(string propertyName)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		private void NameTextBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+		{
+			var tb = sender as TextBox;
+			if (tb != null && tb.IsVisible)
+			{
+				tb.Focus();
+				tb.SelectAll();
+			}
 		}
 
 	}
