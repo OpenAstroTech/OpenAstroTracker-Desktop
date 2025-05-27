@@ -390,10 +390,30 @@
 		<Button Grid.Row="16" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Factory Reset" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding FactoryResetCommand}"/>
 
 		<TextBlock Grid.Row ="17" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Open the OATControl logfile folder" ToolTip="OATControl keeps logfiles from the last 6 sessions around in case you need to check something or the devs ask for them to debug a issue yopu might have." TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<Button Grid.Row="17" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
+        <Button Grid.Row="17" Grid.Column="4" Margin="8,4" Padding="20,0" Content="Open Log Folder" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding ShowLogFolderCommand}"/>
 
-		<TextBlock Grid.Row ="18" Grid.Column="3" Margin="0,0" HorizontalAlignment="Left" Text="Tracking Rate" ToolTip="Change mount tracking rate" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-		<ComboBox Grid.Row="18" Grid.Column="4" 
+        <Grid Grid.Row="18" Grid.Column="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="-2,0,6,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row ="0" Grid.Column="0" Margin="0,0" HorizontalAlignment="Left" Text="Tracking Rate" ToolTip="Change mount tracking rate" TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
+            <Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <controls:PushButton Grid.Column="0" Width="20" Height="20" Direction="W" IsEnabled="{Binding IsManualTrackingMode}" Command="{Binding StartChangingCommand}" CommandParameter="TR-" />
+                <TextBlock Grid.Column="1" Text="{Binding ManualTrackingRateEdit,StringFormat={}{0:0.00}}"  Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                <controls:PushButton Grid.Column="2" Width="20" Height="20" Direction="E" IsEnabled="{Binding IsManualTrackingMode}" Command="{Binding StartChangingCommand}" CommandParameter="TR+" />
+            </Grid>
+
+        </Grid>
+
+        <ComboBox Grid.Row="18" Grid.Column="4" 
 					  ItemsSource="{Binding AvailableTrackingModes}" 
 					  SelectedValue="{Binding SelectedTrackingMode}"
 					  Width="120" 
