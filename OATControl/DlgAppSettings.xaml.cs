@@ -48,6 +48,7 @@ namespace OATControl
 		DelegateCommand _editPointCommand;
 		DelegateCommand _addPointCommand;
 		DelegateCommand _configureChecklistCommand;
+
 		private GridViewColumnHeader _lastHeaderClicked;
 
 		public DlgAppSettings(MountVM mount)
@@ -117,6 +118,19 @@ namespace OATControl
 				_pointsOfInterest = value;
 				OnPropertyChanged();
 			}
+		}
+
+		public String NinaLogFolder
+		{
+			get { return _mount.NinaLogFolder; }
+			set
+			{
+				if (_mount.NinaLogFolder != value)
+				{
+					_mount.NinaLogFolder = value;
+					OnPropertyChanged();
+				}
+			}	
 		}
 
 		public String SelectedBaudRate

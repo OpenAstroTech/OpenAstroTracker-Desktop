@@ -117,6 +117,9 @@
     <Compile Include="DlgCustomActionSetup.xaml.cs">
       <DependentUpon>DlgCustomActionSetup.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DlgNinaPolarAlignment.xaml.cs">
+      <DependentUpon>DlgNinaPolarAlignment.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DlgRunPolarAlignment.xaml.cs">
       <DependentUpon>DlgRunPolarAlignment.xaml</DependentUpon>
     </Compile>
@@ -189,6 +192,10 @@
     <Page Include="DlgCustomActionSetup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DlgNinaPolarAlignment.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="DlgRunPolarAlignment.xaml">
       <Generator>MSBuild:Compile</Generator>

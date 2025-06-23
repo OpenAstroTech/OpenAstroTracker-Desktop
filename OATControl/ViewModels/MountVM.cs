@@ -20,6 +20,8 @@ using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
 using MahApps.Metro.Converters;
+using System.Windows.Media.Animation;
+using System.Collections.Specialized;
 
 namespace OATControl.ViewModels
 {
@@ -31,6 +33,14 @@ namespace OATControl.ViewModels
 		DayTime _currentRA = new DayTime();
 		Declination _currentDEC = new Declination();
 		DateTime _lastHomingActive = DateTime.MinValue;
+
+		// AutoPA variables
+		long _lastLogPosition = 0;
+		List<string> _allTextList = new List<string>(5000);
+		private int _examinedLines;
+		private int _numCalculatedErrors;
+		private string _ninaPolarAlignState;
+		string _ninaLogFolder = string.Empty;
 
 		float _raStepper = 0;
 		float _decStepper = 0;
@@ -205,7 +215,39 @@ namespace OATControl.ViewModels
 		private string _keyboardFocus = string.Empty;
 		private DateTime _siderealTime;
 		private DateTime _lastSiderealSync = DateTime.UtcNow - TimeSpan.FromMinutes(10);
+		private FileSystemWatcher _logWatcher;
 
+		public static void RunOnUiThread(Action action, Dispatcher dispatcher)
+		{
+			// If we're on another thread, check whether the main thread dispatcher is available
+			// If the dispatcher is available, do a synchronous update, else asynchronous
+			if (dispatcher.CheckAccess())
+			{
+				// If the dispatcher is available, do a synchronous update
+				action();
+			}
+			else
+			{
+				try
+				{
+					// If the dispatcher is available, do an asynchronous update
+					dispatcher.Invoke(action);
+				}
+				catch (Exception e)
+				{
+					//DebugChannelLogger.DebugLogger.WriteError(
+					//	"WPFD: dispatcher.Invoke threw exception of type: {0} - {1}", e.GetType(), e.Message);
+					dispatcher.BeginInvoke(action);
+				}
+			}
+		}
+
+		public void OnCloseNinaPolarAlignmentDialog()
+		{
+			_polarAlignmentDlg?.Close();
+			_polarAlignmentDlg = null;
+			_ninaPolarAlignState = "Idle";
+		}
 
 		public float RASpeed
 		{
@@ -215,12 +257,279 @@ namespace OATControl.ViewModels
 		{
 			get; private set;
 		}
+
+		void ProcessNinaLogs()
+		{
+			int lineCount = 0;
+
+			lock (_allTextList)
+			{
+				lineCount = _allTextList.Count;
+			}
+			Log.WriteLine("MOUNT: NINA log file has {0} lines, we have examined {1}.", lineCount, _examinedLines);
+
+			if (!MountConnected)
+			{
+				Log.WriteLine("MOUNT: Not connected, skipping NINA log processing.");
+				_examinedLines = lineCount;
+			}
+
+			while (lineCount > _examinedLines)
+			{
+				Log.WriteLine("MOUNT: New lines in NINA log file to process.");
+
+				switch (_ninaPolarAlignState)
+				{
+					case "Idle":
+						// Check if we started polar alignment.
+						var startLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Starting"));
+						if (startLine > 0)
+						{
+							_examinedLines = startLine;
+							Log.WriteLine("MOUNT: Polar alignment started at line " + startLine);
+							// We are in a polar alignment.
+							_ninaPolarAlignState = "Starting";
+
+							RunOnUiThread(() =>
+							{
+								_polarAlignmentDlg = new DlgNinaPolarAlignment(this.OnCloseNinaPolarAlignmentDialog) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
+								_polarAlignmentDlg.Show();
+							}, Application.Current.Dispatcher);
+						}
+						else
+						{
+							_examinedLines = lineCount;
+						}
+						break;
+					case "Starting":
+						{
+							var calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("First measurement"));
+							if (calcLine > 0)
+							{
+								RunOnUiThread(() =>
+								{
+									_polarAlignmentDlg.SetStatus("Measure", _allTextList[calcLine]);
+								}, Application.Current.Dispatcher);
+							}
+							calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Second measurement"));
+							if (calcLine > 0)
+							{
+								RunOnUiThread(() =>
+								{
+									_polarAlignmentDlg.SetStatus("Measure", _allTextList[calcLine]);
+								}, Application.Current.Dispatcher);
+							}
+							calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Third measurement"));
+							if (calcLine > 0)
+							{
+								RunOnUiThread(() =>
+								{
+									_polarAlignmentDlg.SetStatus("Measure", _allTextList[calcLine]);
+								}, Application.Current.Dispatcher);
+								_ninaPolarAlignState = "Calculating";
+							}
+							_examinedLines = lineCount;
+						}
+						break;
+					case "Calculating":
+						{
+							// Check if we have an error.
+							var calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Calculated Error"));
+							if (calcLine > 0)
+							{
+								_examinedLines = calcLine + 1;
+								_numCalculatedErrors++;
+								if (_numCalculatedErrors > 2)
+								{
+									_ninaPolarAlignState = "Adjusting";
+									var error = _allTextList[calcLine].Substring(_allTextList[calcLine].IndexOf("Calculated Error:") + 17).Trim();
+									var errors = error.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+									var azError = errors[0].Substring(3).Trim();
+									var altError = errors[1].Substring(5).Trim();
+									RunOnUiThread(() =>
+									{
+										_polarAlignmentDlg.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError}");
+										_polarAlignmentDlg.SetStatus("Adjust", _allTextList[calcLine]);
+									}, Application.Current.Dispatcher);
+
+									var azAdjust = ParseDegrees(azError);
+									var altAdjust = ParseDegrees(altError);
+
+									if ((Math.Abs(azAdjust) > 5) || (Math.Abs(altAdjust) > 5))
+									{
+										if ((Math.Abs(azAdjust) > 5) && Math.Abs(altAdjust) < 5)
+										{
+											RunOnUiThread(() =>
+											{
+												_polarAlignmentDlg.SetStatus("Error", "Azimuth error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
+											}, Application.Current.Dispatcher);
+										}
+										else if ((Math.Abs(azAdjust) < 5) && Math.Abs(altAdjust) > 5)
+										{
+											RunOnUiThread(() =>
+											{
+												_polarAlignmentDlg.SetStatus("Error", "Altitude error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
+											}, Application.Current.Dispatcher);
+										}
+										else
+										{
+											RunOnUiThread(() =>
+											{
+												_polarAlignmentDlg.SetStatus("Error", "Both Azimuth and Altitude errors are too large for automatic adjustment, please move mount manually to within 5 degrees.");
+											}, Application.Current.Dispatcher);
+										}
+										_ninaPolarAlignState = "Idle";
+										return;
+									}
+
+									_oatMount.SendCommand($":MAL{altAdjust:F4}#", (a) => { });
+									_oatMount.SendCommand($":MAZ{-azAdjust:F4}#", (a) => { });
+									_ninaPolarAlignState = "Adjusting";
+								}
+								else
+								{
+									var error = _allTextList[calcLine].Substring(_allTextList[calcLine].IndexOf("Calculated Error:") + 17).Trim();
+									var errors = error.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+									var azError = errors[0].Substring(3).Trim();
+									var altError = errors[1].Substring(5).Trim();
+									RunOnUiThread(() =>
+									{
+										_polarAlignmentDlg.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError} ({_numCalculatedErrors}/3)...");
+									}, Application.Current.Dispatcher);
+								}
+							}
+							else
+							{
+								_examinedLines = lineCount;
+							}
+						}
+						break;
+					case "Adjusting":
+						{
+							// Check if we have an adjustment done.
+							bool azRunning = false;
+							bool altRunning = false;
+							bool posValid = false;
+							do
+							{
+								var donePosQuery = new AutoResetEvent(false);
+								_oatMount.SendCommand(":GX#,#", (a) =>
+								{
+									if (a.Success)
+									{
+										posValid = true;
+										var parts = a.Data.Split(',');
+										azRunning = (parts[1][3] != '-');
+										altRunning = (parts[1][4] != '-');
+										donePosQuery.Set();
+									}
+								});
+								donePosQuery.WaitOne();
+							} 
+							while (posValid && (azRunning || altRunning));
+
+							if (posValid)
+							{
+								// Adjustment is complete, so start the adjustment loop again.
+								_examinedLines = lineCount;
+								_ninaPolarAlignState = "Calculating";
+								_numCalculatedErrors = 0;
+								RunOnUiThread(() =>
+								{
+									_polarAlignmentDlg.SetStatus("ResetLoop", "");
+								}, Application.Current.Dispatcher);
+							}
+							else
+							{
+								RunOnUiThread(() =>
+								{
+									_polarAlignmentDlg.SetStatus("Error", "Unable to run adjustment on mount.");
+								}, Application.Current.Dispatcher);
+
+							}
+						}
+						break;
+				}
+			}
+			Log.WriteLine("MOUNT: Processed NINA log file. We have examined {0} lines.", _examinedLines);
+		}
+
+		public static float ParseDegrees(string input)
+		{
+			// Example input: -01° 10' 49"
+			input = input.Trim();
+			var regex = new System.Text.RegularExpressions.Regex(@"^([+-]?\d+)[°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
+			var match = regex.Match(input);
+			if (!match.Success)
+				throw new FormatException("Input string not in expected format: " + input);
+
+			int sign = match.Groups[1].Value.StartsWith("-") ? -1 : 1;
+			int degrees = Math.Abs(int.Parse(match.Groups[1].Value));
+			int minutes = int.Parse(match.Groups[2].Value);
+			int seconds = int.Parse(match.Groups[3].Value);
+
+			float result = sign * (degrees + minutes / 60.0f + seconds / 3600.0f);
+			return result;
+		}
+
+		private void OnLogFileChanged(object sender, FileSystemEventArgs e)
+		{
+			Log.WriteLine("MOUNT: NINA log file changed. " + e.ChangeType.ToString());
+			var changedFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NINA", "Logs", e.Name);
+			if (changedFile != LatestNinaLogfile)
+			{
+				LatestNinaLogfile = changedFile;
+				Log.WriteLine("MOUNT: NINA opened new log file " + e.Name);
+				lock (_allTextList)
+				{
+					_examinedLines = 0;
+					_numCalculatedErrors = 0;
+					_allTextList.Clear();
+					_lastLogPosition = 0;
+					_ninaPolarAlignState = "Idle";
+				}
+			}
+
+			using (FileStream fs = File.Open(LatestNinaLogfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			{
+				fs.Seek(_lastLogPosition, SeekOrigin.Begin);
+				using (StreamReader sr = new StreamReader(fs))
+				{
+					string line;
+					lock (_allTextList)
+					{
+						while ((line = sr.ReadLine()) != null)
+						{
+							_allTextList.Add(line);
+						}
+						_lastLogPosition = fs.Position;
+					}
+				}
+			}
+			ProcessNinaLogs();
+		}
+
 		public MountVM()
 		{
 			Log.WriteLine("MOUNT: Initialization starting...");
 
 			Log.WriteLine("MOUNT: Initializing communication handler factory...");
 			CommunicationHandlerFactory.Initialize();
+
+			Log.WriteLine("MOUNT: Setting up NINA Polar alignment handler");
+
+			_ninaPolarAlignState = "Idle";
+			NinaLogFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NINA", "Logs");
+			if (Directory.Exists(NinaLogFolder))
+			{
+				Log.WriteLine("MOUNT: Installing file watcher on NINA log folder " + NinaLogFolder);
+				_logWatcher = new FileSystemWatcher(_ninaLogFolder) { EnableRaisingEvents = true, NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size, Filter = "*.log" };
+				_logWatcher.Changed += OnLogFileChanged;
+			}
+			else
+			{
+				Log.WriteLine("MOUNT: The NINA log folder does not exist at the expected location: " + NinaLogFolder);
+			}
 
 			Log.WriteLine("MOUNT: Checking whether ASCOM driver is present...");
 			string location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -279,7 +588,7 @@ namespace OATControl.ViewModels
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
 
 			_saveParkPositionCommand = new DelegateCommand(async () => await OnSaveParkPosition(), () => MountConnected);
-			
+
 			_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
@@ -1616,8 +1925,9 @@ namespace OATControl.ViewModels
 					}
 					this.SendOatCommand(":XLGT#,#", (a) => { temperature = a.Success ? a.Data : "0"; failed |= !a.Success; allDone.Set(); });
 
-					this.SendOatCommand(":hCq#,#", (a) => { 
-						if(a.Data == "0")
+					this.SendOatCommand(":hCq#,#", (a) =>
+					{
+						if (a.Data == "0")
 						{
 							UseCustomParkPosition = false;
 						}
@@ -3678,6 +3988,11 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _connectionState, value); }
 		}
 
+		public string NinaLogFolder
+		{
+			get { return _ninaLogFolder; }
+			set { SetPropertyValue(ref _ninaLogFolder, value); }
+		}
 		/// <summary>
 		/// Gets or sets the type of RA stepper of the scope 
 		/// </summary>
@@ -4007,7 +4322,7 @@ namespace OATControl.ViewModels
 			{
 				try
 				{
-					if(newVal ==  true)
+					if (newVal == true)
 					{
 						this.SendOatCommand(":hC1#,n", (a) => { });
 					}
@@ -4388,6 +4703,7 @@ namespace OATControl.ViewModels
 		private float _autoHomeRaDistance;
 		private string _autoHomeDecDirection;
 		private float _autoHomeDecDistance;
+		private DlgNinaPolarAlignment _polarAlignmentDlg;
 
 		/// <summary>
 		/// Gets or sets the keep mini control on-top
@@ -4420,6 +4736,8 @@ namespace OATControl.ViewModels
 				}
 			}
 		}
+
+		public string LatestNinaLogfile { get; private set; }
 
 		public enum CoordSeparators
 		{
@@ -4496,9 +4814,12 @@ namespace OATControl.ViewModels
 		internal void ReplacePointOfInterest(PointOfInterest selectedPoint, PointOfInterest newPt)
 		{
 			int index = _pointsOfInterest.IndexOf(selectedPoint);
-			_pointsOfInterest.Remove(selectedPoint);
-			_pointsOfInterest.Insert(index, newPt);
-			SavePointsOfInterest();
+			if (index >= 0)
+			{
+				_pointsOfInterest.Remove(selectedPoint);
+				_pointsOfInterest.Insert(index, newPt);
+				SavePointsOfInterest();
+			}
 		}
 
 		public void SavePointsOfInterest()
@@ -4509,7 +4830,7 @@ namespace OATControl.ViewModels
 
 		internal bool AddPointOfInterest(PointOfInterest newPt)
 		{
-			if (_pointsOfInterest.FirstOrDefault(pt => (pt.Name == newPt.Name) || (pt.CatalogName == newPt.CatalogName)) == null)
+			if (_pointsOfInterest.FirstOrDefault(pt => (pt.Name == newPt.Name) || (!String.IsNullOrEmpty(pt.CatalogName) && (pt.CatalogName == newPt.CatalogName))) == null)
 			{
 				_pointsOfInterest.Add(newPt);
 				SavePointsOfInterest();

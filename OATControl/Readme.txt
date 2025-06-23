@@ -1,6 +1,16 @@
 Revision History
 ----------------
 
+OATControl V1.1.10.0                                            22 Jun 2025
+- Added support for AutoPA feature from N.I.N.A. 3.1 and later. Only TPPA
+  supported at this time.
+
+OATControl V1.1.9.0                                             22 May 2025
+- Added a Slewpoint dialog to allow you to define slew points in stepper
+  coordinates. 
+- Switched Checklist rendering to WPF, instead of web based.
+- Support custom park position.
+
 OATControl V1.1.8.0                                              7 Mar 2025
 - Made Autohoming from connection screen use the same settings as the homing
   commands from the main UI and Settings dialog.

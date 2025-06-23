@@ -1,0 +1,90 @@
+﻿<Controls:MetroWindow x:Class="OATControl.DlgNinaPolarAlignment"
+		xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Converters"
+		mc:Ignorable="d"
+		Background="#600"
+        Title="N.I.N.A. Polar Alignment" Height="250" Width="420" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold" SizeToContent="Height">
+	<Controls:MetroWindow.Resources>
+		<Style x:Key="StateText" TargetType="TextBlock">
+			<Setter Property="Margin" Value="10,0" />
+			<Setter Property="Foreground" Value="#FFFF1010"  />
+			<Setter Property="TextWrapping" Value="Wrap"  />
+			<Setter Property="VerticalAlignment" Value="Center"  />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
+		<Style x:Key="StateButton" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}" >
+			<Setter Property="Margin" Value="10,10" />
+			<Setter Property="Padding" Value="10,10" />
+			<Setter Property="Width" Value="100" />
+			<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}"  />
+			<Setter Property="VerticalAlignment" Value="Center"  />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
+		<controls:IntToVisibilityConverter x:Key="State1Visible" VisibleValue="1" Operator=">="/>
+		<controls:IntToVisibilityConverter x:Key="State2Visible" VisibleValue="2" Operator=">=" />
+		<controls:IntToVisibilityConverter x:Key="State3Visible" VisibleValue="3" Operator=">=" />
+		<controls:IntToBoolConverter x:Key="State1Enabled" TrueValue="1" Operator="=="/>
+		<controls:IntToBoolConverter x:Key="State2Enabled" TrueValue="2" Operator="==" />
+		<controls:IntToBoolConverter x:Key="State3Enabled" TrueValue="3" Operator="==" />
+		<Style x:Key="ChecklistItemTextStyle" TargetType="TextBlock">
+			<Setter Property="FontWeight" Value="Normal"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Foreground" Value="#933"/>
+			<Style.Triggers>
+				<DataTrigger Binding="{Binding IsComplete}" Value="True">
+					<Setter Property="FontWeight" Value="Bold"/>
+					<Setter Property="Foreground" Value="#E44"/>
+				</DataTrigger>
+			</Style.Triggers>
+		</Style>
+	</Controls:MetroWindow.Resources>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<TextBlock Grid.Row="0" 
+				   Text="N.I.N.A. has started Polar Alignment"
+                   FontWeight="Bold"
+                   Style="{StaticResource StateText}"
+                   Margin="20,10,20,16"/>
+		<ItemsControl Grid.Row="1" ItemsSource="{Binding ChecklistItems}" Margin="20,20,0,60">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding Text}" Style="{StaticResource ChecklistItemTextStyle}" Margin="0,2"/>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+
+		<TextBlock Grid.Row="2" Text="{Binding ErrorMessage}"
+                   FontWeight="Bold"
+				   FontSize="14"
+                   Style="{StaticResource StateText}"
+				   HorizontalAlignment="Center"
+                   Margin="20,10,20,16"/>
+
+
+		<Button Grid.Row="3"  
+				Content="Close" 
+				Command="{Binding CloseCommand}" 
+				Style="{StaticResource StateButton}"  
+				IsCancel="True" 
+				HorizontalAlignment="Right" 
+				VerticalAlignment="Bottom" 
+				Margin="0,0,20,20" />
+	</Grid>
+</Controls:MetroWindow>

@@ -305,6 +305,16 @@
 								Margin="0,2,0,0"
 								Command="{Binding ConfigureChecklistCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}" ToolTip="Configure the items on the checklist to display." />
 					</StackPanel>
+					<StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Top">
+						<TextBlock Text="N.I.N.A. Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="The log folder of N.I.N.A. to monitor for Polar Alignment. Only N.I.N.A. V3.1 and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<TextBox Grid.Row="2" Grid.Column="1" 
+							Style="{StaticResource TextBoxSmall}" 
+							Width="Auto"
+							HorizontalAlignment="Stretch"
+							Text="{Binding NinaLogFolder}" 
+							VerticalAlignment="Center" Margin="10,4,20,0"/>
 				</Grid>
 			</TabItem>
 
