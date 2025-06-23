@@ -1,7 +1,7 @@
 +--------------------------------------------------------------------------+
 |                                                                          |
-|   OpenAstroTracker ASCOM Driver V6.6.7.2 Release                         |
-|   Published: 20. April 2025                                              |
+|   OpenAstroTracker ASCOM Driver V6.6.7.3 Pre-Release                         |
+|   Published: 23. June 2025                                              |
 |                                                                          |
 +--------------------------------------------------------------------------+
 
@@ -33,6 +33,8 @@ Support
 
 Testing
 -------
+ * 6.6.7.3 Not tested.
+
  * 6.6.7.2 Conformance Test (2025-Apr-20) 
     - Telescope: All tests passed, no errors, no warnings, 18 issues (all expected). 
 
@@ -73,6 +75,15 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
+ - 6.6.7.3 : Pre-Released 2025-06-23
+   Added support for ASCOM driver to get and set time and date from and to mount.
+ 
+ - 6.6.7.2 : Pre-Released 2025-04-20
+ - FindHome and AtHome implemented.
+ - Fixed a bug that caused errors when syncing location.
+ - Propagated location changes to the mount if connected.
+ - Fix user-input number parsing issues for non-US locales. 
+
  - 6.6.7.1 : Pre-Released 2025-02-28
    Fixed a bug that caused errors when syncing location.
    Propagated location changes to the mount if connected.
