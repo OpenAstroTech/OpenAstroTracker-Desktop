@@ -88,6 +88,7 @@ namespace OATControl.ViewModels
 		DateTime _connectedAt = DateTime.UtcNow;
 		string _lastDirection = string.Empty;
 		bool _useCustomParkPosition = false;
+		bool _isManualTrackingMode = false;
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
@@ -185,6 +186,7 @@ namespace OATControl.ViewModels
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
 		private string _trackingMode = "Sidereal";
+		float _manualTrackingRateEdit = 0.0f;
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -1209,11 +1211,12 @@ namespace OATControl.ViewModels
 					case "SR": RAStepsPerDegreeEdit += 0.1f * _incrDirection; break;
 					case "SD": DECStepsPerDegreeEdit += 0.1f * _incrDirection; break;
 					case "SS": SpeedCalibrationFactorEdit += _incrDirection; break;
+					case "TR": ManualTrackingRateEdit += 0.1f * _incrDirection; break;
 					default: OnAdjustTarget(_incrVar + (_incrDirection == 1 ? "+" : "-")); break;
 				}
 			}
 		}
-
+		
 		void SetDECStepsPerDegree(float steps)
 		{
 			DECStepsPerDegree = steps;
@@ -1234,6 +1237,7 @@ namespace OATControl.ViewModels
 				case "SR": RAStepsPerDegreeEdit += 0.2f * _incrDirection; break;
 				case "SD": DECStepsPerDegreeEdit += 0.2f * _incrDirection; break;
 				case "SS": SpeedCalibrationFactorEdit += _incrDirection; break;
+				case "TR": ManualTrackingRateEdit += 0.1f* _incrDirection; break;
 				default: OnAdjustTarget(_incrVar + (_incrDirection == 1 ? "+" : "-")); break;
 			}
 			_timer.Interval = TimeSpan.FromMilliseconds(_incrementalDelay);
@@ -1910,7 +1914,11 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11314)
 					{
-						this.SendOatCommand(":TZ#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
+						this.SendOatCommand(":Gk#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
+						this.SendOatCommand(":GT#,#", (a) => {
+							ManualTrackingRateEdit = float.Parse(a.Data, _oatCulture);
+							failed |= !a.Success;
+						});
 					}
 					this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11206)
@@ -2459,6 +2467,22 @@ namespace OATControl.ViewModels
 						TrackingSpeed = float.Parse(speed.Data, _oatCulture);
 					}
 					//OnPropertyChanged("TrackingSpeed");
+					doneEvent.Set();
+				});
+
+				this.SendOatCommand(":Gk#,#", (trkMode) =>
+				{
+					Log.WriteLine("MOUNT: Current Tracking Mode is {0}...", trkMode.Data);
+					if (trkMode.Success)
+					{
+						IsManualTrackingMode = false;
+						TrackingMode = trkMode.Data;
+						if(trkMode.Data == "Manual")
+						{
+							IsManualTrackingMode = true;
+						}
+					}
+					
 					doneEvent.Set();
 				});
 
@@ -3850,6 +3874,15 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _decStepsPerDegreeEdit, value); }
 		}
 
+		public float ManualTrackingRateEdit
+		{
+			get { return _manualTrackingRateEdit; }
+			set {
+				SetPropertyValue(ref _manualTrackingRateEdit, value);
+				_oatMount?.SendCommand(string.Format(_oatCulture, ":Sq{0:0.0000}#", ManualTrackingRateEdit), (a) => { });
+			}
+		}
+
 		/// <summary>
 		/// Gets or sets the DEC steps per degree
 		/// </summary>
@@ -4313,6 +4346,12 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _useCustomParkPosition, value, OnUseCustomParkPositionChanged); }
 		}
 
+		public bool IsManualTrackingMode
+		{
+			get { return _isManualTrackingMode; }
+			set { SetPropertyValue(ref _isManualTrackingMode, value); }
+		}
+
 		/// <summary>
 		/// Sends command to enable/disable Custom Park Position to the mount
 		/// </summary>
@@ -4632,8 +4671,9 @@ namespace OATControl.ViewModels
 			get { return _trackingMode; }
 			set
 			{
-				if (FirmwareVersion > 11314)
+				if (FirmwareVersion >= 11314)
 				{
+					IsManualTrackingMode = false;
 					if (value == "Sidereal")
 					{
 						this.SendOatCommand(":TQ#,n", (a) => { });
@@ -4650,15 +4690,27 @@ namespace OATControl.ViewModels
 					{
 						this.SendOatCommand(":TK#,n", (a) => { });
 					}
+					else if (value == "Manual")
+					{
+						this.SendOatCommand(":TM#,n", (a) => { });
+						IsManualTrackingMode = true;
+					}
 					else
 					{
 						this.SendOatCommand(":TQ#,n", (a) => { });
 					}
 
 					Log.WriteLine("MOUNT: Changing tracking rate to " + value);
-					_trackingMode = value;
+					// _trackingMode = value;
+					SetPropertyValue(ref _trackingMode, value);
+					
+					OnPropertyChanged("TrackingMode");
+					OnPropertyChanged("SelectedTrackingMode");
+					
 					AppSettings.Instance.TrackingRate = value;
 					AppSettings.Instance.Save();
+
+					
 				}
 			}
 		}
@@ -4695,7 +4747,8 @@ namespace OATControl.ViewModels
 					"Sidereal",
 					"Lunar",
 					"Solar",
-					"King"
+					"King",
+					"Manual"
 				};
 
 
