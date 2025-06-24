@@ -407,7 +407,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <controls:PushButton Grid.Column="0" Width="20" Height="20" Direction="W" IsEnabled="{Binding IsManualTrackingMode}" Command="{Binding StartChangingCommand}" CommandParameter="TR-" />
-                <TextBlock Grid.Column="1" Text="{Binding ManualTrackingRateEdit,StringFormat={}{0:0.00}}"  Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding TrackingRateHz,StringFormat={}{0:0.00}}"  Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                 <controls:PushButton Grid.Column="2" Width="20" Height="20" Direction="E" IsEnabled="{Binding IsManualTrackingMode}" Command="{Binding StartChangingCommand}" CommandParameter="TR+" />
             </Grid>
 
@@ -416,6 +416,7 @@
         <ComboBox Grid.Row="18" Grid.Column="4" 
 					  ItemsSource="{Binding AvailableTrackingModes}" 
 					  SelectedValue="{Binding SelectedTrackingMode}"
+					
 					  Width="120" 
 					  Height="24"
 					  Margin="10,4,0,0"

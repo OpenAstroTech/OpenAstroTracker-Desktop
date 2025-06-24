@@ -88,7 +88,10 @@ namespace OATControl.ViewModels
 		DateTime _connectedAt = DateTime.UtcNow;
 		string _lastDirection = string.Empty;
 		bool _useCustomParkPosition = false;
+
 		bool _isManualTrackingMode = false;
+		float _trackingRateHz = 60.0f;
+		private string _trackingMode = "Sidereal";
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
@@ -185,8 +188,6 @@ namespace OATControl.ViewModels
 
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
-		private string _trackingMode = "Sidereal";
-		float _manualTrackingRateEdit = 0.0f;
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -670,7 +671,7 @@ namespace OATControl.ViewModels
 			AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
 			AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
 			AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
-			TrackingMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
+			_trackingMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
 
 			ScopeType = "OAM";
 
@@ -1914,9 +1915,9 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11314)
 					{
-						this.SendOatCommand(":Gk#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
+						this.SendOatCommand(":Gk#,#", (a) => { _trackingMode = a.Data; failed |= !a.Success; });
 						this.SendOatCommand(":GT#,#", (a) => {
-							ManualTrackingRateEdit = float.Parse(a.Data, _oatCulture);
+							TrackingRateHz = float.Parse(a.Data, _oatCulture);
 							failed |= !a.Success;
 						});
 					}
@@ -1955,7 +1956,7 @@ namespace OATControl.ViewModels
 					{
 						if (!string.IsNullOrEmpty(trkMode))
 						{
-							TrackingMode = trkMode;
+							_trackingMode = trkMode;
 						}
 
 						if (localTime.Length == 8)
@@ -2476,7 +2477,7 @@ namespace OATControl.ViewModels
 					if (trkMode.Success)
 					{
 						IsManualTrackingMode = false;
-						TrackingMode = trkMode.Data;
+						_trackingMode = trkMode.Data;
 						if(trkMode.Data == "Manual")
 						{
 							IsManualTrackingMode = true;
@@ -3874,12 +3875,22 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _decStepsPerDegreeEdit, value); }
 		}
 
+		public float TrackingRateHz
+		{
+			get { return _trackingRateHz; }
+			set { 
+				SetPropertyValue(ref _trackingRateHz, value);
+				OnPropertyChanged("TrackingRateHz");
+			}
+		}
+
 		public float ManualTrackingRateEdit
 		{
-			get { return _manualTrackingRateEdit; }
+			get { return _trackingRateHz; }
 			set {
-				SetPropertyValue(ref _manualTrackingRateEdit, value);
-				_oatMount?.SendCommand(string.Format(_oatCulture, ":Sq{0:0.0000}#", ManualTrackingRateEdit), (a) => { });
+				SetPropertyValue(ref _trackingRateHz, value);
+				_oatMount?.SendCommand(string.Format(_oatCulture, ":TD{0:0.0000}#", _trackingRateHz), (a) => { });
+				OnPropertyChanged("ManualTrackingRateEdit");
 			}
 		}
 
@@ -4624,12 +4635,6 @@ namespace OATControl.ViewModels
 			get { return _pointsOfInterest; }
 		}
 
-		public string TrackingMode
-		{
-			get { return _trackingMode; }
-			set { SetPropertyValue(ref _trackingMode, value); OnPropertyChanged("TrackingMode"); }
-		}
-
 		/// <summary>
 		/// Gets the string for the connect button
 		/// </summary>
@@ -4701,16 +4706,12 @@ namespace OATControl.ViewModels
 					}
 
 					Log.WriteLine("MOUNT: Changing tracking rate to " + value);
-					// _trackingMode = value;
-					SetPropertyValue(ref _trackingMode, value);
 					
-					OnPropertyChanged("TrackingMode");
+					SetPropertyValue(ref _trackingMode, value);
 					OnPropertyChanged("SelectedTrackingMode");
 					
 					AppSettings.Instance.TrackingRate = value;
 					AppSettings.Instance.Save();
-
-					
 				}
 			}
 		}

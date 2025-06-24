@@ -648,7 +648,7 @@
 
 			<StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical">
 				<TextBlock Text="Tracking" Margin="0,5,0,0"  Style="{StaticResource TextBlockHeading}" />
-                <TextBlock Text="{Binding TrackingMode}" Margin="5,0,0,0"  Style="{StaticResource TextBlockLabelTiny}" HorizontalAlignment="Left" />
+                <TextBlock Text="{Binding SelectedTrackingMode}" Margin="5,0,0,0"  Style="{StaticResource TextBlockLabelTiny}" HorizontalAlignment="Left" />
 			</StackPanel>
 			<Controls:ToggleSwitchButton  Grid.Column="1" Grid.Row="1"  Margin="0,6,0,0" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}" IsChecked="{Binding IsTracking}" ThumbIndicatorBrush="#E00" />
 			<Grid Grid.Row="1" Grid.Column="2" Visibility="{Binding MountConnected, Converter={StaticResource bool2VisibilityConverter}}">
