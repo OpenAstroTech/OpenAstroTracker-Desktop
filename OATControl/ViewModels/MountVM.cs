@@ -41,6 +41,7 @@ namespace OATControl.ViewModels
 		private int _numCalculatedErrors;
 		private string _ninaPolarAlignState;
 		string _ninaLogFolder = string.Empty;
+		bool _monitorNinaForPA = false;
 
 		float _raStepper = 0;
 		float _decStepper = 0;
@@ -311,7 +312,7 @@ namespace OATControl.ViewModels
 							{
 								RunOnUiThread(() =>
 								{
-									_polarAlignmentDlg.SetStatus("Measure", _allTextList[calcLine]);
+									_polarAlignmentDlg?.SetStatus("Measure", _allTextList[calcLine]);
 								}, Application.Current.Dispatcher);
 							}
 							calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Second measurement"));
@@ -319,19 +320,20 @@ namespace OATControl.ViewModels
 							{
 								RunOnUiThread(() =>
 								{
-									_polarAlignmentDlg.SetStatus("Measure", _allTextList[calcLine]);
+									_polarAlignmentDlg?.SetStatus("Measure", _allTextList[calcLine]);
 								}, Application.Current.Dispatcher);
 							}
 							calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Third measurement"));
+							_examinedLines = lineCount;
 							if (calcLine > 0)
 							{
 								RunOnUiThread(() =>
 								{
-									_polarAlignmentDlg.SetStatus("Measure", _allTextList[calcLine]);
+									_polarAlignmentDlg?.SetStatus("Measure", _allTextList[calcLine]);
 								}, Application.Current.Dispatcher);
 								_ninaPolarAlignState = "Calculating";
-							}
-							_examinedLines = lineCount;
+								_examinedLines = calcLine + 1;
+							}							
 						}
 						break;
 					case "Calculating":
@@ -342,7 +344,7 @@ namespace OATControl.ViewModels
 							{
 								_examinedLines = calcLine + 1;
 								_numCalculatedErrors++;
-								if (_numCalculatedErrors > 2)
+								if (_numCalculatedErrors > 1)
 								{
 									_ninaPolarAlignState = "Adjusting";
 									var error = _allTextList[calcLine].Substring(_allTextList[calcLine].IndexOf("Calculated Error:") + 17).Trim();
@@ -351,41 +353,41 @@ namespace OATControl.ViewModels
 									var altError = errors[1].Substring(5).Trim();
 									RunOnUiThread(() =>
 									{
-										_polarAlignmentDlg.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError}");
-										_polarAlignmentDlg.SetStatus("Adjust", _allTextList[calcLine]);
+										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError}");
+										_polarAlignmentDlg?.SetStatus("Adjust", _allTextList[calcLine]);
 									}, Application.Current.Dispatcher);
 
-									var azAdjust = ParseDegrees(azError);
-									var altAdjust = ParseDegrees(altError);
+									var azAdjust = ParseMinutes(azError);
+									var altAdjust = ParseMinutes(altError);
 
-									if ((Math.Abs(azAdjust) > 5) || (Math.Abs(altAdjust) > 5))
+									if ((Math.Abs(azAdjust) > 60 * 5) || (Math.Abs(altAdjust) > 60 * 5))
 									{
-										if ((Math.Abs(azAdjust) > 5) && Math.Abs(altAdjust) < 5)
+										if ((Math.Abs(azAdjust) > 60 * 5) && Math.Abs(altAdjust) < 60 * 5)
 										{
 											RunOnUiThread(() =>
 											{
-												_polarAlignmentDlg.SetStatus("Error", "Azimuth error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
+												_polarAlignmentDlg?.SetStatus("Error", "Azimuth error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
 											}, Application.Current.Dispatcher);
 										}
-										else if ((Math.Abs(azAdjust) < 5) && Math.Abs(altAdjust) > 5)
+										else if ((Math.Abs(azAdjust) < 60 * 5) && Math.Abs(altAdjust) > 60 * 5)
 										{
 											RunOnUiThread(() =>
 											{
-												_polarAlignmentDlg.SetStatus("Error", "Altitude error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
+												_polarAlignmentDlg?.SetStatus("Error", "Altitude error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
 											}, Application.Current.Dispatcher);
 										}
 										else
 										{
 											RunOnUiThread(() =>
 											{
-												_polarAlignmentDlg.SetStatus("Error", "Both Azimuth and Altitude errors are too large for automatic adjustment, please move mount manually to within 5 degrees.");
+												_polarAlignmentDlg?.SetStatus("Error", "Both Azimuth and Altitude errors are too large for automatic adjustment, please move mount manually to within 5 degrees.");
 											}, Application.Current.Dispatcher);
 										}
 										_ninaPolarAlignState = "Idle";
 										return;
 									}
 
-									_oatMount.SendCommand($":MAL{altAdjust:F4}#", (a) => { });
+									_oatMount.SendCommand($":MAL{-altAdjust:F4}#", (a) => { });
 									_oatMount.SendCommand($":MAZ{-azAdjust:F4}#", (a) => { });
 									_ninaPolarAlignState = "Adjusting";
 								}
@@ -397,7 +399,7 @@ namespace OATControl.ViewModels
 									var altError = errors[1].Substring(5).Trim();
 									RunOnUiThread(() =>
 									{
-										_polarAlignmentDlg.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError} ({_numCalculatedErrors}/3)...");
+										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError} ({_numCalculatedErrors}/2)...");
 									}, Application.Current.Dispatcher);
 								}
 							}
@@ -428,7 +430,7 @@ namespace OATControl.ViewModels
 									}
 								});
 								donePosQuery.WaitOne();
-							} 
+							}
 							while (posValid && (azRunning || altRunning));
 
 							if (posValid)
@@ -439,14 +441,14 @@ namespace OATControl.ViewModels
 								_numCalculatedErrors = 0;
 								RunOnUiThread(() =>
 								{
-									_polarAlignmentDlg.SetStatus("ResetLoop", "");
+									_polarAlignmentDlg?.SetStatus("ResetLoop", "");
 								}, Application.Current.Dispatcher);
 							}
 							else
 							{
 								RunOnUiThread(() =>
 								{
-									_polarAlignmentDlg.SetStatus("Error", "Unable to run adjustment on mount.");
+									_polarAlignmentDlg?.SetStatus("Error", "Unable to run adjustment on mount.");
 								}, Application.Current.Dispatcher);
 
 							}
@@ -457,7 +459,7 @@ namespace OATControl.ViewModels
 			Log.WriteLine("MOUNT: Processed NINA log file. We have examined {0} lines.", _examinedLines);
 		}
 
-		public static float ParseDegrees(string input)
+		public static float ParseMinutes(string input)
 		{
 			// Example input: -01° 10' 49"
 			input = input.Trim();
@@ -471,13 +473,13 @@ namespace OATControl.ViewModels
 			int minutes = int.Parse(match.Groups[2].Value);
 			int seconds = int.Parse(match.Groups[3].Value);
 
-			float result = sign * (degrees + minutes / 60.0f + seconds / 3600.0f);
+			float result = sign * (degrees * 60.0f + minutes + seconds / 60.0f);
 			return result;
 		}
 
 		private void OnLogFileChanged(object sender, FileSystemEventArgs e)
 		{
-			Log.WriteLine("MOUNT: NINA log file changed. " + e.ChangeType.ToString());
+			Log.WriteLine("MOUNT: NINA log file " + e.ChangeType.ToString() + ". " + e.FullPath);
 			var changedFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NINA", "Logs", e.Name);
 			if (changedFile != LatestNinaLogfile)
 			{
@@ -512,6 +514,71 @@ namespace OATControl.ViewModels
 			ProcessNinaLogs();
 		}
 
+		public void OnMonitorNinaChanged(bool oldVal, bool newVal)
+		{
+			AppSettings.Instance.MonitorNinaPA = newVal;
+			AppSettings.Instance.Save();
+
+			if (newVal)
+			{
+				if (Directory.Exists(NinaLogFolder))
+				{
+					Log.WriteLine("MOUNT: Installing file watcher on NINA log folder " + NinaLogFolder);
+					var logFiles = Directory.EnumerateFiles(_ninaLogFolder, "*.log", SearchOption.TopDirectoryOnly).ToList();
+					logFiles.Sort((f1, f2) => new FileInfo(f1).LastWriteTimeUtc.CompareTo(new FileInfo(f2).LastWriteTimeUtc));
+					var latestLogfile = logFiles.LastOrDefault();
+					if (latestLogfile != null)
+					{
+						// When we turn on log monitoring, this might be mid-session and we don't want to process a
+						// TPPA session that's already run (or is even in the middle of running).
+						Log.WriteLine("MOUNT: Latest NINA log file is " + latestLogfile + ". Reading and skipping existing lines...");
+						LatestNinaLogfile = latestLogfile;
+						lock (_allTextList)
+						{
+							_examinedLines = 0;
+							_numCalculatedErrors = 0;
+							_allTextList.Clear();
+							_lastLogPosition = 0;
+							_ninaPolarAlignState = "Idle";
+							using (FileStream fs = File.Open(LatestNinaLogfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+							{
+								fs.Seek(_lastLogPosition, SeekOrigin.Begin);
+								using (StreamReader sr = new StreamReader(fs))
+								{
+									string line;
+									while ((line = sr.ReadLine()) != null)
+									{
+										_allTextList.Add(line);
+										_examinedLines++;
+									}
+									_lastLogPosition = fs.Position;
+								}
+							}
+						}
+						Log.WriteLine("MOUNT: Skipped " + _examinedLines + " lines (" + _lastLogPosition + " bytes)...");
+					}
+					else
+					{
+						Log.WriteLine("MOUNT: No NINA log files found in the folder.");
+					}
+
+					_logWatcher = new FileSystemWatcher(_ninaLogFolder) { EnableRaisingEvents = true, NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size, Filter = "*.log" };
+					_logWatcher.Changed += OnLogFileChanged;
+				}
+				else
+				{
+					Log.WriteLine("MOUNT: The NINA log folder does not exist at the expected location: " + NinaLogFolder);
+				}
+			}
+			else
+			{
+				Log.WriteLine("MOUNT: Clearing NINA log file watcher.");
+				_logWatcher.Changed -= OnLogFileChanged;
+				_logWatcher.Dispose();
+				_logWatcher = null;
+			}
+		}
+
 		public MountVM()
 		{
 			Log.WriteLine("MOUNT: Initialization starting...");
@@ -523,7 +590,7 @@ namespace OATControl.ViewModels
 
 			_ninaPolarAlignState = "Idle";
 			NinaLogFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NINA", "Logs");
-			if (Directory.Exists(NinaLogFolder))
+			if (Directory.Exists(NinaLogFolder) && MonitorNinaForPA)
 			{
 				Log.WriteLine("MOUNT: Installing file watcher on NINA log folder " + NinaLogFolder);
 				_logWatcher = new FileSystemWatcher(_ninaLogFolder) { EnableRaisingEvents = true, NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size, Filter = "*.log" };
@@ -672,6 +739,7 @@ namespace OATControl.ViewModels
 			AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
 			AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
 			_trackingMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
+			MonitorNinaForPA = AppSettings.Instance.MonitorNinaPA;
 
 			ScopeType = "OAM";
 
@@ -1217,7 +1285,7 @@ namespace OATControl.ViewModels
 				}
 			}
 		}
-		
+
 		void SetDECStepsPerDegree(float steps)
 		{
 			DECStepsPerDegree = steps;
@@ -1238,7 +1306,7 @@ namespace OATControl.ViewModels
 				case "SR": RAStepsPerDegreeEdit += 0.2f * _incrDirection; break;
 				case "SD": DECStepsPerDegreeEdit += 0.2f * _incrDirection; break;
 				case "SS": SpeedCalibrationFactorEdit += _incrDirection; break;
-				case "TR": ManualTrackingRateEdit += 0.1f* _incrDirection; break;
+				case "TR": ManualTrackingRateEdit += 0.1f * _incrDirection; break;
 				default: OnAdjustTarget(_incrVar + (_incrDirection == 1 ? "+" : "-")); break;
 			}
 			_timer.Interval = TimeSpan.FromMilliseconds(_incrementalDelay);
@@ -1913,13 +1981,28 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GG#,#", (a) => { utcOffset = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GL#,#", (a) => { localTime = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
-					if (FirmwareVersion >= 11314)
+					if (FirmwareVersion >= 11316)
 					{
-						this.SendOatCommand(":Gk#,#", (a) => { _trackingMode = a.Data; failed |= !a.Success; });
-						this.SendOatCommand(":GT#,#", (a) => {
-							TrackingRateHz = float.Parse(a.Data, _oatCulture);
+						this.SendOatCommand(":GT#,#", (a) =>
+						{
+							TrackingRateHz= float.Parse(a.Data, _oatCulture);
 							failed |= !a.Success;
 						});
+
+						this.SendOatCommand(":Gk#,#", (a) => { _trackingMode = a.Data; failed |= !a.Success; });
+						this.SendOatCommand(":hCq#,#", (a) =>
+						{
+							if (a.Data == "0")
+							{
+								UseCustomParkPosition = false;
+							}
+							else
+							{
+								UseCustomParkPosition = true;
+							}
+							failed |= !a.Success;
+						});
+
 					}
 					this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11206)
@@ -1934,18 +2017,6 @@ namespace OATControl.ViewModels
 					}
 					this.SendOatCommand(":XLGT#,#", (a) => { temperature = a.Success ? a.Data : "0"; failed |= !a.Success; allDone.Set(); });
 
-					this.SendOatCommand(":hCq#,#", (a) =>
-					{
-						if (a.Data == "0")
-						{
-							UseCustomParkPosition = false;
-						}
-						else
-						{
-							UseCustomParkPosition = true;
-						}
-						failed |= !a.Success;
-					});
 
 					allDone.WaitOne(10000);
 				}
@@ -2478,12 +2549,12 @@ namespace OATControl.ViewModels
 					{
 						IsManualTrackingMode = false;
 						_trackingMode = trkMode.Data;
-						if(trkMode.Data == "Manual")
+						if (trkMode.Data == "Manual")
 						{
 							IsManualTrackingMode = true;
 						}
 					}
-					
+
 					doneEvent.Set();
 				});
 
@@ -4032,6 +4103,12 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _connectionState, value); }
 		}
 
+		public bool MonitorNinaForPA
+		{
+			get { return _monitorNinaForPA; }
+			set { SetPropertyValue(ref _monitorNinaForPA, value, OnMonitorNinaChanged); }
+		}
+
 		public string NinaLogFolder
 		{
 			get { return _ninaLogFolder; }
@@ -4709,7 +4786,7 @@ namespace OATControl.ViewModels
 					
 					SetPropertyValue(ref _trackingMode, value);
 					OnPropertyChanged("SelectedTrackingMode");
-					
+
 					AppSettings.Instance.TrackingRate = value;
 					AppSettings.Instance.Save();
 				}

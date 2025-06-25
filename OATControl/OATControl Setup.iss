@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "OATControl"
-#define MyAppVersion "1.1.9.0"
+#define MyAppVersion "1.1.11.0"
 #define MyAppPublisher "OpenAstroTech"
 #define MyAppURL "https://wiki.openastrotech.com/"
 #define MyAppExeName "OATControl.exe"
@@ -44,8 +44,8 @@ Source: ".\bin\Release\OATControl.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\ControlzEx.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\MahApps.Metro.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\MahApps.Metro.xml"; DestDir: "{app}"; Flags: ignoreversion
-  Source: ".\bin\Release\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\bin\Release\runtimes\*"; DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs
+Source: ".\bin\Release\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
+;Source: ".\bin\Release\runtimes\*"; DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs
 Source: ".\bin\Release\OATCommunications.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\OATCommunications.WPF.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\bin\Release\OATCommunications.ASCOM.dll"; DestDir: "{app}"; Flags: ignoreversion

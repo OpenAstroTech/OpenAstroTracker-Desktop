@@ -79,10 +79,10 @@ Release History
    Added support for ASCOM driver to get and set time and date from and to mount.
  
  - 6.6.7.2 : Pre-Released 2025-04-20
- - FindHome and AtHome implemented.
- - Fixed a bug that caused errors when syncing location.
- - Propagated location changes to the mount if connected.
- - Fix user-input number parsing issues for non-US locales. 
+   FindHome and AtHome implemented.
+   Fixed a bug that caused errors when syncing location.
+   Propagated location changes to the mount if connected.
+   Fix user-input number parsing issues for non-US locales. 
 
  - 6.6.7.1 : Pre-Released 2025-02-28
    Fixed a bug that caused errors when syncing location.

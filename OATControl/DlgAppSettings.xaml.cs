@@ -133,6 +133,19 @@ namespace OATControl
 			}	
 		}
 
+		public bool MonitorNinaForPA
+		{
+			get { return _mount.MonitorNinaForPA; }
+			set
+			{
+				if (_mount.MonitorNinaForPA != value)
+				{
+					_mount.MonitorNinaForPA = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
 		public String SelectedBaudRate
 		{
 			get { return _serialBaudRate; }

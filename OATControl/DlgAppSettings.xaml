@@ -79,7 +79,7 @@
 			<Setter Property="HorizontalAlignment" Value="Left" />
 		</Style>
 		<Style x:Key="TextBlockOptionHelp" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
-			<Setter Property="FontSize" Value="8" />
+			<Setter Property="FontSize" Value="9" />
 			<Setter Property="FontWeight" Value="Normal" />
 			<Setter Property="TextWrapping" Value="Wrap" />
 			<Setter Property="Width" Value="190" />
@@ -88,7 +88,7 @@
 		</Style>
 
 		<Style x:Key="TextBlockOptionHelpNoWidth" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
-			<Setter Property="FontSize" Value="8" />
+			<Setter Property="FontSize" Value="9" />
 			<Setter Property="FontWeight" Value="Normal" />
 			<Setter Property="TextWrapping" Value="Wrap" />
 			<Setter Property="Margin" Value="2,0,0,0" />
@@ -305,16 +305,36 @@
 								Margin="0,2,0,0"
 								Command="{Binding ConfigureChecklistCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}" ToolTip="Configure the items on the checklist to display." />
 					</StackPanel>
-					<StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Top">
+					<StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,0,0">
 						<TextBlock Text="N.I.N.A. Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="The log folder of N.I.N.A. to monitor for Polar Alignment. Only N.I.N.A. V3.1 and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+						<TextBlock Text="The log folder of N.I.N.A. to monitor for Polar Alignment. Only N.I.N.A. V3.1 and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="Auto"/>
 					</StackPanel>
-					<TextBox Grid.Row="2" Grid.Column="1" 
+					<TextBox Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
 							Style="{StaticResource TextBoxSmall}" 
 							Width="Auto"
 							HorizontalAlignment="Stretch"
 							Text="{Binding NinaLogFolder}" 
-							VerticalAlignment="Center" Margin="10,4,20,0"/>
+							VerticalAlignment="Center" Margin="0,4,20,0"/>
+
+					<StackPanel Grid.Row="4" Grid.Column="0" VerticalAlignment="Top">
+						<TextBlock Text="Monitor N.I.N.A. for TPPA" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, this will monitor N.I.N.A. and automatically run Polar Alignment adjustments as needed." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="4"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding MonitorNinaForPA}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+
 				</Grid>
 			</TabItem>
 

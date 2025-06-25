@@ -111,8 +111,18 @@ namespace OATControl.ViewModels
 
 		private Size ToSize(string val)
 		{
-			var parts = val.Split('|');
-			return new Size(int.Parse(parts[0]), int.Parse(parts[1]));
+			var parts = val?.Split('|');
+			if ((parts!=null) && (parts.Length != 2))
+				throw new ArgumentException("Invalid size format. Expected format: 'width|height'. Received: [" + val + "]");
+			try
+			{
+				Size sz = new Size(int.Parse(parts[0]), int.Parse(parts[1]));
+				return sz;
+			}
+			catch 
+			{
+				throw new ArgumentException("Invalid Size, expected: 'width|height'. Received: [" + val + "]");
+			}
 		}
 
 		private string FromSize(Size val)
@@ -399,6 +409,13 @@ namespace OATControl.ViewModels
 		{
 			get { return this["ChecklistTitle"]; }
 			set { this["ChecklistTitle"] = value; }
+		}
+
+		[DefaultValueAttribute("False")]
+		public bool MonitorNinaPA
+		{
+			get { return Convert.ToBoolean(this["MonitorNinaPA"]); }
+			set { this["MonitorNinaPA"] = value.ToString(); }
 		}
 	}
 }
