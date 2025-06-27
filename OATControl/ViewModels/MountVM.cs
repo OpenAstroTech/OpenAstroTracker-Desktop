@@ -246,6 +246,16 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		public bool AutoConnect { get; set; }
+
+		internal void OnAppBooted()
+		{
+			if (AutoConnect)
+			{
+				OnConnectToTelescope();
+			}
+		}
+
 		public void OnCloseNinaPolarAlignmentDialog()
 		{
 			_polarAlignmentDlg?.Close();
@@ -387,8 +397,8 @@ namespace OATControl.ViewModels
 										return;
 									}
 
-									_oatMount.SendCommand($":MAL{-altAdjust:F4}#", (a) => { });
-									_oatMount.SendCommand($":MAZ{-azAdjust:F4}#", (a) => { });
+									_oatMount.SendCommand($":MAL{altAdjust:F4}#", (a) => { });
+									_oatMount.SendCommand($":MAZ{azAdjust:F4}#", (a) => { });
 									_ninaPolarAlignState = "Adjusting";
 								}
 								else
@@ -746,6 +756,11 @@ namespace OATControl.ViewModels
 			if (ShowChecklist == ChecklistShowOn.OnStartup)
 			{
 				OnShowChecklist();
+			}
+
+			if (AutoConnect)
+			{
+				OnConnectToTelescope();
 			}
 		}
 
@@ -4969,6 +4984,7 @@ namespace OATControl.ViewModels
 			}
 			return false;
 		}
+
 	}
 }
 
