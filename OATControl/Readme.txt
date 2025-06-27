@@ -1,6 +1,17 @@
 Revision History
 ----------------
 
+OATControl V1.1.12.0                                            26 Jun 2025
+- Removed sign inversion for AutoPA adjustments
+- Added support for -autoconnect parameter. If supplied automatically 
+  connects to the ASCOM driver, if found. All Homing functions are disabled 
+  during auto connect.
+
+OATControl V1.1.11.0                                            24 Jun 2025
+- Fixed a bug that caused AutoPA adjustments to be far too small (60x). 
+- Only wait for two plate solves to confirm a good PA measurement.
+- Support turning off AutoPA adjustments in AppSettings dialog.
+
 OATControl V1.1.10.0                                            22 Jun 2025
 - Added support for AutoPA feature from N.I.N.A. 3.1 and later. Only TPPA
   supported at this time.
