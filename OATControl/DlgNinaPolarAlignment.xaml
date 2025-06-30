@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Converters"
 		mc:Ignorable="d"
 		Background="#600"
-        Title="N.I.N.A. Polar Alignment" Height="250" Width="420" WindowStyle="ToolWindow" FontSize="16" FontWeight="Bold" SizeToContent="Height">
+        Title="N.I.N.A. Polar Alignment" Height="320" Width="420" WindowStyle="ToolWindow" FontSize="16" SizeToContent="Height">
 	<Controls:MetroWindow.Resources>
 		<Style x:Key="StateText" TargetType="TextBlock">
 			<Setter Property="Margin" Value="10,0" />
@@ -30,10 +30,11 @@
 		<controls:IntToBoolConverter x:Key="State1Enabled" TrueValue="1" Operator="=="/>
 		<controls:IntToBoolConverter x:Key="State2Enabled" TrueValue="2" Operator="==" />
 		<controls:IntToBoolConverter x:Key="State3Enabled" TrueValue="3" Operator="==" />
+		<controls:StringToResourceImageConverter x:Key="StringToResourceImageConverter" />
 		<Style x:Key="ChecklistItemTextStyle" TargetType="TextBlock">
 			<Setter Property="FontWeight" Value="Normal"/>
 			<Setter Property="FontSize" Value="13"/>
-			<Setter Property="Foreground" Value="#933"/>
+			<Setter Property="Foreground" Value="#C33"/>
 			<Style.Triggers>
 				<DataTrigger Binding="{Binding IsComplete}" Value="True">
 					<Setter Property="FontWeight" Value="Bold"/>
@@ -41,6 +42,21 @@
 				</DataTrigger>
 			</Style.Triggers>
 		</Style>
+		<Style x:Key="ChecklistItemLabelTextStyle"  TargetType="TextBlock">
+			<Setter Property="FontWeight" Value="Normal"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Foreground" Value="#D33"/>
+			<Setter Property="Margin" Value="20,0,5,0"/>
+
+		</Style>
+		<Style x:Key="ChecklistItemAdjustStyle"  TargetType="TextBlock">
+			<Setter Property="FontWeight" Value="Normal"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Foreground" Value="#F33"/>
+			<Setter Property="TextAlignment" Value="Center"/>
+			<Setter Property="Padding" Value="1"/>
+		</Style>
+
 	</Controls:MetroWindow.Resources>
 	<Grid>
 		<Grid.ColumnDefinitions>
@@ -62,29 +78,59 @@
                    FontWeight="Bold"
                    Style="{StaticResource StateText}"
                    Margin="20,10,20,16"/>
-		<ItemsControl Grid.Row="1" ItemsSource="{Binding ChecklistItems}" Margin="20,20,0,60">
-			<ItemsControl.ItemTemplate>
-				<DataTemplate>
-					<TextBlock Text="{Binding Text}" Style="{StaticResource ChecklistItemTextStyle}" Margin="0,2"/>
-				</DataTemplate>
-			</ItemsControl.ItemTemplate>
-		</ItemsControl>
 
-		<TextBlock Grid.Row="2" Text="{Binding ErrorMessage}"
+		<StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20,4,0,0">
+			<Image Width="16" Height="16"
+		       Source="{Binding FirstPointStatus, Converter={StaticResource StringToResourceImageConverter}}"
+				Margin="0,0,8,0"/>
+			<TextBlock Text="Plate solved first point..." Style="{StaticResource ChecklistItemTextStyle}"/>
+		</StackPanel>
+		<StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20,4,0,0">
+			<Image Width="16" Height="16" Source="{Binding SecondPointStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0"/>
+			<TextBlock Text="Plate solved second point..." Style="{StaticResource ChecklistItemTextStyle}"/>
+		</StackPanel>
+		<StackPanel Grid.Row="3" Orientation="Horizontal" Margin="20,4,0,0">
+			<Image Width="16" Height="16" Source="{Binding ThirdPointStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0"/>
+			<TextBlock Text="Plate solved third point..." Style="{StaticResource ChecklistItemTextStyle}"/>
+		</StackPanel>
+		<StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20,4,0,0">
+			<Image Width="16" Height="16" Source="{Binding CalculatingErrorStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0"/>
+			<TextBlock Text="Calculating error..." Style="{StaticResource ChecklistItemTextStyle}" VerticalAlignment="Center"/>
+			<TextBlock Text="{Binding Iterations}" Style="{StaticResource ChecklistItemLabelTextStyle}" VerticalAlignment="Center" />
+			<StackPanel Orientation="Horizontal">
+				<Border BorderThickness="1" Background="#5a1111" BorderBrush="#711" Margin="5,0,0,0">
+					<TextBlock Text="{Binding AzimuthError}" Width="75" Style="{StaticResource ChecklistItemAdjustStyle}" />
+				</Border>
+				<Border BorderThickness="1" Background="#5a1111" BorderBrush="#711" Margin="5,4,0,0">
+					<TextBlock Text="{Binding AltitudeError}" Style="{StaticResource ChecklistItemAdjustStyle}" Width="75"/>
+				</Border>
+				<Border BorderThickness="1" Background="#5a1111" BorderBrush="#711" Margin="5,4,0,0">
+					<TextBlock Text="{Binding TotalError}" Style="{StaticResource ChecklistItemAdjustStyle}" Width="75"/>
+				</Border>
+			</StackPanel>
+		</StackPanel>
+		<StackPanel Grid.Row="5" Orientation="Horizontal" Margin="20,4,0,0">
+			<Image Width="16" Height="16" Source="{Binding AdjustingMountStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0"/>
+			<TextBlock Text="Adjusting mount AZ/ALT..." Style="{StaticResource ChecklistItemTextStyle}"/>
+		</StackPanel>
+
+		<TextBlock Grid.Row="6" Text="{Binding ErrorMessage}"
                    FontWeight="Bold"
 				   FontSize="14"
                    Style="{StaticResource StateText}"
 				   HorizontalAlignment="Center"
+				   Height="60"
                    Margin="20,10,20,16"/>
 
 
-		<Button Grid.Row="3"  
+		<Button Grid.Row="7"  
 				Content="Close" 
 				Command="{Binding CloseCommand}" 
 				Style="{StaticResource StateButton}"  
 				IsCancel="True" 
 				HorizontalAlignment="Right" 
 				VerticalAlignment="Bottom" 
+				Padding="0,5"
 				Margin="0,0,20,20" />
 	</Grid>
 </Controls:MetroWindow>

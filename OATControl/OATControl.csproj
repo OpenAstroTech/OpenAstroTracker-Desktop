@@ -98,6 +98,7 @@
     <Compile Include="Converters\DebugBinding.cs" />
     <Compile Include="Converters\DoubleDividerConverter.cs" />
     <Compile Include="Converters\DoubleToHMSConverter.cs" />
+    <Compile Include="Converters\StringToResourceImageConverter.cs" />
     <Compile Include="Converters\IntToBoolConverter.cs" />
     <Compile Include="Converters\IntToVisibilityConverter.cs" />
     <Compile Include="Converters\OrientationToVisibilityConverter.cs" />

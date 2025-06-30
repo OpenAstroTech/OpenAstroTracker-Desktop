@@ -83,16 +83,131 @@ namespace OATControl
 			InitializeComponent();
 		}
 
-		public ObservableCollection<ChecklistItem> ChecklistItems { get; } = new ObservableCollection<ChecklistItem>
+		private string _firstPointStatus = "InProgress";
+		public string FirstPointStatus
 		{
-			new ChecklistItem { Text = "Plate solved first point..." },
-			new ChecklistItem { Text = "Plate solved second point..." },
-			new ChecklistItem { Text = "Plate solved third point..." },
-			new ChecklistItem { Text = "Calculating error... " },
-			new ChecklistItem { Text = "Adjusting mount AZ/ALT..." },
-		};
+			get => _firstPointStatus;
+			set
+			{
+				if (_firstPointStatus != value)
+				{
+					_firstPointStatus = value;
+					OnPropertyChanged(nameof(FirstPointStatus));
+				}
+			}
+		}
 
+		private string _secondPointStatus = "Waiting";
+		public string SecondPointStatus
+		{
+			get => _secondPointStatus;
+			set
+			{
+				if (_secondPointStatus != value)
+				{
+					_secondPointStatus = value;
+					OnPropertyChanged(nameof(SecondPointStatus));
+				}
+			}
+		}
+
+		private string _thirdPointStatus = "Waiting";
+		public string ThirdPointStatus
+		{
+			get => _thirdPointStatus;
+			set
+			{
+				if (_thirdPointStatus != value)
+				{
+					_thirdPointStatus = value;
+					OnPropertyChanged(nameof(ThirdPointStatus));
+				}
+			}
+		}
+
+		private string _calculatingErrorStatus = "Waiting";
+		public string CalculatingErrorStatus
+		{
+			get => _calculatingErrorStatus;
+			set
+			{
+				if (_calculatingErrorStatus != value)
+				{
+					_calculatingErrorStatus = value;
+					OnPropertyChanged(nameof(CalculatingErrorStatus));
+				}
+			}
+		}
+
+		private string _adjustingMountStatus = "Waiting";
+		public string AdjustingMountStatus
+		{
+			get => _adjustingMountStatus;
+			set
+			{
+				if (_adjustingMountStatus != value)
+				{
+					_adjustingMountStatus = value;
+					OnPropertyChanged(nameof(AdjustingMountStatus));
+				}
+			}
+		}
+
+		private string _azimuthError = "-";
+		public string AzimuthError
+		{
+			get => _azimuthError;
+			set
+			{
+				if (_azimuthError != value)
+				{
+					_azimuthError = value;
+					OnPropertyChanged(nameof(AzimuthError));
+				}
+			}
+		}
 		
+		private string _altitudeError = "-";
+		public string AltitudeError
+		{
+			get => _altitudeError;
+			set
+			{
+				if (_altitudeError != value)
+				{
+					_altitudeError = value;
+					OnPropertyChanged(nameof(AltitudeError));
+				}
+			}
+		}
+		private string _totalError = "-";
+		public string TotalError
+		{
+			get => _totalError;
+			set
+			{
+				if (_totalError != value)
+				{
+					_totalError = value;
+					OnPropertyChanged(nameof(TotalError));
+				}
+			}
+		}
+
+		private string _iterations= "";
+		public string Iterations
+		{
+			get => _iterations;
+			set
+			{
+				if (_iterations != value)
+				{
+					_iterations = value;
+					OnPropertyChanged(nameof(Iterations));
+				}
+			}
+		}
+
 		public void SetStatus(string state, string statusDetails)
 		{
 			switch (state)
@@ -100,28 +215,36 @@ namespace OATControl
 				case "Measure":
 					if (statusDetails.Contains("First"))
 					{
-						ChecklistItems[0].IsComplete = true;
+						FirstPointStatus = "Complete";
+						SecondPointStatus = "InProgress";
 					}
 					else if (statusDetails.Contains("Second"))
 					{
-						ChecklistItems[1].IsComplete = true;
+						SecondPointStatus = "Complete";
+						ThirdPointStatus = "InProgress";
 					}
 					else if (statusDetails.Contains("Third"))
 					{
-						ChecklistItems[2].IsComplete = true;
+						ThirdPointStatus = "Complete";
+						CalculatingErrorStatus = "InProgress";
 					}
 					break;
 				case "CalculateSettle":
-					ChecklistItems[3].IsComplete = true;
-					ChecklistItems[3].Text = statusDetails;
+					AzimuthError = statusDetails.Split('|')[0];
+					AltitudeError = statusDetails.Split('|')[1];
+					TotalError = statusDetails.Split('|')[2];
+					Iterations = statusDetails.Split('|')[3];
 					break;
 				case "Adjust":
-					ChecklistItems[4].IsComplete = true;
+					CalculatingErrorStatus = "Complete";
+					AdjustingMountStatus = "InProgress";
 					break;
 				case "ResetLoop":
-					ChecklistItems[3].IsComplete = false;
-					ChecklistItems[3].Text = "";
-					ChecklistItems[4].IsComplete = false;
+					CalculatingErrorStatus = "InProgress";
+					AzimuthError = "-";
+					AltitudeError = "-";
+					Iterations = "";
+					AdjustingMountStatus = "Waiting";
 					break;
 				case "Error":
 					ErrorMessage = statusDetails;

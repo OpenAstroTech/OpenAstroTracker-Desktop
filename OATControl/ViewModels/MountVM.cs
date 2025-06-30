@@ -291,6 +291,33 @@ namespace OATControl.ViewModels
 			while (lineCount > _examinedLines)
 			{
 				Log.WriteLine("MOUNT: New lines in NINA log file to process.");
+				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("OperationCanceledException"))>0)
+				{
+					Log.WriteLine("MOUNT: Polar alignment canceled, resetting state.");
+					_examinedLines = lineCount;
+					_ninaPolarAlignState = "Idle";
+					RunOnUiThread(() =>
+					{
+						// _polarAlignmentDlg?.SetStatus("Canceled", "Polar alignment canceled by user.");
+						_polarAlignmentDlg?.Close();
+						_polarAlignmentDlg = null;
+					}, Application.Current.Dispatcher);
+					return;
+				}
+
+				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Total Error is below alignment tolerance")) > 0)
+				{
+					Log.WriteLine("MOUNT: Polar alignment succeeded, resetting state.");
+					_examinedLines = lineCount;
+					_ninaPolarAlignState = "Idle";
+					RunOnUiThread(() =>
+					{
+						// _polarAlignmentDlg?.SetStatus("Succeeded", "Polar alignment succeeded.");
+						_polarAlignmentDlg?.Close();
+						_polarAlignmentDlg = null;
+					}, Application.Current.Dispatcher);
+					return;
+				}
 
 				switch (_ninaPolarAlignState)
 				{
@@ -356,14 +383,14 @@ namespace OATControl.ViewModels
 								_numCalculatedErrors++;
 								if (_numCalculatedErrors > 1)
 								{
-									_ninaPolarAlignState = "Adjusting";
 									var error = _allTextList[calcLine].Substring(_allTextList[calcLine].IndexOf("Calculated Error:") + 17).Trim();
 									var errors = error.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 									var azError = errors[0].Substring(3).Trim();
 									var altError = errors[1].Substring(5).Trim();
+									var totalError = errors[2].Substring(7).Trim();
 									RunOnUiThread(() =>
 									{
-										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError}");
+										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"{azError}|{altError}|{totalError}(2/2)");
 										_polarAlignmentDlg?.SetStatus("Adjust", _allTextList[calcLine]);
 									}, Application.Current.Dispatcher);
 
@@ -407,9 +434,10 @@ namespace OATControl.ViewModels
 									var errors = error.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 									var azError = errors[0].Substring(3).Trim();
 									var altError = errors[1].Substring(5).Trim();
+									var totalError = errors[2].Substring(7).Trim();
 									RunOnUiThread(() =>
 									{
-										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"Error is AZ:{azError}  ALT:{altError} ({_numCalculatedErrors}/2)...");
+										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"{azError}|{altError}|{totalError}({_numCalculatedErrors}/2)");
 									}, Application.Current.Dispatcher);
 								}
 							}
