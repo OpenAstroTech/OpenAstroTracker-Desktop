@@ -23,9 +23,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace OATControl
 {
+	public class ErrorEntry
+	{
+		public string AzimuthError { get; set; }
+		public string AltitudeError { get; set; }
+		public string TotalError { get; set; }
+	}
+
 	/// <summary>
 	/// Interaction logic for DlgNinaPoolarAlignment.xaml
 	/// </summary>
@@ -69,8 +77,11 @@ namespace OATControl
 			}
 		}
 
+
 		private DelegateCommand _closeCommand;
 		private string _errorMessage;
+		private ObservableCollection<ErrorEntry> _errorEntries = new ObservableCollection<ErrorEntry>();
+		public ObservableCollection<ErrorEntry> ErrorEntries => _errorEntries;
 
 		public DlgNinaPolarAlignment(Action closeCallback)
 		{
@@ -207,7 +218,20 @@ namespace OATControl
 				}
 			}
 		}
-
+		
+		private string _timeLeft = "";
+		public string TimeLeft
+		{
+			get => _timeLeft;
+			set
+			{
+				if (_timeLeft != value)
+				{
+					_timeLeft = value;
+					OnPropertyChanged(nameof(TimeLeft));
+				}
+			}
+		}
 		public void SetStatus(string state, string statusDetails)
 		{
 			switch (state)
@@ -230,10 +254,27 @@ namespace OATControl
 					}
 					break;
 				case "CalculateSettle":
-					AzimuthError = statusDetails.Split('|')[0];
-					AltitudeError = statusDetails.Split('|')[1];
-					TotalError = statusDetails.Split('|')[2];
-					Iterations = statusDetails.Split('|')[3];
+					var parts = statusDetails.Split('|');
+					if (parts.Length >= 4)
+					{
+						if (parts[3] == "(2/2)")
+						{
+							_errorEntries.RemoveAt(_errorEntries.Count-1);
+						}
+						_errorEntries.Add(new ErrorEntry
+						{
+							AzimuthError = parts[0],
+							AltitudeError = parts[1],
+							TotalError = parts[2],
+						});
+						// Limit to at most 4 entries
+						if (_errorEntries.Count > 4)
+						{
+							_errorEntries.RemoveAt(0);
+						}
+					}
+					
+					Iterations = parts[3];
 					break;
 				case "Adjust":
 					CalculatingErrorStatus = "Complete";
@@ -248,6 +289,27 @@ namespace OATControl
 					break;
 				case "Error":
 					ErrorMessage = statusDetails;
+					break;
+				case "Succeeded":
+					CalculatingErrorStatus = "Complete";
+					AdjustingMountStatus = "Complete";
+					ErrorMessage = statusDetails;
+					var _closeTime = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+					var timer = new DispatcherTimer();
+					timer.Interval = TimeSpan.FromSeconds(0.2); // Set your delay here
+					timer.Tick += (s, e) =>
+					{
+						if (DateTime.UtcNow < _closeTime)
+						{
+							TimeLeft = $"({(_closeTime - DateTime.UtcNow).TotalSeconds.ToString("F1")})";
+							return; // Still within the delay period
+						}
+						timer.Stop(); // Stop the timer so it only runs once
+
+						// Your code to execute after the delay
+						this.Close();
+					};
+					timer.Start();
 					break;
 				default:
 					break;

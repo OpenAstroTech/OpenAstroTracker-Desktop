@@ -298,23 +298,7 @@ namespace OATControl.ViewModels
 					_ninaPolarAlignState = "Idle";
 					RunOnUiThread(() =>
 					{
-						// _polarAlignmentDlg?.SetStatus("Canceled", "Polar alignment canceled by user.");
-						_polarAlignmentDlg?.Close();
-						_polarAlignmentDlg = null;
-					}, Application.Current.Dispatcher);
-					return;
-				}
-
-				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Total Error is below alignment tolerance")) > 0)
-				{
-					Log.WriteLine("MOUNT: Polar alignment succeeded, resetting state.");
-					_examinedLines = lineCount;
-					_ninaPolarAlignState = "Idle";
-					RunOnUiThread(() =>
-					{
-						// _polarAlignmentDlg?.SetStatus("Succeeded", "Polar alignment succeeded.");
-						_polarAlignmentDlg?.Close();
-						_polarAlignmentDlg = null;
+						_polarAlignmentDlg?.SetStatus("Succeeded", "Polar alignment canceled by user.");
 					}, Application.Current.Dispatcher);
 					return;
 				}
@@ -327,6 +311,7 @@ namespace OATControl.ViewModels
 						if (startLine > 0)
 						{
 							_examinedLines = startLine;
+							_numCalculatedErrors = 0;
 							Log.WriteLine("MOUNT: Polar alignment started at line " + startLine);
 							// We are in a polar alignment.
 							_ninaPolarAlignState = "Starting";
@@ -377,6 +362,7 @@ namespace OATControl.ViewModels
 						{
 							// Check if we have an error.
 							var calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Calculated Error"));
+
 							if (calcLine > 0)
 							{
 								_examinedLines = calcLine + 1;
@@ -387,10 +373,10 @@ namespace OATControl.ViewModels
 									var errors = error.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 									var azError = errors[0].Substring(3).Trim();
 									var altError = errors[1].Substring(5).Trim();
-									var totalError = errors[2].Substring(7).Trim();
+									var totalError = errors[2].Substring(5).Trim();
 									RunOnUiThread(() =>
 									{
-										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"{azError}|{altError}|{totalError}(2/2)");
+										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"{azError}|{altError}|{totalError}|(2/2)");
 										_polarAlignmentDlg?.SetStatus("Adjust", _allTextList[calcLine]);
 									}, Application.Current.Dispatcher);
 
@@ -434,15 +420,42 @@ namespace OATControl.ViewModels
 									var errors = error.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 									var azError = errors[0].Substring(3).Trim();
 									var altError = errors[1].Substring(5).Trim();
-									var totalError = errors[2].Substring(7).Trim();
+									var totalError = errors[2].Substring(5).Trim();
 									RunOnUiThread(() =>
 									{
-										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"{azError}|{altError}|{totalError}({_numCalculatedErrors}/2)");
+										_polarAlignmentDlg?.SetStatus("CalculateSettle", $"{azError}|{altError}|{totalError}|({_numCalculatedErrors}/2)");
 									}, Application.Current.Dispatcher);
 								}
 							}
 							else
 							{
+								// Check if alignment has completed
+								// Tolerance met?
+								bool alignmentIsComplete = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Total Error is below alignment tolerance")) > 0;
+								string message = "Polar alignment succeeded.";
+								// User Cancellation?
+								if (_allTextList.FindIndex(_examinedLines, l => l.Contains("ERROR|PolarAlignment.cs|Solve|717")) > 0)
+								{
+									alignmentIsComplete = true;
+									message = "Polar alignment cancelled by user.";
+								}
+
+								// Other message to stop
+								alignmentIsComplete |= _allTextList.FindIndex(_examinedLines, l => l.Contains("Received message to stop polar alignment")) > 0;
+
+								if (alignmentIsComplete)
+								{
+									Log.WriteLine("MOUNT: Polar alignment succeeded, resetting state.");
+									_examinedLines = lineCount;
+									_ninaPolarAlignState = "Complete";
+									RunOnUiThread(() =>
+									{
+										_polarAlignmentDlg?.SetStatus("Succeeded", message);
+										_polarAlignmentDlg = null;
+									}, Application.Current.Dispatcher);
+									return;
+								}
+
 								_examinedLines = lineCount;
 							}
 						}
@@ -474,7 +487,7 @@ namespace OATControl.ViewModels
 							if (posValid)
 							{
 								// Adjustment is complete, so start the adjustment loop again.
-								_examinedLines = lineCount;
+								//_examinedLines = lineCount;
 								_ninaPolarAlignState = "Calculating";
 								_numCalculatedErrors = 0;
 								RunOnUiThread(() =>
@@ -492,6 +505,21 @@ namespace OATControl.ViewModels
 							}
 						}
 						break;
+				}
+
+				bool alignmentComplete = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Total Error is below alignment tolerance")) > 0;
+				alignmentComplete |= _allTextList.FindIndex(_examinedLines, l => l.Contains("Received message to stop polar alignment")) > 0;
+				if (alignmentComplete)
+				{
+					Log.WriteLine("MOUNT: Polar alignment succeeded, resetting state.");
+					_examinedLines = lineCount;
+					_ninaPolarAlignState = "Complete";
+					RunOnUiThread(() =>
+					{
+						_polarAlignmentDlg?.SetStatus("Succeeded", "Polar alignment succeeded.");
+						_polarAlignmentDlg = null;
+					}, Application.Current.Dispatcher);
+					return;
 				}
 			}
 			Log.WriteLine("MOUNT: Processed NINA log file. We have examined {0} lines.", _examinedLines);
