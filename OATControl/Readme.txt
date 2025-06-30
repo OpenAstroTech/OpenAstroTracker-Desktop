@@ -1,8 +1,12 @@
 Revision History
 ----------------
 
+OATControl V1.1.13.0                                            30 Jun 2025
+- Improved AutoPA progress display and detection of completion. 
+- AutoPA Dialog auto closes on completion.
+
 OATControl V1.1.12.0                                            26 Jun 2025
-- Removed sign inversion for AutoPA adjustments
+- Removed sign inversion for AutoPA adjustments.
 - Added support for -autoconnect parameter. If supplied automatically 
   connects to the ASCOM driver, if found. All Homing functions are disabled 
   during auto connect.
