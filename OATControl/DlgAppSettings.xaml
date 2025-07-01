@@ -335,6 +335,44 @@
 						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
 					</Grid>
 
+					<StackPanel Grid.Row="5" Grid.Column="0" VerticalAlignment="Top">
+						<TextBlock Text="Invert AZ corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, the corrections for the AZ axis from N.I.N.A. will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="5"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertNinaAZCorrections}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+
+					<StackPanel Grid.Row="6" Grid.Column="0" VerticalAlignment="Top">
+						<TextBlock Text="Invert ALT corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, the corrections for the ALT axis from N.I.N.A. will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="6"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertNinaALTCorrections}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+
 				</Grid>
 			</TabItem>
 

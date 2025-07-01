@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.1.14.0                                            1 Jul 2025
+- Added support for inverting corrections for AutoPA adjustments.
+- Limited automatic adjustments to 3 degrees.
+
 OATControl V1.1.13.0                                            30 Jun 2025
 - Improved AutoPA progress display and detection of completion. 
 - AutoPA Dialog auto closes on completion.

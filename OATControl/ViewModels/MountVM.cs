@@ -22,6 +22,7 @@ using System.Xml.Linq;
 using MahApps.Metro.Converters;
 using System.Windows.Media.Animation;
 using System.Collections.Specialized;
+using Newtonsoft.Json.Linq;
 
 namespace OATControl.ViewModels
 {
@@ -42,6 +43,8 @@ namespace OATControl.ViewModels
 		private string _ninaPolarAlignState;
 		string _ninaLogFolder = string.Empty;
 		bool _monitorNinaForPA = false;
+		bool _invertNinaAzCorrections = false;
+		bool _invertNinaAltCorrections = false;
 
 		float _raStepper = 0;
 		float _decStepper = 0;
@@ -291,7 +294,7 @@ namespace OATControl.ViewModels
 			while (lineCount > _examinedLines)
 			{
 				Log.WriteLine("MOUNT: New lines in NINA log file to process.");
-				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("OperationCanceledException"))>0)
+				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("OperationCanceledException")) > 0)
 				{
 					Log.WriteLine("MOUNT: Polar alignment canceled, resetting state.");
 					_examinedLines = lineCount;
@@ -355,7 +358,7 @@ namespace OATControl.ViewModels
 								}, Application.Current.Dispatcher);
 								_ninaPolarAlignState = "Calculating";
 								_examinedLines = calcLine + 1;
-							}							
+							}
 						}
 						break;
 					case "Calculating":
@@ -380,30 +383,30 @@ namespace OATControl.ViewModels
 										_polarAlignmentDlg?.SetStatus("Adjust", _allTextList[calcLine]);
 									}, Application.Current.Dispatcher);
 
-									var azAdjust = ParseMinutes(azError);
-									var altAdjust = ParseMinutes(altError);
+									var azAdjust = (_invertNinaAzCorrections ? -1 : 1) * ParseMinutes(azError);
+									var altAdjust = (_invertNinaAltCorrections ? -1 : 1) * ParseMinutes(altError);
 
-									if ((Math.Abs(azAdjust) > 60 * 5) || (Math.Abs(altAdjust) > 60 * 5))
+									if ((Math.Abs(azAdjust) > 60 * 3) || (Math.Abs(altAdjust) > 60 * 3))
 									{
-										if ((Math.Abs(azAdjust) > 60 * 5) && Math.Abs(altAdjust) < 60 * 5)
+										if ((Math.Abs(azAdjust) > 60 * 3) && Math.Abs(altAdjust) < 60 * 3)
 										{
 											RunOnUiThread(() =>
 											{
-												_polarAlignmentDlg?.SetStatus("Error", "Azimuth error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
+												_polarAlignmentDlg?.SetStatus("Error", "Azimuth error is too large for automatic adjustment, please move mount manually to within 3 degrees.");
 											}, Application.Current.Dispatcher);
 										}
-										else if ((Math.Abs(azAdjust) < 60 * 5) && Math.Abs(altAdjust) > 60 * 5)
+										else if ((Math.Abs(azAdjust) < 60 * 3) && Math.Abs(altAdjust) > 60 * 3)
 										{
 											RunOnUiThread(() =>
 											{
-												_polarAlignmentDlg?.SetStatus("Error", "Altitude error is too large for automatic adjustment, please move mount manually to within 5 degrees.");
+												_polarAlignmentDlg?.SetStatus("Error", "Altitude error is too large for automatic adjustment, please move mount manually to within 3 degrees.");
 											}, Application.Current.Dispatcher);
 										}
 										else
 										{
 											RunOnUiThread(() =>
 											{
-												_polarAlignmentDlg?.SetStatus("Error", "Both Azimuth and Altitude errors are too large for automatic adjustment, please move mount manually to within 5 degrees.");
+												_polarAlignmentDlg?.SetStatus("Error", "Both Azimuth and Altitude errors are too large for automatic adjustment, please move mount manually to within 3 degrees.");
 											}, Application.Current.Dispatcher);
 										}
 										_ninaPolarAlignState = "Idle";
@@ -806,6 +809,8 @@ namespace OATControl.ViewModels
 			AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
 			_trackingMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
 			MonitorNinaForPA = AppSettings.Instance.MonitorNinaPA;
+			InvertNinaAZCorrections = AppSettings.Instance.InvertAZCorrections;
+			InvertNinaALTCorrections = AppSettings.Instance.InvertALTCorrections;
 
 			ScopeType = "OAM";
 
@@ -2056,7 +2061,7 @@ namespace OATControl.ViewModels
 					{
 						this.SendOatCommand(":GT#,#", (a) =>
 						{
-							TrackingRateHz= float.Parse(a.Data, _oatCulture);
+							TrackingRateHz = float.Parse(a.Data, _oatCulture);
 							failed |= !a.Success;
 						});
 
@@ -2331,6 +2336,44 @@ namespace OATControl.ViewModels
 			Log.WriteLine("CONTROL: Exit Stop slewing {0}", dir);
 		}
 
+		public bool InvertNinaALTCorrections
+		{
+			get
+			{
+				return _invertNinaAltCorrections;
+			}
+			set
+			{
+
+				if (_invertNinaAltCorrections != value)
+				{
+					_invertNinaAltCorrections = value;
+					AppSettings.Instance.InvertALTCorrections = value;
+					AppSettings.Instance.Save();
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool InvertNinaAZCorrections
+		{
+			get
+			{
+				return _invertNinaAzCorrections;
+			}
+			set
+			{
+				if (_invertNinaAzCorrections != value)
+				{
+					_invertNinaAzCorrections = value;
+					AppSettings.Instance.InvertAZCorrections = value;
+					AppSettings.Instance.Save();
+					OnPropertyChanged();
+				}
+			}
+		}
+
+
 		private async Task OnStartSlewing(char dir)
 		{
 			Log.WriteLine("CONTROL: Enter Start slewing {0}", dir);
@@ -2338,7 +2381,7 @@ namespace OATControl.ViewModels
 			float[] rateDistance = { 0, 0.05f, 0.25f, 2.0f, 7.5f, 30.0f };
 			var doneEvent = new AsyncAutoResetEvent();
 			float distance = rateDistance[SlewRate];
-			// a/z - ALT up/down
+			// a/z - ALT up/down +/-
 			// l/r - AZ left/right
 			// f/g - FOC in/out
 			// n/s - DEC
@@ -4020,7 +4063,8 @@ namespace OATControl.ViewModels
 		public float TrackingRateHz
 		{
 			get { return _trackingRateHz; }
-			set { 
+			set
+			{
 				SetPropertyValue(ref _trackingRateHz, value);
 				OnPropertyChanged("TrackingRateHz");
 			}
@@ -4029,7 +4073,8 @@ namespace OATControl.ViewModels
 		public float ManualTrackingRateEdit
 		{
 			get { return _trackingRateHz; }
-			set {
+			set
+			{
 				SetPropertyValue(ref _trackingRateHz, value);
 				_oatMount?.SendCommand(string.Format(_oatCulture, ":TD{0:0.0000}#", _trackingRateHz), (a) => { });
 				OnPropertyChanged("ManualTrackingRateEdit");
@@ -4854,7 +4899,7 @@ namespace OATControl.ViewModels
 					}
 
 					Log.WriteLine("MOUNT: Changing tracking rate to " + value);
-					
+
 					SetPropertyValue(ref _trackingMode, value);
 					OnPropertyChanged("SelectedTrackingMode");
 

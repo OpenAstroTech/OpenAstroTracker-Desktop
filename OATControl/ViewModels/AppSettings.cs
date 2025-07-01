@@ -417,5 +417,19 @@ namespace OATControl.ViewModels
 			get { return Convert.ToBoolean(this["MonitorNinaPA"]); }
 			set { this["MonitorNinaPA"] = value.ToString(); }
 		}
+
+		[DefaultValueAttribute("False")]
+		public bool InvertAZCorrections
+		{
+			get { return Convert.ToBoolean(this["InvertAZCorrections"]); }
+			set { this["InvertAZCorrections"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("False")]
+		public bool InvertALTCorrections
+		{
+			get { return Convert.ToBoolean(this["InvertALTCorrections"]); }
+			set { this["InvertALTCorrections"] = value.ToString(); }
+		}
 	}
 }

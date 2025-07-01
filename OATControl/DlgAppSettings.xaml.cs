@@ -166,6 +166,26 @@ namespace OATControl
 			}
 		}
 
+		public bool InvertNinaALTCorrections
+		{
+			get { return _mount.InvertNinaALTCorrections; }
+			set
+			{
+				_mount.InvertNinaALTCorrections = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public bool InvertNinaAZCorrections
+		{
+			get { return _mount.InvertNinaAZCorrections; }
+			set
+			{
+				_mount.InvertNinaAZCorrections = value;
+				OnPropertyChanged();
+			}
+		}
+
 		public bool DecStartSouth
 		{
 			get { return _decStartSouth; }
