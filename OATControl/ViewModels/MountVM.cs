@@ -294,7 +294,7 @@ namespace OATControl.ViewModels
 			while (lineCount > _examinedLines)
 			{
 				Log.WriteLine("MOUNT: New lines in NINA log file to process.");
-				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("OperationCanceledException")) > 0)
+				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("ERROR|PolarAlignment.cs|Solve|")) > 0)
 				{
 					Log.WriteLine("MOUNT: Polar alignment canceled, resetting state.");
 					_examinedLines = lineCount;
@@ -437,7 +437,7 @@ namespace OATControl.ViewModels
 								bool alignmentIsComplete = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Total Error is below alignment tolerance")) > 0;
 								string message = "Polar alignment succeeded.";
 								// User Cancellation?
-								if (_allTextList.FindIndex(_examinedLines, l => l.Contains("ERROR|PolarAlignment.cs|Solve|717")) > 0)
+								if (_allTextList.FindIndex(_examinedLines, l => l.Contains("ERROR|PolarAlignment.cs|Solve|")) > 0)
 								{
 									alignmentIsComplete = true;
 									message = "Polar alignment cancelled by user.";
@@ -506,6 +506,11 @@ namespace OATControl.ViewModels
 								}, Application.Current.Dispatcher);
 
 							}
+						}
+						break;
+					case "Complete":
+						{
+							_examinedLines = lineCount;
 						}
 						break;
 				}
