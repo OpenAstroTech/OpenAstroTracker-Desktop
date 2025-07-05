@@ -146,6 +146,32 @@ namespace OATControl
 			}
 		}
 
+		public String SharpCapLogFolder
+		{
+			get { return _mount.SharpCapLogFolder; }
+			set
+			{
+				if (_mount.SharpCapLogFolder != value)
+				{
+					_mount.SharpCapLogFolder = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool MonitorSharpCapForPA
+		{
+			get { return _mount.MonitorSharpCapForPA; }
+			set
+			{
+				if (_mount.MonitorSharpCapForPA != value)
+				{
+					_mount.MonitorSharpCapForPA = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
 		public String SelectedBaudRate
 		{
 			get { return _serialBaudRate; }
@@ -166,22 +192,22 @@ namespace OATControl
 			}
 		}
 
-		public bool InvertNinaALTCorrections
+		public bool InvertALTCorrections
 		{
-			get { return _mount.InvertNinaALTCorrections; }
+			get { return _mount.InvertALTCorrections; }
 			set
 			{
-				_mount.InvertNinaALTCorrections = value;
+				_mount.InvertALTCorrections = value;
 				OnPropertyChanged();
 			}
 		}
 
-		public bool InvertNinaAZCorrections
+		public bool InvertAZCorrections
 		{
-			get { return _mount.InvertNinaAZCorrections; }
+			get { return _mount.InvertAZCorrections; }
 			set
 			{
-				_mount.InvertNinaAZCorrections = value;
+				_mount.InvertAZCorrections = value;
 				OnPropertyChanged();
 			}
 		}
@@ -255,6 +281,9 @@ namespace OATControl
 				case "Target List":
 					ContentTabs.SelectedIndex = 2;
 					SetInitialSortIndicator(this.sortField);
+					break;
+				case "Auto PA":
+					ContentTabs.SelectedIndex = 3;
 					break;
 			}
 		}

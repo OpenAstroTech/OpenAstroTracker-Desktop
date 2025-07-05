@@ -419,6 +419,13 @@ namespace OATControl.ViewModels
 		}
 
 		[DefaultValueAttribute("False")]
+		public bool MonitorSharpCapPA
+		{
+			get { return Convert.ToBoolean(this["MonitorSharpCapPA"]); }
+			set { this["MonitorSharpCapPA"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("False")]
 		public bool InvertAZCorrections
 		{
 			get { return Convert.ToBoolean(this["InvertAZCorrections"]); }
@@ -430,6 +437,20 @@ namespace OATControl.ViewModels
 		{
 			get { return Convert.ToBoolean(this["InvertALTCorrections"]); }
 			set { this["InvertALTCorrections"] = value.ToString(); }
+		}
+
+		[DefaultValueAttribute("")]
+		public string NinaLogFolder
+		{
+			get { return this["NinaLogFolder"]; }
+			set { this["NinaLogFolder"] = value; }
+		}
+
+		[DefaultValueAttribute("")]
+		public string SharpCapLogFolder
+		{
+			get { return this["SharpCapLogFolder"]; }
+			set { this["SharpCapLogFolder"] = value; }
 		}
 	}
 }

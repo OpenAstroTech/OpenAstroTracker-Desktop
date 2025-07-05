@@ -27,17 +27,10 @@ using System.Windows.Threading;
 
 namespace OATControl
 {
-	public class ErrorEntry
-	{
-		public string AzimuthError { get; set; }
-		public string AltitudeError { get; set; }
-		public string TotalError { get; set; }
-	}
-
 	/// <summary>
-	/// Interaction logic for DlgNinaPoolarAlignment.xaml
+	/// Interaction logic for DlgSharpCapPolarAlignment.xaml
 	/// </summary>
-	public partial class DlgNinaPolarAlignment : MetroWindow, INotifyPropertyChanged, IPolarAlignDialog
+	public partial class DlgSharpCapPolarAlignment : MetroWindow, INotifyPropertyChanged, IPolarAlignDialog
 	{
 		public class ChecklistItem : INotifyPropertyChanged
 		{
@@ -83,7 +76,7 @@ namespace OATControl
 		private ObservableCollection<ErrorEntry> _errorEntries = new ObservableCollection<ErrorEntry>();
 		public ObservableCollection<ErrorEntry> ErrorEntries => _errorEntries;
 
-		public DlgNinaPolarAlignment(Action closeCallback)
+		public DlgSharpCapPolarAlignment(Action closeCallback)
 		{
 			_closeCommand = new DelegateCommand(() =>
 			{
@@ -122,20 +115,6 @@ namespace OATControl
 			}
 		}
 
-		private string _thirdPointStatus = "Waiting";
-		public string ThirdPointStatus
-		{
-			get => _thirdPointStatus;
-			set
-			{
-				if (_thirdPointStatus != value)
-				{
-					_thirdPointStatus = value;
-					OnPropertyChanged(nameof(ThirdPointStatus));
-				}
-			}
-		}
-
 		private string _calculatingErrorStatus = "Waiting";
 		public string CalculatingErrorStatus
 		{
@@ -160,47 +139,6 @@ namespace OATControl
 				{
 					_adjustingMountStatus = value;
 					OnPropertyChanged(nameof(AdjustingMountStatus));
-				}
-			}
-		}
-
-		private string _azimuthError = "-";
-		public string AzimuthError
-		{
-			get => _azimuthError;
-			set
-			{
-				if (_azimuthError != value)
-				{
-					_azimuthError = value;
-					OnPropertyChanged(nameof(AzimuthError));
-				}
-			}
-		}
-		
-		private string _altitudeError = "-";
-		public string AltitudeError
-		{
-			get => _altitudeError;
-			set
-			{
-				if (_altitudeError != value)
-				{
-					_altitudeError = value;
-					OnPropertyChanged(nameof(AltitudeError));
-				}
-			}
-		}
-		private string _totalError = "-";
-		public string TotalError
-		{
-			get => _totalError;
-			set
-			{
-				if (_totalError != value)
-				{
-					_totalError = value;
-					OnPropertyChanged(nameof(TotalError));
 				}
 			}
 		}
@@ -245,11 +183,6 @@ namespace OATControl
 					else if (statusDetails.Contains("Second"))
 					{
 						SecondPointStatus = "Complete";
-						ThirdPointStatus = "InProgress";
-					}
-					else if (statusDetails.Contains("Third"))
-					{
-						ThirdPointStatus = "Complete";
 						CalculatingErrorStatus = "InProgress";
 					}
 					break;
@@ -282,8 +215,6 @@ namespace OATControl
 					break;
 				case "ResetLoop":
 					CalculatingErrorStatus = "InProgress";
-					AzimuthError = "-";
-					AltitudeError = "-";
 					Iterations = "";
 					AdjustingMountStatus = "Waiting";
 					break;

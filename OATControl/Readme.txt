@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.1.16.0                                             4 Jul 2025
+- Added support for SharCap 4.x Polar Alignment.
+- Moved AutoPA options to its own category on App Settings.
+
 OATControl V1.1.15.0                                             2 Jul 2025
 - Fixed bug that caused logfile explosion after a successful TPPA with NINA.
 - Fixed an issue where the end of the TPPA was not detected when 

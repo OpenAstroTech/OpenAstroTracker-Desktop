@@ -118,6 +118,9 @@
     <Compile Include="DlgCustomActionSetup.xaml.cs">
       <DependentUpon>DlgCustomActionSetup.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DlgSharpCapPolarAlignment.xaml.cs">
+      <DependentUpon>DlgSharpCapPolarAlignment.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DlgNinaPolarAlignment.xaml.cs">
       <DependentUpon>DlgNinaPolarAlignment.xaml</DependentUpon>
     </Compile>
@@ -136,12 +139,18 @@
     <Compile Include="DlgWaitForGXState.xaml.cs">
       <DependentUpon>DlgWaitForGXState.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\IPolarAlignDialog.cs" />
+    <Compile Include="ViewModels\IPolarAlignLogProcessor.cs" />
     <Compile Include="LevelDisplay.xaml.cs">
       <DependentUpon>LevelDisplay.xaml</DependentUpon>
     </Compile>
     <Compile Include="MiniController.xaml.cs">
       <DependentUpon>MiniController.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\NinaPolarAlignLogProcessor.cs" />
+    <Compile Include="ViewModels\PolarAlignCorrectionEventArgs.cs" />
+    <Compile Include="ViewModels\PolarAlignLogProcessorBase.cs" />
+    <Compile Include="ViewModels\PolarAlignStatusEventArgs.cs" />
     <Compile Include="SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
     </Compile>
@@ -157,6 +166,7 @@
     <Compile Include="ViewModels\MountVM.cs" />
     <Compile Include="ViewModels\PointOfInterest.cs" />
     <Compile Include="ViewModels\PointsOfInterest.cs" />
+    <Compile Include="ViewModels\SharpCapPolarAlignLogProcessor.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="Converters\WpfBitmapConverter.cs" />
     <Compile Include="DlgChecklistEditor.xaml.cs">
@@ -193,6 +203,10 @@
     <Page Include="DlgCustomActionSetup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DlgSharpCapPolarAlignment.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="DlgNinaPolarAlignment.xaml">
       <Generator>MSBuild:Compile</Generator>

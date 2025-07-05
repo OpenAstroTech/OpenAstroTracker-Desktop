@@ -15,6 +15,7 @@
 	<Window.Resources>
 		<converters:DoubleToHMSConverter x:Key="RAConverter" />
 		<converters:DoubleToHMSConverter x:Key="DECConverter" Formatter = "[0:+00;-00]° [1:00]&quot; [2:00]'"/>
+		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" Collapse="True" />
 		<Style x:Key="CategoryItem" TargetType="ListViewItem" BasedOn="{StaticResource MetroListBoxItem}" >
 			<Setter Property="FontWeight" Value="Bold" />
 			<Setter Property="FontSize" Value="14" />
@@ -246,6 +247,7 @@
 					<ListViewItem Content="General" Style="{StaticResource CategoryItem}"/>
 					<ListViewItem Content="Autohoming" Style="{StaticResource CategoryItem}"/>
 					<ListViewItem Content="Target List" Style="{StaticResource CategoryItem}"/>
+					<ListViewItem Content="Auto PA" Style="{StaticResource CategoryItem}"/>
 				</ListView>
 			</Border>
 		</Border>
@@ -305,77 +307,9 @@
 								Margin="0,2,0,0"
 								Command="{Binding ConfigureChecklistCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}" ToolTip="Configure the items on the checklist to display." />
 					</StackPanel>
-					<StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,20,0,0">
-						<TextBlock Text="N.I.N.A. Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="The log folder of N.I.N.A. to monitor for Polar Alignment. Only N.I.N.A. V3.1 and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="Auto"/>
-					</StackPanel>
-					<TextBox Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
-							Style="{StaticResource TextBoxSmall}" 
-							Width="Auto"
-							HorizontalAlignment="Stretch"
-							Text="{Binding NinaLogFolder}" 
-							VerticalAlignment="Center" Margin="0,4,20,0"/>
-
-					<StackPanel Grid.Row="4" Grid.Column="0" VerticalAlignment="Top">
-						<TextBlock Text="Monitor N.I.N.A. for TPPA" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="If enabled, this will monitor N.I.N.A. and automatically run Polar Alignment adjustments as needed." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-					</StackPanel>
-					<Grid Grid.Row="4"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
-						<Grid.RowDefinitions>
-							<RowDefinition Height="Auto" />
-							<RowDefinition Height="Auto" />
-						</Grid.RowDefinitions>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="40" />
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="40" />
-						</Grid.ColumnDefinitions>
-						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding MonitorNinaForPA}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-					</Grid>
-
-					<StackPanel Grid.Row="5" Grid.Column="0" VerticalAlignment="Top">
-						<TextBlock Text="Invert AZ corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="If enabled, the corrections for the AZ axis from N.I.N.A. will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-					</StackPanel>
-					<Grid Grid.Row="5"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
-						<Grid.RowDefinitions>
-							<RowDefinition Height="Auto" />
-							<RowDefinition Height="Auto" />
-						</Grid.RowDefinitions>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="40" />
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="40" />
-						</Grid.ColumnDefinitions>
-						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertNinaAZCorrections}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-					</Grid>
-
-					<StackPanel Grid.Row="6" Grid.Column="0" VerticalAlignment="Top">
-						<TextBlock Text="Invert ALT corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="If enabled, the corrections for the ALT axis from N.I.N.A. will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-					</StackPanel>
-					<Grid Grid.Row="6"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
-						<Grid.RowDefinitions>
-							<RowDefinition Height="Auto" />
-							<RowDefinition Height="Auto" />
-						</Grid.RowDefinitions>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="40" />
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="40" />
-						</Grid.ColumnDefinitions>
-						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertNinaALTCorrections}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-					</Grid>
-
+					
 				</Grid>
 			</TabItem>
-
 			<TabItem Header="Autohoming">
 				<!--     AUTOHOMING  -->
 				<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,10">
@@ -495,6 +429,128 @@
 					</StackPanel>
 				</Grid>
 			</TabItem>
+			<TabItem Header="Auto PA" >
+				<!--     AUTO  PA  -->
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+
+					<StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
+						<TextBlock Text="Monitor N.I.N.A. for TPPA" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, this will monitor N.I.N.A. and automatically run Polar Alignment adjustments as needed." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="0"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding MonitorNinaForPA}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+					<StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="20,0,0,0" 
+								Visibility="{Binding MonitorNinaForPA, Converter={StaticResource BoolToVisibilityConverter}}">
+						<TextBlock Text="N.I.N.A. Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" />
+						<TextBlock Text="The log folder of N.I.N.A. to monitor for Polar Alignment. Only N.I.N.A. V3.1 and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="Auto" />
+					</StackPanel>
+					<TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
+							Visibility="{Binding MonitorNinaForPA, Converter={StaticResource BoolToVisibilityConverter}}"
+							Style="{StaticResource TextBoxSmall}" 
+							Width="Auto"
+							HorizontalAlignment="Stretch"
+							Text="{Binding NinaLogFolder}" 
+							VerticalAlignment="Center" Margin="20,4,20,0"/>
+
+					<StackPanel Grid.Row="3" Grid.Column="0" VerticalAlignment="Top" Margin="0,20,0,0">
+						<TextBlock Text="Monitor SharpCap for Polar Alignment" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, this will monitor SharpCap and automatically run Polar Alignment adjustments as needed." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="3"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,20,0,0">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding MonitorSharpCapForPA}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+					<StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="20,0,0,0" 
+								Visibility="{Binding MonitorSharpCapForPA, Converter={StaticResource BoolToVisibilityConverter}}">
+						<TextBlock Text="SharpCap Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" />
+						<TextBlock Text="The log folder of SharpCap to monitor for Polar Alignment. Only SharpCap 4.x and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="Auto" />
+					</StackPanel>
+					
+					<TextBox Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
+							Visibility="{Binding MonitorSharpCapForPA, Converter={StaticResource BoolToVisibilityConverter}}"
+							Style="{StaticResource TextBoxSmall}" 
+							Width="Auto"
+							HorizontalAlignment="Stretch"
+							Text="{Binding SharpCapLogFolder}" 
+							VerticalAlignment="Center" Margin="20,4,20,0"/>
+
+					<StackPanel Grid.Row="6" Grid.Column="0" VerticalAlignment="Top"  Margin="0,20,0,0">
+						<TextBlock Text="Invert AZ corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, the corrections for the AZ axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="6"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,20,0,0">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertAZCorrections}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+
+					<StackPanel Grid.Row="7" Grid.Column="0" VerticalAlignment="Top">
+						<TextBlock Text="Invert ALT corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, the corrections for the ALT axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="7"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertALTCorrections}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+
+				</Grid>
+			</TabItem>
+
 		</TabControl>
 	</DockPanel>
 </mah:MetroWindow>
