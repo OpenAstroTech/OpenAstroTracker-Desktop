@@ -28,6 +28,8 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		protected override string Name => "SharpCap";
+
 		public override void LogfileWasReset()
 		{
 			_polarAlignState = "Idle";
@@ -123,8 +125,8 @@ namespace OATControl.ViewModels
 									float azError = CalcAzimuthError(match.Groups[2].Value, match.Groups[4].Value);
 									float altError = CalcAltitudeError(match.Groups[3].Value, match.Groups[5].Value);
 									float totalError = (float)Math.Sqrt(azError * azError + altError * altError);
-									ShowDialogStatus("CalculateSettle", $"{ToDegreeString(azError)}|{ToDegreeString(altError)}|{ToDegreeString(totalError)}|({_numCalculatedErrors}/2)");
-									if (_numCalculatedErrors > 1)
+									ShowDialogStatus("CalculateSettle", $"{ToDegreeString(azError)}|{ToDegreeString(altError)}|{ToDegreeString(totalError)}|({_numCalculatedErrors}/4)");
+									if (_numCalculatedErrors > 3)
 									{
 										ShowDialogStatus("Adjust", "");
 

@@ -19,10 +19,7 @@ using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
-using MahApps.Metro.Converters;
-using System.Windows.Media.Animation;
-using System.Collections.Specialized;
-using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace OATControl.ViewModels
 {
@@ -40,6 +37,8 @@ namespace OATControl.ViewModels
 		bool _monitorSharpCapForPA = false;
 		bool _invertAzCorrections = false;
 		bool _invertAltCorrections = false;
+		string _ninaLogState = string.Empty;
+		string _sharpCapLogState = string.Empty;
 
 		float _raStepper = 0;
 		float _decStepper = 0;
@@ -222,6 +221,10 @@ namespace OATControl.ViewModels
 		private NinaPolarAlignLogProcessor _ninaLogProcessor;
 		private SharpCapPolarAlignLogProcessor _sharpCapLogProcessor;
 
+		private CancellationTokenSource _ninaLogCts;
+		private CancellationTokenSource _sharpCapLogCts;
+		private const int LogActiveTimeoutMs = 500;
+
 		public static void RunOnUiThread(Action action, Dispatcher dispatcher)
 		{
 			// If we're on another thread, check whether the main thread dispatcher is available
@@ -266,6 +269,33 @@ namespace OATControl.ViewModels
 			get; private set;
 		}
 
+		public string NinaLogState
+		{
+			get => _ninaLogState;
+			set
+			{
+				if (_ninaLogState != value)
+				{
+					_ninaLogState = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public string SharpCapLogState
+		{
+			get => _sharpCapLogState;
+			set
+			{
+				if (_sharpCapLogState != value)
+				{
+					_sharpCapLogState = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+
 		public void OnMonitorNinaChanged(bool oldVal, bool newVal)
 		{
 			AppSettings.Instance.MonitorNinaPA = newVal;
@@ -274,10 +304,12 @@ namespace OATControl.ViewModels
 			if (newVal)
 			{
 				_ninaLogProcessor.Start();
+				NinaLogState = "Monitoring N.I.N.A.";
 			}
 			else
 			{
 				_ninaLogProcessor.Stop();
+				NinaLogState = string.Empty;
 			}
 		}
 
@@ -289,10 +321,12 @@ namespace OATControl.ViewModels
 			if (newVal)
 			{
 				_sharpCapLogProcessor.Start();
+				SharpCapLogState = "Monitoring SharpCap";
 			}
 			else
 			{
 				_sharpCapLogProcessor.Stop();
+				SharpCapLogState = string.Empty;
 			}
 		}
 
@@ -456,12 +490,12 @@ namespace OATControl.ViewModels
 
 			// Set up NINA Polar alignment handler
 			_ninaLogProcessor = new NinaPolarAlignLogProcessor();
-			_ninaLogProcessor.SetSendMountCommandDelegate(async (cmd) =>
+			_ninaLogProcessor.SetMountCommandDelegates(async (cmd) =>
 			{
 				var tcs = new System.Threading.Tasks.TaskCompletionSource<string>();
 				_oatMount.SendCommand(cmd, (resp) => tcs.SetResult(resp.Data));
 				return await tcs.Task;
-			});
+			}, async (s) => await OnLogActivity(s));
 			_ninaLogProcessor.CorrectionRequired += OnPolarAlignCorrectionRequired;
 			MonitorNinaForPA = AppSettings.Instance.MonitorNinaPA;
 			InvertAZCorrections = AppSettings.Instance.InvertAZCorrections;
@@ -469,15 +503,74 @@ namespace OATControl.ViewModels
 
 			// Set up SharpCap Polar alignment handler
 			_sharpCapLogProcessor = new SharpCapPolarAlignLogProcessor();
-			_sharpCapLogProcessor.SetSendMountCommandDelegate(async (cmd) =>
+			_sharpCapLogProcessor.SetMountCommandDelegates(async (cmd) =>
 			{
 				var tcs = new System.Threading.Tasks.TaskCompletionSource<string>();
 				_oatMount.SendCommand(cmd, (resp) => tcs.SetResult(resp.Data));
 				return await tcs.Task;
-			});
+			}, async (s) => await OnLogActivity(s));
 			_sharpCapLogProcessor.CorrectionRequired += OnPolarAlignCorrectionRequired;
 			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
+		}
 
+		private bool _isNinaLogActive;
+		public bool IsNinaLogActive
+		{
+			get => _isNinaLogActive;
+			private set
+			{
+				if (_isNinaLogActive != value)
+				{
+					_isNinaLogActive = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		private bool _isSharpCapLogActive;
+		public bool IsSharpCapLogActive
+		{
+			get => _isSharpCapLogActive;
+			private set
+			{
+				if (_isSharpCapLogActive != value)
+				{
+					_isSharpCapLogActive = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+
+		async Task OnLogActivity(string logWatcher)
+		{
+			var dispatcher = Application.Current.Dispatcher;
+			if (logWatcher == "NINA")
+			{
+				_ninaLogCts?.Cancel();
+				_ninaLogCts = new CancellationTokenSource();
+				var token = _ninaLogCts.Token;
+				await dispatcher.InvokeAsync(() => IsNinaLogActive = true);
+				try
+				{
+					await Task.Delay(LogActiveTimeoutMs, token);
+					await dispatcher.InvokeAsync(() => IsNinaLogActive = false);
+				}
+				catch (TaskCanceledException) { /* Swallow, another activity came in */ }
+			}
+			else if (logWatcher == "SharpCap")
+			{
+				_sharpCapLogCts?.Cancel();
+				_sharpCapLogCts = new CancellationTokenSource();
+				var token = _sharpCapLogCts.Token;
+				await dispatcher.InvokeAsync(() => IsSharpCapLogActive = true);
+				try
+				{
+					await Task.Delay(LogActiveTimeoutMs, token);
+					await dispatcher.InvokeAsync(() => IsSharpCapLogActive = false);
+				}
+				catch (TaskCanceledException) { /* Swallow, another activity came in */ }
+			}
 		}
 
 		internal async Task SetSteps(float raStepsAfter, float decStepsAfter)
@@ -1096,11 +1189,9 @@ namespace OATControl.ViewModels
 				_miniController = new MiniController(this);
 				_miniController.Topmost = KeepMiniControlOnTop;
 
-				if (AppSettings.Instance.MiniControllerPos.X != -1)
-				{
-					_miniController.Left = AppSettings.Instance.MiniControllerPos.X;
-					_miniController.Top = AppSettings.Instance.MiniControllerPos.Y;
-				}
+				Rect r = AppSettings.Instance.EnsureRectIsOnScreen("MiniControllerPos", null);
+				_miniController.Left = r.Left;
+				_miniController.Top = r.Top;
 			}
 			if (_miniController.IsVisible)
 			{
@@ -1111,6 +1202,7 @@ namespace OATControl.ViewModels
 				_miniController.Show();
 			}
 		}
+		
 
 		public void OnShowSlewPoints()
 		{
@@ -3874,7 +3966,7 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _connectionState, value); }
 		}
 
-		
+
 		public bool MonitorSharpCapForPA
 		{
 			get { return _monitorSharpCapForPA; }

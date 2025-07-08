@@ -139,10 +139,11 @@ namespace OATControl
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			// Restore size and position
-			this.Width = AppSettings.Instance.ChecklistSize.Width;
-			this.Height = AppSettings.Instance.ChecklistSize.Height;
-			this.Left = AppSettings.Instance.ChecklistPos.X;
-			this.Top = AppSettings.Instance.ChecklistPos.Y;
+			Rect r = AppSettings.Instance.EnsureRectIsOnScreen("ChecklistPos", "ChecklistSize");
+			this.Left = r.Left;
+			this.Top = r.Top;
+			this.Width = r.Width;
+			this.Height = r.Height;
 		}
 
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

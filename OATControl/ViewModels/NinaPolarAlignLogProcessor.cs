@@ -30,6 +30,8 @@ namespace OATControl.ViewModels
 			}
 		}
 
+		protected override string Name => "NINA";
+
 		public override void LogfileWasReset()
 		{
 			_polarAlignState = "Idle";

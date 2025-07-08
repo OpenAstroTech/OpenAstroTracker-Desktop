@@ -22,24 +22,28 @@ namespace OATControl.ViewModels
 		protected string _latestLogfile;
 		protected bool _monitoring = false;
 		protected long _lastLogPosition = 0;
-		protected private int _numCalculatedErrors;
+		protected private	 int _numCalculatedErrors;
 		protected Func<string, Task<string>> _sendMountCommandAsync;
+		protected Func<string, Task> _logActivityCallback;
 		private IPolarAlignDialog _polarAlignmentDlg;
 		protected bool _isPollingAdjustment = false;
 
 
+		protected abstract string Name { get; }
 		protected abstract string LogFolder { get; }
 		protected abstract void ProcessLogLines();
 
-		public void SetSendMountCommandDelegate(Func<string, Task<string>> sendCommand)
+		public void SetMountCommandDelegates(Func<string, Task<string>> sendCommand, Func<string, Task> logActivityCallback)
 		{
 			_sendMountCommandAsync = sendCommand;
+			_logActivityCallback = logActivityCallback;
 		}
 
 		protected void RaiseStatusChanged(PolarAlignStatusEventArgs args)
 		{
 			StatusChanged?.Invoke(this, args);
 		}
+
 
 		protected void RaiseCorrectionRequired(PolarAlignCorrectionEventArgs args)
 		{
@@ -58,7 +62,7 @@ namespace OATControl.ViewModels
 			var latestLogfile = logFiles.LastOrDefault();
 			if (latestLogfile != null)
 			{
-				Log.WriteLine("MOUNT: Latest NINA log file is " + latestLogfile + ". Reading and skipping existing lines...");
+				Log.WriteLine("MOUNT: Latest log file is " + latestLogfile + ". Reading and skipping existing lines...");
 				_latestLogfile = latestLogfile;
 				lock (_allTextList)
 				{
@@ -84,6 +88,7 @@ namespace OATControl.ViewModels
 				Log.WriteLine("MOUNT: Skipped " + _examinedLines + " lines (" + _lastLogPosition + " bytes)...");
 				LogfileWasReset();
 			}
+			Log.WriteLine("MOUNT: Installing File Watcher on " + logFolder);
 			_logWatcher = new FileSystemWatcher(logFolder) { EnableRaisingEvents = true, NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size, Filter = "*.log" };
 			_logWatcher.Changed += OnLogFileChanged;
 		}
@@ -102,10 +107,13 @@ namespace OATControl.ViewModels
 
 		private void OnLogFileChanged(object sender, FileSystemEventArgs e)
 		{
+            _logActivityCallback?.Invoke(Name);
 			var changedFile = Path.Combine(LogFolder, e.Name);
 			if (changedFile != _latestLogfile)
 			{
 				_latestLogfile = changedFile;
+				Log.WriteLine("MOUNT: New logfile detected! Opening " + _latestLogfile);
+
 				_lastLogPosition = 0;
 				lock (_allTextList)
 				{
@@ -130,6 +138,7 @@ namespace OATControl.ViewModels
 					}
 				}
 			}
+			Log.WriteLine("MOUNT: Logfile contains " + _allTextList.Count + " lines.");
 
 			ProcessLogLines();
 		}
@@ -151,13 +160,13 @@ namespace OATControl.ViewModels
 			int minutes = int.Parse(match.Groups[2].Value);
 			int seconds = int.Parse(match.Groups[3].Value);
 			float result = sign * (degrees * 60.0f + minutes + seconds / 60.0f);
-			if (result > 180f*60f)
+			if (result > 180f * 60f)
 			{
-				result = result- 360.0f*60f;
+				result = result - 360.0f * 60f;
 			}
 			if (result < -180f * 60f)
 			{
-				result =  360.0f*60f + result;
+				result = 360.0f * 60f + result;
 			}
 
 			return result;
@@ -179,7 +188,7 @@ namespace OATControl.ViewModels
 			degrees = (degrees - m) * 60f;
 			int s = (int)Math.Floor(degrees);
 
-			return $"{d * sign:00}° {m:00}' {s:00}\"";
+			return $"{d * sign:00}Â° {m:00}' {s:00}\"";
 		}
 
 
@@ -233,4 +242,4 @@ namespace OATControl.ViewModels
 			});
 		}
 	}
-} 
+}

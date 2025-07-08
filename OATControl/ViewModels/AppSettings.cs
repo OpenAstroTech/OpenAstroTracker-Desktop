@@ -97,6 +97,88 @@ namespace OATControl.ViewModels
 		public long CurrentVersion { get; private set; }
 		public long LoadedVersion { get; private set; }
 
+		/// <summary>
+		/// Ensures the given window is at least partially visible on the virtual screen,
+		/// with its title bar fully accessible.
+		/// </summary>
+		public static void EnsureWindowIsVisible(ref Rect windowRect, int titleBarHeight = 30, int edgeMargin = 10)
+		{
+			// Virtual screen dimensions (handles multi-monitor setups)
+			int screenLeft = (int)SystemParameters.VirtualScreenLeft;
+			int screenTop = (int)SystemParameters.VirtualScreenTop;
+			int screenWidth = (int)SystemParameters.VirtualScreenWidth;
+			int screenHeight = (int)SystemParameters.VirtualScreenHeight;
+			Rect virtualScreen = new Rect(screenLeft, screenTop, screenWidth, screenHeight);
+
+			// If completely offscreen, snap to nearest edge
+			if (!windowRect.IntersectsWith(virtualScreen))
+			{
+				double distLeft = Math.Abs(windowRect.Right - virtualScreen.Left);
+				double distRight = Math.Abs(windowRect.Left - virtualScreen.Right);
+				double distTop = Math.Abs(windowRect.Bottom - virtualScreen.Top);
+				double distBottom = Math.Abs(windowRect.Top - virtualScreen.Bottom);
+
+				double minDist = Math.Min(Math.Min(distLeft, distRight), Math.Min(distTop, distBottom));
+
+				if (minDist == distLeft)
+				{
+					windowRect.X = virtualScreen.Left - windowRect.Width + edgeMargin;
+					windowRect.Y = Clamp(windowRect.Y, virtualScreen.Top, virtualScreen.Bottom - titleBarHeight);
+				}
+				else if (minDist == distRight)
+				{
+					windowRect.X = virtualScreen.Right - edgeMargin;
+					windowRect.Y = Clamp(windowRect.Y, virtualScreen.Top, virtualScreen.Bottom - titleBarHeight);
+				}
+				else if (minDist == distTop)
+				{
+					windowRect.Y = virtualScreen.Top;
+					windowRect.X = Clamp(windowRect.X, virtualScreen.Left, virtualScreen.Right - 100); // keep a visible slice
+				}
+				else if (minDist == distBottom)
+				{
+					windowRect.Y = virtualScreen.Bottom - windowRect.Height;
+					windowRect.X = Clamp(windowRect.X, virtualScreen.Left, virtualScreen.Right - 100);
+				}
+			}
+			else
+			{
+				// Clamp within virtual screen bounds
+				if (windowRect.Right > virtualScreen.Right)
+					windowRect.X = virtualScreen.Right - windowRect.Width;
+
+				if (windowRect.Bottom > virtualScreen.Bottom)
+					windowRect.Y = virtualScreen.Bottom - windowRect.Height;
+
+				if (windowRect.Left < virtualScreen.Left)
+					windowRect.X = virtualScreen.Left;
+
+				if (windowRect.Top < virtualScreen.Top)
+					windowRect.Y = virtualScreen.Top;
+			}
+		}
+
+		private static double Clamp(double value, double min, double max)
+		{
+			return Math.Min(Math.Max(value, min), max);
+		}
+
+		public Rect EnsureRectIsOnScreen(string pointName, string sizeName)
+		{
+			try
+			{
+				Point point = this[pointName] != null ? ToPoint(this[pointName]) : new Point(0, 0);
+				Size size = this[sizeName] != null ? ToSize(this[sizeName]) : new Size(100, 100);
+				Rect rect = new Rect(point, size);
+				EnsureWindowIsVisible(ref rect);
+				return rect;
+			}
+			catch
+			{
+				return new Rect(0, 0, 100, 100);
+			}
+		}
+
 		private Point ToPoint(string val)
 		{
 			var parts = val.Split('|');
@@ -112,14 +194,14 @@ namespace OATControl.ViewModels
 		private Size ToSize(string val)
 		{
 			var parts = val?.Split('|');
-			if ((parts!=null) && (parts.Length != 2))
+			if ((parts != null) && (parts.Length != 2))
 				throw new ArgumentException("Invalid size format. Expected format: 'width|height'. Received: [" + val + "]");
 			try
 			{
 				Size sz = new Size(int.Parse(parts[0]), int.Parse(parts[1]));
 				return sz;
 			}
-			catch 
+			catch
 			{
 				throw new ArgumentException("Invalid Size, expected: 'width|height'. Received: [" + val + "]");
 			}

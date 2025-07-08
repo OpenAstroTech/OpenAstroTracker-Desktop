@@ -21,6 +21,7 @@
 		<converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
 		<converters:IntToBoolConverter x:Key="Int5ToBool" TrueValue="5" Operator="==" />
 		<converters:StringToVisibilityConverter x:Key="ShowOnStringEqual" EqualState="Visible" />
+		<converters:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
 
 		<Path x:Key="IconArrowUp" x:Shared="false" Data="M16,0L32,19.745 0,19.745z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
 		<Path x:Key="IconArrowLeft" x:Shared="false" Data="M25.3,0L25.3,32 0,16z" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource AccentBaseColorBrush}" />
@@ -190,6 +191,12 @@
 		</Style>
 		<Style x:Key="TextBlockLabelTiny" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
 			<Setter Property="FontSize" Value="10" />
+		</Style>
+		<Style x:Key="TextBlockLabelTinySetting" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+			<Setter Property="FontSize" Value="9" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="VerticalAlignment" Value="Top" />
+			<Setter Property="Padding" Value="0" />
 		</Style>
 		<Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
 			<Setter Property="Padding" Value="12,2" />
@@ -362,6 +369,8 @@
 			<TextBlock Grid.Row="8" Grid.Column="14" Text="m" Style="{StaticResource TextBlockLabel}"  />
 			<TextBlock Grid.Row="8" Grid.Column="15" Text="{Binding CurrentAZSeconds}" Style="{StaticResource TextBlockLabel}"  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="2,2,0,0" />
 			<TextBlock Grid.Row="8" Grid.Column="16" Text="s" Style="{StaticResource TextBlockLabel}" Grid.ColumnSpan="2" />
+			<TextBlock Grid.Row="1" Grid.Column="13" Grid.ColumnSpan="4"  Margin="0,0" Text="{Binding NinaLogState}" Style="{StaticResource TextBlockLabelTinySetting}" FontWeight="{Binding IsNinaLogActive, Converter={StaticResource BoolToFontWeightConverter}}"/>
+			<TextBlock Grid.Row="1" Grid.Column="13" Grid.ColumnSpan="4"  Margin="0,12,0,0"  Text="{Binding SharpCapLogState}" Style="{StaticResource TextBlockLabelTinySetting}" FontWeight="{Binding IsSharpCapLogActive, Converter={StaticResource BoolToFontWeightConverter}}"/>
 		</Grid>
 
 		<Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1">

@@ -24,8 +24,6 @@ namespace OATControl
 	public partial class MiniController : Window
 	{
 		MountVM _mount;
-		private Point _startCapturePos;
-		private Point _startWindowPos;
 		private string _lastCommand = string.Empty;
 
 		public MiniController(MountVM mount)

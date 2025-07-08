@@ -190,8 +190,8 @@ namespace OATControl
 					var parts = statusDetails.Split('|');
 					if (parts.Length >= 4)
 					{
-						if (parts[3] == "(2/2)")
-						{
+						if (!parts[3].StartsWith("(1/"))
+						{ 
 							_errorEntries.RemoveAt(_errorEntries.Count-1);
 						}
 						_errorEntries.Add(new ErrorEntry
