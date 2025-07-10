@@ -56,6 +56,17 @@
 				</DataTrigger>
 			</Style.Triggers>
 		</Style>
+		<Style x:Key="TextBlockStatusMinor" TargetType="TextBlock" >
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Style.Triggers>
+				<DataTrigger Binding="{Binding}" Value="True">
+					<Setter Property="Foreground" Value="#FFB0B0B0" />
+				</DataTrigger>
+			</Style.Triggers>
+		</Style>
 		<Style x:Key="TextBlockStatus" TargetType="TextBlock" >
 			<Setter Property="FontWeight" Value="Bold" />
 			<Setter Property="FontSize" Value="18" />
@@ -621,6 +632,10 @@
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 
+					<DockPanel Grid.Row="0" Grid.Column="0" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingAz}" Visibility="{Binding ScopeHasAZ, Converter={StaticResource CollapseIfFalse}}">
+						<TextBlock Text="AZ" Style="{StaticResource TextBlockStatusMinor}" />
+					</DockPanel>
+
 					<DockPanel Grid.Row="0" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingNorth}">
 						<TextBlock Text="N" Style="{StaticResource TextBlockStatus}" />
 					</DockPanel>
@@ -632,6 +647,9 @@
 					</DockPanel>
 					<DockPanel Grid.Row="1" Grid.Column="1" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingWest}">
 						<TextBlock Text="W" Style="{StaticResource TextBlockStatus}"  />
+					</DockPanel>
+					<DockPanel Grid.Row="2" Grid.Column="0" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingAlt}" Visibility="{Binding ScopeHasALT, Converter={StaticResource CollapseIfFalse}}">
+						<TextBlock Text="ALT" Style="{StaticResource TextBlockStatusMinor}" />
 					</DockPanel>
 					<DockPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource DockBlockStatus}" DataContext="{Binding IsSlewingSouth}">
 						<TextBlock Text="S" Style="{StaticResource TextBlockStatus}"  />

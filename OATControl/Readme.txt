@@ -1,8 +1,18 @@
 Revision History
 ----------------
 
+OATControl V1.1.18.0                                             9 Jul 2025
+- Added AZ/ALT motor status display to main screen.
+- Fixed a bug related to window positioning when ensuring they always open
+  on screen.
+
+OATControl V1.1.17.0                                             8 Jul 2025
+- Added display of NINA and SharpCap monitoring status on main screen.
+- Added code to ensure that no windows ever open entirely offscreen.
+- Increased required SharpCap successful solves before adjustment to 4.
+
 OATControl V1.1.16.0                                             4 Jul 2025
-- Added support for SharCap 4.x Polar Alignment.
+- Added support for SharpCap 4.x Polar Alignment.
 - Moved AutoPA options to its own category on App Settings.
 
 OATControl V1.1.15.0                                             2 Jul 2025

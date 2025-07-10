@@ -45,7 +45,6 @@ namespace OATControl.ViewModels
 		private string _settingsLocation;
 
 		private List<SlewPoint> _slewPoints;
-
 		AppSettings()
 		{
 			var entry = Assembly.GetExecutingAssembly().GetName().Version;
@@ -156,7 +155,7 @@ namespace OATControl.ViewModels
 				if (windowRect.Top < virtualScreen.Top)
 					windowRect.Y = virtualScreen.Top;
 			}
-		}
+		} 
 
 		private static double Clamp(double value, double min, double max)
 		{
@@ -217,6 +216,11 @@ namespace OATControl.ViewModels
 		{
 			get
 			{
+				if (key == null)
+				{
+					return null;
+				}
+
 				if (_dict.TryGetValue(key, out string val))
 				{
 					return val;
