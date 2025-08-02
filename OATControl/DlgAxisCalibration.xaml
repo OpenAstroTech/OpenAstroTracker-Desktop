@@ -1,0 +1,347 @@
+﻿<Controls:MetroWindow x:Class="OATControl.DlgAxisCalibration"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ 		xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OATControl" 
+		xmlns:controls="clr-namespace:OATControl.Controls"
+		xmlns:converters="clr-namespace:OATControl.Converters"
+        mc:Ignorable="d"
+        Title=" Stepper Motor Calibration" MinHeight="390" Width="520" MinWidth="520" Height="390" WindowStyle="ToolWindow">
+	<Window.Resources>
+		<Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
+			<Setter Property="BorderBrush" Value="{StaticResource AccentBaseColorBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush3}" />
+			<Setter Property="Foreground" Value="#FF000000" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="Width" Value="40" />
+			<Setter Property="Height" Value="24" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ToggleButton">
+						<Border Name="border" 
+                            BorderThickness="1"
+                            BorderBrush="{StaticResource AccentBaseColorBrush}" 
+                            CornerRadius="0" 
+                            Background="{TemplateBinding Background}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush2}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush4}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
+							</Trigger>
+							<Trigger Property="IsChecked" Value="True">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentSelectedColorBrush}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush2}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentSelectedColorBrush}" />
+							</Trigger>
+							<Trigger Property="IsEnabled" Value="False">
+								<Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+								<Setter TargetName="border" Property="Background" Value="{StaticResource AccentColorBrush3}" />
+								<Setter Property="Foreground" Value="{StaticResource AccentBaseColorBrush}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
+			<Setter Property="Margin" Value="10,4" />
+			<Setter Property="Background" Value="#440000" />
+			<Setter Property="Foreground" Value="#F00" />
+		</Style>
+		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Margin" Value="2,0" />
+			<Setter Property="Padding" Value="6,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+		<Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="Padding" Value="2,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
+		<Style x:Key="TextBlockListItem" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="Padding" Value="2,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Margin" Value="25,5,0,0" />
+		</Style>
+		<Style x:Key="TextBlockValuePrompts" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="TextWrapping" Value="NoWrap" />
+			<Setter Property="Padding" Value="2,0" />
+			<Setter Property="HorizontalAlignment" Value="Right" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Margin" Value="5,3,5,0" />
+		</Style>
+		<Style x:Key="TextBlockLabelSmall" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Padding" Value="4,4" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+		<Style x:Key="TextBlockLabelResult" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+			<Setter Property="Foreground" Value="#F22" />
+			<Setter Property="Padding" Value="18,4" />
+			<Setter Property="Margin" Value="2,2" />
+			<Setter Property="Background" Value="#811" />
+		</Style>
+		<Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+			<Setter Property="Padding" Value="12,2" />
+			<Setter Property="Margin" Value="0,4" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="TextAlignment" Value="Center" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
+			<Setter Property="Foreground" Value="#F00" />
+			<Setter Property="MaxWidth"  Value="250" />
+		</Style>
+		<Style x:Key="TextBorder" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}">
+			<Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="MinWidth" Value="50" />
+			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+		<Style x:Key="TextBorderSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}">
+			<Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush4}" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Height" Value="20" />
+			<Setter Property="Margin" Value="0,5,10,0" />
+			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+		<converters:IntToVisibilityConverter x:Key="VisibleIfNumberEquals"  Operator="==" />
+		<converters:IntToBoolConverter x:Key="IntToBoolConverter" Operator="==" />
+		<converters:BoolToVisibilityConverter x:Key="VisibleIfDIsplayOn"   />
+		<converters:BoolToVisibilityConverter x:Key="VisibleIfPrimaryAxis" Collapse="true" />
+		<converters:BoolToVisibilityConverter x:Key="VisibleIfSecondaryAxis" Collapse="true" IsReversed="true"/>
+		<Style x:Key="ComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+			<Setter Property="Foreground" Value="Red" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="BorderBrush" Value="#FF880000" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="ItemContainerStyle">
+				<Setter.Value>
+					<Style TargetType="ComboBoxItem">
+						<Setter Property="FontSize" Value="14" />
+						<Setter Property="Foreground" Value="Red" />
+						<Setter Property="FontWeight" Value="Bold" />
+						<Setter Property="Background" Value="#F600" />
+						<Setter Property="BorderBrush" Value="#FF770000" />
+						<Setter Property="BorderThickness" Value="1" />
+						<Setter Property="Padding" Value="4" />
+						<Style.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Background" Value="#FD00" />
+							</Trigger>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Background" Value="Black" />
+								<Setter Property="Foreground" Value="#FFFF8888" />
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Window.Resources>
+	<Grid>
+		<!-- PAGE 1 -->
+		<Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfNumberEquals},ConverterParameter=1}">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+			<TextBlock Grid.Row="0" Text="To perform stepper motor Calibration, you:" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap"/>
+			<TextBlock Grid.Row="1" Text="· need a clear view of the sky extending a few degrees along the axis to calibrate." Style="{StaticResource TextBlockListItem}"/>
+			<TextBlock Grid.Row="2" Text="· have slewed the calibration axis to the start position." Style="{StaticResource TextBlockListItem}"/>
+			<TextBlock Grid.Row="3" Text="· have the ability to capture and plate solve image when prompted." Style="{StaticResource TextBlockListItem}"/>
+			<TextBlock Grid.Row="4" Text="· have polar-aligned the mount to within 2 degrees." Style="{StaticResource TextBlockListItem}"/>
+			<Grid Grid.Row="5" Grid.RowSpan="1">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<TextBlock Grid.Row="0" Grid.Column="0" Text="Select axis to calibrate" Style="{StaticResource TextBlockValuePrompts}" Margin="0,20"/>
+				<ComboBox Grid.Row="0" Grid.Column="1" 
+						  ItemsSource="{Binding AvailableAxis}" 
+						  SelectedValue="{Binding SelectedAxis}"
+						  Width="70" 
+						  Height="24"
+						  Margin="10,4,0,0"
+						  Style="{StaticResource ComboBoxStyle}" 
+				/>
+				<TextBlock Grid.Row="1" Grid.Column="0" Text="Current stepper position" Style="{StaticResource TextBlockValuePrompts}" Margin="0,0,0,20"/>
+				<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AxisStepsBefore}" MinWidth="130" Style="{StaticResource TextBlockLabelResult}" Margin="10,0,0,20" HorizontalAlignment="Left" TextAlignment="Center"/>
+			</Grid>
+
+			<TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding AzAltWarning}" Style="{StaticResource TextBlockValuePrompts}" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+
+			<StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+				<Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}" IsEnabled="{Binding CanContinue}"/>
+				<Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+			</StackPanel>
+		</Grid>
+		<!-- PAGE 2 -->
+		<Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfNumberEquals},ConverterParameter=2}">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+			<TextBlock Grid.Row="0" Text="Step 1: Plate solve" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap" />
+			<TextBlock Grid.Row="1" Text="Take an image and plate solve it. Type the coordinates below, three numbers with spaces in each box." Style="{StaticResource TextBlockListItem}"/>
+
+			<TextBlock Grid.Row="4" Text="RA:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
+			<TextBox Grid.Row="4" Text="{Binding InputCoordinateRA, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+			<TextBlock Grid.Row="5" Text="DEC:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
+			<TextBox Grid.Row="5" Text="{Binding InputCoordinateDEC, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+			<StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
+				<Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
+				<Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+			</StackPanel>
+		</Grid>
+		<!-- PAGE 3 -->
+		<Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfNumberEquals},ConverterParameter=3}">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+			<TextBlock Grid.Row="0" Text="Step 2: Move Axis and plate solve" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap" />
+			<TextBlock Grid.Row="1" Text="Use the controls to move the mount. Once done, take an image and plate solve it. Type the coordinates below, three numbers with spaces." Style="{StaticResource TextBlockListItem}"/>
+
+			<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" Visibility="{Binding IsPrimaryAxis, Converter={StaticResource VisibleIfPrimaryAxis}}">
+				<controls:PushButton Width="36" Height="32" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="{Binding LeftSlew}" />
+				<TextBlock Text="{Binding SelectedAxis}" Width="100" Style="{StaticResource TextBlockHeading}" TextAlignment="Center"/>
+				<controls:PushButton Width="36" Height="32" Direction="E" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="{Binding RightSlew}" />
+			</StackPanel>
+
+			<TextBlock Grid.Row="2" Text="{Binding SelectedAxis, StringFormat='{}{0} slew distance'}" Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,0,0,20" Visibility="{Binding IsPrimaryAxis, Converter={StaticResource VisibleIfSecondaryAxis}}"/>
+			<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0" Visibility="{Binding IsPrimaryAxis, Converter={StaticResource VisibleIfSecondaryAxis}}">
+				<controls:PushButton Width="36" Height="32" Direction="W" Margin="0,0,10,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="{Binding LeftSlew}" />
+				<StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsEnabled="{Binding MountConnected}">
+					<ToggleButton 
+						Margin="0,0,0,0"
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter}, ConverterParameter=1}"
+						Content="3s"/>
+					<ToggleButton 
+						Margin="5,0,0,0"
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter}, ConverterParameter=2}"
+						Content="15s"/>
+					<ToggleButton 
+						Margin="5,0,0,0"
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter}, ConverterParameter=3}"
+						Content="2m"/>
+					<ToggleButton 
+						Margin="5,0,0,0"
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter}, ConverterParameter=4}"
+						Content="7.5m"/>
+					<ToggleButton 
+						Margin="5,0,0,0"
+						Style="{StaticResource ToggleButtonState}" 
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter}, ConverterParameter=5}"
+						Content="30m"/>
+					<!-- 0.05f, 0.25f, 2.0f, 7.5f, 30.0f -->
+				</StackPanel>
+
+				<controls:PushButton Width="36" Height="32" Direction="E" Margin="10,0,0,0" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="{Binding RightSlew}" />
+			</StackPanel>
+			<TextBlock Grid.Row="3" Text="{Binding StepsMoved, StringFormat='Moved {0} steps ...'}" Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+			<TextBlock Grid.Row="3" Text="Axis will move a set amount (determined by selected distance) per click." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,25,0,10" Visibility="{Binding IsPrimaryAxis, Converter={StaticResource VisibleIfSecondaryAxis}}"/>
+
+			<TextBlock Grid.Row="4" Text="RA:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
+			<TextBox Grid.Row="4" Text="{Binding InputCoordinateRA, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+			<TextBlock Grid.Row="5" Text="DEC:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
+			<TextBox Grid.Row="5" Text="{Binding InputCoordinateDEC, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+			<StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
+				<Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
+				<Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+			</StackPanel>
+		</Grid>
+
+		<!-- PAGE 4 -->
+		<Grid Visibility="{Binding Step,Converter={StaticResource VisibleIfNumberEquals},ConverterParameter=4}">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="2*"/>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="40"/>
+				<RowDefinition Height="30"/>
+				<RowDefinition Height="30"/>
+				<RowDefinition Height="30"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+			<TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Result: Axis Calibration" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap" />
+			<TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="The solved images were used to calculate the actual distance moved." Style="{StaticResource TextBlockListItem}" VerticalAlignment="Top"/>
+
+			<Grid Grid.Row="2" Grid.RowSpan="3" Grid.ColumnSpan="2">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="2*"/>
+					<ColumnDefinition Width="2*"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<TextBlock Grid.Row="0" Text="Mount steps/deg" Style="{StaticResource TextBlockLabelSmall}" Margin="0,0,10,0" HorizontalAlignment="Right"/>
+				<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MountStepsPerDegree,StringFormat={}{0:0.0}}" Style="{StaticResource TextBlockLabelValue}" Margin="0,0,0,0"/>
+				<TextBlock Grid.Row="1" Text="Calibrated steps/deg" Style="{StaticResource TextBlockLabelSmall}" Margin="0,0,10,0" HorizontalAlignment="Right"/>
+				<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CalculatedStepsPerDegree,StringFormat={}{0:0.0}}" Style="{StaticResource TextBlockLabelValue}" Margin="0,0,0,0"/>
+				<Button Grid.Row="1" Grid.Column="2" Content="Set" Width="60" ToolTip="Transfer the setting to the mount" Style="{StaticResource AccentedDialogSquareButton}" Margin="6,0,50,0" Command="{Binding TransferStepsToMountCommand}" CommandParameter="{Binding SelectedAxis}"/>
+				<TextBlock Grid.Row="2" Text="Relative Accuracy" Style="{StaticResource TextBlockLabelSmall}" Margin="0,0,10,0" HorizontalAlignment="Right"/>
+				<TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ErrorRatio,StringFormat={}{0:0.0} %}" Style="{StaticResource TextBlockLabelValue}" Margin="0,0,0,0"/>
+			</Grid>
+
+
+
+			<TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="{Binding Suggestion}" Style="{StaticResource TextBlockListItem}" Margin="30,12,30,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+			<StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
+				<!--<Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>-->
+				<Button Content="Close" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
+			</StackPanel>
+		</Grid>
+
+	</Grid>
+</Controls:MetroWindow>
+    

@@ -12,6 +12,7 @@ namespace OATControl.ViewModels
 {
 	public abstract class PolarAlignLogProcessorBase : IPolarAlignLogProcessor
 	{
+		public event EventHandler<PlatesolveEventArgs> PlateSolveOccurred;
 		public event EventHandler<PolarAlignStatusEventArgs> StatusChanged;
 		public event EventHandler<PolarAlignCorrectionEventArgs> CorrectionRequired;
 
@@ -44,6 +45,10 @@ namespace OATControl.ViewModels
 			StatusChanged?.Invoke(this, args);
 		}
 
+		protected void RaisePlatesolveCompleted(PlatesolveEventArgs platesolveEventArgs)
+		{
+			PlateSolveOccurred?.Invoke(this, platesolveEventArgs);
+		}
 
 		protected void RaiseCorrectionRequired(PolarAlignCorrectionEventArgs args)
 		{

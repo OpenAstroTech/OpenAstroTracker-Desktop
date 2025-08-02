@@ -9,7 +9,7 @@
 		mc:Ignorable="d"
         Title="Settings" MinHeight="700" Width="856" MinWidth="820" Height="766">
 	<Window.Resources>
-		<converters:IntToVisibilityConverter x:Key="V1_8_76OrLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
+		<converters:IntToVisibilityConverter x:Key="VisibleIfVersionLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
 		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Collapsed" />
         <converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
 
@@ -151,8 +151,8 @@
 		<TextBlock Grid.Row="4" Grid.Column="0" Text="RA Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" />
 		<TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ScopeRAStepper}"  Style="{StaticResource TextBlockLabelValue}" />
 
-		<TextBlock Grid.Row="5" Grid.Column="0" Text="RA Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}"/>
-		<Grid Grid.Row="5" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" >
+		<TextBlock Grid.Row="5" Grid.Column="0" Text="RA Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource VisibleIfVersionLater}, ConverterParameter=10876}"/>
+		<Grid Grid.Row="5" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource VisibleIfVersionLater}, ConverterParameter=10876}">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*" />
 				<ColumnDefinition Width="Auto"/>
@@ -173,8 +173,8 @@
 		<TextBlock Grid.Row="6" Grid.Column="0" Text="DEC Stepper:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}"  />
 		<TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding ScopeDECStepper}"  Style="{StaticResource TextBlockLabelValue}"  />
 
-		<TextBlock Grid.Row="7" Grid.Column="0" Text="DEC Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" />
-		<Grid Grid.Row="7" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource V1_8_76OrLater}}" >
+		<TextBlock Grid.Row="7" Grid.Column="0" Text="DEC Driver:" HorizontalAlignment="Right" Style="{StaticResource TextBlockLabelSmall}" Visibility="{Binding FirmwareVersion, Converter={StaticResource VisibleIfVersionLater}, ConverterParameter=10876}"/>
+		<Grid Grid.Row="7" Grid.Column="1" Visibility="{Binding FirmwareVersion, Converter={StaticResource VisibleIfVersionLater}, ConverterParameter=10876}" >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*" />
 				<ColumnDefinition Width="Auto"/>

@@ -24,12 +24,6 @@
 			<Setter Property="VerticalAlignment" Value="Center"  />
 			<Setter Property="HorizontalAlignment" Value="Left" />
 		</Style>
-		<controls:IntToVisibilityConverter x:Key="State1Visible" VisibleValue="1" Operator=">="/>
-		<controls:IntToVisibilityConverter x:Key="State2Visible" VisibleValue="2" Operator=">=" />
-		<controls:IntToVisibilityConverter x:Key="State3Visible" VisibleValue="3" Operator=">=" />
-		<controls:IntToBoolConverter x:Key="State1Enabled" TrueValue="1" Operator="=="/>
-		<controls:IntToBoolConverter x:Key="State2Enabled" TrueValue="2" Operator="==" />
-		<controls:IntToBoolConverter x:Key="State3Enabled" TrueValue="3" Operator="==" />
 		<controls:StringToResourceImageConverter x:Key="StringToResourceImageConverter" />
 		<Style x:Key="ChecklistItemTextStyle" TargetType="TextBlock">
 			<Setter Property="FontWeight" Value="Normal"/>

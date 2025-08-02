@@ -134,6 +134,9 @@
     <Compile Include="DlgMessageBox.xaml.cs">
       <DependentUpon>DlgMessageBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DlgAxisCalibration.xaml.cs">
+      <DependentUpon>DlgAxisCalibration.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DlgStepCalibration.xaml.cs">
       <DependentUpon>DlgStepCalibration.xaml</DependentUpon>
     </Compile>
@@ -149,6 +152,7 @@
       <DependentUpon>MiniController.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\NinaPolarAlignLogProcessor.cs" />
+    <Compile Include="ViewModels\PlatesolveEventArgs.cs" />
     <Compile Include="ViewModels\PolarAlignCorrectionEventArgs.cs" />
     <Compile Include="ViewModels\PolarAlignLogProcessorBase.cs" />
     <Compile Include="ViewModels\PolarAlignStatusEventArgs.cs" />
@@ -222,6 +226,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DlgMessageBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DlgAxisCalibration.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -91,11 +91,7 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
-		<converters:IntToBoolConverter x:Key="Int1ToBool" TrueValue="1" Operator="==" />
-		<converters:IntToBoolConverter x:Key="Int2ToBool" TrueValue="2" Operator="==" />
-		<converters:IntToBoolConverter x:Key="Int3ToBool" TrueValue="3" Operator="==" />
-		<converters:IntToBoolConverter x:Key="Int4ToBool" TrueValue="4" Operator="==" />
-		<converters:IntToBoolConverter x:Key="Int5ToBool" TrueValue="5" Operator="==" />
+		<converters:IntToBoolConverter x:Key="IntToBoolConverter" Operator="==" />
 		<converters:BoolToVisibilityConverter x:Key="CollapseIfFalse" Collapse="True" IsReversed="False" />
 	</Window.Resources>
 	<Grid>
@@ -135,23 +131,23 @@
 		<StackPanel Grid.RowSpan="2" Grid.Column="5" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding MountConnected}">
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
-						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int1ToBool}}"
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=1}"
 						Content="1"/>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
-						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int2ToBool}}"
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=2}"
 						Content="2"/>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
-						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int3ToBool}}"
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=3}"
 						Content="3"/>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
-						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int4ToBool}}"
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=4}"
 						Content="4"/>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
-						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource Int5ToBool}}"
+						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=5}"
 						Content="5"/>
 		</StackPanel>
 

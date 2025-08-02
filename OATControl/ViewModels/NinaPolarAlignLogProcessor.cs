@@ -8,13 +8,11 @@ using OATCommunications;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Threading.Tasks;
-using MahApps.Metro.Controls;
 
 namespace OATControl.ViewModels
 {
 	public class NinaPolarAlignLogProcessor : PolarAlignLogProcessorBase
 	{
-
 		protected override string LogFolder
 		{
 			get
@@ -67,6 +65,30 @@ namespace OATControl.ViewModels
 						}
 						else
 						{
+							startLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("ImageSolver.cs") && l.Contains("Platesolve successful")); 
+							if (startLine > 0) 
+							{
+								// Platesolve event found outside of polar alignment, so raise the event
+								Regex regex = new Regex(@".*Coordinates: RA: (\d{2}):(\d{2}):(\d{2}); Dec: ([+-]?\d+)[°\s]+(\d+)['\s]+(\d+)\"";.*$");
+								var matches = regex.Match(_allTextList[startLine]);
+								if (matches.Success && matches.Groups.Count == 7)
+								{
+									int raH = int.Parse(matches.Groups[1].Value);
+									int raM = int.Parse(matches.Groups[2].Value);
+									int raS = int.Parse(matches.Groups[3].Value);
+									int decD = int.Parse(matches.Groups[4].Value);
+									int decM = int.Parse(matches.Groups[5].Value);
+									int decS = int.Parse(matches.Groups[6].Value);
+									float raHours = raH + (raM / 60.0f) + (raS / 3600.0f);
+									float decDegrees = Math.Abs(decD) + (decM / 60.0f) + (decS / 3600.0f);
+									if (decD < 0)
+									{
+										decDegrees = -decDegrees;
+									}
+									RaisePlatesolveCompleted(new PlatesolveEventArgs(raHours, decDegrees));
+								}
+								_examinedLines = lineCount;
+							}
 							_examinedLines = lineCount;
 						}
 						break;

@@ -124,7 +124,6 @@ namespace OATControl
 
 		public override string ToString()
 		{
-			//string s = ToDisplayString('*', ':') + string.Format(" ({0:0.000})", TotalHours);
 			int degrees, mins, secs;
 			GetTime(out degrees, out mins, out secs);
 
@@ -133,8 +132,16 @@ namespace OATControl
 			string p = $"{sign}{absDegrees:00}*{mins:00}:{secs:00} ({TotalDegrees:0.0000})";
 
 			return p;
+		}
 
-			//return s;
+		public override string ToUIString()
+		{
+			int degrees, mins, secs;
+			GetTime(out degrees, out mins, out secs);
+
+			int absDegrees = Math.Abs(degrees);
+			string sign = _totalSeconds < 0 ? "-" : "";
+			return $"{sign}{absDegrees:00}° {mins:00}' {secs:00}\"";
 		}
 
 		public static new Declination ParseFromMeade(String s)
