@@ -33,8 +33,7 @@ namespace OATControl
 			WaitToStart = 1,
 			WaitForStartAxisSolution = 2,
 			WaitForEndAxisSolution = 3,
-			ConfirmResults = 4,
-			SlewBackToHome = 5
+			ConfirmResults = 4
 		}
 		private MountVM _mountVM;
 		private string _selectedAxis;
@@ -80,7 +79,7 @@ namespace OATControl
 			_displayStatus = false;
 
 			_cancelCommand = new DelegateCommand(() => OnCancel(), () => true);
-			_continueCommand = new DelegateCommand(async () => await OnContinue(), () => true);
+			_continueCommand = new DelegateCommand(() => OnContinue(), () => true);
 			_closeCommand = new DelegateCommand(() => OnClose(), () => true);
 			_changeSlewingStateCommand = new DelegateCommand((arg) => OnChangeSlewingState((string)arg), () => true);
 			_transferStepsToMountCommand = new DelegateCommand(async (arg) => await OnTransferStepsToMount((string)arg), () => true);
@@ -106,6 +105,7 @@ namespace OATControl
 				{
 					InputCoordinateRA = curRA.ToUIString();
 					InputCoordinateDEC = curDEC.ToUIString();
+					Log.WriteLine($"AXISCALIB: Received Platesolve results. RA: {curRA.ToUIString()}  DEC:{curDEC.ToUIString()}");
 				}
 			}, Application.Current.Dispatcher);
 		}
@@ -127,9 +127,6 @@ namespace OATControl
 
 		public void OnCancel()
 		{
-			// Issue STOP command to mount
-			_mountVM.StopSlewingCommand.Execute(null);
-			_mountVM.HomeCommand.Execute(null);
 			this.Close();
 		}
 
@@ -188,15 +185,19 @@ namespace OATControl
 			switch (arg)
 			{
 				case "RA":
+					Log.WriteLine($"AXISCALIB: Updating RA steps/deg to {CalculatedStepsPerDegree.ToString("F1")}");
 					await _mountVM.SetSteps(CalculatedStepsPerDegree, _mountVM.DECStepsPerDegree);
 					break;
 				case "DEC":
+					Log.WriteLine($"AXISCALIB: Updating DEC steps/deg to {CalculatedStepsPerDegree.ToString("F1")}");
 					await _mountVM.SetSteps(_mountVM.RAStepsPerDegree, CalculatedStepsPerDegree);
 					break;
 				case "ALT":
+					Log.WriteLine($"AXISCALIB: Updating ALT steps/deg to {CalculatedStepsPerDegree.ToString("F1")}");
 					await _mountVM.SetSecondarySteps(_mountVM.AZStepsPerDegree, CalculatedStepsPerDegree);
 					break;
 				case "AZ":
+					Log.WriteLine($"AXISCALIB: Updating AZ steps/deg to {CalculatedStepsPerDegree.ToString("F1")}");
 					await _mountVM.SetSecondarySteps(CalculatedStepsPerDegree, _mountVM.AZStepsPerDegree);
 					break;
 			}
@@ -448,6 +449,10 @@ namespace OATControl
 		{
 			switch (_calibrationState)
 			{
+				case CalibrationState.WaitToStart:
+					AxisStepsBefore = GetAxisPosition(_selectedAxis);
+					break;
+
 				case CalibrationState.WaitForStartAxisSolution:
 					CanContinue = MountVM.TryParseCoord(InputCoordinateRA, out _raSolvedStart);
 					CanContinue &= MountVM.TryParseCoord(InputCoordinateDEC, out _decSolvedStart);
@@ -459,15 +464,6 @@ namespace OATControl
 					CanContinue = Math.Abs(currentSteps - _axisStepsBefore) > 10;
 					CanContinue &= MountVM.TryParseCoord(InputCoordinateRA, out _raSolvedEnd);
 					CanContinue &= MountVM.TryParseCoord(InputCoordinateDEC, out _decSolvedEnd);
-					break;
-
-				case CalibrationState.SlewBackToHome:
-					if (!_mountVM.IsSlewing(_axisChar))
-					{
-						Log.WriteLine("STEPCALIBRATION: Slewing ended.");
-						Task.Run(() => OnContinue());
-						_timer.Stop();
-					}
 					break;
 			}
 		}
@@ -500,7 +496,7 @@ namespace OATControl
 			}
 		}
 
-		public async Task OnContinue()
+		public void OnContinue()
 		{
 			switch (_calibrationState)
 			{
@@ -508,11 +504,15 @@ namespace OATControl
 					_calibrationState = CalibrationState.WaitForStartAxisSolution;
 					OnPropertyChanged("Step");
 					CanContinue = false;
+					Log.WriteLine($"AXISCALIB: Starting {_selectedAxis} calibration. Initial position: {_axisStepsBefore.ToString("F0")}");
 					_timer.Start();
 					break;
 
 				case CalibrationState.WaitForStartAxisSolution:
 					_calibrationState = CalibrationState.WaitForEndAxisSolution;
+					Log.WriteLine($"AXISCALIB: First solution is RA:{InputCoordinateRA} and DEC:{InputCoordinateDEC}");
+					InputCoordinateDEC = "";
+					InputCoordinateRA = "";
 					OnPropertyChanged("Step");
 					CanContinue = false;
 					break;
@@ -520,22 +520,25 @@ namespace OATControl
 				case CalibrationState.WaitForEndAxisSolution:
 					var currentSteps = GetAxisPosition(_selectedAxis);
 					float stepsMoved = currentSteps - _axisStepsBefore;
+					MountVM.TryParseCoord(InputCoordinateRA, out _raSolvedEnd);
+					MountVM.TryParseCoord(InputCoordinateDEC, out _decSolvedEnd);
+					Log.WriteLine($"AXISCALIB: Second solution is RA:{InputCoordinateRA} ({_raSolvedEnd.ToString("F5")}) and DEC:{InputCoordinateDEC} ({_decSolvedEnd.ToString("F5")}). StepsMoved:{stepsMoved}");
 					switch (SelectedAxis)
 					{
 						case "RA":
 							{
-								MountVM.TryParseCoord(InputCoordinateRA, out _raSolvedEnd);
 								float movedDegrees = 15.0f * (_raSolvedStart - _raSolvedEnd);
 								CalculatedStepsPerDegree = Math.Abs(stepsMoved / movedDegrees);
 								MountStepsPerDegree = _mountVM.RAStepsPerDegree;
 								ErrorRatio = 100.0f * CalculatedStepsPerDegree / MountStepsPerDegree;
 								GenerateSuggestion("RA", movedDegrees, stepsMoved);
+								Log.WriteLine($"AXISCALIB: RA calibration. MovedDegrees:{movedDegrees.ToString("F2")}. Calculated steps/deg:({CalculatedStepsPerDegree.ToString("F1")}). Mount steps/deg:{MountStepsPerDegree.ToString("F1")}");
+								Log.WriteLine($"AXISCALIB: RA calibration error:{ErrorRatio.ToString("F1")}%");
 							}
 							break;
 
 						case "DEC":
 							{
-								MountVM.TryParseCoord(InputCoordinateDEC, out _decSolvedEnd);
 								// The direction of the stepper deltas changes on either side of home.
 								float movedDegrees = (_decSolvedStart - _decSolvedEnd) * Math.Sign(currentSteps);
 								float movedRADegrees = Math.Abs(15.0f * (_raSolvedStart - _raSolvedEnd));
@@ -547,13 +550,17 @@ namespace OATControl
 								MountStepsPerDegree = _mountVM.DECStepsPerDegree;
 								ErrorRatio = 100.0f * CalculatedStepsPerDegree / MountStepsPerDegree;
 								GenerateSuggestion("DEC", movedDegrees, stepsMoved);
+								Log.WriteLine($"AXISCALIB: DEC calibration. DecSolvedStart:{_decSolvedStart.ToString("F2")}. DecSolvedEnd:{_decSolvedEnd.ToString("F2")}. Currentsteps:{currentSteps}");
+								Log.WriteLine($"AXISCALIB: DEC calibration. MovedRADegrees:{movedRADegrees.ToString("F2")}");
+								Log.WriteLine($"AXISCALIB: DEC calibration. MovedDegrees:{movedDegrees.ToString("F2")}. Calculated steps/deg:({CalculatedStepsPerDegree.ToString("F1")}). Mount steps/deg:{MountStepsPerDegree.ToString("F1")}");
+								Log.WriteLine($"AXISCALIB: DEC calibration error:{ErrorRatio.ToString("F1")}%");
 							}
 							break;
 						case "ALT":
 						case "AZ":
 							{
-								MountVM.TryParseCoord(InputCoordinateRA, out _raSolvedEnd);
-								MountVM.TryParseCoord(InputCoordinateDEC, out _decSolvedEnd);
+								Log.WriteLine($"AXISCALIB: ALT/AZ calibration. DecSolvedStart:{_decSolvedStart.ToString("F5")}. DecSolvedEnd:{_decSolvedEnd.ToString("F5")}");
+								Log.WriteLine($"AXISCALIB: ALT/AZ calibration. RaSolvedStart:{_raSolvedStart.ToString("F5")}. RaSolvedEnd:{_raSolvedEnd.ToString("F5")}");
 								AstroTools.RaDecToAzAlt(
 											_raSolvedStart * 15.0,
 											_decSolvedStart,
@@ -568,9 +575,31 @@ namespace OATControl
 											AppSettings.Instance.SiteLongitude,
 											DateTime.UtcNow,
 											out double azimuth, out double altitude);
-								float movedDegrees = (SelectedAxis == "ALT") ? (float)Math.Abs(altitude - altitudeStart) : (float)Math.Abs(azimuth - azimuthStart);
+								Log.WriteLine($"AXISCALIB: ALT/AZ calibration. ALT Start:{altitudeStart.ToString("F2")}. End:{altitude.ToString("F2")}");
+								Log.WriteLine($"AXISCALIB: ALT/AZ calibration. AZ Start:{azimuthStart.ToString("F2")}. End:{azimuth.ToString("F2")}");
+								// Assume ALT. ALT is unlikely to have a 0 crossing, but AS is very likely to cross 0/360 since we're supposed to be pointing North.
+								float movedDegrees = (float)(altitude - altitudeStart);
+								if (SelectedAxis == "AZ")
+								{
+									if (azimuth > 270)
+									{
+										azimuth -= 360;
+									}
+									if (azimuthStart > 270)
+									{
+										azimuthStart -= 360;
+									}
+									movedDegrees = (float)(azimuth - azimuthStart);
+									Log.WriteLine($"AXISCALIB: ALT/AZ calibration. Corrected AZ Start:{azimuthStart.ToString("F2")}. End:{azimuth.ToString("F2")}. MovedDegrees now {movedDegrees.ToString("F3")}");
+								}
+								else
+								{
+									Log.WriteLine($"AXISCALIB: ALT/AZ calibration. ALT MovedDegrees {movedDegrees.ToString("F3")}");
+								}
 								CalculatedStepsPerDegree = Math.Abs(stepsMoved / movedDegrees);
 								MountStepsPerDegree = SelectedAxis == "ALT" ? _mountVM.ALTStepsPerDegree : _mountVM.AZStepsPerDegree;
+								Log.WriteLine($"AXISCALIB: ALT/AZ calibration. Calculated steps/deg {CalculatedStepsPerDegree.ToString("F1")}");
+								Log.WriteLine($"AXISCALIB: ALT/AZ calibration. Mount steps/deg {MountStepsPerDegree.ToString("F1")}");
 								if (MountStepsPerDegree == 0)
 								{
 									ErrorRatio = 0;
@@ -578,6 +607,7 @@ namespace OATControl
 								else
 								{
 									ErrorRatio = 100.0f * CalculatedStepsPerDegree / MountStepsPerDegree;
+									Log.WriteLine($"AXISCALIB: ALT/AZ calibration. Error Ratio {ErrorRatio.ToString("F1")}%");
 								}
 								GenerateSuggestion(SelectedAxis, movedDegrees, stepsMoved);
 							}
@@ -590,25 +620,9 @@ namespace OATControl
 					break;
 
 				case CalibrationState.ConfirmResults:
-					// Slew back to home
-					DisplayStatus = true;
-					_calibrationState = CalibrationState.SlewBackToHome;
-					OnPropertyChanged("Step");
-					_mountVM.HomeCommand.Execute(null);
-					await Task.Delay(500);
-					_timer.Start();
-					break;
-
-				case CalibrationState.SlewBackToHome:
-					// If slew complete
-					{
-						DisplayStatus = false;
-						WpfUtilities.RunOnUiThread(() => this.Close(), Application.Current.Dispatcher);
-					}
+					WpfUtilities.RunOnUiThread(() => this.Close(), Application.Current.Dispatcher);
 					break;
 			}
-
-			//CanContinue = !DisplayStatus;
 		}
 	}
 }

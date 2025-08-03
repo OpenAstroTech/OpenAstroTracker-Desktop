@@ -1,6 +1,20 @@
 Revision History
 ----------------
 
+OATControl V1.1.21.0                                             2 Aug 2025
+- Made the Axis Calibration dialog modeless and had it close the settings 
+  dialog, so that the screen is less cluttered and you xan use any 
+  controls.
+- Fixed a bug in ALT calibration that would incorrectly calculate the 
+  distance moved when it crossed the 0/360 degree boundary.
+- Stopped the calibration wizard from slewing the mount home when 
+  calibration is complete.
+- Cleared the inpout coordinates for Step 2.
+
+OATControl V1.1.20.0                                             1 Aug 2025
+- Added axis calibration wizard to Mount Settings dialog (uses plate 
+  solving).
+
 OATControl V1.1.18.0                                             9 Jul 2025
 - Added AZ/ALT motor status display to main screen.
 - Fixed a bug related to window positioning when ensuring they always open

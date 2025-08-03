@@ -8,7 +8,7 @@
 		xmlns:controls="clr-namespace:OATControl.Controls"
 		xmlns:converters="clr-namespace:OATControl.Converters"
         mc:Ignorable="d"
-        Title=" Stepper Motor Calibration" MinHeight="390" Width="520" MinWidth="520" Height="390" WindowStyle="ToolWindow">
+        Title=" Stepper Motor Calibration" MinHeight="400" Width="520" MinWidth="520" Height="400" WindowStyle="ToolWindow">
 	<Window.Resources>
 		<Style x:Key="ToggleButtonState" TargetType="ToggleButton" >
 			<Setter Property="BorderBrush" Value="{StaticResource AccentBaseColorBrush}" />
@@ -216,12 +216,11 @@
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
 			<TextBlock Grid.Row="0" Text="Step 1: Plate solve" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap" />
-			<TextBlock Grid.Row="1" Text="Take an image and plate solve it. Type the coordinates below, three numbers with spaces in each box." Style="{StaticResource TextBlockListItem}"/>
-
-			<TextBlock Grid.Row="4" Text="RA:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
-			<TextBox Grid.Row="4" Text="{Binding InputCoordinateRA, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+			<TextBlock Grid.Row="1" Text="Take an image and plate solve it. Type the coordinates below, three numbers with spaces in each box. If you have N.I.N.A. Monitoring enabled and are using N.I.N.A. to plate solve, they will auto-populate once the solution is found." Style="{StaticResource TextBlockListItem}" Margin="25,15"/>
+			<TextBlock Grid.Row="4" Text="RA:" Style="{StaticResource TextBlockHeading}" Margin="40,0,40,0"/>
+			<TextBox Grid.Row="4" Text="{Binding InputCoordinateRA, Mode=TwoWay}" Margin="110,5" Style="{StaticResource TextBorder}"/>
 			<TextBlock Grid.Row="5" Text="DEC:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
-			<TextBox Grid.Row="5" Text="{Binding InputCoordinateDEC, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+			<TextBox Grid.Row="5" Text="{Binding InputCoordinateDEC, Mode=TwoWay}" Margin="110,5" Style="{StaticResource TextBorder}"/>
 			<StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
 				<Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
 				<Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
@@ -239,7 +238,7 @@
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
 			<TextBlock Grid.Row="0" Text="Step 2: Move Axis and plate solve" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap" />
-			<TextBlock Grid.Row="1" Text="Use the controls to move the mount. Once done, take an image and plate solve it. Type the coordinates below, three numbers with spaces." Style="{StaticResource TextBlockListItem}"/>
+			<TextBlock Grid.Row="1" Text="Use the controls below (or in the main view or MiniControl) to move the mount. Once done, take an image and plate solve it. Type the coordinates below, three numbers with spaces. If you have N.I.N.A. Monitoring enabled and are using N.I.N.A. to plate solve, they will auto-populate once the solution is found." Style="{StaticResource TextBlockListItem}" Margin="25,0,25,5"/>
 
 			<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" Visibility="{Binding IsPrimaryAxis, Converter={StaticResource VisibleIfPrimaryAxis}}">
 				<controls:PushButton Width="36" Height="32" Direction="W" IsEnabled="{Binding MountConnected}" Command="{Binding ChangeSlewingStateCommand}" CommandParameter="{Binding LeftSlew}" />
@@ -285,10 +284,10 @@
 			<TextBlock Grid.Row="3" Text="Axis will move a set amount (determined by selected distance) per click." Style="{StaticResource TextBlockListItem}" HorizontalAlignment="Center" Margin="0,25,0,10" Visibility="{Binding IsPrimaryAxis, Converter={StaticResource VisibleIfSecondaryAxis}}"/>
 
 			<TextBlock Grid.Row="4" Text="RA:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
-			<TextBox Grid.Row="4" Text="{Binding InputCoordinateRA, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
+			<TextBox Grid.Row="4" Text="{Binding InputCoordinateRA, Mode=TwoWay}" Margin="110,5" Style="{StaticResource TextBorder}"/>
 			<TextBlock Grid.Row="5" Text="DEC:" Style="{StaticResource TextBlockHeading}" Margin="40,0"/>
-			<TextBox Grid.Row="5" Text="{Binding InputCoordinateDEC, Mode=TwoWay}" Margin="110,13" Style="{StaticResource TextBorder}"/>
-			<StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
+			<TextBox Grid.Row="5" Text="{Binding InputCoordinateDEC, Mode=TwoWay}" Margin="110,5" Style="{StaticResource TextBorder}"/>
+			<StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
 				<Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}"  IsEnabled="{Binding CanContinue}"/>
 				<Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
 			</StackPanel>

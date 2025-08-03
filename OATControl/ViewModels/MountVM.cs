@@ -19,9 +19,6 @@ using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
-using System.Threading;
-using System.Security.Cryptography;
-using Newtonsoft.Json.Linq;
 
 namespace OATControl.ViewModels
 {
@@ -186,6 +183,7 @@ namespace OATControl.ViewModels
 		SlewPointsWindow _slewPointsWindow;
 		TargetChooser _targetChooser;
 		DlgChecklist _checklist;
+		SettingsDialog _dlgMountSettings;
 
 		DispatcherTimer _timerStatus;
 		DispatcherTimer _timerFineSlew;
@@ -687,9 +685,10 @@ namespace OATControl.ViewModels
 
 		public void OnRunStepCalibration()
 		{
+			_dlgMountSettings.Close();
+			_dlgMountSettings = null;
 			DlgAxisCalibration dlg = new DlgAxisCalibration(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
-			// DlgStepCalibration dlg = new DlgStepCalibration(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
-			dlg.ShowDialog();
+			dlg.Show();
 		}
 
 		public void OnCustomAction(string nr)
@@ -1271,8 +1270,9 @@ namespace OATControl.ViewModels
 
 		private void OnShowSettingsDialog()
 		{
-			SettingsDialog dlg = new SettingsDialog(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
-			dlg.ShowDialog();
+			_dlgMountSettings = new SettingsDialog(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
+			_dlgMountSettings.ShowDialog();
+			_dlgMountSettings = null;
 		}
 
 		private void OnShowLogFolder()
@@ -1604,6 +1604,38 @@ namespace OATControl.ViewModels
 
 										// Don't use property here since it sends a command.
 										_isTracking = (parts[1][2] == 'T') || _isGuiding;
+										// If this was previously on
+										if (_isSlewingAlt || IsSlewingAz)
+										{
+											if (ScopeHasALT || ScopeHasAZ)
+											{
+												string azAltPos = string.Empty;
+												bool failed = false;
+												AsyncAutoResetEvent waitForAzAltPos = new AsyncAutoResetEvent();
+												this.SendOatCommand(":XGAA#,#", (a) =>
+												{
+													azAltPos = a.Success ? a.Data : "0|0"; failed |= !a.Success;
+													waitForAzAltPos.Set();
+												});
+												await waitForAzAltPos.WaitAsync();
+												if (!failed && !string.IsNullOrEmpty(azAltPos))
+												{
+													var azaltParts = azAltPos.Split('|');
+													if (azaltParts.Length == 2)
+													{
+														try
+														{
+															AZStepper = float.Parse(azaltParts[0], _oatCulture);
+															ALTStepper = float.Parse(azaltParts[1], _oatCulture);
+														}
+														catch (Exception e)
+														{
+															Log.WriteLine("EXCEPTION: Parsing ALT/AZ position failed. {0}", e.Message);
+														}
+													}
+												}
+											}
+										}
 										_isSlewingAz = (parts[1][3] != '-');
 										_isSlewingAlt = (parts[1][4] != '-');
 										_isSlewingFocus = (parts[1][5] != '-');
@@ -1867,10 +1899,6 @@ namespace OATControl.ViewModels
 					{
 						this.SendOatCommand(":XGT#,#", (a) => { speed = a.Data; failed |= !a.Success; });
 					}
-					if (ScopeHasALT || ScopeHasAZ)
-					{
-						this.SendOatCommand(":XGAA#,#", (a) => { azAltPos = a.Success ? a.Data : "0|0"; failed |= !a.Success; });
-					}
 					this.SendOatCommand(":XLGT#,#", (a) => { temperature = a.Success ? a.Data : "0"; failed |= !a.Success; allDone.Set(); });
 
 					allDone.WaitOne(10000);
@@ -1998,22 +2026,6 @@ namespace OATControl.ViewModels
 						else
 						{
 							ScopeHemisphere = string.Empty;
-						}
-						if (azAltPos.Length > 0)
-						{
-							var parts = azAltPos.Split('|');
-							if (parts.Length == 2)
-							{
-								try
-								{
-									AZStepper = float.Parse(parts[0], _oatCulture);
-									ALTStepper = float.Parse(parts[1], _oatCulture);
-								}
-								catch (Exception e)
-								{
-									Log.WriteLine("EXCEPTION: Parsing ALT/AZ position failed. {0}", e.Message);
-								}
-							}
 						}
 					}
 					catch (Exception ex)
@@ -2472,8 +2484,6 @@ namespace OATControl.ViewModels
 					{
 						TrackingSpeed = float.Parse(speed.Data, _oatCulture);
 					}
-					//OnPropertyChanged("TrackingSpeed");
-					doneEvent.Set();
 				});
 
 				if (FirmwareVersion > 11317)
@@ -2490,16 +2500,31 @@ namespace OATControl.ViewModels
 								IsManualTrackingMode = true;
 							}
 						}
-
-						doneEvent.Set();
 					});
 				}
-				else
+
+				string azAltPos = string.Empty;
+				this.SendOatCommand(":XGAA#,#", (a) =>
 				{
+					azAltPos = a.Success ? a.Data : "0|0";
 					doneEvent.Set();
-				}
+				});
 
 				await doneEvent.WaitAsync();
+
+				var azaltParts = azAltPos.Split('|');
+				if (azaltParts.Length == 2)
+				{
+					try
+					{
+						AZStepper = float.Parse(azaltParts[0], _oatCulture);
+						ALTStepper = float.Parse(azaltParts[1], _oatCulture);
+					}
+					catch (Exception e)
+					{
+						Log.WriteLine("EXCEPTION: Parsing ALT/AZ position failed. {0}", e.Message);
+					}
+				}
 
 				ShowDECLimits = AppSettings.Instance.ShowDecLimits;
 				KeepMiniControlOnTop = AppSettings.Instance.KeepMiniControlOnTop;
