@@ -9,6 +9,11 @@
 		Background="#600"
         Title="Mini OAT Control" Height="85" MinHeight="85" MaxHeight="85" Width="Auto" MaxWidth="660" MinWidth="250" WindowStyle="None" SizeToContent="Width">
 	<Window.Resources>
+		<Style x:Key="OatToolTip" TargetType="ToolTip" BasedOn="{StaticResource MetroToolTip}">
+			<Setter Property="Background" Value="#611" />
+			<Setter Property="Foreground" Value="#F00" />
+			<Setter Property="Padding" Value="5,2,5,7" />	
+		</Style>
 		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="VerticalAlignment" Value="Center" />
 			<Setter Property="FontWeight" Value="Bold" />
@@ -59,7 +64,7 @@
 			<Setter Property="Background" Value="{StaticResource AccentColorBrush3}" />
 			<Setter Property="Foreground" Value="#FF201010" />
 			<Setter Property="FontWeight" Value="Bold" />
-			<Setter Property="FontSize" Value="10" />
+		<Setter Property="FontSize" Value="10" />
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="ToggleButton">
@@ -132,23 +137,128 @@
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=1}"
-						Content="1"/>
+						Content="1">
+				<ToggleButton.ToolTip>
+					<ToolTip Style="{StaticResource OatToolTip}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Slowest" FontWeight="Bold" FontSize="12" HorizontalAlignment="Stretch" TextAlignment="Center" Background="#811" Padding="0,1,0,4"/>
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="RA/DEC Speed" FontWeight="Normal" FontSize="10"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="5%" FontWeight="Bold" FontSize="10" Padding="5,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="0" Text="AZ/ALT Distance" FontWeight="Normal"  FontSize="10"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Text="3 arcsecs" FontWeight="Bold"  FontSize="10" Padding="5,0"/>
+						</Grid>
+					</ToolTip>
+				</ToggleButton.ToolTip>
+			</ToggleButton>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=2}"
-						Content="2"/>
+						Content="2">
+				<ToggleButton.ToolTip>
+					<ToolTip Style="{StaticResource OatToolTip}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Slow" FontWeight="Bold" FontSize="12" HorizontalAlignment="Stretch" TextAlignment="Center" Background="#811" Padding="0,1,0,4"/>
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="RA/DEC Speed" FontWeight="Normal" FontSize="10"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="5%" FontWeight="Bold" FontSize="10" Padding="5,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="0" Text="AZ/ALT Distance" FontWeight="Normal"  FontSize="10"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Text="15 arcsecs" FontWeight="Bold"  FontSize="10" Padding="5,0"/>
+						</Grid>
+					</ToolTip>
+				</ToggleButton.ToolTip>
+			</ToggleButton>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=3}"
-						Content="3"/>
+						Content="3">
+				<ToggleButton.ToolTip>
+					<ToolTip Style="{StaticResource OatToolTip}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Medium" FontWeight="Bold" FontSize="12" HorizontalAlignment="Stretch" TextAlignment="Center" Background="#811" Padding="0,1,0,4"/>
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="RA/DEC Speed" FontWeight="Normal" FontSize="10"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="15%" FontWeight="Bold" FontSize="10" Padding="5,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="0" Text="AZ/ALT Distance" FontWeight="Normal"  FontSize="10"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Text="2 arcmins" FontWeight="Bold"  FontSize="10" Padding="5,0"/>
+						</Grid>
+					</ToolTip>
+				</ToggleButton.ToolTip>
+			</ToggleButton>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=4}"
-						Content="4"/>
+						Content="4">
+				<ToggleButton.ToolTip>
+					<ToolTip Style="{StaticResource OatToolTip}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Fast" FontWeight="Bold" FontSize="12" HorizontalAlignment="Stretch" TextAlignment="Center" Background="#811" Padding="0,1,0,4"/>
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="RA/DEC Speed" FontWeight="Normal" FontSize="10"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="50%" FontWeight="Bold" FontSize="10" Padding="5,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="0" Text="AZ/ALT Distance" FontWeight="Normal"  FontSize="10"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Text="7.5 arcmins" FontWeight="Bold"  FontSize="10" Padding="5,0"/>
+						</Grid>
+					</ToolTip>
+				</ToggleButton.ToolTip>
+			</ToggleButton>
 			<ToggleButton 
 						Style="{StaticResource ToggleButtonState}" 
 						IsChecked="{Binding SlewRate, Mode=TwoWay,Converter={StaticResource IntToBoolConverter},ConverterParameter=5}"
-						Content="5"/>
+						Content="5">
+				<ToggleButton.ToolTip>
+					<ToolTip Style="{StaticResource OatToolTip}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="Auto"/>
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Fastest" FontWeight="Bold" FontSize="12" HorizontalAlignment="Stretch" TextAlignment="Center" Background="#811" Padding="0,1,0,4"/>
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="RA/DEC Speed" FontWeight="Normal" FontSize="10"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="100%" FontWeight="Bold" FontSize="10" Padding="5,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="0" Text="AZ/ALT Distance" FontWeight="Normal"  FontSize="10"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Text="30 arcmins" FontWeight="Bold"  FontSize="10" Padding="5,0"/>
+						</Grid>
+					</ToolTip>
+				</ToggleButton.ToolTip>
+			</ToggleButton>
 		</StackPanel>
 
 		<Button Grid.Row="0" Grid.Column="6"  Margin="8,4" Padding="10,0" Content="Home" Style="{StaticResource AccentedSquareButtonStyle}" Command="{Binding HomeCommand}"/>

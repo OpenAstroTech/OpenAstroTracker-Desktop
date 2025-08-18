@@ -155,7 +155,7 @@ namespace OATControl.ViewModels
 				if (windowRect.Top < virtualScreen.Top)
 					windowRect.Y = virtualScreen.Top;
 			}
-		} 
+		}
 
 		private static double Clamp(double value, double min, double max)
 		{
@@ -537,6 +537,30 @@ namespace OATControl.ViewModels
 		{
 			get { return this["SharpCapLogFolder"]; }
 			set { this["SharpCapLogFolder"] = value; }
+		}
+
+		public float AZLeftLimit
+		{
+			get { return Convert.ToSingle(this["AZLeftLimit"] ?? "2"); }
+			set { this["AZLeftLimit"] = value.ToString(); }
+		}
+
+		public float AZRightLimit
+		{
+			get { return Convert.ToSingle(this["AZRightLimit"] ?? "2"); }
+			set { this["AZRightLimit"] = value.ToString(); }
+		}
+
+		public float ALTUpLimit
+		{
+			get { return Convert.ToSingle(this["ALTUpLimit"] ?? "2"); }
+			set { this["ALTUpLimit"] = value.ToString(); }
+		}
+
+		public float ALTDownLimit
+		{
+			get { return Convert.ToSingle(this["ALTDownLimit"] ?? "2"); }
+			set { this["ALTDownLimit"] = value.ToString(); }
 		}
 	}
 }

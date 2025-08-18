@@ -232,6 +232,21 @@ namespace OATControl
 				}
 			}
 		}
+
+		private int _activeLine = 0;
+		public int ActiveLine
+		{
+			get => _activeLine;
+			set
+			{
+				if (_activeLine != value)
+				{
+					_activeLine = value;
+					OnPropertyChanged(nameof(ActiveLine));
+				}
+			}
+		}
+
 		public void SetStatus(string state, string statusDetails)
 		{
 			switch (state)
@@ -239,17 +254,20 @@ namespace OATControl
 				case "Measure":
 					if (statusDetails.Contains("First"))
 					{
+						ActiveLine = 2;
 						FirstPointStatus = "Complete";
 						SecondPointStatus = "InProgress";
 					}
 					else if (statusDetails.Contains("Second"))
 					{
+						ActiveLine = 3;
 						SecondPointStatus = "Complete";
 						ThirdPointStatus = "InProgress";
 					}
 					else if (statusDetails.Contains("Third"))
 					{
 						ThirdPointStatus = "Complete";
+						ActiveLine = 4;
 						CalculatingErrorStatus = "InProgress";
 					}
 					break;
@@ -278,9 +296,11 @@ namespace OATControl
 					break;
 				case "Adjust":
 					CalculatingErrorStatus = "Complete";
+					ActiveLine = 5;
 					AdjustingMountStatus = "InProgress";
 					break;
 				case "ResetLoop":
+					ActiveLine = 4;
 					CalculatingErrorStatus = "InProgress";
 					AzimuthError = "-";
 					AltitudeError = "-";
@@ -293,6 +313,7 @@ namespace OATControl
 				case "Succeeded":
 					CalculatingErrorStatus = "Complete";
 					AdjustingMountStatus = "Complete";
+					ActiveLine = 0;
 					ErrorMessage = statusDetails;
 					var _closeTime = DateTime.UtcNow + TimeSpan.FromSeconds(5);
 					var timer = new DispatcherTimer();

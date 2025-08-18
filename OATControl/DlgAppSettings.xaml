@@ -56,6 +56,14 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
+		<Style x:Key="TextBoxSmallLimit" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
+			<Setter Property="Margin" Value="5,2" />
+			<Setter Property="Height" Value="11" />
+			<Setter Property="Background" Value="#770000" />
+			<Setter Property="Foreground" Value="#F00" />
+			<Setter Property="Width" Value="40" />
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		</Style>
 		<Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
 			<Setter Property="Margin" Value="10,2,10,2" />
 			<Setter Property="Height" Value="11" />
@@ -79,11 +87,18 @@
 			<Setter Property="Padding" Value="2,0" />
 			<Setter Property="HorizontalAlignment" Value="Left" />
 		</Style>
+		<Style x:Key="TextBlockLabelTiny" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="Margin" Value="0,0,0,0" />
+			<Setter Property="Padding" Value="0,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
 		<Style x:Key="TextBlockOptionHelp" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
 			<Setter Property="FontSize" Value="9" />
 			<Setter Property="FontWeight" Value="Normal" />
 			<Setter Property="TextWrapping" Value="Wrap" />
-			<Setter Property="Width" Value="190" />
+			<Setter Property="Width" Value="200" />
 			<Setter Property="Margin" Value="2,0,0,0" />
 			<Setter Property="Foreground" Value="#B00" />
 		</Style>
@@ -479,7 +494,7 @@
 							VerticalAlignment="Center" Margin="20,4,20,0"/>
 
 					<StackPanel Grid.Row="3" Grid.Column="0" VerticalAlignment="Top" Margin="0,20,0,0">
-						<TextBlock Text="Monitor SharpCap for Polar Alignment" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="Monitor SharpCap for PA" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
 						<TextBlock Text="If enabled, this will monitor SharpCap and automatically run Polar Alignment adjustments as needed." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
 					</StackPanel>
 					<Grid Grid.Row="3"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,20,0,0">
@@ -496,7 +511,7 @@
 						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
 						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
 					</Grid>
-					<StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="20,0,0,0" 
+					<StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="20,0,0,0"
 								Visibility="{Binding MonitorSharpCapForPA, Converter={StaticResource BoolToVisibilityConverter}}">
 						<TextBlock Text="SharpCap Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" />
 						<TextBlock Text="The log folder of SharpCap to monitor for Polar Alignment. Only SharpCap 4.x and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="Auto" />
@@ -510,44 +525,86 @@
 							Text="{Binding SharpCapLogFolder}" 
 							VerticalAlignment="Center" Margin="20,4,20,0"/>
 
-					<StackPanel Grid.Row="6" Grid.Column="0" VerticalAlignment="Top"  Margin="0,20,0,0">
-						<TextBlock Text="Invert AZ corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="If enabled, the corrections for the AZ axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-					</StackPanel>
-					<Grid Grid.Row="6"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,20,0,0">
+					<Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" >
 						<Grid.RowDefinitions>
-							<RowDefinition Height="Auto" />
-							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
 						</Grid.RowDefinitions>
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="40" />
 							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" />
 						</Grid.ColumnDefinitions>
-						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertAZCorrections}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Column="1" Text="AZ" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" Margin="30,20,0,0" HorizontalAlignment="Left"/>
+						<TextBlock Grid.Column="2" Text="ALT" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" Margin="30,20,0,0" HorizontalAlignment="Left"/>
+						<StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Margin="0,15,0,0">
+							<TextBlock Text="Invert corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+							<TextBlock Text="If enabled, the corrections for the corresponding axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+						</StackPanel>
+						<Grid Grid.Row="0"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,30,0,0">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="40" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="40" />
+							</Grid.ColumnDefinitions>
+							<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertAZCorrections}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						</Grid>
+						<Grid Grid.Row="0"  Grid.Column="2" Width="Auto" HorizontalAlignment="Left" Margin="0,30,0,0">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="40" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="40" />
+							</Grid.ColumnDefinitions>
+							<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertALTCorrections}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						</Grid>
 					</Grid>
 
-					<StackPanel Grid.Row="7" Grid.Column="0" VerticalAlignment="Top">
-						<TextBlock Text="Invert ALT corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="If enabled, the corrections for the ALT axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					<StackPanel Grid.Row="7" Grid.Column="0" VerticalAlignment="Top" >
+						<TextBlock Text="AZ/ALT axis limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="Determines the maximum angle that the AZ and ALT axes will be moved during Automatic Polar Alignment." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
 					</StackPanel>
-					<Grid Grid.Row="7"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
-						<Grid.RowDefinitions>
-							<RowDefinition Height="Auto" />
-							<RowDefinition Height="Auto" />
-						</Grid.RowDefinitions>
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="40" />
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="40" />
-						</Grid.ColumnDefinitions>
-						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertALTCorrections}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
-					</Grid>
 
+
+					<Border Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+
+						<Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+
+							<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="AZ Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+							<TextBox Grid.Row="1" Grid.Column="0" Text="{Binding AZLeftLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+							<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AZRightLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" Margin="5,0,15,0"/>
+							<TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="ALT Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+							<TextBox Grid.Row="1" Grid.Column="2" Text="{Binding ALTUpLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+							<TextBox Grid.Row="1" Grid.Column="3" Text="{Binding ALTDownLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+							<TextBlock Grid.Row="2" Grid.Column="0"  Text="Left" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="1"  Text="Right" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="5,0,15,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="2"  Text="Up" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="3"  Text="Down" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+
+						</Grid>
+					</Border>
 				</Grid>
 			</TabItem>
 

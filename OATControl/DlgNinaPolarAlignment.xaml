@@ -34,6 +34,41 @@
 					<Setter Property="FontWeight" Value="Bold"/>
 					<Setter Property="Foreground" Value="#E44"/>
 				</DataTrigger>
+				<MultiDataTrigger>
+					<MultiDataTrigger.Conditions>
+						<Condition Binding="{Binding ActiveLine}" Value="1"/>
+						<Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="1"/>
+					</MultiDataTrigger.Conditions>
+					<Setter Property="FontWeight" Value="Bold"/>
+				</MultiDataTrigger>
+				<MultiDataTrigger>
+					<MultiDataTrigger.Conditions>
+						<Condition Binding="{Binding ActiveLine}" Value="2"/>
+						<Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="2"/>
+					</MultiDataTrigger.Conditions>
+					<Setter Property="FontWeight" Value="Bold"/>
+				</MultiDataTrigger>
+				<MultiDataTrigger>
+					<MultiDataTrigger.Conditions>
+						<Condition Binding="{Binding ActiveLine}" Value="3"/>
+						<Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="3"/>
+					</MultiDataTrigger.Conditions>
+					<Setter Property="FontWeight" Value="Bold"/>
+				</MultiDataTrigger>
+				<MultiDataTrigger>
+					<MultiDataTrigger.Conditions>
+						<Condition Binding="{Binding ActiveLine}" Value="4"/>
+						<Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="4"/>
+					</MultiDataTrigger.Conditions>
+					<Setter Property="FontWeight" Value="Bold"/>
+				</MultiDataTrigger>
+				<MultiDataTrigger>
+					<MultiDataTrigger.Conditions>
+						<Condition Binding="{Binding ActiveLine}" Value="5"/>
+						<Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="5"/>
+					</MultiDataTrigger.Conditions>
+					<Setter Property="FontWeight" Value="Bold"/>
+				</MultiDataTrigger>
 			</Style.Triggers>
 		</Style>
 		<Style x:Key="ChecklistItemLabelTextStyle"  TargetType="TextBlock">
@@ -93,19 +128,19 @@
 			<Image Width="16" Height="16"
 		       Source="{Binding FirstPointStatus, Converter={StaticResource StringToResourceImageConverter}}"
 				Margin="0,0,8,0"/>
-			<TextBlock Text="Plate solved first point..." Style="{StaticResource ChecklistItemTextStyle}"/>
+			<TextBlock Text="Plate solved first point..." Style="{StaticResource ChecklistItemTextStyle}" Tag="1"/>
 		</StackPanel>
 		<StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20,4,0,0">
 			<Image Width="16" Height="16" Source="{Binding SecondPointStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0"/>
-			<TextBlock Text="Plate solved second point..." Style="{StaticResource ChecklistItemTextStyle}"/>
+			<TextBlock Text="Plate solved second point..." Style="{StaticResource ChecklistItemTextStyle}" Tag="2"/>
 		</StackPanel>
 		<StackPanel Grid.Row="3" Orientation="Horizontal" Margin="20,4,0,0">
 			<Image Width="16" Height="16" Source="{Binding ThirdPointStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0"/>
-			<TextBlock Text="Plate solved third point..." Style="{StaticResource ChecklistItemTextStyle}"/>
+			<TextBlock Text="Plate solved third point..." Style="{StaticResource ChecklistItemTextStyle}" Tag="3"/>
 		</StackPanel>
 		<StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20,4,0,0">
 			<Image Width="16" Height="16" Source="{Binding CalculatingErrorStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0" VerticalAlignment="Top"/>
-			<TextBlock Text="Calculated errors" Style="{StaticResource ChecklistItemTextStyle}" VerticalAlignment="Top" Margin="0,0,4,0"/>
+			<TextBlock Text="Calculated errors" Style="{StaticResource ChecklistItemTextStyle}" VerticalAlignment="Top" Margin="0,0,4,0" Tag="4"/>
 			<TextBlock Text="{Binding Iterations}" Style="{StaticResource ChecklistItemLabelTextStyle}" VerticalAlignment="Top" Width="30"/>
 			<StackPanel Orientation="Vertical">
 				<StackPanel Orientation="Horizontal" Margin="10,0,10,5" HorizontalAlignment="Left">
@@ -157,7 +192,7 @@
 		</StackPanel>
 		<StackPanel Grid.Row="5" Orientation="Horizontal" Margin="20,4,0,0">
 			<Image Width="16" Height="16" Source="{Binding AdjustingMountStatus, Converter={StaticResource StringToResourceImageConverter}}" Margin="0,0,8,0"/>
-			<TextBlock Text="Adjusting mount AZ/ALT..." Style="{StaticResource ChecklistItemTextStyle}"/>
+			<TextBlock Text="Adjusting mount AZ/ALT..." Style="{StaticResource ChecklistItemTextStyle}" Tag="5"/>
 		</StackPanel>
 
 		<TextBlock Grid.Row="6" Text="{Binding ErrorMessage}"

@@ -8,6 +8,7 @@ using OATCommunications;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Threading.Tasks;
+using System.Windows.Interop;
 
 namespace OATControl.ViewModels
 {
@@ -21,7 +22,7 @@ namespace OATControl.ViewModels
 				if (string.IsNullOrEmpty(folder))
 				{
 					folder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NINA", "Logs");
-					AppSettings.Instance.NinaLogFolder=folder;
+					AppSettings.Instance.NinaLogFolder = folder;
 					AppSettings.Instance.Save();
 				}
 				return folder;
@@ -65,8 +66,8 @@ namespace OATControl.ViewModels
 						}
 						else
 						{
-							startLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("ImageSolver.cs") && l.Contains("Platesolve successful")); 
-							if (startLine > 0) 
+							startLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("ImageSolver.cs") && l.Contains("Platesolve successful"));
+							if (startLine > 0)
 							{
 								// Platesolve event found outside of polar alignment, so raise the event
 								Regex regex = new Regex(@".*Coordinates: RA: (\d{2}):(\d{2}):(\d{2}); Dec: ([+-]?\d+)[°\s]+(\d+)['\s]+(\d+)\"";.*$");
@@ -133,17 +134,22 @@ namespace OATControl.ViewModels
 									ShowDialogStatus("Adjust", _allTextList[calcLine]);
 									var azAdjust = (AppSettings.Instance.InvertAZCorrections ? -1 : 1) * ParseMinutes(azError, @"^([+-]?\d+)[+°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
 									var altAdjust = (AppSettings.Instance.InvertALTCorrections ? -1 : 1) * ParseMinutes(altError, @"^([+-]?\d+)[°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
-									if ((Math.Abs(azAdjust) > 60 * 3) || (Math.Abs(altAdjust) > 60 * 3))
+
+									if (azAdjust < 60 * AppSettings.Instance.AZLeftLimit || azAdjust > -60 * AppSettings.Instance.AZRightLimit)
 									{
 										string msg = "";
-										if ((Math.Abs(azAdjust) > 60 * 3) && Math.Abs(altAdjust) < 60 * 3)
-											msg = "Azimuth error is too large for automatic adjustment, please move mount manually to within 3 degrees.";
-										else if ((Math.Abs(azAdjust) < 60 * 3) && Math.Abs(altAdjust) > 60 * 3)
-											msg = "Altitude error is too large for automatic adjustment, please move mount manually to within 3 degrees.";
-										else
-											msg = "Both Azimuth and Altitude errors are too large for automatic adjustment, please move mount manually to within 3 degrees.";
+										msg = $"Azimuth error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.AZLeftLimit.ToString("F1")} degrees left and {AppSettings.Instance.AZRightLimit.ToString("F1")} degrees right.";
 										ShowDialogStatus("Error", msg);
-										_polarAlignState = "Idle";
+										_numCalculatedErrors = 0;
+										return;
+									}
+
+									if (altAdjust < 60 * AppSettings.Instance.ALTUpLimit || azAdjust > -60 * AppSettings.Instance.ALTDownLimit)
+									{
+										string msg = "";
+										msg = $"Altitude error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.ALTUpLimit.ToString("F1")} degrees up and {AppSettings.Instance.ALTDownLimit.ToString("F1")} degrees down.";
+										ShowDialogStatus("Error", msg);
+										_numCalculatedErrors = 0;
 										return;
 									}
 									RaiseCorrectionRequired(new PolarAlignCorrectionEventArgs(altAdjust, azAdjust));

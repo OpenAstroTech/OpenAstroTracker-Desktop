@@ -19,6 +19,7 @@ using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace OATControl.ViewModels
 {
@@ -43,6 +44,10 @@ namespace OATControl.ViewModels
 		float _decStepper = 0;
 		float _altStepper = 0;
 		float _azStepper = 0;
+		float _azRightLimit = 2.0f;
+		float _azLeftLimit = 2.0f;
+		float _altUpLimit = 4.0f;
+		float _altDownLimit = 4.0f;
 		float _trkStepper = 0;
 		long _focStepper = 0;
 		float _raStepsPerDegree = 1;
@@ -521,6 +526,10 @@ namespace OATControl.ViewModels
 			}, async (s) => await OnLogActivity(s));
 			_sharpCapLogProcessor.CorrectionRequired += OnPolarAlignCorrectionRequired;
 			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
+			_azLeftLimit = AppSettings.Instance.AZLeftLimit;
+			_azRightLimit = AppSettings.Instance.AZRightLimit;
+			_altUpLimit = AppSettings.Instance.ALTUpLimit;
+			_altDownLimit = AppSettings.Instance.ALTDownLimit;
 		}
 
 		private bool _isNinaLogActive;
@@ -3702,10 +3711,43 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _altStepper, value); }
 		}
 
+
 		public float AZStepper
 		{
 			get { return _azStepper; }
 			set { SetPropertyValue(ref _azStepper, value); }
+		}
+
+		public float AZLeftLimit
+		{
+			get { return _azLeftLimit; }
+			set { SetPropertyValue(ref _azLeftLimit, value, OnAltAzLimitsChanged); }
+		}
+		public float AZRightLimit
+		{
+			get { return _azRightLimit; }
+			set { SetPropertyValue(ref _azRightLimit, value, OnAltAzLimitsChanged); }
+		}
+
+		public float ALTUpLimit
+		{
+			get { return _altUpLimit; }
+			set { SetPropertyValue(ref _altUpLimit, value, OnAltAzLimitsChanged); }
+		}
+
+		public float ALTDownLimit
+		{
+			get { return _altDownLimit; }
+			set { SetPropertyValue(ref _altDownLimit, value, OnAltAzLimitsChanged); }
+		}
+
+		void OnAltAzLimitsChanged(float a, float b )
+		{
+			AppSettings.Instance.AZLeftLimit = AZLeftLimit;
+			AppSettings.Instance.AZRightLimit = AZRightLimit;
+			AppSettings.Instance.ALTUpLimit = ALTUpLimit;
+			AppSettings.Instance.ALTDownLimit = ALTDownLimit;
+			AppSettings.Instance.Save();
 		}
 
 		private void OnRAPosChanged(float a, float b)
