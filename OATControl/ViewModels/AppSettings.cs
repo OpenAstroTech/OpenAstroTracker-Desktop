@@ -539,24 +539,28 @@ namespace OATControl.ViewModels
 			set { this["SharpCapLogFolder"] = value; }
 		}
 
+		[DefaultValueAttribute("2")]
 		public float AZLeftLimit
 		{
 			get { return Convert.ToSingle(this["AZLeftLimit"] ?? "2"); }
 			set { this["AZLeftLimit"] = value.ToString(); }
 		}
 
+		[DefaultValueAttribute("2")]
 		public float AZRightLimit
 		{
 			get { return Convert.ToSingle(this["AZRightLimit"] ?? "2"); }
 			set { this["AZRightLimit"] = value.ToString(); }
 		}
 
+		[DefaultValueAttribute("2")]
 		public float ALTUpLimit
 		{
 			get { return Convert.ToSingle(this["ALTUpLimit"] ?? "2"); }
 			set { this["ALTUpLimit"] = value.ToString(); }
 		}
 
+		[DefaultValueAttribute("2")]
 		public float ALTDownLimit
 		{
 			get { return Convert.ToSingle(this["ALTDownLimit"] ?? "2"); }
