@@ -48,6 +48,7 @@ namespace OATControl
 		DelegateCommand _editPointCommand;
 		DelegateCommand _addPointCommand;
 		DelegateCommand _configureChecklistCommand;
+
 		private GridViewColumnHeader _lastHeaderClicked;
 
 		public DlgAppSettings(MountVM mount)
@@ -119,6 +120,58 @@ namespace OATControl
 			}
 		}
 
+		public String NinaLogFolder
+		{
+			get { return _mount.NinaLogFolder; }
+			set
+			{
+				if (_mount.NinaLogFolder != value)
+				{
+					_mount.NinaLogFolder = value;
+					OnPropertyChanged();
+				}
+			}	
+		}
+
+		public bool MonitorNinaForPA
+		{
+			get { return _mount.MonitorNinaForPA; }
+			set
+			{
+				if (_mount.MonitorNinaForPA != value)
+				{
+					_mount.MonitorNinaForPA = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public String SharpCapLogFolder
+		{
+			get { return _mount.SharpCapLogFolder; }
+			set
+			{
+				if (_mount.SharpCapLogFolder != value)
+				{
+					_mount.SharpCapLogFolder = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool MonitorSharpCapForPA
+		{
+			get { return _mount.MonitorSharpCapForPA; }
+			set
+			{
+				if (_mount.MonitorSharpCapForPA != value)
+				{
+					_mount.MonitorSharpCapForPA = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
 		public String SelectedBaudRate
 		{
 			get { return _serialBaudRate; }
@@ -135,6 +188,66 @@ namespace OATControl
 			set
 			{
 				_showChecklist = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public bool InvertALTCorrections
+		{
+			get { return _mount.InvertALTCorrections; }
+			set
+			{
+				_mount.InvertALTCorrections = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public bool InvertAZCorrections
+		{
+			get { return _mount.InvertAZCorrections; }
+			set
+			{
+				_mount.InvertAZCorrections = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public float AZLeftLimit
+		{
+			get { return _mount.AZLeftLimit; }
+			set
+			{
+				_mount.AZLeftLimit = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public float AZRightLimit
+		{
+			get { return _mount.AZRightLimit; }
+			set
+			{
+				_mount.AZRightLimit = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public float ALTUpLimit
+		{
+			get { return _mount.ALTUpLimit; }
+			set
+			{
+				_mount.ALTUpLimit = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public float ALTDownLimit
+		{
+			get { return _mount.ALTDownLimit; }
+			set
+			{
+				_mount.ALTDownLimit = value;
 				OnPropertyChanged();
 			}
 		}
@@ -208,6 +321,9 @@ namespace OATControl
 				case "Target List":
 					ContentTabs.SelectedIndex = 2;
 					SetInitialSortIndicator(this.sortField);
+					break;
+				case "Auto PA":
+					ContentTabs.SelectedIndex = 3;
 					break;
 			}
 		}

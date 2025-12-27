@@ -19,6 +19,7 @@ using CommandResponse = OATCommunications.CommunicationHandlers.CommandResponse;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.Controls;
 using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace OATControl.ViewModels
 {
@@ -31,9 +32,22 @@ namespace OATControl.ViewModels
 		Declination _currentDEC = new Declination();
 		DateTime _lastHomingActive = DateTime.MinValue;
 
+		// AutoPA variables
+		bool _monitorNinaForPA = false;
+		bool _monitorSharpCapForPA = false;
+		bool _invertAzCorrections = false;
+		bool _invertAltCorrections = false;
+		string _ninaLogState = string.Empty;
+		string _sharpCapLogState = string.Empty;
+
 		float _raStepper = 0;
 		float _decStepper = 0;
-		string _decStepperTicks = "0";
+		float _altStepper = 0;
+		float _azStepper = 0;
+		float _azRightLimit = 2.0f;
+		float _azLeftLimit = 2.0f;
+		float _altUpLimit = 4.0f;
+		float _altDownLimit = 4.0f;
 		float _trkStepper = 0;
 		long _focStepper = 0;
 		float _raStepsPerDegree = 1;
@@ -41,16 +55,23 @@ namespace OATControl.ViewModels
 		float _raStepperMinimum = -7;
 		float _raStepperMaximum = 7;
 		double _raStepperTargetHours;
+		double _currentAZ = 0;
+		double _currentALT = 0;
 
+		string _decStepperTicks = "0";
 		float _decStepsPerDegree = 1;
 		float _decStepsPerDegreeEdit = 1;
 		float _decStepperMinimum = -90;
 		float _decStepperMaximum = 180;
 		float _decStepperLowerLimit = -90;
 		float _decStepperUpperLimit = 180;
+		float _decLowerLimitDegrees = 0;
+		float _decUpperLimitDegrees = 0;
 		double _decStepperTargetDegrees;
 		bool _showDecLimits = false;
 		string _decTickLabels = string.Empty;
+		float _azStepsPerDegree;
+		float _altStepsPerDegree;
 		float _decTickStart = 0;
 
 		bool _connected = false;
@@ -66,11 +87,17 @@ namespace OATControl.ViewModels
 		bool _isSlewingFocus = false;
 		bool _driftAlignRunning = false;
 		bool _keepMiniControllerOnTop = false;
+		bool _keepSlewToPointControllerOnTop = false;
 		bool _inStartup = false;
 		string _driftAlignStatus = "Drift Alignment";
 		float _driftPhase = 0;
 		DateTime _connectedAt = DateTime.UtcNow;
 		string _lastDirection = string.Empty;
+		bool _useCustomParkPosition = false;
+
+		bool _isManualTrackingMode = false;
+		float _trackingRateHz = 60.0f;
+		private string _trackingMode = "Sidereal";
 
 		private float _maxMotorSpeed = 2.5f;
 		double _speed = 1.0;
@@ -133,9 +160,11 @@ namespace OATControl.ViewModels
 		DelegateCommand _driftAlignCommand;
 		DelegateCommand _polarAlignCommand;
 		DelegateCommand _showLogFolderCommand;
+		DelegateCommand _saveParkPositionCommand;
 		DelegateCommand _showChecklistCommand;
 		DelegateCommand _showSettingsCommand;
 		DelegateCommand _showMiniControllerCommand;
+		DelegateCommand _showSlewPointsCommand;
 		DelegateCommand _factoryResetCommand;
 		DelegateCommand _startChangingCommand;
 		DelegateCommand _chooseTargetCommand;
@@ -156,15 +185,16 @@ namespace OATControl.ViewModels
 		DelegateCommand _openAppSettingsCommand;
 		private string _poiFile;
 		MiniController _miniController;
+		SlewPointsWindow _slewPointsWindow;
 		TargetChooser _targetChooser;
 		DlgChecklist _checklist;
+		SettingsDialog _dlgMountSettings;
 
 		DispatcherTimer _timerStatus;
 		DispatcherTimer _timerFineSlew;
 
 		private ICommunicationHandler _commHandler;
 		private string _serialBaudRate;
-		private string _trackingMode;
 
 		private OatmealTelescopeCommandHandlers _oatMount;
 		private PointsOfInterest _pointsOfInterest;
@@ -196,6 +226,48 @@ namespace OATControl.ViewModels
 		private DateTime _siderealTime;
 		private DateTime _lastSiderealSync = DateTime.UtcNow - TimeSpan.FromMinutes(10);
 
+		// Add field for the processor
+		private NinaPolarAlignLogProcessor _ninaLogProcessor;
+		private SharpCapPolarAlignLogProcessor _sharpCapLogProcessor;
+
+		private CancellationTokenSource _ninaLogCts;
+		private CancellationTokenSource _sharpCapLogCts;
+		private const int LogActiveTimeoutMs = 500;
+
+		public static void RunOnUiThread(Action action, Dispatcher dispatcher)
+		{
+			// If we're on another thread, check whether the main thread dispatcher is available
+			// If the dispatcher is available, do a synchronous update, else asynchronous
+			if (dispatcher.CheckAccess())
+			{
+				// If the dispatcher is available, do a synchronous update
+				action();
+			}
+			else
+			{
+				try
+				{
+					// If the dispatcher is available, do an asynchronous update
+					dispatcher.Invoke(action);
+				}
+				catch (Exception e)
+				{
+					//DebugChannelLogger.DebugLogger.WriteError(
+					//	"WPFD: dispatcher.Invoke threw exception of type: {0} - {1}", e.GetType(), e.Message);
+					dispatcher.BeginInvoke(action);
+				}
+			}
+		}
+
+		public bool AutoConnect { get; set; }
+
+		internal void OnAppBooted()
+		{
+			if (AutoConnect)
+			{
+				OnConnectToTelescope();
+			}
+		}
 
 		public float RASpeed
 		{
@@ -205,6 +277,74 @@ namespace OATControl.ViewModels
 		{
 			get; private set;
 		}
+
+		public string NinaLogState
+		{
+			get => _ninaLogState;
+			set
+			{
+				if (_ninaLogState != value)
+				{
+					_ninaLogState = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public string SharpCapLogState
+		{
+			get => _sharpCapLogState;
+			set
+			{
+				if (_sharpCapLogState != value)
+				{
+					_sharpCapLogState = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+
+		public event EventHandler<PlatesolveEventArgs> PlateSolveOccurred;
+		public void OnMonitorNinaChanged(bool oldVal, bool newVal)
+		{
+			AppSettings.Instance.MonitorNinaPA = newVal;
+			AppSettings.Instance.Save();
+
+			if (newVal)
+			{
+				_ninaLogProcessor.Start();
+				NinaLogState = "Monitoring N.I.N.A.";
+				_ninaLogProcessor.PlateSolveOccurred += (s, e) => PlateSolveOccurred?.Invoke(this, e);
+
+			}
+			else
+			{
+				_ninaLogProcessor.Stop();
+				NinaLogState = string.Empty;
+				_ninaLogProcessor.PlateSolveOccurred -= (s, e) => PlateSolveOccurred?.Invoke(this, e);
+			}
+		}
+
+		public void OnMonitorSharpCapChanged(bool oldVal, bool newVal)
+		{
+			AppSettings.Instance.MonitorSharpCapPA = newVal;
+			AppSettings.Instance.Save();
+
+			if (newVal)
+			{
+				_sharpCapLogProcessor.Start();
+				SharpCapLogState = "Monitoring SharpCap";
+				_sharpCapLogProcessor.PlateSolveOccurred += (s, e) => PlateSolveOccurred?.Invoke(this, e);
+			}
+			else
+			{
+				_sharpCapLogProcessor.Stop();
+				SharpCapLogState = string.Empty;
+				_sharpCapLogProcessor.PlateSolveOccurred -= (s, e) => PlateSolveOccurred?.Invoke(this, e);
+			}
+		}
+
 		public MountVM()
 		{
 			Log.WriteLine("MOUNT: Initialization starting...");
@@ -267,9 +407,13 @@ namespace OATControl.ViewModels
 			_driftAlignCommand = new DelegateCommand(async dur => await OnRunDriftAlignment(int.Parse(dur.ToString())), () => MountConnected);
 			_polarAlignCommand = new DelegateCommand(() => OnRunPolarAlignment(), () => MountConnected);
 			_showLogFolderCommand = new DelegateCommand(() => OnShowLogFolder(), () => true);
+
+			_saveParkPositionCommand = new DelegateCommand(async () => await OnSaveParkPosition(), () => MountConnected);
+
 			_showChecklistCommand = new DelegateCommand(() => OnShowChecklist(), () => !string.IsNullOrEmpty(_listFilePath));
 			_showSettingsCommand = new DelegateCommand(() => OnShowSettingsDialog(), () => true);
 			_showMiniControllerCommand = new DelegateCommand(() => OnShowMiniController(), () => true);
+			_showSlewPointsCommand = new DelegateCommand(() => OnShowSlewPoints(), () => true);
 			_factoryResetCommand = new DelegateCommand(async () => await OnPerformFactoryReset(), () => MountConnected);
 			_startChangingCommand = new DelegateCommand((p) => OnStartChangingParameter(p), () => MountConnected);
 			_chooseTargetCommand = new DelegateCommand(async (p) => await OnShowTargetChooser(), () => MountConnected);
@@ -341,12 +485,110 @@ namespace OATControl.ViewModels
 			AppSettings.Instance.Load();
 			LoadCustomCommands();
 			ShowChecklist = AppSettings.Instance.ShowChecklist;
+			AutoHomeRaDistance = AppSettings.Instance.AutoHomeRaDistance;
+			AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
+			AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
+			AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
+			_trackingMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
 
 			ScopeType = "OAM";
 
 			if (ShowChecklist == ChecklistShowOn.OnStartup)
 			{
 				OnShowChecklist();
+			}
+
+			if (AutoConnect)
+			{
+				OnConnectToTelescope();
+			}
+
+			// Set up NINA Polar alignment handler
+			_ninaLogProcessor = new NinaPolarAlignLogProcessor();
+			_ninaLogProcessor.SetMountCommandDelegates(async (cmd) =>
+			{
+				var tcs = new System.Threading.Tasks.TaskCompletionSource<string>();
+				_oatMount.SendCommand(cmd, (resp) => tcs.SetResult(resp.Data));
+				return await tcs.Task;
+			}, async (s) => await OnLogActivity(s));
+			_ninaLogProcessor.CorrectionRequired += OnPolarAlignCorrectionRequired;
+			MonitorNinaForPA = AppSettings.Instance.MonitorNinaPA;
+			InvertAZCorrections = AppSettings.Instance.InvertAZCorrections;
+			InvertALTCorrections = AppSettings.Instance.InvertALTCorrections;
+
+			// Set up SharpCap Polar alignment handler
+			_sharpCapLogProcessor = new SharpCapPolarAlignLogProcessor();
+			_sharpCapLogProcessor.SetMountCommandDelegates(async (cmd) =>
+			{
+				var tcs = new System.Threading.Tasks.TaskCompletionSource<string>();
+				_oatMount.SendCommand(cmd, (resp) => tcs.SetResult(resp.Data));
+				return await tcs.Task;
+			}, async (s) => await OnLogActivity(s));
+			_sharpCapLogProcessor.CorrectionRequired += OnPolarAlignCorrectionRequired;
+			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
+			_azLeftLimit = AppSettings.Instance.AZLeftLimit;
+			_azRightLimit = AppSettings.Instance.AZRightLimit;
+			_altUpLimit = AppSettings.Instance.ALTUpLimit;
+			_altDownLimit = AppSettings.Instance.ALTDownLimit;
+		}
+
+		private bool _isNinaLogActive;
+		public bool IsNinaLogActive
+		{
+			get => _isNinaLogActive;
+			private set
+			{
+				if (_isNinaLogActive != value)
+				{
+					_isNinaLogActive = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		private bool _isSharpCapLogActive;
+		public bool IsSharpCapLogActive
+		{
+			get => _isSharpCapLogActive;
+			private set
+			{
+				if (_isSharpCapLogActive != value)
+				{
+					_isSharpCapLogActive = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+
+		async Task OnLogActivity(string logWatcher)
+		{
+			var dispatcher = Application.Current.Dispatcher;
+			if (logWatcher == "NINA")
+			{
+				_ninaLogCts?.Cancel();
+				_ninaLogCts = new CancellationTokenSource();
+				var token = _ninaLogCts.Token;
+				await dispatcher.InvokeAsync(() => IsNinaLogActive = true);
+				try
+				{
+					await Task.Delay(LogActiveTimeoutMs, token);
+					await dispatcher.InvokeAsync(() => IsNinaLogActive = false);
+				}
+				catch (TaskCanceledException) { /* Swallow, another activity came in */ }
+			}
+			else if (logWatcher == "SharpCap")
+			{
+				_sharpCapLogCts?.Cancel();
+				_sharpCapLogCts = new CancellationTokenSource();
+				var token = _sharpCapLogCts.Token;
+				await dispatcher.InvokeAsync(() => IsSharpCapLogActive = true);
+				try
+				{
+					await Task.Delay(LogActiveTimeoutMs, token);
+					await dispatcher.InvokeAsync(() => IsSharpCapLogActive = false);
+				}
+				catch (TaskCanceledException) { /* Swallow, another activity came in */ }
 			}
 		}
 
@@ -363,6 +605,19 @@ namespace OATControl.ViewModels
 			RAStepsPerDegree = raStepsAfter;
 			RAStepsPerDegreeEdit = RAStepsPerDegree;
 			DECStepsPerDegreeEdit = DECStepsPerDegree;
+		}
+
+		internal async Task SetSecondarySteps(float azSteps, float altSteps)
+		{
+			var doneStepUpdate = new AsyncAutoResetEvent();
+			lock (_oatLock)
+			{
+				_oatMount.SendCommand($":XSA{azSteps}#", (r) => { });
+				_oatMount.SendCommand($":XSL{altSteps}#", (r) => doneStepUpdate.Set());
+			}
+			await doneStepUpdate.WaitAsync();
+			AZStepsPerDegree = azSteps;
+			ALTStepsPerDegree = altSteps;
 		}
 
 		private void LoadCustomCommands()
@@ -439,8 +694,10 @@ namespace OATControl.ViewModels
 
 		public void OnRunStepCalibration()
 		{
-			DlgStepCalibration dlg = new DlgStepCalibration(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
-			dlg.ShowDialog();
+			_dlgMountSettings.Close();
+			_dlgMountSettings = null;
+			DlgAxisCalibration dlg = new DlgAxisCalibration(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
+			dlg.Show();
 		}
 
 		public void OnCustomAction(string nr)
@@ -881,6 +1138,7 @@ namespace OATControl.ViewModels
 					case "SR": RAStepsPerDegreeEdit += 0.1f * _incrDirection; break;
 					case "SD": DECStepsPerDegreeEdit += 0.1f * _incrDirection; break;
 					case "SS": SpeedCalibrationFactorEdit += _incrDirection; break;
+					case "TR": ManualTrackingRateEdit += 0.1f * _incrDirection; break;
 					default: OnAdjustTarget(_incrVar + (_incrDirection == 1 ? "+" : "-")); break;
 				}
 			}
@@ -889,6 +1147,12 @@ namespace OATControl.ViewModels
 		void SetDECStepsPerDegree(float steps)
 		{
 			DECStepsPerDegree = steps;
+		}
+
+		void SetDECLimits(float lower, float upper)
+		{
+			DECLowerLimitDegrees = lower;
+			DECUpperLimitDegrees = upper;
 		}
 
 		private void OnIncrementVariable(object sender, EventArgs e)
@@ -900,6 +1164,7 @@ namespace OATControl.ViewModels
 				case "SR": RAStepsPerDegreeEdit += 0.2f * _incrDirection; break;
 				case "SD": DECStepsPerDegreeEdit += 0.2f * _incrDirection; break;
 				case "SS": SpeedCalibrationFactorEdit += _incrDirection; break;
+				case "TR": ManualTrackingRateEdit += 0.1f * _incrDirection; break;
 				default: OnAdjustTarget(_incrVar + (_incrDirection == 1 ? "+" : "-")); break;
 			}
 			_timer.Interval = TimeSpan.FromMilliseconds(_incrementalDelay);
@@ -958,11 +1223,9 @@ namespace OATControl.ViewModels
 				_miniController = new MiniController(this);
 				_miniController.Topmost = KeepMiniControlOnTop;
 
-				if (AppSettings.Instance.MiniControllerPos.X != -1)
-				{
-					_miniController.Left = AppSettings.Instance.MiniControllerPos.X;
-					_miniController.Top = AppSettings.Instance.MiniControllerPos.Y;
-				}
+				Rect r = AppSettings.Instance.EnsureRectIsOnScreen("MiniControllerPos", null);
+				_miniController.Left = r.Left;
+				_miniController.Top = r.Top;
 			}
 			if (_miniController.IsVisible)
 			{
@@ -971,6 +1234,24 @@ namespace OATControl.ViewModels
 			else
 			{
 				_miniController.Show();
+			}
+		}
+
+
+		public void OnShowSlewPoints()
+		{
+			if (_slewPointsWindow == null)
+			{
+				_slewPointsWindow = new SlewPointsWindow(this);
+				_slewPointsWindow.Topmost = KeepMiniControlOnTop;
+			}
+			if (_slewPointsWindow.IsVisible)
+			{
+				_slewPointsWindow.Hide();
+			}
+			else
+			{
+				_slewPointsWindow.Show();
 			}
 		}
 
@@ -998,8 +1279,9 @@ namespace OATControl.ViewModels
 
 		private void OnShowSettingsDialog()
 		{
-			SettingsDialog dlg = new SettingsDialog(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
-			dlg.ShowDialog();
+			_dlgMountSettings = new SettingsDialog(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault() };
+			_dlgMountSettings.ShowDialog();
+			_dlgMountSettings = null;
 		}
 
 		private void OnShowLogFolder()
@@ -1029,6 +1311,13 @@ namespace OATControl.ViewModels
 			this.SendOatCommand(":SHP#,n", (a) => { });
 			await ReadHA();
 			await RecalculatePointsPositions(true);
+		}
+
+		private async Task OnSaveParkPosition()
+		{
+
+			Log.WriteLine("MOUNT: Setting custom park position...");
+			this.SendOatCommand(":hS#,n", (a) => { });
 		}
 
 		private async Task RecalculatePointsPositions(bool force = false)
@@ -1324,6 +1613,38 @@ namespace OATControl.ViewModels
 
 										// Don't use property here since it sends a command.
 										_isTracking = (parts[1][2] == 'T') || _isGuiding;
+										// If this was previously on
+										if (_isSlewingAlt || IsSlewingAz)
+										{
+											if (ScopeHasALT || ScopeHasAZ)
+											{
+												string azAltPos = string.Empty;
+												bool failed = false;
+												AsyncAutoResetEvent waitForAzAltPos = new AsyncAutoResetEvent();
+												this.SendOatCommand(":XGAA#,#", (a) =>
+												{
+													azAltPos = a.Success ? a.Data : "0|0"; failed |= !a.Success;
+													waitForAzAltPos.Set();
+												});
+												await waitForAzAltPos.WaitAsync();
+												if (!failed && !string.IsNullOrEmpty(azAltPos))
+												{
+													var azaltParts = azAltPos.Split('|');
+													if (azaltParts.Length == 2)
+													{
+														try
+														{
+															AZStepper = float.Parse(azaltParts[0], _oatCulture);
+															ALTStepper = float.Parse(azaltParts[1], _oatCulture);
+														}
+														catch (Exception e)
+														{
+															Log.WriteLine("EXCEPTION: Parsing ALT/AZ position failed. {0}", e.Message);
+														}
+													}
+												}
+											}
+										}
 										_isSlewingAz = (parts[1][3] != '-');
 										_isSlewingAlt = (parts[1][4] != '-');
 										_isSlewingFocus = (parts[1][5] != '-');
@@ -1349,6 +1670,17 @@ namespace OATControl.ViewModels
 										CurrentRAHour = int.Parse(parts[5].Substring(0, 2));
 										CurrentRAMinute = int.Parse(parts[5].Substring(2, 2));
 										CurrentRASecond = int.Parse(parts[5].Substring(4, 2));
+
+										AstroTools.RaDecToAzAlt(
+											CurrentRATotalHours * 15.0,
+											CurrentDECTotalHours,
+											AppSettings.Instance.SiteLatitude,
+											AppSettings.Instance.SiteLongitude,
+											DateTime.UtcNow,
+											out double azimuth, out double altitude);
+
+										CurrentAZ = azimuth;
+										CurrentALT = altitude;
 
 										OnTargetChanged(0, 0);
 										UpdateCurrentDisplay();
@@ -1418,6 +1750,8 @@ namespace OATControl.ViewModels
 			OnPropertyChanged("CurrentDECSecond");
 			OnPropertyChanged("CurrentDECTotalHours");
 			OnPropertyChanged("CurrentDECString");
+			OnPropertyChanged("CurrentAZ");
+			OnPropertyChanged("CurrentALT");
 		}
 
 		public async Task<string> SetSiteLatitude(float latitude)
@@ -1524,6 +1858,7 @@ namespace OATControl.ViewModels
 			string siderealTime = string.Empty;
 			string temperature = string.Empty;
 			string speed = string.Empty;
+			string azAltPos = string.Empty;
 			string network = string.Empty;
 			string hemisphere = string.Empty;
 			string trkMode = string.Empty;
@@ -1537,8 +1872,32 @@ namespace OATControl.ViewModels
 					this.SendOatCommand(":GG#,#", (a) => { utcOffset = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GL#,#", (a) => { localTime = a.Data; failed |= !a.Success; });
 					this.SendOatCommand(":GC#,#", (a) => { localDate = a.Data; failed |= !a.Success; });
-					this.SendOatCommand(":TZ#,#", (a) => { trkMode = a.Data; failed |= !a.Success; });
-					//this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
+					if (FirmwareVersion >= 11316)
+					{
+						this.SendOatCommand(":GT#,#", (a) =>
+						{
+							TrackingRateHz = float.Parse(a.Data, _oatCulture);
+							failed |= !a.Success;
+						});
+
+						if (FirmwareVersion > 11317)
+						{
+							this.SendOatCommand(":Gk#,#", (a) => { _trackingMode = a.Data; failed |= !a.Success; });
+							this.SendOatCommand(":hCq#,#", (a) =>
+							{
+								if (a.Data == "0")
+								{
+									UseCustomParkPosition = false;
+								}
+								else
+								{
+									UseCustomParkPosition = true;
+								}
+								failed |= !a.Success;
+							});
+						}
+					}
+					this.SendOatCommand(":XGH#,#", (a) => { ha = a.Data; failed |= !a.Success; });
 					if (FirmwareVersion >= 11206)
 					{
 						this.SendOatCommand(":XGHS#,#", (a) => { hemisphere = a.Data.Substring(0, 1); failed |= !a.Success; });
@@ -1550,6 +1909,7 @@ namespace OATControl.ViewModels
 						this.SendOatCommand(":XGT#,#", (a) => { speed = a.Data; failed |= !a.Success; });
 					}
 					this.SendOatCommand(":XLGT#,#", (a) => { temperature = a.Success ? a.Data : "0"; failed |= !a.Success; allDone.Set(); });
+
 					allDone.WaitOne(10000);
 				}
 
@@ -1557,11 +1917,11 @@ namespace OATControl.ViewModels
 				{
 					try
 					{
-						if(!string.IsNullOrEmpty(trkMode))
+						if (!string.IsNullOrEmpty(trkMode))
 						{
-							TrackingMode = trkMode;
+							_trackingMode = trkMode;
 						}
-							
+
 						if (localTime.Length == 8)
 						{
 							ScopeTime = localTime;
@@ -1735,6 +2095,10 @@ namespace OATControl.ViewModels
 			if (dir == 'w') return IsSlewingWest;
 			if (dir == 's') return IsSlewingSouth;
 			if (dir == 'a') return IsSlewingNorth | IsSlewingSouth | IsSlewingWest | IsSlewingEast;
+			if (dir == 'r') return IsSlewingWest | IsSlewingEast;
+			if (dir == 'd') return IsSlewingNorth | IsSlewingSouth;
+			if (dir == 'l') return IsSlewingAlt;
+			if (dir == 'z') return IsSlewingAz;
 			return false;
 		}
 
@@ -1751,7 +2115,7 @@ namespace OATControl.ViewModels
 			var doneEvent = new AsyncAutoResetEvent();
 			if ((dir != 'a') && (dir != 'z') && (dir != 'l') && (dir != 'r'))
 			{
-				// Don't handle AZ/ALT here
+				// Don't handle AZ/ALT here, it does not stop on command
 				if ((dir == 'f') || (dir == 'g'))
 				{
 					// Focus commands
@@ -1792,14 +2156,53 @@ namespace OATControl.ViewModels
 			Log.WriteLine("CONTROL: Exit Stop slewing {0}", dir);
 		}
 
+		public bool InvertALTCorrections
+		{
+			get
+			{
+				return _invertAltCorrections;
+			}
+			set
+			{
+
+				if (_invertAltCorrections != value)
+				{
+					_invertAltCorrections = value;
+					AppSettings.Instance.InvertALTCorrections = value;
+					AppSettings.Instance.Save();
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool InvertAZCorrections
+		{
+			get
+			{
+				return _invertAzCorrections;
+			}
+			set
+			{
+				if (_invertAzCorrections != value)
+				{
+					_invertAzCorrections = value;
+					AppSettings.Instance.InvertAZCorrections = value;
+					AppSettings.Instance.Save();
+					OnPropertyChanged();
+				}
+			}
+		}
+
+
 		private async Task OnStartSlewing(char dir)
 		{
 			Log.WriteLine("CONTROL: Enter Start slewing {0}", dir);
 
+			// If this is changed be sure to fix the labes in DlgAxisCalibration as well.
 			float[] rateDistance = { 0, 0.05f, 0.25f, 2.0f, 7.5f, 30.0f };
 			var doneEvent = new AsyncAutoResetEvent();
 			float distance = rateDistance[SlewRate];
-			// a/z - ALT up/down
+			// a/z - ALT up/down +/-
 			// l/r - AZ left/right
 			// f/g - FOC in/out
 			// n/s - DEC
@@ -1894,7 +2297,7 @@ namespace OATControl.ViewModels
 					a.AffirmativeButtonText = "Yes, slew anyway";
 					a.NegativeButtonText = "No, don't slew";
 					string violatedConstraint = lowerLimitExceeded ? "below the lower" : "above the upper";
-					var result = await DialogManager.ShowMessageAsync(win, "DEC Limits Exceeded", $"This target is {violatedConstraint} currentyl set DEC limit by {overBy:0.0} degrees.\n\nSlew anyway?", MessageDialogStyle.AffirmativeAndNegative, a);
+					var result = await DialogManager.ShowMessageAsync(win, "DEC Limits Exceeded", $"This target is {violatedConstraint} currently set DEC limit by {overBy:0.0} degrees.\n\nSlew anyway?", MessageDialogStyle.AffirmativeAndNegative, a);
 
 					if (result != MessageDialogResult.Affirmative)
 					{
@@ -1949,12 +2352,15 @@ namespace OATControl.ViewModels
 				_miniController = null;
 			}
 
+			if (_slewPointsWindow != null)
+			{
+				_slewPointsWindow.Close();
+				_slewPointsWindow = null;
+			}
+
 			if (_checklist != null)
 			{
-				if (_checklist.IsVisible)
-				{
-					_checklist.Close();
-				}
+				_checklist.Close();
 				_checklist = null;
 			}
 
@@ -2025,6 +2431,40 @@ namespace OATControl.ViewModels
 					}
 				});
 
+				if (FirmwareVersion >= 11317)
+				{
+					this.SendOatCommand(":XGZ#,#", (steps) =>
+					{
+						Log.WriteLine("MOUNT: Current AZ steps/degree is {0}. ", steps.Data);
+						if (steps.Success)
+						{
+							AZStepsPerDegree = float.Parse(steps.Data, _oatCulture);
+						}
+					});
+					this.SendOatCommand(":XGA#,#", (steps) =>
+					{
+						Log.WriteLine("MOUNT: Current ALT steps/degree is {0}. ", steps.Data);
+						if (steps.Success)
+						{
+							ALTStepsPerDegree = float.Parse(steps.Data, _oatCulture);
+						}
+					});
+				}
+
+				Log.WriteLine("MOUNT: Getting current OAT DEC limits...");
+				this.SendOatCommand(":XGDL#,#", (steps) =>
+				{
+					Log.WriteLine("MOUNT: Current DEC limits are {0}. ", steps.Data);
+					if (steps.Success)
+					{
+						string[] limits = steps.Data.Split('|');
+						if (limits.Length == 2)
+						{
+							SetDECLimits(float.Parse(limits[0], _oatCulture), float.Parse(limits[1], _oatCulture));
+						}
+					}
+				});
+
 				// We want this command to execute before we wait for the last one, since commands are executed sequentially.
 				Log.WriteLine("MOUNT: Reading Current OAT HA...");
 				await ReadHA();
@@ -2053,11 +2493,47 @@ namespace OATControl.ViewModels
 					{
 						TrackingSpeed = float.Parse(speed.Data, _oatCulture);
 					}
-					//OnPropertyChanged("TrackingSpeed");
+				});
+
+				if (FirmwareVersion > 11317)
+				{
+					this.SendOatCommand(":Gk#,#", (trkMode) =>
+					{
+						Log.WriteLine("MOUNT: Current Tracking Mode is {0}...", trkMode.Data);
+						if (trkMode.Success)
+						{
+							IsManualTrackingMode = false;
+							_trackingMode = trkMode.Data;
+							if (trkMode.Data == "Manual")
+							{
+								IsManualTrackingMode = true;
+							}
+						}
+					});
+				}
+
+				string azAltPos = string.Empty;
+				this.SendOatCommand(":XGAA#,#", (a) =>
+				{
+					azAltPos = a.Success ? a.Data : "0|0";
 					doneEvent.Set();
 				});
 
 				await doneEvent.WaitAsync();
+
+				var azaltParts = azAltPos.Split('|');
+				if (azaltParts.Length == 2)
+				{
+					try
+					{
+						AZStepper = float.Parse(azaltParts[0], _oatCulture);
+						ALTStepper = float.Parse(azaltParts[1], _oatCulture);
+					}
+					catch (Exception e)
+					{
+						Log.WriteLine("EXCEPTION: Parsing ALT/AZ position failed. {0}", e.Message);
+					}
+				}
 
 				ShowDECLimits = AppSettings.Instance.ShowDecLimits;
 				KeepMiniControlOnTop = AppSettings.Instance.KeepMiniControlOnTop;
@@ -2222,9 +2698,11 @@ namespace OATControl.ViewModels
 			_driftAlignCommand.Requery();
 			_polarAlignCommand.Requery();
 			_showLogFolderCommand.Requery();
+			_saveParkPositionCommand.Requery();
 			_showChecklistCommand.Requery();
 			_showSettingsCommand.Requery();
 			_showMiniControllerCommand.Requery();
+			_showSlewPointsCommand.Requery();
 			_chooseTargetCommand.Requery();
 			_setDecLowerLimitCommand.Requery();
 			_setDECHomeOffsetFromPowerOnCommand.Requery();
@@ -2555,7 +3033,7 @@ namespace OATControl.ViewModels
 			await _oatMount.Sync(new TelescopePosition(raHours, decDegrees, Epoch.JNOW));
 		}
 
-		public async Task MoveMount(long raSteps, long decSteps)
+		public async Task MoveMountBy(long raSteps, long decSteps)
 		{
 			var doneEvent = new AsyncAutoResetEvent();
 			lock (_oatLock)
@@ -2637,7 +3115,7 @@ namespace OATControl.ViewModels
 					// The MHRR/L command actually returns 0 or 1, but we ignore it, so that we can monitor progress
 					string dir = AutoHomeRaDirection == "East" ? "R" : "L";
 					string dist = AutoHomeRaDistance.ToString("0");
-					Log.WriteLine($"MOUNT: Sending Autohome command MHR{dir} command in direction {AutoHomeRaDirection} for {AutoHomeRaDistance} degrees"); 
+					Log.WriteLine($"MOUNT: Sending Autohome command MHR{dir} command in direction {AutoHomeRaDirection} for {AutoHomeRaDistance} degrees");
 					_oatMount.SendCommand($":MHR{dir}{dist}#,n", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
 
@@ -2674,7 +3152,7 @@ namespace OATControl.ViewModels
 					string dir = AutoHomeDecDirection == "South" ? "D" : "U";
 					string dist = AutoHomeDecDistance.ToString("0");
 					Log.WriteLine($"MOUNT: Sending Autohome command MHD{dir} command in {AutoHomeDecDirection} for {AutoHomeDecDistance} degrees");
-					_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => {  doneEvent.Set(); });
+					_oatMount.SendCommand($":MHD{dir}{dist}#,n", (a) => { doneEvent.Set(); });
 					await doneEvent.WaitAsync();
 					Log.WriteLine("MOUNT: Waiting for homing to end....");
 
@@ -2874,9 +3352,11 @@ namespace OATControl.ViewModels
 		public ICommand DriftAlignCommand { get { return _driftAlignCommand; } }
 		public ICommand PolarAlignCommand { get { return _polarAlignCommand; } }
 		public ICommand ShowLogFolderCommand { get { return _showLogFolderCommand; } }
+		public ICommand SaveParkPositionCommand { get { return _saveParkPositionCommand; } }
 		public ICommand ShowChecklistCommand { get { return _showChecklistCommand; } }
 		public ICommand ShowSettingsCommand { get { return _showSettingsCommand; } }
 		public ICommand ShowMiniControllerCommand { get { return _showMiniControllerCommand; } }
+		public ICommand ShowSlewPointsCommand { get { return _showSlewPointsCommand; } }
 		public ICommand FactoryResetCommand { get { return _factoryResetCommand; } }
 		public ICommand StartChangingCommand { get { return _startChangingCommand; } }
 		public ICommand ChooseTargetCommand { get { return _chooseTargetCommand; } }
@@ -3023,6 +3503,94 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(value, () => _targetDEC.Seconds, _targetDEC.ChangeSecond, OnTargetChanged); }
 		}
 
+		public double CurrentAZ
+		{
+			get { return _currentAZ; }
+			set
+			{
+				if (_currentAZ != value)
+				{
+					_currentAZ = value;
+					OnPropertyChanged("CurrentAZ");
+					OnPropertyChanged("CurrentAZDegrees");
+					OnPropertyChanged("CurrentAZMinutes");
+					OnPropertyChanged("CurrentAZSeconds");
+				}
+			}
+		}
+
+		public double CurrentALT
+		{
+			get { return _currentALT; }
+			set
+			{
+				if (_currentALT != value)
+				{
+					_currentALT = value;
+					OnPropertyChanged("CurrentALT");
+					OnPropertyChanged("CurrentALTDegrees");
+					OnPropertyChanged("CurrentALTMinutes");
+					OnPropertyChanged("CurrentALTSeconds");
+				}
+			}
+		}
+
+		public double CurrentALTDegrees
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentALT);
+				return alt.Hours;
+			}
+		}
+
+		public double CurrentALTMinutes
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentALT);
+				return alt.Minutes;
+			}
+		}
+
+		public double CurrentALTSeconds
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentALT);
+				return alt.Seconds;
+			}
+		}
+
+
+		public double CurrentAZDegrees
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentAZ);
+				return alt.Hours;
+			}
+		}
+
+		public double CurrentAZMinutes
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentAZ);
+				return alt.Minutes;
+			}
+		}
+
+		public double CurrentAZSeconds
+		{
+			get
+			{
+				DayTime alt = new DayTime((float)_currentAZ);
+				return alt.Seconds;
+			}
+		}
+
+
 		public double CurrentRATotalHours
 		{
 			get { return _currentRA.TotalHours; }
@@ -3065,8 +3633,7 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(value, () => _currentRA.Minutes, _currentRA.ChangeMinute, OnRaOrDecChanged); }
 		}
 
-		/// <summary>
-		/// Gets or sets the RASecond
+		/// <summary>		/// Gets or sets the RASecond
 		/// </summary>
 		public int CurrentRASecond
 		{
@@ -3130,12 +3697,57 @@ namespace OATControl.ViewModels
 		}
 
 		/// <summary>
-		/// Gets or sets the RA Stepper position
+		/// Gets or sets the RA Stepper position in steps
 		/// </summary>
 		public float RAStepper
 		{
 			get { return _raStepper; }
 			set { SetPropertyValue(ref _raStepper, value, OnRAPosChanged); }
+		}
+
+		public float ALTStepper
+		{
+			get { return _altStepper; }
+			set { SetPropertyValue(ref _altStepper, value); }
+		}
+
+
+		public float AZStepper
+		{
+			get { return _azStepper; }
+			set { SetPropertyValue(ref _azStepper, value); }
+		}
+
+		public float AZLeftLimit
+		{
+			get { return _azLeftLimit; }
+			set { SetPropertyValue(ref _azLeftLimit, value, OnAltAzLimitsChanged); }
+		}
+		public float AZRightLimit
+		{
+			get { return _azRightLimit; }
+			set { SetPropertyValue(ref _azRightLimit, value, OnAltAzLimitsChanged); }
+		}
+
+		public float ALTUpLimit
+		{
+			get { return _altUpLimit; }
+			set { SetPropertyValue(ref _altUpLimit, value, OnAltAzLimitsChanged); }
+		}
+
+		public float ALTDownLimit
+		{
+			get { return _altDownLimit; }
+			set { SetPropertyValue(ref _altDownLimit, value, OnAltAzLimitsChanged); }
+		}
+
+		void OnAltAzLimitsChanged(float a, float b )
+		{
+			AppSettings.Instance.AZLeftLimit = AZLeftLimit;
+			AppSettings.Instance.AZRightLimit = AZRightLimit;
+			AppSettings.Instance.ALTUpLimit = ALTUpLimit;
+			AppSettings.Instance.ALTDownLimit = ALTDownLimit;
+			AppSettings.Instance.Save();
 		}
 
 		private void OnRAPosChanged(float a, float b)
@@ -3354,6 +3966,27 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _decStepsPerDegreeEdit, value); }
 		}
 
+		public float TrackingRateHz
+		{
+			get { return _trackingRateHz; }
+			set
+			{
+				SetPropertyValue(ref _trackingRateHz, value);
+				OnPropertyChanged("TrackingRateHz");
+			}
+		}
+
+		public float ManualTrackingRateEdit
+		{
+			get { return _trackingRateHz; }
+			set
+			{
+				SetPropertyValue(ref _trackingRateHz, value);
+				_oatMount?.SendCommand(string.Format(_oatCulture, ":TD{0:0.0000}#", _trackingRateHz), (a) => { });
+				OnPropertyChanged("ManualTrackingRateEdit");
+			}
+		}
+
 		/// <summary>
 		/// Gets or sets the DEC steps per degree
 		/// </summary>
@@ -3363,10 +3996,35 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _decStepsPerDegree, value, OnDECStepsChanged); }
 		}
 
+		public float DECUpperLimitDegrees
+		{
+			get { return _decUpperLimitDegrees; }
+			set { SetPropertyValue(ref _decUpperLimitDegrees, value); }
+		}
+
+		public float DECLowerLimitDegrees
+		{
+			get { return _decLowerLimitDegrees; }
+			set { SetPropertyValue(ref _decLowerLimitDegrees, value); }
+		}
+
 		private void OnDECStepsChanged(float oldVal, float newVal)
 		{
 			this.SendOatCommand(string.Format(_oatCulture, ":XSD{0:0.0}#", newVal), (a) => { });
 		}
+
+		public float AZStepsPerDegree
+		{
+			get { return _azStepsPerDegree; }
+			set { SetPropertyValue(ref _azStepsPerDegree, value); }
+		}
+
+		public float ALTStepsPerDegree
+		{
+			get { return _altStepsPerDegree; }
+			set { SetPropertyValue(ref _altStepsPerDegree, value); }
+		}
+
 
 		public bool DisplaySlewProgress
 		{
@@ -3478,6 +4136,45 @@ namespace OATControl.ViewModels
 		{
 			get { return _connectionState; }
 			set { SetPropertyValue(ref _connectionState, value); }
+		}
+
+
+		public bool MonitorSharpCapForPA
+		{
+			get { return _monitorSharpCapForPA; }
+			set { SetPropertyValue(ref _monitorSharpCapForPA, value, OnMonitorSharpCapChanged); }
+		}
+		public bool MonitorNinaForPA
+		{
+			get { return _monitorNinaForPA; }
+			set { SetPropertyValue(ref _monitorNinaForPA, value, OnMonitorNinaChanged); }
+		}
+
+
+		public string NinaLogFolder
+		{
+			get { return AppSettings.Instance.NinaLogFolder; }
+			set
+			{
+				if (AppSettings.Instance.NinaLogFolder != value)
+				{
+					AppSettings.Instance.NinaLogFolder = value;
+					AppSettings.Instance.Save();
+				}
+			}
+		}
+
+		public string SharpCapLogFolder
+		{
+			get { return AppSettings.Instance.SharpCapLogFolder; }
+			set
+			{
+				if (AppSettings.Instance.SharpCapLogFolder != value)
+				{
+					AppSettings.Instance.SharpCapLogFolder = value;
+					AppSettings.Instance.Save();
+				}
+			}
 		}
 
 		/// <summary>
@@ -3791,6 +4488,45 @@ namespace OATControl.ViewModels
 				}
 			}
 		}
+		/// <summary>
+		/// Gets or sets if we use Custom Parking Position
+		/// </summary>
+		public bool UseCustomParkPosition
+		{
+			get { return _useCustomParkPosition; }
+			set { SetPropertyValue(ref _useCustomParkPosition, value, OnUseCustomParkPositionChanged); }
+		}
+
+		public bool IsManualTrackingMode
+		{
+			get { return _isManualTrackingMode; }
+			set { SetPropertyValue(ref _isManualTrackingMode, value); }
+		}
+
+		/// <summary>
+		/// Sends command to enable/disable Custom Park Position to the mount
+		/// </summary>
+		private void OnUseCustomParkPositionChanged(bool oldVal, bool newVal)
+		{
+			if (MountConnected)
+			{
+				try
+				{
+					if (newVal == true)
+					{
+						this.SendOatCommand(":hC1#,n", (a) => { });
+					}
+					else
+					{
+						this.SendOatCommand(":hC0#,n", (a) => { });
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine("Unable to set UseCustomParkPosition." + ex.Message);
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the status of the scope
@@ -4039,12 +4775,6 @@ namespace OATControl.ViewModels
 			get { return _pointsOfInterest; }
 		}
 
-		public string TrackingMode
-		{
-			get { return _trackingMode; }
-			set { SetPropertyValue(ref _trackingMode, value); OnPropertyChanged("SelectedTrackingMode"); }
-		}
-
 		/// <summary>
 		/// Gets the string for the connect button
 		/// </summary>
@@ -4086,30 +4816,43 @@ namespace OATControl.ViewModels
 			get { return _trackingMode; }
 			set
 			{
-				if (value == "Sidereal")
+				if (FirmwareVersion >= 11314)
 				{
-					this.SendOatCommand(":TQ#,n", (a) => { });
-				}
-				else if (value == "Lunar")
-				{
-					this.SendOatCommand(":TL#,n", (a) => { });
-				}
-				else if (value == "Solar")
-				{
-					this.SendOatCommand(":TS#,n", (a) => { });
-				}
-				else if (value == "King")
-				{
-					this.SendOatCommand(":TK#,n", (a) => { });
-				}
-				else
-				{
-					this.SendOatCommand(":TQ#,n", (a) => { });
-				}
+					IsManualTrackingMode = false;
+					if (value == "Sidereal")
+					{
+						this.SendOatCommand(":TQ#,n", (a) => { });
+					}
+					else if (value == "Lunar")
+					{
+						this.SendOatCommand(":TL#,n", (a) => { });
+					}
+					else if (value == "Solar")
+					{
+						this.SendOatCommand(":TS#,n", (a) => { });
+					}
+					else if (value == "King")
+					{
+						this.SendOatCommand(":TK#,n", (a) => { });
+					}
+					else if (value == "Manual")
+					{
+						this.SendOatCommand(":TM#,n", (a) => { });
+						IsManualTrackingMode = true;
+					}
+					else
+					{
+						this.SendOatCommand(":TQ#,n", (a) => { });
+					}
 
-				Log.WriteLine("MOUNT: Changing tracking rate to " + value);
-				_trackingMode = value;
-				AppSettings.Instance.TrackingRate = value;
+					Log.WriteLine("MOUNT: Changing tracking rate to " + value);
+
+					SetPropertyValue(ref _trackingMode, value);
+					OnPropertyChanged("SelectedTrackingMode");
+
+					AppSettings.Instance.TrackingRate = value;
+					AppSettings.Instance.Save();
+				}
 			}
 		}
 
@@ -4145,7 +4888,8 @@ namespace OATControl.ViewModels
 					"Sidereal",
 					"Lunar",
 					"Solar",
-					"King"
+					"King",
+					"Manual"
 				};
 
 
@@ -4170,10 +4914,23 @@ namespace OATControl.ViewModels
 			}
 		}
 
-		private void OnSimationClientCommand(string cmd)
+		/// <summary>
+		/// Gets or sets the keep slew to point control on-top
+		/// </summary>
+		public bool KeepSlewToPointControlOnTop
 		{
-			this.SendOatCommand(cmd, (a) => { });
+			get { return _keepSlewToPointControllerOnTop; }
+			set
+			{
+				SetPropertyValue(ref _keepSlewToPointControllerOnTop, value);
+				if (_miniController != null)
+				{
+					_slewPointsWindow.Topmost = value;
+				}
+			}
 		}
+
+		public string LatestNinaLogfile { get; private set; }
 
 		public enum CoordSeparators
 		{
@@ -4226,7 +4983,8 @@ namespace OATControl.ViewModels
 		public static bool TryParseCoord(string pos, out float result)
 		{
 			result = 0;
-			var parts = pos.Split("hms \"'°".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+			if (string.IsNullOrEmpty(pos)) return false;
+			var parts = pos.Split("hms: \"'°".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
 			if (parts.Length != 3)
 			{
@@ -4250,9 +5008,12 @@ namespace OATControl.ViewModels
 		internal void ReplacePointOfInterest(PointOfInterest selectedPoint, PointOfInterest newPt)
 		{
 			int index = _pointsOfInterest.IndexOf(selectedPoint);
-			_pointsOfInterest.Remove(selectedPoint);
-			_pointsOfInterest.Insert(index, newPt);
-			SavePointsOfInterest();
+			if (index >= 0)
+			{
+				_pointsOfInterest.Remove(selectedPoint);
+				_pointsOfInterest.Insert(index, newPt);
+				SavePointsOfInterest();
+			}
 		}
 
 		public void SavePointsOfInterest()
@@ -4263,7 +5024,7 @@ namespace OATControl.ViewModels
 
 		internal bool AddPointOfInterest(PointOfInterest newPt)
 		{
-			if (_pointsOfInterest.FirstOrDefault(pt => (pt.Name == newPt.Name) || (pt.CatalogName == newPt.CatalogName)) == null)
+			if (_pointsOfInterest.FirstOrDefault(pt => (pt.Name == newPt.Name) || (!String.IsNullOrEmpty(pt.CatalogName) && (pt.CatalogName == newPt.CatalogName))) == null)
 			{
 				_pointsOfInterest.Add(newPt);
 				SavePointsOfInterest();
@@ -4271,6 +5032,13 @@ namespace OATControl.ViewModels
 			}
 			return false;
 		}
+
+		private void OnPolarAlignCorrectionRequired(object sender, PolarAlignCorrectionEventArgs e)
+		{
+			_oatMount.SendCommand($":MAL{e.AltAdjust:F4}#", (a) => { });
+			_oatMount.SendCommand($":MAZ{e.AzAdjust:F4}#", (a) => { });
+		}
+
 	}
 }
 

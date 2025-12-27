@@ -15,6 +15,7 @@
 	<Window.Resources>
 		<converters:DoubleToHMSConverter x:Key="RAConverter" />
 		<converters:DoubleToHMSConverter x:Key="DECConverter" Formatter = "[0:+00;-00]° [1:00]&quot; [2:00]'"/>
+		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" Collapse="True" />
 		<Style x:Key="CategoryItem" TargetType="ListViewItem" BasedOn="{StaticResource MetroListBoxItem}" >
 			<Setter Property="FontWeight" Value="Bold" />
 			<Setter Property="FontSize" Value="14" />
@@ -25,6 +26,43 @@
 					<Setter Property="Foreground" Value="#F44" />
 				</Trigger>
 			</Style.Triggers>
+		</Style>
+		<Style x:Key="ComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+			<Setter Property="Foreground" Value="Red" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="BorderBrush" Value="#FF880000" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="ItemContainerStyle">
+				<Setter.Value>
+					<Style TargetType="ComboBoxItem">
+						<Setter Property="FontSize" Value="14" />
+						<Setter Property="Foreground" Value="Red" />
+						<Setter Property="FontWeight" Value="Bold" />
+						<Setter Property="Background" Value="#F600" />
+						<Setter Property="BorderBrush" Value="#FF770000" />
+						<Setter Property="BorderThickness" Value="1" />
+						<Setter Property="Padding" Value="4" />
+						<Style.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Background" Value="#FD00" />
+							</Trigger>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Background" Value="Black" />
+								<Setter Property="Foreground" Value="#FFFF8888" />
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="TextBoxSmallLimit" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
+			<Setter Property="Margin" Value="5,2" />
+			<Setter Property="Height" Value="11" />
+			<Setter Property="Background" Value="#770000" />
+			<Setter Property="Foreground" Value="#F00" />
+			<Setter Property="Width" Value="40" />
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
 		</Style>
 		<Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
 			<Setter Property="Margin" Value="10,2,10,2" />
@@ -49,17 +87,24 @@
 			<Setter Property="Padding" Value="2,0" />
 			<Setter Property="HorizontalAlignment" Value="Left" />
 		</Style>
+		<Style x:Key="TextBlockLabelTiny" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="Margin" Value="0,0,0,0" />
+			<Setter Property="Padding" Value="0,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
 		<Style x:Key="TextBlockOptionHelp" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
-			<Setter Property="FontSize" Value="8" />
+			<Setter Property="FontSize" Value="9" />
 			<Setter Property="FontWeight" Value="Normal" />
 			<Setter Property="TextWrapping" Value="Wrap" />
-			<Setter Property="Width" Value="190" />
+			<Setter Property="Width" Value="200" />
 			<Setter Property="Margin" Value="2,0,0,0" />
 			<Setter Property="Foreground" Value="#B00" />
 		</Style>
 
 		<Style x:Key="TextBlockOptionHelpNoWidth" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
-			<Setter Property="FontSize" Value="8" />
+			<Setter Property="FontSize" Value="9" />
 			<Setter Property="FontWeight" Value="Normal" />
 			<Setter Property="TextWrapping" Value="Wrap" />
 			<Setter Property="Margin" Value="2,0,0,0" />
@@ -81,7 +126,7 @@
 							<Viewbox>
 								<Grid>
 									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
-                                        <Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
 									</Grid>
 									<Path Data="M16.000015,9.6000061C12.500012,9.6000061 9.5999844,12.5 9.5999844,16 9.5999844,19.5 12.500012,22.399994 16.000015,22.399994 19.500019,22.399994 22.400015,19.5 22.400015,16 22.400015,12.5 19.500019,9.6000061 16.000015,9.6000061z M14.199995,0L17.800005,0C18.199999,0,18.599993,0.29998779,18.599993,0.79998779L18.599993,4.7999878C19.900013,5.1000061,21.000019,5.6000061,22.099997,6.2999878L25.000023,3.3999939C25.099999,3.2999878 25.300011,3.1999817 25.500025,3.1999817 25.700007,3.1999817 25.900019,3.2999878 26.000025,3.3999939L28.600033,6C28.900021,6.2999878,28.900021,6.7999878,28.600033,7.1000061L25.700007,10C26.400019,11.100006,26.900019,12.299988,27.200007,13.5L31.20001,13.5C31.600037,13.5,31.999998,13.799988,31.999998,14.299988L31.999998,17.899994C31.999998,18.299988,31.700012,18.699982,31.20001,18.699982L27.200007,18.699982C26.900019,20,26.400019,21.100006,25.700007,22.199982L28.600033,25.100006C28.700009,25.199982 28.799984,25.399994 28.799984,25.600006 28.799984,25.799988 28.700009,26 28.600033,26.100006L26.000025,28.600006C25.900019,28.699982 25.700007,28.799988 25.500025,28.799988 25.300011,28.799988 25.099999,28.699982 25.000023,28.600006L22.099997,25.699982C21.000019,26.399994,19.800007,26.899994,18.599993,27.199982L18.599993,31.199982C18.599993,31.600006,18.300005,32,17.800005,32L14.199995,32C13.8,32,13.400006,31.699982,13.400006,31.199982L13.400006,27.199982C12.099987,26.899994,11.000011,26.399994,9.9000027,25.699982L7.0000064,28.600006C6.9000003,28.699982 6.6999881,28.799988 6.5000059,28.799988 6.2999937,28.799988 6.099981,28.699982 6.0000054,28.600006L3.3999967,26C3.0999784,25.699982,3.0999784,25.199982,3.3999967,24.899994L6.2999937,22C5.5999805,20.899994,5.0999801,19.699982,4.7999923,18.5L0.79998828,18.5C0.39999409,18.5,-1.933513E-07,18.199982,0,17.699982L0,14.100006C-1.933513E-07,13.699982,0.2999879,13.299988,0.79998828,13.299988L4.7999923,13.299988C5.0999801,12,5.5999805,10.899994,6.2999937,9.7999878L3.3999967,7C3.2999908,6.8999939 3.1999845,6.6999817 3.1999845,6.5 3.1999845,6.2999878 3.2999908,6.1000061 3.3999967,6L6.0000054,3.3999939C6.099981,3.2999878 6.2999937,3.1999817 6.5000059,3.1999817 6.6999881,3.1999817 6.9000003,3.2999878 7.0000064,3.3999939L9.9000027,6.2999878C11.000011,5.6000061,12.199993,5.1000061,13.400006,4.7999878L13.400006,0.79998779C13.400006,0.29998779,13.8,0,14.199995,0z" 
 										  x:Name="colorGear"
@@ -201,8 +246,8 @@
 				</TextBlock.Text>
 			</TextBlock>
 		</DataTemplate>
-        <ObjectDataProvider ObjectType="{x:Type localVM:ChecklistShowOnEnumHelper}" MethodName="get_ChecklistShowOnValues" x:Key="ChecklistShowOnValues"/>
-    </Window.Resources>
+		<ObjectDataProvider ObjectType="{x:Type localVM:ChecklistShowOnEnumHelper}" MethodName="get_ChecklistShowOnValues" x:Key="ChecklistShowOnValues"/>
+	</Window.Resources>
 	<DockPanel Margin="8">
 		<!-- Close Button -->
 		<StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
@@ -217,6 +262,7 @@
 					<ListViewItem Content="General" Style="{StaticResource CategoryItem}"/>
 					<ListViewItem Content="Autohoming" Style="{StaticResource CategoryItem}"/>
 					<ListViewItem Content="Target List" Style="{StaticResource CategoryItem}"/>
+					<ListViewItem Content="Auto PA" Style="{StaticResource CategoryItem}"/>
 				</ListView>
 			</Border>
 		</Border>
@@ -255,35 +301,30 @@
 							  Width="120" 
 							  Height="24"
 							  Margin="10,4,0,0"
-							  FontSize="16" 
-							  HorizontalAlignment="Left" 
-							  Foreground="Red" 
-							  FontWeight="Bold" 
-							  BorderBrush="#FF880000" />
+							  Style="{StaticResource ComboBoxStyle}" 
+					/>
 
 					<StackPanel Grid.Row="1" Grid.Column="0" VerticalAlignment="Top">
 						<TextBlock Text="Checklist" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
 						<TextBlock Text="When do you want the checklist to appear. " Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
 					</StackPanel>
 					<StackPanel Grid.Row="1" Grid.Column="1" Grid.RowSpan="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,4,20,0" Orientation="Horizontal">
-                        <ComboBox
+						<ComboBox
           					  ItemsSource="{Binding Source={StaticResource ChecklistShowOnValues}}" 
 							  SelectedValue="{Binding ShowChecklist}"
 							  Width="130" 
 							  Height="24"
 							  Margin="10,4,10,0"
-							  FontSize="16" 
+							  FontSize="14" 
 							  HorizontalAlignment="Left" 
-							  Foreground="Red" 
-							  FontWeight="Bold" 
-							  BorderBrush="#FF880000" />
-                        <Button HorizontalAlignment="Center" Width="28" Height="28"
+							  Style="{StaticResource ComboBoxStyle}"  />
+						<Button HorizontalAlignment="Center" Width="28" Height="28"
 								Margin="0,2,0,0"
 								Command="{Binding ConfigureChecklistCommand}" Padding="0"  Style="{StaticResource ImageSquareButtonStyle}" ToolTip="Configure the items on the checklist to display." />
-                    </StackPanel>
+					</StackPanel>
+					
 				</Grid>
 			</TabItem>
-
 			<TabItem Header="Autohoming">
 				<!--     AUTOHOMING  -->
 				<StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,10">
@@ -403,6 +444,170 @@
 					</StackPanel>
 				</Grid>
 			</TabItem>
+			<TabItem Header="Auto PA" >
+				<!--     AUTO  PA  -->
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="Auto" />
+					</Grid.ColumnDefinitions>
+
+					<StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
+						<TextBlock Text="Monitor N.I.N.A. for TPPA" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, this will monitor N.I.N.A. and automatically run Polar Alignment adjustments as needed." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="0"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding MonitorNinaForPA}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+					<StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="20,0,0,0" 
+								Visibility="{Binding MonitorNinaForPA, Converter={StaticResource BoolToVisibilityConverter}}">
+						<TextBlock Text="N.I.N.A. Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" />
+						<TextBlock Text="The log folder of N.I.N.A. to monitor for Polar Alignment. Only N.I.N.A. V3.1 and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="Auto" />
+					</StackPanel>
+					<TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
+							Visibility="{Binding MonitorNinaForPA, Converter={StaticResource BoolToVisibilityConverter}}"
+							Style="{StaticResource TextBoxSmall}" 
+							Width="Auto"
+							HorizontalAlignment="Stretch"
+							Text="{Binding NinaLogFolder}" 
+							VerticalAlignment="Center" Margin="20,4,20,0"/>
+
+					<StackPanel Grid.Row="3" Grid.Column="0" VerticalAlignment="Top" Margin="0,20,0,0">
+						<TextBlock Text="Monitor SharpCap for PA" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, this will monitor SharpCap and automatically run Polar Alignment adjustments as needed." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+					<Grid Grid.Row="3"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,20,0,0">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="40" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="40" />
+						</Grid.ColumnDefinitions>
+						<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding MonitorSharpCapForPA}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+					</Grid>
+					<StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="20,0,0,0"
+								Visibility="{Binding MonitorSharpCapForPA, Converter={StaticResource BoolToVisibilityConverter}}">
+						<TextBlock Text="SharpCap Log folder" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" />
+						<TextBlock Text="The log folder of SharpCap to monitor for Polar Alignment. Only SharpCap 4.x and later is supported." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="Auto" />
+					</StackPanel>
+					
+					<TextBox Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
+							Visibility="{Binding MonitorSharpCapForPA, Converter={StaticResource BoolToVisibilityConverter}}"
+							Style="{StaticResource TextBoxSmall}" 
+							Width="Auto"
+							HorizontalAlignment="Stretch"
+							Text="{Binding SharpCapLogFolder}" 
+							VerticalAlignment="Center" Margin="20,4,20,0"/>
+
+					<Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" >
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="1" Text="AZ" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" Margin="30,20,0,0" HorizontalAlignment="Left"/>
+						<TextBlock Grid.Column="2" Text="ALT" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" Margin="30,20,0,0" HorizontalAlignment="Left"/>
+						<StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Margin="0,15,0,0">
+							<TextBlock Text="Invert corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+							<TextBlock Text="If enabled, the corrections for the corresponding axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+						</StackPanel>
+						<Grid Grid.Row="0"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,30,0,0">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="40" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="40" />
+							</Grid.ColumnDefinitions>
+							<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertAZCorrections}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						</Grid>
+						<Grid Grid.Row="0"  Grid.Column="2" Width="Auto" HorizontalAlignment="Left" Margin="0,30,0,0">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="40" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="40" />
+							</Grid.ColumnDefinitions>
+							<Controls:ToggleSwitchButton  Grid.Row="0"  Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,20,0" VerticalAlignment="Center" ThumbIndicatorBrush="#E00" IsChecked="{Binding InvertALTCorrections}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Text="No" FontSize="10" Margin="6,-5,0,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+							<TextBlock Grid.Row="1"  Grid.Column="2" Text="Yes" FontSize="10" Margin="5,-5,20,0" FontWeight="Normal" Style="{StaticResource TextBlockDescription}"/>
+						</Grid>
+					</Grid>
+
+					<StackPanel Grid.Row="7" Grid.Column="0" VerticalAlignment="Top" >
+						<TextBlock Text="AZ/ALT axis limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="Determines the maximum angle that the AZ and ALT axes will be moved during Automatic Polar Alignment." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+
+
+					<Border Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+
+						<Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+
+							<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="AZ Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+							<TextBox Grid.Row="1" Grid.Column="0" Text="{Binding AZLeftLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+							<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AZRightLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" Margin="5,0,15,0"/>
+							<TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="ALT Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+							<TextBox Grid.Row="1" Grid.Column="2" Text="{Binding ALTUpLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+							<TextBox Grid.Row="1" Grid.Column="3" Text="{Binding ALTDownLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+							<TextBlock Grid.Row="2" Grid.Column="0"  Text="Left" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="1"  Text="Right" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="5,0,15,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="2"  Text="Up" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+							<TextBlock Grid.Row="2" Grid.Column="3"  Text="Down" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+
+						</Grid>
+					</Border>
+				</Grid>
+			</TabItem>
+
 		</TabControl>
 	</DockPanel>
 </mah:MetroWindow>

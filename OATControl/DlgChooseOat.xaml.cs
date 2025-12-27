@@ -101,7 +101,7 @@ namespace OATControl
 			_runDECOffsetHoming = AppSettings.Instance.RunDECOffsetHomingOnConnect;
 
 			CurrentStep = Steps.Idle;
-			_rescanCommand = new DelegateCommand(async () => { await OnDiscoverDevices(); }, () => (_currentStep == Steps.Idle) );
+			_rescanCommand = new DelegateCommand(async () => { await OnDiscoverDevices(); }, () => (_currentStep == Steps.Idle));
 			_connectAndNextCommand = new DelegateCommand((o) => AdvanceStateMachine(), () => IsNextEnabled);
 
 			this.DataContext = this;
@@ -127,6 +127,20 @@ namespace OATControl
 				var driver = new DeviceDriver(device, handler.SupportsSetupDialog, new DelegateCommand((p) => OnRunDeviceHandlerSetup(handler, p)));
 				WpfUtilities.RunOnUiThread(() => { AvailableDevices.Add(driver); }, Application.Current.Dispatcher);
 			}
+
+			WpfUtilities.RunOnUiThread(() =>
+			{
+				if (_mountViewModel.AutoConnect)
+				{
+					var firstDevice = AvailableDevices.FirstOrDefault(d => d.DeviceName.Contains("ASCOM"));
+					if (firstDevice != null)
+					{
+						SelectedDevice = firstDevice;
+						CurrentStep = Steps.WaitForConnection;
+						AdvanceStateMachine();
+					}
+				}
+			}, Application.Current.Dispatcher);
 		}
 
 		public ICommand RescanCommand { get { return _rescanCommand; } }
@@ -548,6 +562,7 @@ namespace OATControl
 
 				case Steps.Completed:
 					this.Result = true;
+					_mountViewModel.AutoConnect = false; // Make sure it doesn't run again if we disconnect/reconnect.
 					this.Close();
 					break;
 
@@ -670,6 +685,14 @@ namespace OATControl
 									{
 										if (long.Parse(gxSplit[3]) != 0) { RunDECOffsetHoming = false; }
 									}
+								}
+								if (_mountViewModel.AutoConnect)
+								{
+									RunDECAutoHoming = false;
+									RunDECOffsetHoming = false;
+									RunRAAutoHoming = false;
+									CurrentStep = Steps.ConfirmLocation;
+									AdvanceStateMachine();
 								}
 							}
 							break;
@@ -813,6 +836,7 @@ namespace OATControl
 
 				case Steps.Completed:
 					this.Result = true;
+					_mountViewModel.AutoConnect = false; // Make sure it doesn't run again if we disconnect/reconnect.
 					this.Close();
 					return;
 
@@ -881,6 +905,5 @@ namespace OATControl
 		{
 			get { return _mountViewModel.AvailableBaudRates; }
 		}
-
 	}
 }

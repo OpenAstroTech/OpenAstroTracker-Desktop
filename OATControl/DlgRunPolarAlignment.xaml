@@ -23,12 +23,8 @@
 			<Setter Property="VerticalAlignment" Value="Center"  />
 			<Setter Property="HorizontalAlignment" Value="Left" />
 		</Style>
-		<controls:IntToVisibilityConverter x:Key="State1Visible" VisibleValue="1" Operator=">="/>
-		<controls:IntToVisibilityConverter x:Key="State2Visible" VisibleValue="2" Operator=">=" />
-		<controls:IntToVisibilityConverter x:Key="State3Visible" VisibleValue="3" Operator=">=" />
-		<controls:IntToBoolConverter x:Key="State1Enabled" TrueValue="1" Operator="=="/>
-		<controls:IntToBoolConverter x:Key="State2Enabled" TrueValue="2" Operator="==" />
-		<controls:IntToBoolConverter x:Key="State3Enabled" TrueValue="3" Operator="==" />
+		<controls:IntToVisibilityConverter x:Key="StateVisibleIf" Operator=">="/>
+		<controls:IntToBoolConverter x:Key="StateIsEnabledIf" Operator="=="/>
 	</Controls:MetroWindow.Resources>
 	<Grid>
 		<Grid.ColumnDefinitions>
@@ -48,35 +44,35 @@
 		<TextBlock Grid.Row="0" Grid.Column="0"  
 				   Text="Is the mount at the home position?" 
 				   Style="{StaticResource StateText}" 
-		 		   IsEnabled="{Binding State, Converter={StaticResource State1Enabled}}"
+		 		   IsEnabled="{Binding State, Converter={StaticResource StateIsEnabledIf}, ConverterParameter=1}"
 				   />
 		<Button Grid.Row="0" Grid.Column="1" 
 				Content="Yes" 
 				Command="{Binding OKCommand}" 
 				Style="{StaticResource StateButton}" 
-	 			IsEnabled="{Binding State, Converter={StaticResource State1Enabled}}"
+	 			IsEnabled="{Binding State, Converter={StaticResource StateIsEnabledIf}, ConverterParameter=1}"
 				/>
 
 		<TextBlock Grid.Row="2" Grid.Column="0" 
 				   Text="Wait for slewing to stop, then move the mount such that Polaris is in the center of your cameras viewfinder." 
 				   Style="{StaticResource StateText}" 
-	 			   IsEnabled="{Binding State, Converter={StaticResource State2Enabled}}"
-				   Visibility="{Binding State, Converter={StaticResource State2Visible}}"
+	 			   IsEnabled="{Binding State, Converter={StaticResource StateIsEnabledIf}, ConverterParameter=2}"
+				   Visibility="{Binding State, Converter={StaticResource StateVisibleIf}, ConverterParameter=2}"
 				   />
 
 		<Button Grid.Row="2" Grid.Column="1" 
 				Content="Done" 
 				Command="{Binding OKCommand}" 
-	 			   IsEnabled="{Binding State, Converter={StaticResource State2Enabled}}"
-				   Visibility="{Binding State, Converter={StaticResource State2Visible}}"
+	 			   IsEnabled="{Binding State, Converter={StaticResource StateIsEnabledIf}, ConverterParameter=2}"
+				   Visibility="{Binding State, Converter={StaticResource StateVisibleIf}, ConverterParameter=2}"
 				Style="{StaticResource StateButton}" 
 		/>
 
 		<TextBlock Grid.Row="3" Grid.Column="0"  
 				   Text="Your mount is now polar aligned." 
 				   Style="{StaticResource StateText}" 
-	 			   IsEnabled="{Binding State, Converter={StaticResource State3Enabled}}"
-				   Visibility="{Binding State, Converter={StaticResource State3Visible}}"
+	 			   IsEnabled="{Binding State, Converter={StaticResource StateIsEnabledIf}, ConverterParameter=3}"
+				   Visibility="{Binding State, Converter={StaticResource StateVisibleIf}, ConverterParameter=3}"
 		/>
 
 		<Button Grid.Row="3" Grid.Column="2" 

@@ -305,7 +305,7 @@ namespace OATControl
 				case CalibrationState.WaitToStart:
 					// Initiate slew 15 deg up, display status
 					Log.WriteLine("STEPCALIBRATION: Moving mount up {0} deg.", _degreesToOne);
-					await _mountVM.MoveMount(0, (long)(_decStepsBefore * _degreesToOne));
+					await _mountVM.MoveMountBy(0, (long)(_decStepsBefore * _degreesToOne));
 					DisplayStatus = true;
 					await Task.Delay(500);
 					_calibrationState = CalibrationState.SlewToDecStart;
@@ -332,7 +332,7 @@ namespace OATControl
 						await _mountVM.SyncMountTo(_mountVM.CurrentRATotalHours, _decSolvedStart);
 
 						Log.WriteLine("STEPCALIBRATION: Moving DEC up {0}deg.", _degreesToTwo);
-						await _mountVM.MoveMount(0, (long)(_decStepsBefore * _degreesToTwo));
+						await _mountVM.MoveMountBy(0, (long)(_decStepsBefore * _degreesToTwo));
 						DisplayStatus = true;
 						await Task.Delay(500);
 
@@ -363,7 +363,7 @@ namespace OATControl
 						// Store end dec coords and stepper pos
 						// Initiate 15 deg slew back using steps, display status
 						Log.WriteLine("STEPCALIBRATION: Platesolved DEC end is, {0}. Moving east 1.5h.", _decSolvedStart, MountVM.CoordToString(_decSolvedEnd));
-						await _mountVM.MoveMount((long)(_raStepsBefore * _degreesToThree), 0);
+						await _mountVM.MoveMountBy((long)(_raStepsBefore * _degreesToThree), 0);
 						DisplayStatus = true;
 						await Task.Delay(500);
 						_calibrationState = CalibrationState.SlewBack15DecDegrees;
@@ -396,7 +396,7 @@ namespace OATControl
 
 						// Initiate 3h deg slew using steps, display status
 						Log.WriteLine("STEPCALIBRATION: Moving RA 45deg.");
-						await _mountVM.MoveMount((long)(_raStepsBefore * _degreesToFour), 0);
+						await _mountVM.MoveMountBy((long)(_raStepsBefore * _degreesToFour), 0);
 						DisplayStatus = true;
 						await Task.Delay(500);
 
@@ -429,7 +429,7 @@ namespace OATControl
 						// Store end coordinates and pos
 						// Initiate slew back in RA. display status
 						Log.WriteLine("STEPCALIBRATION: Platesolved RA end is, {0}. Moving RA back to start by -45deg.", _raSolvedEnd, MountVM.CoordToString(_raSolvedEnd));
-						await _mountVM.MoveMount((long)(-_raStepsBefore * (_degreesToThree + _degreesToFour)), (long)(-_decStepsBefore * (_degreesToOne + _degreesToTwo)));
+						await _mountVM.MoveMountBy((long)(-_raStepsBefore * (_degreesToThree + _degreesToFour)), (long)(-_decStepsBefore * (_degreesToOne + _degreesToTwo)));
 
 						DisplayStatus = true;
 						await Task.Delay(500);

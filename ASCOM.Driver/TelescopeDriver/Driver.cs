@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Runtime.CompilerServices;
 using static ASCOM.OpenAstroTracker.SharedResources;
+using System.Globalization;
 
 namespace ASCOM.OpenAstroTracker
 {
@@ -1268,14 +1269,29 @@ namespace ASCOM.OpenAstroTracker
 
 		public DateTime UTCDate
 		{
-			// ToDo - Can we handle this without bothering the mount?
 			get
 			{
-				DateTime utcDate = DateTime.UtcNow;
+				string localDate = CommandString(":GC#,#"); // mm/dd/yy
+				string localTime= CommandString(":GL#,#"); // HH:MM:SS in 24h format
+				DateTime now = DateTime.ParseExact(localDate + " " + localTime, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture);
+				DateTime utcDate = now.ToUniversalTime();
 				LogMessage(LoggingFlags.Scope, $"UTCDate Get => {utcDate}");
 				return utcDate;
 			}
-			set { throw new ASCOM.PropertyNotImplementedException("UTCDate", true); }
+			set
+			{
+				CultureInfo _oatCulture = new CultureInfo("en-US");
+				var utcNow = value;
+				var now = value.ToLocalTime();
+				
+				LogMessage(LoggingFlags.Scope,$"DateTime Set => {utcNow}UTC, {now}Local");
+				CommandString(string.Format(_oatCulture, ":SL{0,2:00}:{1,2:00}:{2,2:00}#,n", now.Hour, now.Minute, now.Second));
+				CommandString(string.Format(_oatCulture, ":SC{0,2:00}/{1,2:00}/{2,2:00}#,##", now.Month, now.Day, now.Year - 2000));
+
+				var utcOffset = Math.Round((now - utcNow).TotalHours);
+				char sign = (utcOffset < 0) ? '+' : '-';
+				CommandString(string.Format(_oatCulture, ":SG{0}{1,2:00}#,n", sign, Math.Abs(utcOffset)));
+			}
 		}
 
 		public void Unpark()

@@ -30,6 +30,17 @@ namespace OATControl
 				this.Top = Math.Max(0, Math.Min(AppSettings.Instance.WindowPos.Y, System.Windows.SystemParameters.VirtualScreenHeight- 100));
 			}
 		}
+
+		protected override void OnContentRendered(EventArgs e)
+		{
+			base.OnContentRendered(e);
+			// Window is visible and ready
+			if (this.DataContext is MountVM vm)
+			{
+				vm.OnAppBooted();
+			}
+		}
+
 		protected override void OnClosing(CancelEventArgs e)
 		{
 			mountVm.Disconnect();

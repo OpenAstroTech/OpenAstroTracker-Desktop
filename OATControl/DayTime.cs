@@ -252,7 +252,7 @@ namespace OATControl
 		}
 
 		// Convert to a standard string (like 14:45:06)
-		public override String ToString()
+		public override string ToString()
 		{
 			int hours, mins, secs;
 			GetTime(out hours, out mins, out secs);
@@ -262,6 +262,16 @@ namespace OATControl
 			string p = $"{sign}{absHours:00}:{mins:00}:{secs:00} ({TotalHours:0.0000})";
 
 			return p;
+		}
+
+		public virtual string ToUIString()
+		{
+			int hours, mins, secs;
+			GetTime(out hours, out mins, out secs);
+
+			int absHours = Math.Abs(hours);
+			string sign = _totalSeconds < 0 ? "-" : "";
+			return $"{sign}{absHours:00}:{mins:00}:{secs:00}";
 		}
 	}
 }

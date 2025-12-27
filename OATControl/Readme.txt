@@ -1,6 +1,72 @@
 Revision History
 ----------------
 
+OATControl V1.1.22.0                                            27 Dec 2025
+- Improved the instructions for axis calibration.
+- Added some more logging during calibration.
+
+OATControl V1.1.21.0                                             2 Aug 2025
+- Made the Axis Calibration dialog modeless and had it close the settings 
+  dialog, so that the screen is less cluttered and you can use any 
+  controls.
+- Fixed a bug in ALT calibration that would incorrectly calculate the 
+  distance moved when it crossed the 0/360 degree boundary.
+- Stopped the calibration wizard from slewing the mount home when 
+  calibration is complete.
+- Cleared the input coordinates for Step 2.
+
+OATControl V1.1.20.0                                             1 Aug 2025
+- Added axis calibration wizard to Mount Settings dialog (uses plate 
+  solving).
+
+OATControl V1.1.18.0                                             9 Jul 2025
+- Added AZ/ALT motor status display to main screen.
+- Fixed a bug related to window positioning when ensuring they always open
+  on screen.
+
+OATControl V1.1.17.0                                             8 Jul 2025
+- Added display of NINA and SharpCap monitoring status on main screen.
+- Added code to ensure that no windows ever open entirely offscreen.
+- Increased required SharpCap successful solves before adjustment to 4.
+
+OATControl V1.1.16.0                                             4 Jul 2025
+- Added support for SharpCap 4.x Polar Alignment.
+- Moved AutoPA options to its own category on App Settings.
+
+OATControl V1.1.15.0                                             2 Jul 2025
+- Fixed bug that caused logfile explosion after a successful TPPA with NINA.
+- Fixed an issue where the end of the TPPA was not detected when 
+  interrupted by the user.
+
+OATControl V1.1.14.0                                             2 Jul 2025
+- Added support for inverting corrections for AutoPA adjustments.
+- Limited automatic adjustments to 3 degrees.
+
+OATControl V1.1.13.0                                            30 Jun 2025
+- Improved AutoPA progress display and detection of completion. 
+- AutoPA Dialog auto closes on completion.
+
+OATControl V1.1.12.0                                            26 Jun 2025
+- Removed sign inversion for AutoPA adjustments.
+- Added support for -autoconnect parameter. If supplied automatically 
+  connects to the ASCOM driver, if found. All Homing functions are disabled 
+  during auto connect.
+
+OATControl V1.1.11.0                                            24 Jun 2025
+- Fixed a bug that caused AutoPA adjustments to be far too small (60x). 
+- Only wait for two plate solves to confirm a good PA measurement.
+- Support turning off AutoPA adjustments in AppSettings dialog.
+
+OATControl V1.1.10.0                                            22 Jun 2025
+- Added support for AutoPA feature from N.I.N.A. 3.1 and later. Only TPPA
+  supported at this time.
+
+OATControl V1.1.9.0                                             22 May 2025
+- Added a Slewpoint dialog to allow you to define slew points in stepper
+  coordinates. 
+- Switched Checklist rendering to WPF, instead of web based.
+- Support custom park position.
+
 OATControl V1.1.8.0                                              7 Mar 2025
 - Made Autohoming from connection screen use the same settings as the homing
   commands from the main UI and Settings dialog.

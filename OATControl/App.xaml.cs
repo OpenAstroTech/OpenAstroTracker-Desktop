@@ -5,6 +5,7 @@ using System.Threading;
 using System.Windows.Threading;
 using OATCommunications.Utilities;
 using OATControl.Properties;
+using OATControl.ViewModels;
 
 namespace OATControl
 {
@@ -26,12 +27,17 @@ namespace OATControl
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			bool enableLogging = true;
+			bool autoConnect = false;
 
-			if (e.Args.Length > 0)
+			for (int i = 0; i < e.Args.Length; i++)
 			{
-				if (e.Args[0].ToLower() == "-nolog")
+				if (e.Args[i].ToLower() == "-nolog")
 				{
 					enableLogging = false;
+				}
+				if (e.Args[i].ToLower() == "-autoconnect")
+				{
+					autoConnect = true;
 				}
 			}
 
@@ -54,8 +60,16 @@ namespace OATControl
 										ThemeManager.GetAccent("RedAccent"),
 											ThemeManager.GetAppTheme("RedTheme"));
 
-
 			base.OnStartup(e);
+
+			var mainWindow = new MainWindow();
+
+			if (mainWindow.DataContext is MountVM vm)
+			{
+				vm.AutoConnect = autoConnect;
+			}
+
+			mainWindow.Show();
 		}
 
 		protected override void OnExit(ExitEventArgs e)

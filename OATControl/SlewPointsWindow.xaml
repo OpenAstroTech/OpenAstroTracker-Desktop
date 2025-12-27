@@ -1,0 +1,493 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OATControl" xmlns:controls="clr-namespace:OATControl.Controls"
+        xmlns:converters="clr-namespace:OATControl.Converters"
+        x:Class="OATControl.SlewPointsWindow"
+        mc:Ignorable="d"
+        Background="#600"
+        Title="Slew Positions" MinHeight="250" MinWidth="405" WindowStyle="None" SizeToContent="Width">
+	<Window.Resources>
+		<converters:BoolToVisibilityConverter x:Key="BoolToShow" />
+		<converters:BoolToVisibilityConverter x:Key="BoolToHide" IsReversed="true" />
+		<Style x:Key="CustomListBoxItemStyle" TargetType="ListBoxItem">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="SnapsToDevicePixels" Value="True"/>
+			<Style.Triggers>
+				<Trigger Property="IsSelected" Value="True">
+					<Setter Property="Background" Value="#400" />
+				</Trigger>
+				<Trigger Property="IsMouseOver" Value="True">
+					<Setter Property="Background" Value="#600"/>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style TargetType="ToolTip">
+			<Setter Property="Background" Value="#600" />
+			<Setter Property="Foreground" Value="#F00" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Padding" Value="10,4" />
+			<Setter Property="BorderBrush" Value="#700" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Effect">
+				<Setter.Value>
+					<DropShadowEffect Color="Black" BlurRadius="5" ShadowDepth="2" />
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="TextBlockHeading" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Margin" Value="2,0" />
+			<Setter Property="Padding" Value="6,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
+		<Style x:Key="TextBlockTitle" TargetType="TextBlock" BasedOn="{StaticResource MetroTextBlock}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Margin" Value="0" />
+			<Setter Property="Foreground" Value="#F00" />
+		</Style>
+		<Style x:Key="TextBlockLabel" TargetType="TextBlock" BasedOn="{StaticResource TextBlockHeading}">
+			<Setter Property="Padding" Value="2,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
+		<Style x:Key="TextBlockLabelSmall" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabel}">
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Padding" Value="4,4" />
+			<Setter Property="HorizontalAlignment" Value="Right" />
+		</Style>
+		<Style x:Key="TextBlockLabelValue" TargetType="TextBlock" BasedOn="{StaticResource TextBlockLabelSmall}">
+			<Setter Property="Padding" Value="12,2" />
+			<Setter Property="Margin" Value="0,4" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="TextAlignment" Value="Center" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush2}" />
+			<Setter Property="Foreground" Value="#F00" />
+		</Style>
+		<Style x:Key="TextBorder" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="BorderBrush" Value="{StaticResource AccentColorBrush}" />
+			<Setter Property="Background" Value="{StaticResource AccentColorBrush3}" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="MinWidth" Value="120" />
+			<Setter Property="Foreground" Value="#B00" />
+		</Style>
+		<Style x:Key="CustomButtonStyle" TargetType="Button">
+			<Setter Property="Margin" Value="5" />
+			<Setter Property="Padding" Value="10,5" />
+			<Setter Property="Background" Value="#800" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="BorderBrush" Value="#A00" />
+			<Setter Property="BorderThickness" Value="1" />
+		</Style>
+		<Style x:Key="IconButtonStyle" TargetType="Button" >
+			<Setter Property="Width" Value="24"/>
+			<Setter Property="Height" Value="24"/>
+			<Setter Property="FontSize" Value="17"/>
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="Margin" Value="1,2"/>
+			<Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+			<Setter Property="Background" Value="#800"/>
+			<Setter Property="Foreground" Value="Red"/>
+			<Setter Property="BorderBrush" Value="#A00"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Style.Triggers>
+				<Trigger Property="IsMouseOver" Value="True">
+					<Setter Property="Background" Value="#A22"/>
+					<Setter Property="Foreground" Value="Red"/>
+					<Setter Property="BorderThickness" Value="2"/>
+				</Trigger>
+				<Trigger Property="IsPressed" Value="True">
+					<Setter Property="Background" Value="#C33"/>
+					<Setter Property="Foreground" Value="Red"/>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+		<Style x:Key="GotoSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border BorderBrush="#401111" BorderThickness="2" x:Name="ImageBorder" Height="28" Padding="1" Background="#800000">
+							<Viewbox>
+								<Grid>
+									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+									</Grid>
+									<Path Data="M19.487188,21.027932L19.34533,21.107306C18.032056,21.830062,16.594211,22.534393,15.043882,23.213128L14.935678,23.259923 14.990329,23.324017C15.854117,24.392926,16.302456,25.695468,16.339503,27.022055L16.33974,27.080229 19.148006,24.271959C20.053307,23.366593,20.175974,21.984063,19.490615,21.032432z M17.238489,13.062014C17.673746,13.062015 18.109004,13.228014 18.44101,13.560014 19.105021,14.224014 19.105021,15.301014 18.44101,15.965014 17.776998,16.629014 16.699979,16.629014 16.035968,15.965014 15.371956,15.301014 15.371956,14.224014 16.035968,13.560014 16.367973,13.228014 16.803231,13.062015 17.238489,13.062014z M9.5309606,12.071919C8.8579609,12.08692,8.2179613,12.363924,7.727962,12.853932L4.9202375,15.661259 4.9774604,15.661488C6.3040485,15.698443,7.6066127,16.146755,8.6758327,17.010779L8.7404919,17.065911 8.7876945,16.956754C9.4662316,15.406675,10.170146,13.969118,10.892052,12.65629L10.971652,12.513898 10.882225,12.451754C10.490022,12.193796,10.02371,12.059169,9.5309606,12.071919z M20.640499,9.6599817C21.075757,9.6599817 21.511014,9.825985 21.84302,10.15799 22.507032,10.822002 22.507032,11.899021 21.84302,12.563033 21.179008,13.227045 20.10199,13.227045 19.437978,12.563033 18.773966,11.899021 18.773966,10.822002 19.437978,10.15799 19.769984,9.825985 20.205242,9.6599817 20.640499,9.6599817z M24.041479,6.2590094C24.476729,6.2590103 24.911979,6.4250097 25.243979,6.7570095 25.907979,7.42101 25.907979,8.4980097 25.243979,9.1620092 24.579979,9.8260088 23.502979,9.8260088 22.83898,9.1620092 22.17498,8.4980097 22.17498,7.42101 22.83898,6.7570095 23.170979,6.4250097 23.606229,6.2590103 24.041479,6.2590094z M29.946111,2.0543213C27.825098,2.2193184 22.754067,2.9983082 18.11204,6.6512585 18.075039,6.6832581 18.028039,6.7202578 17.971039,6.763257 15.052021,8.9832268 11.932002,14.105158 9.3659863,20.867067L11.132998,22.634043C17.895038,20.069078 23.01707,16.94812 25.237082,14.030159 25.281083,13.97216 25.318084,13.92616 25.349084,13.889161 29.003106,9.2472239 29.782111,4.1762924 29.946111,2.0543213z M30.885486,5.7220459E-06C30.956838,7.8201294E-05,31.002994,0.0009727478,31.022119,0.0013484955L31.973125,0.027347565 31.999124,0.97933578C32.008124,1.2833309,32.144124,8.5102339,26.926093,15.137144L26.847093,15.226143C25.648492,16.805809,23.793564,18.386354,21.386644,19.905878L21.224525,20.006415 21.237862,20.025815C22.360305,21.752949,22.130061,24.133814,20.569989,25.693958L14.40817,31.855785 14.384132,31.881015 14.266124,31.999015 14.265533,31.998423 14.264999,31.998957 12.843016,30.576958 12.98448,30.435493 13.121676,30.291648C14.720456,28.53255,14.745373,25.87621,13.140055,24.270025L12.954793,24.084775 12.911181,24.102309C12.361872,24.320498,11.800662,24.535488,11.227998,24.747015L10.623994,24.970011 7.0309725,21.37606 7.253974,20.772069C7.4655046,20.199492,7.6804934,19.638363,7.8986664,19.089134L7.9156523,19.046887 7.7299895,18.86106C6.1228356,17.25491,3.466466,17.280733,1.7073669,18.879434L1.5825472,18.998476 1.422967,19.158034 1.1159506,18.851012 0,17.735086 0.11800003,17.617089 0.15813828,17.578863 6.305963,11.431909C7.1639624,10.573895 8.2949615,10.086887 9.4879603,10.061887 10.38346,10.022886 11.251959,10.28089 11.985459,10.767554L11.994003,10.773538 12.091659,10.615867C13.608334,8.210288,15.18371,6.3576374,16.754031,5.1632786L16.864032,5.0742798C23.075945,0.18247032,29.815206,-0.0011005402,30.885486,5.7220459E-06z"
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+										<Path.RenderTransform>
+											<TransformGroup>
+												<TransformGroup.Children>
+													<RotateTransform Angle="0" />
+													<ScaleTransform ScaleX="1" ScaleY="1" />
+												</TransformGroup.Children>
+											</TransformGroup>
+										</Path.RenderTransform>
+									</Path>
+								</Grid>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#C00" />
+							</Trigger>
+							<Trigger Property="IsEnabled" Value="False">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#451000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#700" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="UpdateSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border BorderBrush="#401111" BorderThickness="2" x:Name="ImageBorder" Height="28" Padding="1" Background="#800000">
+							<Viewbox>
+								<Grid>
+									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+									</Grid>
+									<Path Data="M15.799985,13.200012C17.200009,13.200012 18.39999,14.400024 18.39999,15.800018 18.39999,17.200012 17.200009,18.400024 15.799985,18.400024 14.399991,18.400024 13.20001,17.200012 13.20001,15.800018 13.20001,14.400024 14.399991,13.200012 15.799985,13.200012z M15.799985,6.3000183C10.200011,6.3000183 5.700011,10.800018 5.700011,16.400024 5.700011,20.600006 8.2000105,24.100006 11.799985,25.700012L11.899991,25.700012 15.70001,18.5 19.499996,25.700012 19.600003,25.700012C23.200009,24.200012 25.700007,20.600006 25.700007,16.400024 25.899988,10.800018 21.39999,6.3000183 15.799985,6.3000183z M15.799985,2.2000122C7.8999922,2.2000122 1.4999995,8.7000122 1.4999995,16.600006 1.4999995,22.400024 4.9999988,27.400024 9.8999922,29.700012L11.70001,26.200012C7.6000044,24.600006 4.700011,20.600006 4.700011,15.900024 4.700011,9.8000183 9.7000105,4.8000183 15.799985,4.8000183 21.89999,4.8000183 26.899988,9.8000183 26.899988,15.900024 26.899988,20.600006 23.999996,24.600006 19.89999,26.200012L21.700009,29.700012C26.700007,27.400024 30.100001,22.400024 30.100001,16.600006 30.200007,8.7000122 23.799984,2.2000122 15.799985,2.2000122z M15.799985,0C24.499994,0 31.600001,7.1000061 31.600001,15.800018 31.600001,22.200012 27.799982,27.800018 22.299984,30.200012L22.100003,30.300018 22.999996,32 8.7000105,32 9.4999983,30.400024 9.2999861,30.300018C3.7999868,27.800018 -2.1687173E-07,22.300018 1.4210855E-14,15.800018 -2.1687173E-07,7.1000061 7.1000044,0 15.799985,0z"
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+										<Path.RenderTransform>
+											<TransformGroup>
+												<TransformGroup.Children>
+													<RotateTransform Angle="0" />
+													<ScaleTransform ScaleX="1" ScaleY="1" />
+												</TransformGroup.Children>
+											</TransformGroup>
+										</Path.RenderTransform>
+									</Path>
+								</Grid>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#C00" />
+							</Trigger>
+							<Trigger Property="IsEnabled" Value="False">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#451000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#700" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="RenameSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border BorderBrush="#401111" BorderThickness="2" x:Name="ImageBorder" Height="28" Padding="1" Background="#800000">
+							<Viewbox>
+								<Grid>
+									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+									</Grid>
+									<Path Data="M1,25.07703L31,25.07703C31.552979,25.07703 32,25.525028 32,26.07703 32,26.629032 31.552979,27.07703 31,27.07703L1,27.07703C0.44702148,27.07703 0,26.629032 0,26.07703 0,25.525028 0.44702148,25.07703 1,25.07703z M9.8064213,17.357931L9.6760168,17.487015 8.8610172,21.393018 12.748013,20.558017 12.865452,20.441767z M20.509636,6.7630577L11.227604,15.951134 14.286634,19.034972 23.568132,9.8474321z M24.492002,2.821003L21.93083,5.3562489 24.989326,8.4406242 27.563,5.8930054z M24.500002,0L30.398996,5.9010048 13.740012,22.391018 6.2750196,23.99302 7.8420181,16.489014z" 
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+										<Path.RenderTransform>
+											<TransformGroup>
+												<TransformGroup.Children>
+													<RotateTransform Angle="0" />
+													<ScaleTransform ScaleX="1" ScaleY="1" />
+												</TransformGroup.Children>
+											</TransformGroup>
+										</Path.RenderTransform>
+									</Path>
+								</Grid>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#C00" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="DeleteSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border BorderBrush="#401111" BorderThickness="2" x:Name="ImageBorder" Height="28" Padding="2" Background="#800000">
+							<Viewbox>
+								<Grid>
+									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+									</Grid>
+									<Path Data="M18.551998,14.302987L18.551998,28.304994 21.451992,28.304994 21.451992,14.302987z M11.295988,14.302987L11.295988,28.304994 14.196988,28.304994 14.196988,14.302987z M4.0390009,14.302987L4.0390009,28.304994 6.9400014,28.304994 6.9400014,14.302987z M0,11.068995L25.492001,11.068995 24.680996,31.999999 0.81100462,31.999999z M8.692015,1.358993L8.692015,3.2749924 16.800015,3.2749924 16.800015,1.358993z M6.9400014,0L18.551998,0 18.551998,3.2749924 25.492001,3.2749924 25.492001,7.7210044 0,7.7210044 0,3.2749924 6.9400014,3.2749924z"
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+										<Path.RenderTransform>
+											<TransformGroup>
+												<TransformGroup.Children>
+													<RotateTransform Angle="0" />
+													<ScaleTransform ScaleX="1" ScaleY="1" />
+												</TransformGroup.Children>
+											</TransformGroup>
+										</Path.RenderTransform>
+									</Path>
+								</Grid>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#C00" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="CloseSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border BorderBrush="#401111" BorderThickness="2" x:Name="ImageBorder" Height="24" Padding="1" Background="#800000">
+							<Viewbox>
+								<Grid>
+									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+									</Grid>
+									<Path Data="M2.999979,0C3.8000264,0,4.4999763,0.30000305,5.1000115,0.90000927L15.999954,11.700012 26.899959,0.90000927C28.099967,-0.29998779 29.999927,-0.29998779 31.099961,0.90000927 32.299972,2.1000061 32.299972,4 31.099961,5.1000061L20.199958,16 31.099961,26.900009C32.299972,28.100006 32.299972,30 31.099961,31.100006 29.899951,32.300003 27.999931,32.300003 26.899959,31.100006L15.999954,20.200012 5.1000115,31.100006C3.9000017,32.300003 1.9999809,32.300003 0.90000743,31.100006 -0.30000248,29.900009 -0.30000248,28 0.90000743,26.900009L11.800011,16 0.90000743,5.1000061C-0.30000248,3.9000092 -0.30000248,2 0.90000743,0.90000927 1.4999818,0.30000305 2.1999928,0 2.999979,0z"
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+										<Path.RenderTransform>
+											<TransformGroup>
+												<TransformGroup.Children>
+													<RotateTransform Angle="0" />
+													<ScaleTransform ScaleX="1" ScaleY="1" />
+												</TransformGroup.Children>
+											</TransformGroup>
+										</Path.RenderTransform>
+									</Path>
+								</Grid>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#C00" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="AddSquareButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border BorderBrush="#401111" BorderThickness="2" x:Name="ImageBorder" Height="24" Padding="1" Background="#800000">
+							<Viewbox>
+								<Grid>
+									<Grid Name="backgroundGrid" Width="128" Height="128" Visibility="Visible">
+										<Rectangle Fill="#FF800000" Visibility="Visible" x:Name="backgroundRect"/>
+									</Grid>
+									<Path Data="M12.126984,0L19.872009,0 19.872009,12.128 32,12.128 32,19.872999 19.872009,19.872999 19.872009,31.999 12.126984,31.999 12.126984,19.872999 0,19.872999 0,12.128 12.126984,12.128z"
+										  x:Name="colorGear"
+										  Stretch="Uniform" 
+										  Fill="#E00" 
+										  Width="116" 
+										  Height="116" 
+										  Margin="0,0,0,0" 
+										  RenderTransformOrigin="0.5,0.5">
+										<Path.RenderTransform>
+											<TransformGroup>
+												<TransformGroup.Children>
+													<RotateTransform Angle="0" />
+													<ScaleTransform ScaleX="1" ScaleY="1" />
+												</TransformGroup.Children>
+											</TransformGroup>
+										</Path.RenderTransform>
+									</Path>
+								</Grid>
+							</Viewbox>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ImageBorder" Property="BorderBrush" Value="#200" />
+								<Setter TargetName="backgroundRect" Property="Fill" Value="#600000" />
+								<Setter TargetName="colorGear" Property="Fill" Value="#C00" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+	</Window.Resources>
+
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<!-- Title -->
+			<RowDefinition Height="Auto"/>
+			<!-- Header -->
+			<RowDefinition Height="*"/>
+			<!-- ListBox -->
+		</Grid.RowDefinitions>
+
+		<Grid Grid.Row="0" Margin="0,0,0,10">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<TextBlock Text="Slew Positions"
+               Style="{StaticResource TextBlockTitle}"
+               MouseLeftButtonDown="TitleTextBlock_MouseLeftButtonDown"
+               Cursor="SizeAll"
+               VerticalAlignment="Center"/>
+			<Button Grid.Column="1"
+	            Style="{StaticResource AddSquareButtonStyle}"
+				Margin="0,0,30,0"
+			    Click="AddButton_Click"/>
+			<Button Grid.Column="2"
+	            Style="{StaticResource CloseSquareButtonStyle}"
+			    Click="CloseButton_Click"/>
+		</Grid>
+
+		<Grid Grid.Row="1" Margin="0,0,0,2">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="60"/>
+				<ColumnDefinition Width="60"/>
+				<ColumnDefinition Width="125"/>
+			</Grid.ColumnDefinitions>
+			<TextBlock Text="Name" Foreground="Red" FontWeight="Bold" Padding="4,0" />
+			<TextBlock Text="RA" Foreground="Red" FontWeight="Bold" Padding="4,0" Grid.Column="1" TextAlignment="Center"/>
+			<TextBlock Text="DEC" Foreground="Red" FontWeight="Bold" Padding="4,0" Grid.Column="2" TextAlignment="Center"/>
+			<TextBlock Text="Actions" Foreground="Red" FontWeight="Bold" Padding="4,0" Grid.Column="3" TextAlignment="Center"/>
+		</Grid>
+
+		<ListBox x:Name="slewPointsList" Grid.Row="2"
+			ItemsSource="{Binding SlewPoints}" 
+			Background="#300" 
+			BorderBrush="#900" 
+			Foreground="White"
+			Margin="0,0,0,0"
+			HorizontalContentAlignment="Stretch"
+			ItemContainerStyle="{StaticResource CustomListBoxItemStyle}"
+			>
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<Border BorderThickness="0,1,0,0" BorderBrush="#200"   Background="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=Background}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="60"/>
+								<ColumnDefinition Width="60"/>
+								<ColumnDefinition Width="125"/>
+							</Grid.ColumnDefinitions>
+							<Grid>
+								<Grid.Resources>
+									<Style TargetType="TextBox">
+										<Setter Property="MinWidth" Value="120"/>
+									</Style>
+								</Grid.Resources>
+								<TextBlock x:Name="NameTextBlock"
+									Text="{Binding Name}"
+									Foreground="#B00"
+									VerticalAlignment="Center"
+									Padding="6,0,6,2"
+									MinWidth="120"
+									Visibility="{Binding IsEditing, Converter={StaticResource BoolToHide}}"/>
+								<TextBox x:Name="NameTextBox"
+									Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+									Style="{StaticResource TextBorder}"
+									Background="#400" 
+									Visibility="{Binding IsEditing, Converter={StaticResource BoolToShow}}"
+									KeyDown="NameTextBox_KeyDown"
+									LostFocus="NameTextBox_LostFocus"
+									IsVisibleChanged="NameTextBox_IsVisibleChanged"/>
+							</Grid>
+							<TextBlock Text="{Binding RaStepperPosition}" Foreground="#B00" VerticalAlignment="Center" Grid.Column="1" TextAlignment="Center"/>
+							<TextBlock Text="{Binding DecStepperPosition}" Foreground="#B00" VerticalAlignment="Center" Grid.Column="2" TextAlignment="Center"/>
+							<StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+								<!-- Rename -->
+								<Button Style="{StaticResource RenameSquareButtonStyle}" 
+									ToolTip="Rename position"
+									Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+									CommandParameter="{Binding}" />
+								<!-- Update64. -->
+								<Button Style="{StaticResource UpdateSquareButtonStyle}" 
+									ToolTip="Update Position from Mount"
+									Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+									CommandParameter="{Binding}" 
+									/>
+								<!-- Go To -->
+								<Button Style="{StaticResource GotoSquareButtonStyle}" 
+									ToolTip="Slew Mount to this position"
+									Command="{Binding DataContext.GoToCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+									CommandParameter="{Binding}" 
+									/>
+								<!-- Remove (Delete) -->
+								<Button Style="{StaticResource DeleteSquareButtonStyle}" 
+									Margin="12,0,0,0"
+									ToolTip="Delete this position"
+									Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+									CommandParameter="{Binding}" />
+							</StackPanel>
+						</Grid>
+					</Border>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+	</Grid>
+</Window>
