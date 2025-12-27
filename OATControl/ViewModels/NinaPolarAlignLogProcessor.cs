@@ -1,13 +1,14 @@
+using OATCommunications;
+using OATCommunications.Utilities;
+using OATControl.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using OATControl.ViewModels;
-using OATCommunications;
 using System.Text.RegularExpressions;
-using System.Windows;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Interop;
 
 namespace OATControl.ViewModels
@@ -48,6 +49,8 @@ namespace OATControl.ViewModels
 			{
 				if (_allTextList.FindIndex(_examinedLines, l => l.Contains("ERROR|PolarAlignment.cs|Solve|")) > 0)
 				{
+					Log.WriteLine($"NINALOG: Looks like the user cancelled PA in NINA within {lineCount} lines, back to Idle.");
+
 					_examinedLines = lineCount;
 					ShowDialogStatus("Succeeded", "Polar alignment cancelled by user.");
 					return;
@@ -62,6 +65,8 @@ namespace OATControl.ViewModels
 							_examinedLines = startLine;
 							_numCalculatedErrors = 0;
 							_polarAlignState = "Starting";
+							Log.WriteLine($"NINALOG: Looks like the user initiatest PA in NINA within {lineCount} lines, move to Starting.");
+
 							ShowDialogStatus("Started", "Polar alignment started.");
 						}
 						else
@@ -70,6 +75,7 @@ namespace OATControl.ViewModels
 							if (startLine > 0)
 							{
 								// Platesolve event found outside of polar alignment, so raise the event
+								Log.WriteLine($"NINALOG: Looks like a NINA platesolve succeeded at line {startLine}.");
 								Regex regex = new Regex(@".*Coordinates: RA: (\d{2}):(\d{2}):(\d{2}); Dec: ([+-]?\d+)[°\s]+(\d+)['\s]+(\d+)\"";.*$");
 								var matches = regex.Match(_allTextList[startLine]);
 								if (matches.Success && matches.Groups.Count == 7)
@@ -86,6 +92,8 @@ namespace OATControl.ViewModels
 									{
 										decDegrees = -decDegrees;
 									}
+									Log.WriteLine($"NINALOG: The coordinates were RA: {raHours}h, DEC:{decDegrees}deg.");
+
 									RaisePlatesolveCompleted(new PlatesolveEventArgs(raHours, decDegrees));
 								}
 								_examinedLines = lineCount;
@@ -98,17 +106,20 @@ namespace OATControl.ViewModels
 							var calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("First measurement"));
 							if (calcLine > 0)
 							{
+								Log.WriteLine($"NINALOG: Found first measurement at line {calcLine}");
 								ShowDialogStatus("Measure", _allTextList[calcLine]);
 							}
 							calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Second measurement"));
 							if (calcLine > 0)
 							{
+								Log.WriteLine($"NINALOG: Found second measurement at line {calcLine}");
 								ShowDialogStatus("Measure", _allTextList[calcLine]);
 							}
 							calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Third measurement"));
 							_examinedLines = lineCount;
 							if (calcLine > 0)
 							{
+								Log.WriteLine($"NINALOG: Found third measurement at line {calcLine}");
 								ShowDialogStatus("Measure", _allTextList[calcLine]);
 								_polarAlignState = "Calculating";
 								_examinedLines = calcLine + 1;
@@ -120,6 +131,7 @@ namespace OATControl.ViewModels
 							var calcLine = _allTextList.FindIndex(_examinedLines, l => l.Contains("PolarAlignment.cs") && l.Contains("Calculated Error"));
 							if (calcLine > 0)
 							{
+								Log.WriteLine($"NINALOG: Found calculated error at line {calcLine}");
 								_examinedLines = calcLine + 1;
 								_numCalculatedErrors++;
 								Regex regex = new Regex(@"Calculated Error: ([+-]?\d+)[°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
@@ -129,14 +141,18 @@ namespace OATControl.ViewModels
 								var altError = errors[1].Substring(5).Trim();
 								var totalError = errors[2].Substring(5).Trim();
 								ShowDialogStatus("CalculateSettle", $"{azError}|{altError}|{totalError}|({_numCalculatedErrors}/2)");
+								Log.WriteLine($"NINALOG: Errors are AZ: {azError}, ALT: {altError}");
 								if (_numCalculatedErrors > 1)
 								{
+									Log.WriteLine($"NINALOG: Have more than one errors, so move to Adjusting");
 									ShowDialogStatus("Adjust", _allTextList[calcLine]);
 									var azAdjust = (AppSettings.Instance.InvertAZCorrections ? -1 : 1) * ParseMinutes(azError, @"^([+-]?\d+)[+°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
 									var altAdjust = (AppSettings.Instance.InvertALTCorrections ? -1 : 1) * ParseMinutes(altError, @"^([+-]?\d+)[°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
 
+									Log.WriteLine($"NINALOG: Required adjustment is AZ:{azAdjust}, ALT: {altAdjust}");
 									if (azAdjust < 60 * AppSettings.Instance.AZLeftLimit || azAdjust > -60 * AppSettings.Instance.AZRightLimit)
 									{
+										Log.WriteLine($"NINALOG: AZ Adjustment is too large!");
 										string msg = "";
 										msg = $"Azimuth error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.AZLeftLimit.ToString("F1")} degrees left and {AppSettings.Instance.AZRightLimit.ToString("F1")} degrees right.";
 										ShowDialogStatus("Error", msg);
@@ -147,11 +163,13 @@ namespace OATControl.ViewModels
 									if (altAdjust < 60 * AppSettings.Instance.ALTUpLimit || azAdjust > -60 * AppSettings.Instance.ALTDownLimit)
 									{
 										string msg = "";
+										Log.WriteLine($"NINALOG: ALT Adjustment is too large!");
 										msg = $"Altitude error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.ALTUpLimit.ToString("F1")} degrees up and {AppSettings.Instance.ALTDownLimit.ToString("F1")} degrees down.";
 										ShowDialogStatus("Error", msg);
 										_numCalculatedErrors = 0;
 										return;
 									}
+									Log.WriteLine($"NINALOG: Sending Adjustment to mount");
 									RaiseCorrectionRequired(new PolarAlignCorrectionEventArgs(altAdjust, azAdjust));
 									_polarAlignState = "Adjusting";
 								}
@@ -162,12 +180,14 @@ namespace OATControl.ViewModels
 								string message = "Polar alignment succeeded.";
 								if (_allTextList.FindIndex(_examinedLines, l => l.Contains("ERROR|PolarAlignment.cs|Solve|")) > 0)
 								{
+									Log.WriteLine($"NINALOG: Alignment cancelled by user!");
 									alignmentIsComplete = true;
 									message = "Polar alignment cancelled by user.";
 								}
 								alignmentIsComplete |= _allTextList.FindIndex(_examinedLines, l => l.Contains("Received message to stop polar alignment")) > 0;
 								if (alignmentIsComplete)
 								{
+									Log.WriteLine($"NINALOG: Alignment succeeded!!");
 									_examinedLines = lineCount;
 									_polarAlignState = "Complete";
 									ShowDialogStatus("Succeeded", message);
@@ -199,6 +219,7 @@ namespace OATControl.ViewModels
 				alignmentComplete |= _allTextList.FindIndex(_examinedLines, l => l.Contains("Received message to stop polar alignment")) > 0;
 				if (alignmentComplete)
 				{
+					Log.WriteLine($"NINALOG: Alignment is complete!");
 					_examinedLines = lineCount;
 					_polarAlignState = "Complete";
 					ShowDialogStatus("Succeeded", "Polar alignment succeeded.");

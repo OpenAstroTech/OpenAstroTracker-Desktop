@@ -357,7 +357,7 @@
 
         <StackPanel Grid.Row ="8" Grid.Column="3" Orientation="Vertical">
             <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Text="Run Steps Calibration procedure"  TextWrapping="Wrap" Style="{StaticResource SmallTextBlockLabel}" />
-            <TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="Use Platesolving to calibrate RA and DEC steps" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
+            <TextBlock Margin="0,0,0,0" HorizontalAlignment="Left" Text="Use Platesolving to calibrate steps for any axis" TextWrapping="Wrap" Style="{StaticResource TinyTextBlockLabel}" />
         </StackPanel>
         <Button Grid.Row ="8" Grid.Column="4" Margin="8,8,8,4" Padding="15,0" Content="Run Step Calibration" HorizontalAlignment="Right" Style="{StaticResource CommandButtonStyle}" Command="{Binding RunStepCalibrationCommand}" />
 

@@ -143,7 +143,7 @@ namespace OATControl.ViewModels
 					}
 				}
 			}
-			Log.WriteLine("MOUNT: Logfile contains " + _allTextList.Count + " lines.");
+			Log.WriteLine("MOUNT: Logfile contains " + _allTextList.Count + " lines. Processing...");
 
 			ProcessLogLines();
 		}

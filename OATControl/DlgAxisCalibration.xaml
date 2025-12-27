@@ -168,14 +168,15 @@
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			<TextBlock Grid.Row="0" Text="To perform stepper motor Calibration, you:" Margin="10" Style="{StaticResource TextBlockHeading}" TextWrapping="Wrap"/>
 			<TextBlock Grid.Row="1" Text="· need a clear view of the sky extending a few degrees along the axis to calibrate." Style="{StaticResource TextBlockListItem}"/>
 			<TextBlock Grid.Row="2" Text="· have slewed the calibration axis to the start position." Style="{StaticResource TextBlockListItem}"/>
 			<TextBlock Grid.Row="3" Text="· have the ability to capture and plate solve image when prompted." Style="{StaticResource TextBlockListItem}"/>
-			<TextBlock Grid.Row="4" Text="· have polar-aligned the mount to within 2 degrees." Style="{StaticResource TextBlockListItem}"/>
-			<Grid Grid.Row="5" Grid.RowSpan="1">
+			<TextBlock Grid.Row="4" Text="· have polar-aligned the mount to within 2°." Style="{StaticResource TextBlockListItem}"/>
+			<Grid Grid.Row="6" Grid.RowSpan="1">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="*" />
@@ -197,9 +198,9 @@
 				<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AxisStepsBefore}" MinWidth="130" Style="{StaticResource TextBlockLabelResult}" Margin="10,0,0,20" HorizontalAlignment="Left" TextAlignment="Center"/>
 			</Grid>
 
-			<TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding AzAltWarning}" Style="{StaticResource TextBlockValuePrompts}" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+			<TextBlock Grid.Row="7" Grid.Column="0" Text="{Binding AzAltWarning}" Style="{StaticResource TextBlockValuePrompts}" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
-			<StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+			<StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
 				<Button Content="Continue" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding ContinueCommand}" IsEnabled="{Binding CanContinue}"/>
 				<Button Content="Cancel" Style="{StaticResource AccentedSquareButtonStyle}" Margin="10,0" MinWidth="100" Command="{Binding CancelCommand}" />
 			</StackPanel>

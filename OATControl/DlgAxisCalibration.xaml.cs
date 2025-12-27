@@ -181,7 +181,7 @@ namespace OATControl
 		}
 
 		async Task OnTransferStepsToMount(string arg)
-		{ 
+		{
 			switch (arg)
 			{
 				case "RA":
@@ -410,22 +410,40 @@ namespace OATControl
 					_selectedAxis = value;
 					switch (value)
 					{
-						case "RA": _axisChar = 'r'; LeftSlew = "W"; RightSlew = "E"; break;
-						case "DEC":
-							_axisChar = 'd'; LeftSlew = "S"; RightSlew = "N";
+						case "RA": 
+							_axisChar = 'r'; 
+							LeftSlew = "W"; 
+							RightSlew = "E";
+							AzAltWarning = "Start DEC below 75° and slew RA by at least 15° when prompted.";
 							if (_mountVM.FirmwareVersion <= 11316)
 							{
-								AzAltWarning = "Try to not cross the home point (celestial pole) when slewing DEC.\nALT/AZ axis calibration is only supported on firmware version 1.13.17 or later.";
-							}
-							else
-							{
-								AzAltWarning = "Try to not cross the home point (celestial pole) when slewing DEC.";
+								AzAltWarning += "\nALT/AZ axis calibration is only supported on firmware version V1.13.17 or later.";
 							}
 							break;
-						case "ALT": _axisChar = 'l'; LeftSlew = "A"; RightSlew = "Z"; break;
-						case "AZ": _axisChar = 'z'; LeftSlew = "L"; RightSlew = "R"; break;
+						case "DEC":
+							_axisChar = 'd'; 
+							LeftSlew = "S"; 
+							RightSlew = "N";
+							AzAltWarning = "Start DEC below 80° and slew to at least 65°, without crossing\nthe home point (celestial pole).";
+							if (_mountVM.FirmwareVersion <= 11316)
+							{
+								AzAltWarning += "\nALT/AZ axis calibration is only supported on firmware version V1.13.17 or later.";
+							}
+							break;
+						case "ALT":
+							_axisChar = 'l'; 
+							LeftSlew = "A"; 
+							RightSlew = "Z";
+							AzAltWarning = "Ensure mount is as level as possible.";
+							break;
+						case "AZ":
+							_axisChar = 'z'; 
+							LeftSlew = "L"; 
+							RightSlew = "R";
+							AzAltWarning = "Ensure mount is as level as possible.";
+							break;
 					}
-
+					AzAltWarning += "\nYou can use MiniControl now to move mount as needed before starting.";
 					OnPropertyChanged();
 					OnPropertyChanged("IsPrimaryAxis");
 					AxisStepsBefore = GetAxisPosition(_selectedAxis);
