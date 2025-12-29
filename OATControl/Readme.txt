@@ -1,6 +1,9 @@
 Revision History
 ----------------
 
+OATControl V1.1.23.0                                            29 Dec 2025
+- Changed AutoPA limits to be symmetrical.
+
 OATControl V1.1.22.0                                            27 Dec 2025
 - Improved the instructions for axis calibration.
 - Added some more logging during calibration.
