@@ -212,42 +212,22 @@ namespace OATControl
 			}
 		}
 
-		public float AZLeftLimit
+		public float AZLimit
 		{
-			get { return _mount.AZLeftLimit; }
+			get { return _mount.AZLimit; }
 			set
 			{
-				_mount.AZLeftLimit = value;
+				_mount.AZLimit = value;
 				OnPropertyChanged();
 			}
 		}
 
-		public float AZRightLimit
+		public float ALTLimit
 		{
-			get { return _mount.AZRightLimit; }
+			get { return _mount.ALTLimit; }
 			set
 			{
-				_mount.AZRightLimit = value;
-				OnPropertyChanged();
-			}
-		}
-
-		public float ALTUpLimit
-		{
-			get { return _mount.ALTUpLimit; }
-			set
-			{
-				_mount.ALTUpLimit = value;
-				OnPropertyChanged();
-			}
-		}
-
-		public float ALTDownLimit
-		{
-			get { return _mount.ALTDownLimit; }
-			set
-			{
-				_mount.ALTDownLimit = value;
+				_mount.ALTLimit = value;
 				OnPropertyChanged();
 			}
 		}

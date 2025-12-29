@@ -61,7 +61,7 @@
 			<Setter Property="Height" Value="11" />
 			<Setter Property="Background" Value="#770000" />
 			<Setter Property="Foreground" Value="#F00" />
-			<Setter Property="Width" Value="40" />
+			<Setter Property="Width" Value="50" />
 			<Setter Property="HorizontalContentAlignment" Value="Center"/>
 		</Style>
 		<Style x:Key="TextBoxSmall" TargetType="TextBox" BasedOn="{StaticResource MetroTextBox}" >
@@ -583,31 +583,20 @@
 							<Grid.RowDefinitions>
 								<RowDefinition Height="Auto"/>
 								<RowDefinition Height="Auto"/>
-								<RowDefinition Height="Auto"/>
 							</Grid.RowDefinitions>
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
 								<ColumnDefinition Width="*" />
-								<ColumnDefinition Width="*" />
-								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
-
-							<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="AZ Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-							<TextBox Grid.Row="1" Grid.Column="0" Text="{Binding AZLeftLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
-							<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AZRightLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" Margin="5,0,15,0"/>
-							<TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="ALT Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-							<TextBox Grid.Row="1" Grid.Column="2" Text="{Binding ALTUpLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
-							<TextBox Grid.Row="1" Grid.Column="3" Text="{Binding ALTDownLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
-							<TextBlock Grid.Row="2" Grid.Column="0"  Text="Left" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
-							<TextBlock Grid.Row="2" Grid.Column="1"  Text="Right" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="5,0,15,0"/>
-							<TextBlock Grid.Row="2" Grid.Column="2"  Text="Up" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
-							<TextBlock Grid.Row="2" Grid.Column="3"  Text="Down" Style="{StaticResource TextBlockLabelTiny}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+							<TextBlock Grid.Row="0" Grid.Column="0" Text="AZ Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
+							<TextBox Grid.Row="1" Grid.Column="0" Text="{Binding AZLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+							<TextBlock Grid.Row="0" Grid.Column="1" Text="ALT Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
+							<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ALTLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
 
 						</Grid>
 					</Border>
 				</Grid>
 			</TabItem>
-
 		</TabControl>
 	</DockPanel>
 </mah:MetroWindow>

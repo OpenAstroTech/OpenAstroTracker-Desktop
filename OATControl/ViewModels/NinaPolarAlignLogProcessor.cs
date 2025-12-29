@@ -149,26 +149,31 @@ namespace OATControl.ViewModels
 									var azAdjust = (AppSettings.Instance.InvertAZCorrections ? -1 : 1) * ParseMinutes(azError, @"^([+-]?\d+)[+°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
 									var altAdjust = (AppSettings.Instance.InvertALTCorrections ? -1 : 1) * ParseMinutes(altError, @"^([+-]?\d+)[°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
 
-									Log.WriteLine($"NINALOG: Required adjustment is AZ:{azAdjust}, ALT: {altAdjust}");
-									if (azAdjust < 60 * AppSettings.Instance.AZLeftLimit || azAdjust > -60 * AppSettings.Instance.AZRightLimit)
+									Log.WriteLine($"NINALOG: Required adjustment is AZ:{azAdjust}, ALT: {altAdjust}.");
+									Log.WriteLine($"NINALOG: Adjustment AZ Limits: {60 * AppSettings.Instance.AZLimit}");
+
+									if (Math.Abs(azAdjust) > 60 * AppSettings.Instance.AZLimit)
 									{
-										Log.WriteLine($"NINALOG: AZ Adjustment is too large!");
+										Log.WriteLine($"NINALOG: AZ Adjustment is too large! (Requested ${azAdjust}m, but limit is ${60 * AppSettings.Instance.AZLimit}m)");
 										string msg = "";
-										msg = $"Azimuth error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.AZLeftLimit.ToString("F1")} degrees left and {AppSettings.Instance.AZRightLimit.ToString("F1")} degrees right.";
+										msg = $"Azimuth error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.AZLimit.ToString("F1")} degrees horizontally.";
 										ShowDialogStatus("Error", msg);
 										_numCalculatedErrors = 0;
 										return;
 									}
 
-									if (altAdjust < 60 * AppSettings.Instance.ALTUpLimit || azAdjust > -60 * AppSettings.Instance.ALTDownLimit)
+									Log.WriteLine($"NINALOG: Adjustment ALT Limits: {60 * AppSettings.Instance.ALTLimit}");
+
+									if (Math.Abs(altAdjust) > 60 * AppSettings.Instance.ALTLimit)
 									{
 										string msg = "";
-										Log.WriteLine($"NINALOG: ALT Adjustment is too large!");
-										msg = $"Altitude error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.ALTUpLimit.ToString("F1")} degrees up and {AppSettings.Instance.ALTDownLimit.ToString("F1")} degrees down.";
+										Log.WriteLine($"NINALOG: ALT Adjustment is too large! (Requested ${altAdjust}m, but limit is ${60 * AppSettings.Instance.ALTLimit}m)");
+										msg = $"Altitude error is too large for automatic adjustment, please move mount manually to within {AppSettings.Instance.ALTLimit.ToString("F1")} degrees vertically.";
 										ShowDialogStatus("Error", msg);
 										_numCalculatedErrors = 0;
 										return;
 									}
+
 									Log.WriteLine($"NINALOG: Sending Adjustment to mount");
 									RaiseCorrectionRequired(new PolarAlignCorrectionEventArgs(altAdjust, azAdjust));
 									_polarAlignState = "Adjusting";

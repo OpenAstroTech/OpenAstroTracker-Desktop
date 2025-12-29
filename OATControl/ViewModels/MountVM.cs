@@ -44,10 +44,8 @@ namespace OATControl.ViewModels
 		float _decStepper = 0;
 		float _altStepper = 0;
 		float _azStepper = 0;
-		float _azRightLimit = 2.0f;
-		float _azLeftLimit = 2.0f;
-		float _altUpLimit = 4.0f;
-		float _altDownLimit = 4.0f;
+		float _azLimit = 2.0f;
+		float _altLimit = 4.0f;
 		float _trkStepper = 0;
 		long _focStepper = 0;
 		float _raStepsPerDegree = 1;
@@ -526,10 +524,8 @@ namespace OATControl.ViewModels
 			}, async (s) => await OnLogActivity(s));
 			_sharpCapLogProcessor.CorrectionRequired += OnPolarAlignCorrectionRequired;
 			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
-			_azLeftLimit = AppSettings.Instance.AZLeftLimit;
-			_azRightLimit = AppSettings.Instance.AZRightLimit;
-			_altUpLimit = AppSettings.Instance.ALTUpLimit;
-			_altDownLimit = AppSettings.Instance.ALTDownLimit;
+			_azLimit = AppSettings.Instance.AZLimit;
+			_altLimit = AppSettings.Instance.ALTLimit;
 		}
 
 		private bool _isNinaLogActive;
@@ -3718,35 +3714,22 @@ namespace OATControl.ViewModels
 			set { SetPropertyValue(ref _azStepper, value); }
 		}
 
-		public float AZLeftLimit
+		public float AZLimit
 		{
-			get { return _azLeftLimit; }
-			set { SetPropertyValue(ref _azLeftLimit, value, OnAltAzLimitsChanged); }
-		}
-		public float AZRightLimit
-		{
-			get { return _azRightLimit; }
-			set { SetPropertyValue(ref _azRightLimit, value, OnAltAzLimitsChanged); }
+			get { return _azLimit; }
+			set { SetPropertyValue(ref _azLimit, value, OnAltAzLimitsChanged); }
 		}
 
-		public float ALTUpLimit
+		public float ALTLimit
 		{
-			get { return _altUpLimit; }
-			set { SetPropertyValue(ref _altUpLimit, value, OnAltAzLimitsChanged); }
-		}
-
-		public float ALTDownLimit
-		{
-			get { return _altDownLimit; }
-			set { SetPropertyValue(ref _altDownLimit, value, OnAltAzLimitsChanged); }
+			get { return _altLimit; }
+			set { SetPropertyValue(ref _altLimit, value, OnAltAzLimitsChanged); }
 		}
 
 		void OnAltAzLimitsChanged(float a, float b )
 		{
-			AppSettings.Instance.AZLeftLimit = AZLeftLimit;
-			AppSettings.Instance.AZRightLimit = AZRightLimit;
-			AppSettings.Instance.ALTUpLimit = ALTUpLimit;
-			AppSettings.Instance.ALTDownLimit = ALTDownLimit;
+			AppSettings.Instance.AZLimit = AZLimit;
+			AppSettings.Instance.ALTLimit = ALTLimit;
 			AppSettings.Instance.Save();
 		}
 
