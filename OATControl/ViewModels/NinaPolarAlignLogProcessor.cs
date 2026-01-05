@@ -174,6 +174,17 @@ namespace OATControl.ViewModels
 										return;
 									}
 
+									var totalAdjust = ParseMinutes(totalError, @"^([+-]?\d+)[°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
+									if (totalAdjust*60 < 20)
+									{
+										Log.WriteLine($"NINALOG: Total error is below 20 arcsecs, alignment succeeded!!");
+										_examinedLines = lineCount;
+										_polarAlignState = "Complete";
+										ShowDialogStatus("Succeeded", "Polar Alignment succeeded, error below 20 arcsecs.");
+										return;
+
+									}
+
 									Log.WriteLine($"NINALOG: Sending Adjustment to mount");
 									RaiseCorrectionRequired(new PolarAlignCorrectionEventArgs(altAdjust, azAdjust));
 									_polarAlignState = "Adjusting";

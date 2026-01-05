@@ -552,5 +552,12 @@ namespace OATControl.ViewModels
 			get { return Convert.ToSingle(this["ALTLimit"] ?? "3"); }
 			set { this["ALTLimit"] = value.ToString(); }
 		}
+
+		[DefaultValueAttribute("20")]
+		public float PolarAlignmentMinimumTotalError
+		{
+			get { return Convert.ToSingle(this["PolarAlignmentMinimumTotalError"] ?? "20"); }
+			set { this["PolarAlignmentMinimumTotalError"] = value.ToString(); }
+		}
 	}
 }

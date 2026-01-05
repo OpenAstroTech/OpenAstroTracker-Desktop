@@ -11,7 +11,7 @@
 		xmlns:converters="clr-namespace:OATControl.Converters"
 		Loaded="OnWindowLoaded"
 		mc:Ignorable="d"
-        Title="OATControl Settings" MinHeight="250" Width="600" MinWidth="500" Height="500" WindowStyle="ToolWindow">
+        Title="OATControl Settings" MinHeight="400" Width="660" MinWidth="600" Height="560" WindowStyle="ToolWindow">
 	<Window.Resources>
 		<converters:DoubleToHMSConverter x:Key="RAConverter" />
 		<converters:DoubleToHMSConverter x:Key="DECConverter" Formatter = "[0:+00;-00]° [1:00]&quot; [2:00]'"/>
@@ -98,8 +98,8 @@
 			<Setter Property="FontSize" Value="9" />
 			<Setter Property="FontWeight" Value="Normal" />
 			<Setter Property="TextWrapping" Value="Wrap" />
-			<Setter Property="Width" Value="200" />
-			<Setter Property="Margin" Value="2,0,0,0" />
+			<Setter Property="Width" Value="Auto" />
+			<Setter Property="Margin" Value="2,0,20,0" />
 			<Setter Property="Foreground" Value="#B00" />
 		</Style>
 
@@ -456,6 +456,7 @@
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
 					</Grid.RowDefinitions>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="*" />
@@ -525,7 +526,12 @@
 							Text="{Binding SharpCapLogFolder}" 
 							VerticalAlignment="Center" Margin="20,4,20,0"/>
 
-					<Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" >
+					<StackPanel Grid.Row="6" Grid.Column="0" VerticalAlignment="Top"  Margin="0,15,0,0">
+						<TextBlock Text="Invert corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If enabled, the corrections for the corresponding axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
+
+					<Grid Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" >
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="Auto"/>
@@ -537,10 +543,6 @@
 						</Grid.ColumnDefinitions>
 						<TextBlock Grid.Column="1" Text="AZ" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" Margin="30,20,0,0" HorizontalAlignment="Left"/>
 						<TextBlock Grid.Column="2" Text="ALT" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" Margin="30,20,0,0" HorizontalAlignment="Left"/>
-						<StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top"  Margin="0,15,0,0">
-							<TextBlock Text="Invert corrections" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-							<TextBlock Text="If enabled, the corrections for the corresponding axis will be inverted." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-						</StackPanel>
 						<Grid Grid.Row="0"  Grid.Column="1" Width="Auto" HorizontalAlignment="Left"  Margin="0,30,0,0">
 							<Grid.RowDefinitions>
 								<RowDefinition Height="Auto" />
@@ -573,28 +575,49 @@
 
 					<StackPanel Grid.Row="7" Grid.Column="0" VerticalAlignment="Top" >
 						<TextBlock Text="AZ/ALT axis limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
-						<TextBlock Text="Determines the maximum angle that the AZ and ALT axes will be moved during Automatic Polar Alignment." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+						<TextBlock Text="Determines the maximum angle in degrees that the AZ and ALT axes will be moved during Automatic Polar Alignment." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
 					</StackPanel>
 
+					<Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="AZ Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
+						<TextBox Grid.Row="1" Grid.Column="0" Text="{Binding AZLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+						<TextBlock Grid.Row="0" Grid.Column="1" Text="ALT Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
+						<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ALTLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
 
-					<Border Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+					</Grid>
 
-						<Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto"/>
-								<RowDefinition Height="Auto"/>
-							</Grid.RowDefinitions>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*" />
-								<ColumnDefinition Width="*" />
-							</Grid.ColumnDefinitions>
-							<TextBlock Grid.Row="0" Grid.Column="0" Text="AZ Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
-							<TextBox Grid.Row="1" Grid.Column="0" Text="{Binding AZLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
-							<TextBlock Grid.Row="0" Grid.Column="1" Text="ALT Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
-							<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ALTLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+					<StackPanel Grid.Row="8" Grid.Column="0" VerticalAlignment="Top" >
+						<TextBlock Text="Minimum Total Error" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+						<TextBlock Text="If Alignment Tolerance in N.I.N.A is set to zero, polar alignment does not terminate automatically. This value determines at which Total Error value OATControl will assume alignment has been reached and will no longer issue corrections." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+					</StackPanel>
 
-						</Grid>
-					</Border>
+					<StackPanel Grid.Row="8" Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+						<TextBox Text="{Binding PolarAlignmentMinimumTotalError}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+						<TextBlock Text="arc seconds" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
+					</StackPanel>
+
+					<!--<Grid Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="AZ Limits" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,20,0"/>
+						<TextBox Grid.Row="1" Grid.Column="0" Text="{Binding AZLimit}" HorizontalAlignment="Left" Style="{StaticResource TextBoxSmallLimit}" />
+
+					</Grid>-->
+
 				</Grid>
 			</TabItem>
 		</TabControl>

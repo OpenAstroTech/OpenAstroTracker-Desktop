@@ -46,6 +46,7 @@ namespace OATControl.ViewModels
 		float _azStepper = 0;
 		float _azLimit = 2.0f;
 		float _altLimit = 4.0f;
+		float _totalErrorLimit = 0;
 		float _trkStepper = 0;
 		long _focStepper = 0;
 		float _raStepsPerDegree = 1;
@@ -526,6 +527,7 @@ namespace OATControl.ViewModels
 			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
 			_azLimit = AppSettings.Instance.AZLimit;
 			_altLimit = AppSettings.Instance.ALTLimit;
+			_totalErrorLimit = AppSettings.Instance.PolarAlignmentMinimumTotalError;
 		}
 
 		private bool _isNinaLogActive;
@@ -3730,6 +3732,18 @@ namespace OATControl.ViewModels
 		{
 			AppSettings.Instance.AZLimit = AZLimit;
 			AppSettings.Instance.ALTLimit = ALTLimit;
+			AppSettings.Instance.Save();
+		}
+
+		public float PolarAlignmentMinimumTotalError
+		{
+			get { return _totalErrorLimit; }
+			set { SetPropertyValue(ref _totalErrorLimit, value, OnTotalErrorLimitChanged); }
+		}
+
+		void OnTotalErrorLimitChanged(float a, float b)
+		{
+			AppSettings.Instance.PolarAlignmentMinimumTotalError = PolarAlignmentMinimumTotalError;
 			AppSettings.Instance.Save();
 		}
 

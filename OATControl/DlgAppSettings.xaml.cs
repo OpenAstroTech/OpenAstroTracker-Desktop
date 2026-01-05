@@ -41,6 +41,16 @@ namespace OATControl
 		private bool _decStartSouth;
 		private float _raDistance;
 		private float _decDistance;
+		private float _altLimit;
+		private float _azLimit;
+		private float _totalErrorLimit;
+		private bool _invertALTCorrections;
+		private bool _invertAZCorrections;
+		private bool _monitorNinaForPA;
+		private string _ninaLogFolder;
+		private bool _monitorSharpCapForPA;
+		private string _sharpCapLogFolder;
+
 		private List<PointOfInterest> _pointsOfInterest;
 		private PointOfInterest _selectedPoint;
 		private string sortField = "Name";
@@ -91,8 +101,7 @@ namespace OATControl
 			dlg.ShowDialog();
 			this.OnPropertyChanged("AllPointsOfInterest");
 		}
-
-		public bool IsPointSelected
+				public bool IsPointSelected
 		{
 			get { return _selectedPoint != null; }
 		}
@@ -122,12 +131,12 @@ namespace OATControl
 
 		public String NinaLogFolder
 		{
-			get { return _mount.NinaLogFolder; }
+			get { return _ninaLogFolder; }
 			set
 			{
-				if (_mount.NinaLogFolder != value)
+				if (_ninaLogFolder != value)
 				{
-					_mount.NinaLogFolder = value;
+					_ninaLogFolder = value;
 					OnPropertyChanged();
 				}
 			}	
@@ -135,12 +144,12 @@ namespace OATControl
 
 		public bool MonitorNinaForPA
 		{
-			get { return _mount.MonitorNinaForPA; }
+			get { return _monitorNinaForPA; }
 			set
 			{
-				if (_mount.MonitorNinaForPA != value)
+				if (_monitorNinaForPA != value)
 				{
-					_mount.MonitorNinaForPA = value;
+					_monitorNinaForPA = value;
 					OnPropertyChanged();
 				}
 			}
@@ -148,12 +157,12 @@ namespace OATControl
 
 		public String SharpCapLogFolder
 		{
-			get { return _mount.SharpCapLogFolder; }
+			get { return _sharpCapLogFolder; }
 			set
 			{
-				if (_mount.SharpCapLogFolder != value)
+				if (_sharpCapLogFolder != value)
 				{
-					_mount.SharpCapLogFolder = value;
+					_sharpCapLogFolder = value;
 					OnPropertyChanged();
 				}
 			}
@@ -161,12 +170,12 @@ namespace OATControl
 
 		public bool MonitorSharpCapForPA
 		{
-			get { return _mount.MonitorSharpCapForPA; }
+			get { return _monitorSharpCapForPA; }
 			set
 			{
-				if (_mount.MonitorSharpCapForPA != value)
+				if (_monitorSharpCapForPA != value)
 				{
-					_mount.MonitorSharpCapForPA = value;
+					_monitorSharpCapForPA = value;
 					OnPropertyChanged();
 				}
 			}
@@ -194,40 +203,50 @@ namespace OATControl
 
 		public bool InvertALTCorrections
 		{
-			get { return _mount.InvertALTCorrections; }
+			get { return _invertALTCorrections; }
 			set
 			{
-				_mount.InvertALTCorrections = value;
+				_invertALTCorrections = value;
 				OnPropertyChanged();
 			}
 		}
 
 		public bool InvertAZCorrections
 		{
-			get { return _mount.InvertAZCorrections; }
+			get { return _invertAZCorrections; }
 			set
 			{
-				_mount.InvertAZCorrections = value;
+				_invertAZCorrections = value;
 				OnPropertyChanged();
 			}
 		}
 
 		public float AZLimit
 		{
-			get { return _mount.AZLimit; }
+			get { return _azLimit; }
 			set
 			{
-				_mount.AZLimit = value;
+				_azLimit = value;
 				OnPropertyChanged();
 			}
 		}
 
 		public float ALTLimit
 		{
-			get { return _mount.ALTLimit; }
+			get { return _altLimit; }
 			set
 			{
-				_mount.ALTLimit = value;
+				_altLimit = value;
+				OnPropertyChanged();
+			}
+		}
+		
+		public float PolarAlignmentMinimumTotalError
+		{
+			get { return _totalErrorLimit; }
+			set
+			{
+				_totalErrorLimit = value;
 				OnPropertyChanged();
 			}
 		}
@@ -318,18 +337,38 @@ namespace OATControl
 		private void OnCloseClick(object sender, RoutedEventArgs e)
 		{
 			// Transfer to MountVM
-			_mount.SelectedBaudRate = _serialBaudRate;
+			AppSettings.Instance.BaudRate = _serialBaudRate;
 			AppSettings.Instance.AutoHomeRaDirection = RaStartEast ? "East" : "West";
 			AppSettings.Instance.AutoHomeRaDistance = RaDistance;
 			AppSettings.Instance.AutoHomeDecDirection = DecStartSouth ? "South" : "North";
 			AppSettings.Instance.AutoHomeDecDistance = DecDistance;
 			AppSettings.Instance.ShowChecklist = ShowChecklist;
+			AppSettings.Instance.AZLimit= AZLimit;
+			AppSettings.Instance.ALTLimit = ALTLimit;
+			AppSettings.Instance.PolarAlignmentMinimumTotalError= PolarAlignmentMinimumTotalError;
+			AppSettings.Instance.InvertALTCorrections = InvertALTCorrections;
+			AppSettings.Instance.InvertAZCorrections = InvertAZCorrections;
+			AppSettings.Instance.MonitorNinaPA = MonitorNinaForPA;
+			AppSettings.Instance.NinaLogFolder = NinaLogFolder;
+			AppSettings.Instance.MonitorSharpCapPA = MonitorSharpCapForPA;
+			AppSettings.Instance.SharpCapLogFolder= SharpCapLogFolder;
+
 			AppSettings.Instance.Save();
+			_mount.SelectedBaudRate = _serialBaudRate; 
 			_mount.AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
 			_mount.AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
 			_mount.AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
 			_mount.AutoHomeRaDistance = AppSettings.Instance.AutoHomeRaDistance;
 			_mount.ShowChecklist = AppSettings.Instance.ShowChecklist;
+			_mount.AZLimit = AZLimit;
+			_mount.ALTLimit = ALTLimit;
+			_mount.PolarAlignmentMinimumTotalError = PolarAlignmentMinimumTotalError;
+			_mount.InvertALTCorrections = InvertALTCorrections;
+			_mount.InvertAZCorrections = InvertAZCorrections;
+			_mount.MonitorNinaForPA = MonitorNinaForPA;
+			_mount.NinaLogFolder = NinaLogFolder;
+			_mount.MonitorSharpCapForPA = MonitorSharpCapForPA;
+			_mount.SharpCapLogFolder = SharpCapLogFolder;
 
 			_mount.SavePointsOfInterest();
 			Close();

@@ -1,6 +1,10 @@
 Revision History
 ----------------
 
+OATControl V1.1.24.0                                             5 Jan 2026
+- Added ability to terminate AutoPA when the total error is below a 
+  threshold. USeful if NINA is set to 0 Alignment Tolerance.
+
 OATControl V1.1.23.0                                            29 Dec 2025
 - Changed AutoPA limits to be symmetrical.
 
