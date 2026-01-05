@@ -175,12 +175,12 @@ namespace OATControl.ViewModels
 									}
 
 									var totalAdjust = ParseMinutes(totalError, @"^([+-]?\d+)[°\s]+(\d+)[\'\s]+(\d+)[\""\s]*$");
-									if (totalAdjust*60 < 20)
+									if (totalAdjust * 60 < AppSettings.Instance.PolarAlignmentMinimumTotalError)
 									{
-										Log.WriteLine($"NINALOG: Total error is below 20 arcsecs, alignment succeeded!!");
+										Log.WriteLine($"NINALOG: Total error is below {AppSettings.Instance.PolarAlignmentMinimumTotalError} arcsecs, alignment succeeded!!");
 										_examinedLines = lineCount;
 										_polarAlignState = "Complete";
-										ShowDialogStatus("Succeeded", "Polar Alignment succeeded, error below 20 arcsecs.");
+										ShowDialogStatus("Succeeded", $"Polar Alignment succeeded, error below {AppSettings.Instance.PolarAlignmentMinimumTotalError} arcsecs.");
 										return;
 
 									}

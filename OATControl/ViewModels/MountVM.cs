@@ -5032,6 +5032,7 @@ namespace OATControl.ViewModels
 
 		private void OnPolarAlignCorrectionRequired(object sender, PolarAlignCorrectionEventArgs e)
 		{
+			if (_oatMount == null) return;
 			_oatMount.SendCommand($":MAL{e.AltAdjust:F4}#", (a) => { });
 			_oatMount.SendCommand($":MAZ{e.AzAdjust:F4}#", (a) => { });
 		}

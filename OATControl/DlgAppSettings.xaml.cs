@@ -47,9 +47,9 @@ namespace OATControl
 		private bool _invertALTCorrections;
 		private bool _invertAZCorrections;
 		private bool _monitorNinaForPA;
-		private string _ninaLogFolder;
+		private string _ninaLogFolder = String.Empty;
 		private bool _monitorSharpCapForPA;
-		private string _sharpCapLogFolder;
+		private string _sharpCapLogFolder = String.Empty;
 
 		private List<PointOfInterest> _pointsOfInterest;
 		private PointOfInterest _selectedPoint;
@@ -78,6 +78,15 @@ namespace OATControl
 			DecStartSouth = AppSettings.Instance.AutoHomeDecDirection == "South";
 			DecDistance = AppSettings.Instance.AutoHomeDecDistance;
 			ShowChecklist = AppSettings.Instance.ShowChecklist;
+			ALTLimit = AppSettings.Instance.ALTLimit;
+			AZLimit = AppSettings.Instance.AZLimit;
+			PolarAlignmentMinimumTotalError = AppSettings.Instance.PolarAlignmentMinimumTotalError;
+			InvertALTCorrections = AppSettings.Instance.InvertALTCorrections;
+			InvertAZCorrections = AppSettings.Instance.InvertAZCorrections;
+			MonitorNinaForPA = AppSettings.Instance.MonitorNinaPA;
+			NinaLogFolder = AppSettings.Instance.NinaLogFolder;
+			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
+			SharpCapLogFolder = AppSettings.Instance.SharpCapLogFolder;
 
 			ContentTabs.SelectedIndex = 0;
 			CategorySelector.SelectedIndex = 0;
@@ -101,7 +110,7 @@ namespace OATControl
 			dlg.ShowDialog();
 			this.OnPropertyChanged("AllPointsOfInterest");
 		}
-				public bool IsPointSelected
+		public bool IsPointSelected
 		{
 			get { return _selectedPoint != null; }
 		}
@@ -139,7 +148,7 @@ namespace OATControl
 					_ninaLogFolder = value;
 					OnPropertyChanged();
 				}
-			}	
+			}
 		}
 
 		public bool MonitorNinaForPA
@@ -240,7 +249,7 @@ namespace OATControl
 				OnPropertyChanged();
 			}
 		}
-		
+
 		public float PolarAlignmentMinimumTotalError
 		{
 			get { return _totalErrorLimit; }
@@ -343,18 +352,18 @@ namespace OATControl
 			AppSettings.Instance.AutoHomeDecDirection = DecStartSouth ? "South" : "North";
 			AppSettings.Instance.AutoHomeDecDistance = DecDistance;
 			AppSettings.Instance.ShowChecklist = ShowChecklist;
-			AppSettings.Instance.AZLimit= AZLimit;
+			AppSettings.Instance.AZLimit = AZLimit;
 			AppSettings.Instance.ALTLimit = ALTLimit;
-			AppSettings.Instance.PolarAlignmentMinimumTotalError= PolarAlignmentMinimumTotalError;
+			AppSettings.Instance.PolarAlignmentMinimumTotalError = PolarAlignmentMinimumTotalError;
 			AppSettings.Instance.InvertALTCorrections = InvertALTCorrections;
 			AppSettings.Instance.InvertAZCorrections = InvertAZCorrections;
 			AppSettings.Instance.MonitorNinaPA = MonitorNinaForPA;
 			AppSettings.Instance.NinaLogFolder = NinaLogFolder;
 			AppSettings.Instance.MonitorSharpCapPA = MonitorSharpCapForPA;
-			AppSettings.Instance.SharpCapLogFolder= SharpCapLogFolder;
+			AppSettings.Instance.SharpCapLogFolder = SharpCapLogFolder;
 
 			AppSettings.Instance.Save();
-			_mount.SelectedBaudRate = _serialBaudRate; 
+			_mount.SelectedBaudRate = _serialBaudRate;
 			_mount.AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
 			_mount.AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
 			_mount.AutoHomeDecDistance = AppSettings.Instance.AutoHomeDecDistance;
