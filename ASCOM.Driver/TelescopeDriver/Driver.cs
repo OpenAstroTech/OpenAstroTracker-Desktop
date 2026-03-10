@@ -83,8 +83,23 @@ namespace ASCOM.OpenAstroTracker
 		///     ''' the new settings are saved, otherwise the old values are reloaded.
 		///     ''' THIS IS THE ONLY PLACE WHERE SHOWING USER INTERFACE IS ALLOWED!
 		///     ''' </summary>
+		[System.Runtime.InteropServices.DllImport("user32.dll")]
+		private static extern bool SetForegroundWindow(IntPtr hWnd);
+
 		public void SetupDialog()
 		{
+			// When started by COM (-embedding), Windows denies this process foreground
+			// privilege, so SetupDialogForm.ShowDialog() opens but never gets focus.
+			// Call SetForegroundWindow on the main form's handle to regain foreground
+			// status before showing the modal setup dialog. SetupDialog() runs on the
+			// main STA thread, so we can call these APIs directly.
+			var mainForm = System.Windows.Forms.Application.OpenForms.Count > 0
+				? System.Windows.Forms.Application.OpenForms[0] : null;
+			if (mainForm != null)
+			{
+				mainForm.WindowState = System.Windows.Forms.FormWindowState.Normal;
+				SetForegroundWindow(mainForm.Handle);
+			}
 			using (var f = new SetupDialogForm(Profile, this, (s) => this.LogMessage(LoggingFlags.Setup, s)))
 			{
 				if (f.ShowDialog() == DialogResult.OK)
@@ -93,6 +108,9 @@ namespace ASCOM.OpenAstroTracker
 					SharedResources.SetTraceFlags(Profile.TraceFlags);
 				}
 			}
+			// Re-minimize frmMain after setup dialog is dismissed
+			if (mainForm != null && Server.StartedByCOM)
+				mainForm.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 		}
 
 		public ArrayList SupportedActions
@@ -1353,17 +1371,26 @@ namespace ASCOM.OpenAstroTracker
 				throw new NotConnectedException(message);
 		}
 
-		private int PollUntilZero(string command)
+		private int PollUntilZero(string command, int maxAttempts = 120)
 		{
 			// Takes a command to be sent via CommandString, and resends every 1000ms until a 0 is returned.  Returns 0 only when complete.
+			// maxAttempts caps the wait to prevent hanging indefinitely if the mount stalls or communication fails (default: 120s).
 			string retVal = "";
-			while (retVal != "0")
+			int attempts = 0;
+			while (retVal != "0" && attempts < maxAttempts)
 			{
 				retVal = CommandString(command);
-				LogMessage(LoggingFlags.Scope, $"PollUntilZero - Command: {command}, Response: {retVal}");
+				LogMessage(LoggingFlags.Scope, $"PollUntilZero - Command: {command}, Response: {retVal}, Attempt: {attempts + 1}/{maxAttempts}");
 				if (retVal == "0")
 					break;
+				attempts++;
 				Thread.Sleep(1000);
+			}
+
+			if (attempts >= maxAttempts)
+			{
+				LogMessage(LoggingFlags.Scope, $"PollUntilZero - Timed out after {maxAttempts} attempts for command: {command}");
+				throw new System.TimeoutException($"Mount did not complete operation within {maxAttempts} seconds. Command: {command}");
 			}
 
 			return System.Convert.ToInt32(retVal);
