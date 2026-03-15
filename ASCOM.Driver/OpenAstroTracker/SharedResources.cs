@@ -1,4 +1,4 @@
-﻿//
+//
 // ================
 // Shared Resources
 // ================
@@ -66,27 +66,20 @@ namespace ASCOM.OpenAstroTracker
 		private static double latitudeDefault = 30;
 		private static double longitudeDefault = -97;
 		private static double elevationDefault = 1;
-		private static Mutex _commandMutex;
+		private static readonly Mutex _commandMutex;
+		private static ProfileData _cachedProfile;
+		private static readonly object _profileLock = new object();
 
 		static SharedResources()
 		{
+			_commandMutex = new Mutex(false, "CommMutex");
 			EnsureLogger();
 		}
 
 		//
 		// Public access to shared resources
 		//
-		public static Mutex OATCommandMutex
-		{
-			get
-			{
-				if (_commandMutex == null)
-				{
-					_commandMutex = new Mutex(false, "CommMutex");
-				}
-				return _commandMutex;
-			}
-		}
+		public static Mutex OATCommandMutex => _commandMutex;
 
 		private static void EnsureLogger()
 		{
@@ -116,19 +109,26 @@ namespace ASCOM.OpenAstroTracker
 
 		public static ProfileData ReadProfile()
 		{
-			using (Profile driverProfile = new Profile())
+			lock (_profileLock)
 			{
-				driverProfile.DeviceType = "Telescope";
-				return new ProfileData
+				if (_cachedProfile != null)
+					return _cachedProfile;
+
+				using (Profile driverProfile = new Profile())
 				{
-					TraceState = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, String.Empty, traceStateDefault)),
-					TraceFlags = (LoggingFlags)Enum.Parse(typeof(LoggingFlags), driverProfile.GetValue(driverID, traceFlagsProfileName, String.Empty, traceFlagsDefault)),
-					ComPort = driverProfile.GetValue(driverID, comPortProfileName, string.Empty, comPortDefault),
-					BaudRate = long.Parse(driverProfile.GetValue(driverID, baudRateProfileName, string.Empty, baudRateDefault)),
-					Latitude = Convert.ToDouble(driverProfile.GetValue(driverID, latitudeProfileName, string.Empty, latitudeDefault.ToString())),
-					Longitude = Convert.ToDouble(driverProfile.GetValue(driverID, longitudeProfileName, string.Empty, longitudeDefault.ToString())),
-					Elevation = Convert.ToDouble(driverProfile.GetValue(driverID, elevationProfileName, string.Empty, elevationDefault.ToString()))
-				};
+					driverProfile.DeviceType = "Telescope";
+					_cachedProfile = new ProfileData
+					{
+						TraceState = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, String.Empty, traceStateDefault)),
+						TraceFlags = (LoggingFlags)Enum.Parse(typeof(LoggingFlags), driverProfile.GetValue(driverID, traceFlagsProfileName, String.Empty, traceFlagsDefault)),
+						ComPort = driverProfile.GetValue(driverID, comPortProfileName, string.Empty, comPortDefault),
+						BaudRate = long.Parse(driverProfile.GetValue(driverID, baudRateProfileName, string.Empty, baudRateDefault)),
+						Latitude = Convert.ToDouble(driverProfile.GetValue(driverID, latitudeProfileName, string.Empty, latitudeDefault.ToString())),
+						Longitude = Convert.ToDouble(driverProfile.GetValue(driverID, longitudeProfileName, string.Empty, longitudeDefault.ToString())),
+						Elevation = Convert.ToDouble(driverProfile.GetValue(driverID, elevationProfileName, string.Empty, elevationDefault.ToString()))
+					};
+					return _cachedProfile;
+				}
 			}
 		}
 
@@ -145,6 +145,11 @@ namespace ASCOM.OpenAstroTracker
 				driverProfile.WriteValue(driverID, longitudeProfileName, profile.Longitude.ToString());
 				driverProfile.WriteValue(driverID, elevationProfileName, profile.Elevation.ToString());
 				currentLogFlags = profile.TraceFlags;
+			}
+			// Update cache after successful write so subsequent ReadProfile calls skip the registry
+			lock (_profileLock)
+			{
+				_cachedProfile = profile;
 			}
 		}
 
@@ -241,7 +246,9 @@ namespace ASCOM.OpenAstroTracker
 						case ExpectedAnswer.DoubleHashTerminated:
 							retVal = SharedSerial.ReceiveTerminated("#");
 							retVal = retVal.TrimEnd('#');
-							retVal = SharedSerial.ReceiveTerminated("#");
+							// Protocol returns two #-terminated strings (e.g. :SC returns "1#Updating Planetary Data#").
+							// Return the first string (success indicator); read and discard the trailing info string.
+							SharedSerial.ReceiveTerminated("#");
 							break;
 					}
 
@@ -353,7 +360,7 @@ namespace ASCOM.OpenAstroTracker
 				}
 			}
 
-			get => SharedSerial.Connected;
+			get { lock (lockObject) { return SharedSerial.Connected; } }
 		}
 
 

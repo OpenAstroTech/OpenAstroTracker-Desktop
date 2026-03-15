@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ASCOM OpenAstroTracker")]
-[assembly: AssemblyDescription("ASCOM multi-interface server for OpenAstroTracker")]
+[assembly: AssemblyDescription("ASCOM multi-interface server for OpenAstroTech Mounts")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("OpenAstroTech")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("Copyright © 2020-2025, OpenAstroTech")]
+[assembly: AssemblyCopyright("Copyright © 2020-2026, OpenAstroTech")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("6.6.7.3")]
-[assembly: AssemblyFileVersion("6.6.7.3")]
+[assembly: AssemblyVersion("6.6.8.0")]
+[assembly: AssemblyFileVersion("6.6.8.0")]
 
 [assembly: ComVisibleAttribute(false)]

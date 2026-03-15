@@ -36,6 +36,7 @@ namespace ASCOM.OpenAstroTracker
 		private Action<LoggingFlags, string> logMessageFunc;
 		private Transform _transform = new Transform();
 		private Transform _azAltTransform = new Transform();
+		private ASCOM.Astrometry.NOVAS.NOVAS31 _novas31;
 
 		private bool _isParked;
 		private bool _isTracking = true;
@@ -45,6 +46,7 @@ namespace ASCOM.OpenAstroTracker
 		private bool _targetDecSet;
 		private bool _isConnected = false;
 		private long _fwVersion = 0;
+		private readonly object _fwVersionLock = new object();
 
 		private ProfileData Profile => SharedResources.ReadProfile();
 
@@ -59,7 +61,9 @@ namespace ASCOM.OpenAstroTracker
 			SharedResources.SetTraceFlags(Profile.TraceFlags);
 			LogMessage(LoggingFlags.Scope, $"Starting initialization - v{Version}");
 
-			// TODO: Implement your additional construction here
+			_novas31 = new ASCOM.Astrometry.NOVAS.NOVAS31();
+
+		// TODO: Implement your additional construction here
 			_transform.SetJ2000(_utilities.HMSToHours("02:31:51.12"), _utilities.DMSToDegrees("89:15:51.4"));
 			_transform.SiteElevation = SiteElevation;
 			_transform.SiteLatitude = SiteLatitude;
@@ -165,12 +169,10 @@ namespace ASCOM.OpenAstroTracker
 		}
 
 		/// <summary>
-		/// Required Interface functions of ITelescopeV3 
+		/// Required Interface functions of ITelescopeV3
 		/// </summary>
 		public void CommandBlind(string Command, bool Raw = false)
 		{
-			SharedResources.OATCommandMutex.WaitOne();
-
 			try
 			{
 				SharedResources.SendMessage(Command);
@@ -179,14 +181,10 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage(LoggingFlags.Scope, "CommandBlind <! Exception : " + ex.Message);
 			}
-			finally
-			{
-				SharedResources.OATCommandMutex.ReleaseMutex();
-			}
 		}
 
 		/// <summary>
-		/// Required Interface functions of ITelescopeV3 
+		/// Required Interface functions of ITelescopeV3
 		/// </summary>
 		public bool CommandBool(string Command, bool Raw = false)
 		{
@@ -194,12 +192,10 @@ namespace ASCOM.OpenAstroTracker
 		}
 
 		/// <summary>
-		/// Required Interface functions of ITelescopeV3 
+		/// Required Interface functions of ITelescopeV3
 		/// </summary>
 		public string CommandString(string Command, bool raw = false)
 		{
-			SharedResources.OATCommandMutex.WaitOne();
-
 			try
 			{
 				var response = SharedResources.SendMessage(Command);
@@ -209,10 +205,6 @@ namespace ASCOM.OpenAstroTracker
 			{
 				LogMessage(LoggingFlags.Scope, "CommandString <! Exception :" + ex.Message);
 				return "255";
-			}
-			finally
-			{
-				SharedResources.OATCommandMutex.ReleaseMutex();
 			}
 		}
 
@@ -279,6 +271,8 @@ namespace ASCOM.OpenAstroTracker
 		public void Dispose()
 		{
 			Connected = false;
+			_novas31?.Dispose();
+			_novas31 = null;
 		}
 
 
@@ -287,7 +281,7 @@ namespace ASCOM.OpenAstroTracker
 			if (!AtPark)
 			{
 				LogMessage(LoggingFlags.Scope, "AbortSlew - not parked, sending :Q#");
-				CommandBlind(":Q");
+				CommandBlind(":Q#");
 			}
 			else
 				throw new ASCOM.ParkedException("AbortSlew");
@@ -336,10 +330,15 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				LogMessage(LoggingFlags.Scope, "AtHome Get, query mount");
-				var cmdResult = CommandString(":GX#,#"); // Get status and split
+				var cmdResult = CommandString(":GX#,#");
 				LogMessage(LoggingFlags.Scope, "AtHome Get, mount replied " + cmdResult);
-				var result = cmdResult.Split(','); // Get status and split
-				var atHome = result[2] == "0" && result[3] == "0"; // Check if the mount is at home position
+				var result = cmdResult.Split(',');
+				if (result.Length < 4)
+				{
+					LogMessage(LoggingFlags.Scope, $"AtHome Get - unexpected response (expected 4+ fields, got {result.Length}): '{cmdResult}'");
+					return false;
+				}
+				var atHome = result[2] == "0" && result[3] == "0";
 				LogMessage(LoggingFlags.Scope, "AtHome Get => " + atHome);
 				return atHome;
 			}
@@ -666,7 +665,10 @@ namespace ASCOM.OpenAstroTracker
 		}
 
 
-		private bool _trackingPriorToMove;
+		// Per-axis saved tracking state, so simultaneous moves on both axes don't overwrite each other.
+		private bool _trackingPriorToMovePrimary;
+		private bool _trackingPriorToMoveSecondary;
+
 		public void MoveAxis(TelescopeAxes Axis, double Rate)
 		{
 			LogMessage(LoggingFlags.Scope, $"MoveAxis({Axis}, {Rate:0.00})");
@@ -692,22 +694,25 @@ namespace ASCOM.OpenAstroTracker
 			var sAxis = Enum.GetName(typeof(TelescopeAxes), Axis);
 			string cmd = "Q";
 
-
 			if (Rate == 0)
 			{
 				LogMessage(LoggingFlags.Scope, $"MoveAxis - {sAxis} Rate is zero, so stopping Slew and setting Rate S");
-				// if at some point we support multiple tracking rates this should set
-				// the value back to the previous rate...
 				CommandBlind($":{cmd}");
 				// Restore slewing rate to max
 				CommandBlind($":RS");
-				// Set tracking state to before
-				Tracking = _trackingPriorToMove;
+				// Restore tracking state saved when this axis started moving
+				bool savedTracking = Axis == TelescopeAxes.axisPrimary ? _trackingPriorToMovePrimary : _trackingPriorToMoveSecondary;
+				Tracking = savedTracking;
 			}
 			else
 			{
 				cmd = "S";
-				_trackingPriorToMove = Tracking;
+				// Save current tracking state per-axis before starting the move
+				bool currentTracking = Tracking;
+				if (Axis == TelescopeAxes.axisPrimary)
+					_trackingPriorToMovePrimary = currentTracking;
+				else
+					_trackingPriorToMoveSecondary = currentTracking;
 				double rate = Math.Abs(Rate);
 				string rateCommandParam = "GCMS";
 				int index = 0;
@@ -828,20 +833,17 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				PierSide retVal;
-				if (SiderealTime < 12)
-				{
-					if (RightAscension >= SiderealTime && RightAscension <= SiderealTime + 12)
-						retVal = PierSide.pierWest;
-					else
-						retVal = PierSide.pierEast;
-				}
-				else if (RightAscension <= SiderealTime && RightAscension >= SiderealTime - 12)
-					retVal = PierSide.pierEast;
-				else
-					retVal = PierSide.pierWest;
+				// Read once to avoid multiple serial round-trips and to keep the comparison consistent.
+				double lst = SiderealTime;
+				double ra = RightAscension;
 
-				LogMessage(LoggingFlags.Scope, $"SideOfPier Get => {Enum.GetName(typeof(PierSide), retVal)}");
+				// Compute how far the RA is ahead of the LST, wrapping correctly around 0h/24h.
+				// hourAngle > 0 means the object has already crossed the meridian (telescope pointing west = pier east).
+				// hourAngle in [0, 12): pier east.  hourAngle in [12, 24): pier west.
+				double hourAngle = (lst - ra + 24.0) % 24.0;
+				PierSide retVal = hourAngle < 12.0 ? PierSide.pierEast : PierSide.pierWest;
+
+				LogMessage(LoggingFlags.Scope, $"SideOfPier Get => {Enum.GetName(typeof(PierSide), retVal)} (LST={lst:0.000}, RA={ra:0.000}, HA={hourAngle:0.000})");
 				return retVal;
 			}
 			set
@@ -857,12 +859,9 @@ namespace ASCOM.OpenAstroTracker
 			{
 				// now using novas 3.1
 				double lst = 0.0;
-				using (ASCOM.Astrometry.NOVAS.NOVAS31 novas = new ASCOM.Astrometry.NOVAS.NOVAS31())
-				{
-					double jd = _utilities.DateUTCToJulian(DateTime.UtcNow);
-					novas.SiderealTime(jd, 0, novas.DeltaT(jd), ASCOM.Astrometry.GstType.GreenwichMeanSiderealTime,
-						ASCOM.Astrometry.Method.EquinoxBased, ASCOM.Astrometry.Accuracy.Reduced, ref lst);
-				}
+				double jd = _utilities.DateUTCToJulian(DateTime.UtcNow);
+				_novas31.SiderealTime(jd, 0, _novas31.DeltaT(jd), ASCOM.Astrometry.GstType.GreenwichMeanSiderealTime,
+					ASCOM.Astrometry.Method.EquinoxBased, ASCOM.Astrometry.Accuracy.Reduced, ref lst);
 
 				// Allow for the longitude
 				lst += SiteLongitude / 360.0 * 24.0;
@@ -892,8 +891,8 @@ namespace ASCOM.OpenAstroTracker
 						LogMessage(LoggingFlags.Scope, $"SiteElevation Setting from {profile.Elevation:0.00} to {value:0.00}");
 						profile.Elevation = value;
 						SharedResources.WriteProfile(profile);
-						_transform.SiteElevation = SiteElevation;
-						_azAltTransform.SiteElevation = SiteElevation;
+						_transform.SiteElevation = value;
+						_azAltTransform.SiteElevation = value;
 					}
 				}
 				else
@@ -985,28 +984,38 @@ namespace ASCOM.OpenAstroTracker
 				}
 
 				LogMessage(LoggingFlags.Scope, "FirmwareVersion Get");
-				if (_fwVersion == 0)
+				if (Interlocked.Read(ref _fwVersion) == 0)
 				{
-					var version = CommandString(":GVN#,#");
-					var versionNumbers = version.Substring(1).Split(".".ToCharArray());
-					if (versionNumbers.Length != 3)
+					lock (_fwVersionLock)
 					{
-						LogMessage(LoggingFlags.Scope, $"Unrecognizable firmware version '{version}'");
-					}
-					else
-					{
-						try
+						if (_fwVersion == 0) // second check inside lock
 						{
-							_fwVersion = long.Parse(versionNumbers[0]) * 10000L + long.Parse(versionNumbers[1]) * 100L + long.Parse(versionNumbers[2]);
-						}
-						catch
-						{
-							LogMessage(LoggingFlags.Scope, $"Unable to parse firmware version '{version}'");
+							var version = CommandString(":GVN#,#");
+							var versionNumbers = version.Substring(1).Split(".".ToCharArray());
+							if (versionNumbers.Length != 3)
+							{
+								LogMessage(LoggingFlags.Scope, $"Unrecognizable firmware version '{version}'");
+							}
+							else
+							{
+								try
+								{
+									Interlocked.Exchange(ref _fwVersion,
+										long.Parse(versionNumbers[0]) * 10000L +
+										long.Parse(versionNumbers[1]) * 100L +
+										long.Parse(versionNumbers[2]));
+								}
+								catch
+								{
+									LogMessage(LoggingFlags.Scope, $"Unable to parse firmware version '{version}'");
+								}
+							}
 						}
 					}
 				}
-				LogMessage(LoggingFlags.Scope, $"FirmwareVersion Get => {_fwVersion}");
-				return _fwVersion;
+				long fwv = Interlocked.Read(ref _fwVersion);
+				LogMessage(LoggingFlags.Scope, $"FirmwareVersion Get => {fwv}");
+				return fwv;
 			}
 		}
 
@@ -1148,7 +1157,7 @@ namespace ASCOM.OpenAstroTracker
 
 		private bool ValidateCoordinates(double rightAscension, double declination)
 		{
-			return rightAscension <= 24 && rightAscension >= 0 && declination >= -90 && declination <= 90;
+			return rightAscension >= 0 && rightAscension < 24 && declination >= -90 && declination <= 90;
 		}
 
 		public void SyncToTarget()
@@ -1265,12 +1274,13 @@ namespace ASCOM.OpenAstroTracker
 			}
 			set
 			{
-				LogMessage(LoggingFlags.Scope, $"TrackingRate Set - Ignoring value {value}. Only sidereal supported.");
-				driveRate = DriveRates.driveSidereal;
+				LogMessage(LoggingFlags.Scope, $"TrackingRate Set - {value}");
 				if (value != DriveRates.driveSidereal)
 				{
+					LogMessage(LoggingFlags.Scope, $"TrackingRate Set - rejecting {value}, only sidereal supported.");
 					throw new InvalidValueException("Only sidereal tracking rate supported.");
 				}
+				driveRate = DriveRates.driveSidereal;
 			}
 		}
 
@@ -1290,10 +1300,26 @@ namespace ASCOM.OpenAstroTracker
 			get
 			{
 				string localDate = CommandString(":GC#,#"); // mm/dd/yy
-				string localTime= CommandString(":GL#,#"); // HH:MM:SS in 24h format
-				DateTime now = DateTime.ParseExact(localDate + " " + localTime, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture);
-				DateTime utcDate = now.ToUniversalTime();
-				LogMessage(LoggingFlags.Scope, $"UTCDate Get => {utcDate}");
+				string localTime = CommandString(":GL#,#"); // HH:MM:SS in 24h format
+				// Query the UTC offset that was stored in the mount via :SG.
+				// The mount stores it with an inverted sign convention ('+' = west of UTC / negative, '-' = east of UTC / positive),
+				// matching what the UTCDate setter and SetupDialog send.
+				string utcOffsetStr = CommandString(":GG#,#");
+				DateTime mountLocalTime = DateTime.ParseExact(localDate + " " + localTime, "MM/dd/yy HH:mm:ss", CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
+
+				double offsetHours = 0;
+				if (utcOffsetStr.Length >= 2 && double.TryParse(utcOffsetStr.Substring(1), System.Globalization.NumberStyles.Any, CultureInfo.InvariantCulture, out double absOffset))
+				{
+					// Invert the sign back: stored '+' means west (negative offset), stored '-' means east (positive offset).
+					offsetHours = (utcOffsetStr[0] == '+') ? -absOffset : absOffset;
+				}
+				else
+				{
+					LogMessage(LoggingFlags.Scope, $"UTCDate Get - could not parse UTC offset '{utcOffsetStr}', defaulting to 0");
+				}
+
+				DateTime utcDate = mountLocalTime.AddHours(-offsetHours);
+				LogMessage(LoggingFlags.Scope, $"UTCDate Get => {utcDate} (mount local: {mountLocalTime}, stored offset string: '{utcOffsetStr}', applied offset: {offsetHours}h)");
 				return utcDate;
 			}
 			set
@@ -1371,29 +1397,26 @@ namespace ASCOM.OpenAstroTracker
 				throw new NotConnectedException(message);
 		}
 
-		private int PollUntilZero(string command, int maxAttempts = 120)
+		private int PollUntilZero(string command, int timeoutSeconds = 60)
 		{
-			// Takes a command to be sent via CommandString, and resends every 1000ms until a 0 is returned.  Returns 0 only when complete.
-			// maxAttempts caps the wait to prevent hanging indefinitely if the mount stalls or communication fails (default: 120s).
+			// Sends command every 500ms until "0" is returned, indicating completion.
+			// Throws DriverException if the mount does not respond with "0" within timeoutSeconds.
+			var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
 			string retVal = "";
-			int attempts = 0;
-			while (retVal != "0" && attempts < maxAttempts)
+			while (retVal != "0")
 			{
+				if (DateTime.UtcNow > deadline)
+				{
+					LogMessage(LoggingFlags.Scope, $"PollUntilZero - Timed out after {timeoutSeconds}s waiting for command: {command}");
+					throw new ASCOM.DriverException($"Mount did not complete operation within {timeoutSeconds} seconds (command: {command})");
+				}
 				retVal = CommandString(command);
-				LogMessage(LoggingFlags.Scope, $"PollUntilZero - Command: {command}, Response: {retVal}, Attempt: {attempts + 1}/{maxAttempts}");
-				if (retVal == "0")
-					break;
-				attempts++;
-				Thread.Sleep(1000);
+				LogMessage(LoggingFlags.Scope, $"PollUntilZero - Command: {command}, Response: {retVal}");
+				if (retVal != "0")
+					Thread.Sleep(500);
 			}
 
-			if (attempts >= maxAttempts)
-			{
-				LogMessage(LoggingFlags.Scope, $"PollUntilZero - Timed out after {maxAttempts} attempts for command: {command}");
-				throw new System.TimeoutException($"Mount did not complete operation within {maxAttempts} seconds. Command: {command}");
-			}
-
-			return System.Convert.ToInt32(retVal);
+			return 0;
 		}
 
 		private void LogMessage(LoggingFlags flags, string message)

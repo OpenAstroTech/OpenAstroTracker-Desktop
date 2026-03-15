@@ -383,6 +383,18 @@ namespace ASCOM.OpenAstroTracker
 				try
 				{
 					this._oat.Connected = true;
+				}
+				catch (Exception ex)
+				{
+					btnConnect.Text = "Connect";
+					lblStatus.Text = "Connection failed";
+					lblStatus.Update();
+					MessageBox.Show("OATControl was unable to connect to OAT.\n\nMessage: " + ex.Message + "\n\nIf this was the first connection attempt after connecting, please try again.", "Connection failed!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+
+				try
+				{
 					string fwVersion = this._oat.Action("Serial:PassThroughCommand", ":GVN#,#");
 					if (string.IsNullOrEmpty(fwVersion))
 					{
@@ -447,7 +459,7 @@ namespace ASCOM.OpenAstroTracker
 						else if (hwParts[i].StartsWith("INFO_"))
 						{
 							var infoParts = hwParts[i].Split('_');
-							if (infoParts.Length == 3)
+							if (infoParts.Length == 4)
 							{
 								scopeFeatures.Add(String.Format("{0} Info ({1} on {2})", infoParts[3], infoParts[2], infoParts[1]));
 							}
@@ -527,7 +539,7 @@ namespace ASCOM.OpenAstroTracker
 					btnConnect.Text = "Connect";
 					lblStatus.Text = "Connection failed";
 					lblStatus.Update();
-					MessageBox.Show("OATControl was unable to connect to OAT.\n\nMessage: " + ex.Message + "\n\nIf this was the first connection attempt after connecting, please try again.", "Connection failed!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show("OAT connected but failed to read configuration.\n\nMessage: " + ex.Message, "Configuration error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				}
 			}
 			else
@@ -635,6 +647,12 @@ namespace ASCOM.OpenAstroTracker
 			string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
 			_logger($"Unpark - GX returned {status}");
 			var statusParts = status.Split(',');
+			if (statusParts.Length < 4)
+			{
+				_logger($"Unpark - unexpected GX response: '{status}'");
+				MessageBox.Show("Unexpected response from mount. Please try again.", "Unparking", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
 			_logger($"Unpark - DEC is {statusParts[3]}");
 			long decSteps = long.Parse(statusParts[3], _oatCulture);
 			if (decSteps == 0)
@@ -666,6 +684,12 @@ namespace ASCOM.OpenAstroTracker
 			string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
 			_logger($"Park - GX returned {status}");
 			var statusParts = status.Split(',');
+			if (statusParts.Length < 4)
+			{
+				_logger($"Park - unexpected GX response: '{status}'");
+				MessageBox.Show("Unexpected response from mount. Please try again.", "Parking", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
 			_logger($"Park - DEC is {statusParts[3]}");
 			long decSteps = long.Parse(statusParts[3], _oatCulture);
 			if (decSteps == 0)
@@ -704,6 +728,12 @@ namespace ASCOM.OpenAstroTracker
 				string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
 				_logger($"GX returned {status}");
 				var statusParts = status.Split(',');
+				if (statusParts.Length < 4)
+				{
+					_logger($"SetHome - unexpected GX response: '{status}'");
+					MessageBox.Show("Unexpected response from mount. Please try again.", "Set Home", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
 				_logger($"DEC is {statusParts[3]}");
 				long decSteps = long.Parse(statusParts[3], _oatCulture);
 				if (decSteps != 0)
@@ -798,6 +828,14 @@ namespace ASCOM.OpenAstroTracker
 			timerMountUpdate.Stop();
 			string status = this._oat.Action("Serial:PassThroughCommand", ":GX#,#");
 			var statusParts = status.Split(',');
+
+			if (statusParts.Length < 7)
+			{
+				// Malformed response — restart timer and wait for next tick
+				timerMountUpdate.Start();
+				return;
+			}
+
 			lblStatus.Text = statusParts[0];
 
 			string lst = _oat.Action("Serial:PassThroughCommand", ":XGL#,#");
@@ -806,12 +844,21 @@ namespace ASCOM.OpenAstroTracker
 				lst = $"{lst.Substring(0, 2)}:{lst.Substring(2, 2)}:{lst.Substring(4)}";
 			}
 			lblLST.Text = lst;
-			lblRACoordinate.Text = $"{statusParts[5].Substring(0, 2)}h {statusParts[5].Substring(2, 2)}m {statusParts[5].Substring(4, 2)}s";
-			lblDECCoordinate.Text = $"{statusParts[6].Substring(1, 2)}° {statusParts[6].Substring(3, 2)}\" {statusParts[6].Substring(5, 2)}'";
+
+			string raPart = statusParts[5];
+			lblRACoordinate.Text = raPart.Length >= 6
+				? $"{raPart.Substring(0, 2)}h {raPart.Substring(2, 2)}m {raPart.Substring(4, 2)}s"
+				: raPart;
+
+			string decPart = statusParts[6];
+			lblDECCoordinate.Text = decPart.Length >= 7
+				? $"{decPart.Substring(1, 2)}° {decPart.Substring(3, 2)}\" {decPart.Substring(5, 2)}'"
+				: decPart;
+
 			lblRAPosition.Text = statusParts[2];
 			lblDECPosition.Text = statusParts[3];
 			lblTRKPosition.Text = statusParts[4];
-			if (statusParts.Length > 8)
+			if (statusParts.Length > 7)
 			{
 				lblFocusPosition.Text = statusParts[7];
 			}

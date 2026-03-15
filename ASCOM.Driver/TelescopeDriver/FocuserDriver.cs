@@ -118,6 +118,7 @@ namespace ASCOM.OpenAstroTracker
 			if (IsConnected)
 			{
 				MessageBox.Show("OAT is connected, use Telescope driver to control focuser manually.");
+				return;
 			}
 
 			using (var f = new SetupDialogForm(Profile, null, null))
@@ -146,8 +147,6 @@ namespace ASCOM.OpenAstroTracker
 
 		public void CommandBlind(string command, bool raw)
 		{
-			SharedResources.OATCommandMutex.WaitOne();
-
 			try
 			{
 				SharedResources.SendMessage(command);
@@ -155,10 +154,6 @@ namespace ASCOM.OpenAstroTracker
 			catch (Exception ex)
 			{
 				logMessage(LoggingFlags.Focuser, $"CommandBlind - Exception{ex.Message}");
-			}
-			finally
-			{
-				SharedResources.OATCommandMutex.ReleaseMutex();
 			}
 		}
 
@@ -169,8 +164,6 @@ namespace ASCOM.OpenAstroTracker
 
 		public string CommandString(string command, bool raw)
 		{
-			SharedResources.OATCommandMutex.WaitOne();
-
 			try
 			{
 				var response = SharedResources.SendMessage(command);
@@ -180,10 +173,6 @@ namespace ASCOM.OpenAstroTracker
 			{
 				logMessage(LoggingFlags.Focuser, $"CommandString({command}) => Exception {ex.Message}");
 				return "255";
-			}
-			finally
-			{
-				SharedResources.OATCommandMutex.ReleaseMutex();
 			}
 		}
 
@@ -332,11 +321,16 @@ namespace ASCOM.OpenAstroTracker
 
 		public void Move(int newPosition)
 		{
+			// NOTE: The OAT firmware (:FM) only supports relative moves. We emulate absolute positioning
+			// by reading the current position and computing the delta. This is not atomic — if the focuser
+			// is still moving when Move() is called, the read position will be stale and the final position
+			// will be wrong. Callers should check IsMoving before calling Move() to avoid this.
 			logMessage(LoggingFlags.Focuser, $"MoveAbs To({newPosition})");
 			int currentPosition = Convert.ToInt32(CommandString($":Fp#,#", false));
 			int moveBy = newPosition - currentPosition;
+			logMessage(LoggingFlags.Focuser, $"MoveAbs To({newPosition}) - current={currentPosition}, delta={moveBy}");
 			CommandBlind($":FM{moveBy}#", false);
-			logMessage(LoggingFlags.Focuser, $"MoveAbs To({newPosition}) - complete");
+			logMessage(LoggingFlags.Focuser, $"MoveAbs To({newPosition}) - command sent");
 		}
 
 		public int Position

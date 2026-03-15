@@ -1,25 +1,23 @@
 +--------------------------------------------------------------------------+
 |                                                                          |
-|   OpenAstroTracker ASCOM Driver V6.6.7.3 Pre-Release                         |
-|   Published: 23. June 2025                                              |
+|   OpenAstroTracker ASCOM Driver V6.6.8.0 Pre-Release                     |
+|   Published: 11. March 2026                                              |
 |                                                                          |
 +--------------------------------------------------------------------------+
 
-This is the latest ASCOM driver available for the OAT and OAM. It allows 
+This is the latest ASCOM driver available for the OAT, OAM and OAE. It allows 
 various client programs to communicate with the OAT using both standard 
-LX200 Meade protocol commands, as well as proprietary OAT extensions to 
-that protocol.
+LX200 Meade protocol commands, as well as proprietary OpenAstroTech extensions 
+to that protocol.
 
-The driver is compatible with ASCOM 6.5 and 7.0.
+The driver is compatible with ASCOM 6.5 and 7.x.
 
-The driver also contains controls for the OAT and OAM so that it can be 
+The driver also contains controls for OpenAstroTech mounts so that they can be 
 initialized, configured, slewed, unparked, homed, focused and parked 
 from the driver Properties dialog.
 
  * Tested on MKS Gen L V2.1, Arduino Mega and ESP32. No other variants of 
    Arduino have been tested, or are officially supported.
- * Tested with V1.10.4 firmware.
- * Tested with V1.11.0 firmware.
  * Tested with V1.13.12 firmware (RECOMMENDED).
  * It will probably work with earlier version (down to V1.6.32 and later).
 
@@ -27,12 +25,14 @@ from the driver Properties dialog.
 Support
 -------
  * For any issues or questions arising from the use of this driver, or any
-   other OAT-related questions or to interact with the OAT community, 
-   please visit our Discord server.
+   other OpenAstroTech mount-related questions or to interact with the 
+   OpenAstroTech community, please visit our Discord server.
 
 
 Testing
 -------
+ * 6.6.8.0 Not tested.
+
  * 6.6.7.3 Not tested.
 
  * 6.6.7.2 Conformance Test (2025-Apr-20) 
@@ -75,8 +75,31 @@ So... keep your towel handy and supervise operations.
 
 Release History
 ---------------
+ - 6.6.8.0 : Pre-Released 2026-03-10
+   Cached profile to reduce disk reads
+   Removed an access mutex that was superfluous since we were already using
+     lock {} at a lower level
+   Fixed the :SC# command to return "1"
+   Fixed sending the :Q# command (did not have trailing #, which probably
+     caused the spurious NINA exception)
+   Cached the NovaS31 COM object from ASCOM, instead of instantiating and
+     tearing it down all the time.
+   Protected the version against multi-threaded race condition.
+   Saved the tracking state per axis (probably not needed, but safer).
+   Optimized SideOfPier calculation to make far fewer calls to the mount
+     and fixed a numerical wrap issue.
+   Made the drivers UTCDate return the UTC date from the mount.
+   Fixed the PollUntilZero function to have a timeout of 60s instead of
+     waiting for all eternity in case of protocol issue. Also made it poll
+     every 500ms instead of 1000ms.
+   Split the exception handling for connection vs. other issue in the 
+     Setup dialog
+   Fixed a few Index-Out-of-range bugs in the Setup Dialog.
+   Added checks to :GX# processing to make sure we got a full answer.
+
  - 6.6.7.3 : Pre-Released 2025-06-23
-   Added support for ASCOM driver to get and set time and date from and to mount.
+   Added support for ASCOM driver to get and set time and date from and 
+     to mount.
  
  - 6.6.7.2 : Pre-Released 2025-04-20
    FindHome and AtHome implemented.
