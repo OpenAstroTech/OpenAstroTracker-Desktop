@@ -1,0 +1,22 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="OATTest.App">
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="SystemAccentColor">#CC3333</Color>
+                    <Color x:Key="SystemAccentColorDark1">#AA2222</Color>
+                    <Color x:Key="SystemAccentColorDark2">#881111</Color>
+                    <Color x:Key="SystemAccentColorDark3">#660000</Color>
+                    <Color x:Key="SystemAccentColorLight1">#DD5555</Color>
+                    <Color x:Key="SystemAccentColorLight2">#EE7777</Color>
+                    <Color x:Key="SystemAccentColorLight3">#FF9999</Color>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

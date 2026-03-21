@@ -55,11 +55,11 @@ namespace OATCommunications.Utilities
         public static void Init(string sTitle, bool deleteOlder = true)
         {
             // Create our logfile folder in AppData/Roaming
-            sFolder = string.Format("{0}\\OpenAstroTracker", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            sFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OpenAstroTracker");
             Directory.CreateDirectory(sFolder);
 
             // Create this session logfile
-            sPath = string.Format("{0}\\OATControl_{1}-{2}.log", sFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"), Environment.UserName);
+            sPath = Path.Combine(sFolder, string.Format("OATControl_{0}-{1}.log", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"), Environment.UserName));
 
             if (deleteOlder)
             {
@@ -163,5 +163,3 @@ namespace OATCommunications.Utilities
         }
     }
 }
-
-

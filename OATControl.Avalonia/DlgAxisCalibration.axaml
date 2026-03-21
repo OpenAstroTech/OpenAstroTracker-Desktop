@@ -1,0 +1,7 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OATControl.Avalonia.DlgAxisCalibration"
+        Title="Axis Calibration"
+        Width="500" Height="400">
+  <TextBlock Text="Axis Calibration - TODO" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+</Window>

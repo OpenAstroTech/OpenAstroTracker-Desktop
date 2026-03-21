@@ -1,0 +1,118 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:OATControl.Avalonia.ViewModels"
+        x:Class="OATControl.Avalonia.DlgChooseOat"
+        x:DataType="vm:ConnectVM"
+        Title="Connect to OpenAstroTracker"
+        Width="600" Height="520"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        Foreground="#CCCCCC"
+        FontSize="14" FontWeight="Bold">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.label">
+      <Setter Property="Foreground" Value="#CC3333"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="Background" Value="#3A1A1A"/>
+      <Setter Property="Foreground" Value="#CC3333"/>
+      <Setter Property="BorderBrush" Value="#CC3333"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="8,4"/>
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="Foreground" Value="#CCCCCC"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="#5A2020"/>
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="#2A2A2A"/>
+      <Setter Property="Foreground" Value="#CC3333"/>
+      <Setter Property="BorderBrush" Value="#CC3333"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid Margin="16" RowDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto">
+
+    <!-- Header row -->
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+      <TextBlock Text="Available Connections" FontSize="16" Foreground="#CC3333" VerticalAlignment="Center"/>
+      <Button Grid.Column="1" Content="Rescan" Command="{Binding RescanCommand}" Width="80"/>
+    </Grid>
+
+    <!-- Device list -->
+    <ListBox Grid.Row="1"
+             ItemsSource="{Binding AvailableDevices}"
+             SelectedItem="{Binding SelectedDevice}"
+             Background="#252525"
+             BorderBrush="#CC3333"
+             BorderThickness="1"
+             MinHeight="120"
+             DoubleTapped="OnDeviceDoubleTapped">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:DeviceDriverVM">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding DeviceName}" VerticalAlignment="Center"/>
+            <Button Grid.Column="1"
+                    Content="Setup"
+                    Command="{Binding RunSetupCommand}"
+                    Width="70" Height="22"
+                    Padding="0"
+                    IsVisible="{Binding SupportsSetup}"/>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <!-- Status message -->
+    <TextBlock Grid.Row="2"
+               Text="{Binding StatusMessage}"
+               IsVisible="{Binding ShowStatus}"
+               Foreground="#CC3333"
+               TextWrapping="Wrap"
+               Margin="0,8"/>
+
+    <!-- Location entry -->
+    <Grid Grid.Row="3" IsVisible="{Binding ShowLocation}"
+          RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="120,*"
+          Margin="0,4">
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Latitude" Classes="label"/>
+      <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding Latitude}" Margin="0,2"/>
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="Longitude" Classes="label"/>
+      <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Longitude}" Margin="0,2"/>
+      <TextBlock Grid.Row="2" Grid.Column="0" Text="Altitude (m)" Classes="label"/>
+      <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding Altitude}" Margin="0,2"/>
+    </Grid>
+
+    <!-- RA Homing toggle -->
+    <StackPanel Grid.Row="4" Orientation="Horizontal" IsVisible="{Binding ShowRAHoming}" Margin="0,4">
+      <CheckBox IsChecked="{Binding RunRAAutoHomingProp}" Foreground="#CCCCCC"/>
+      <TextBlock Text="Run RA Auto-Home" Classes="label" Margin="8,0,0,0"/>
+    </StackPanel>
+
+    <!-- DEC Homing toggle -->
+    <StackPanel Grid.Row="5" Orientation="Horizontal" IsVisible="{Binding ShowDECHoming}" Margin="0,4">
+      <CheckBox IsChecked="{Binding RunDECOffsetHomingProp}" Foreground="#CCCCCC"/>
+      <TextBlock Text="{Binding DECHomingMethod}" Classes="label" Margin="8,0,0,0"/>
+    </StackPanel>
+
+    <!-- Buttons -->
+    <Grid Grid.Row="6" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,0">
+      <Button Grid.Column="1"
+              Content="Next"
+              Command="{Binding ConnectAndNextCommand}"
+              IsVisible="{Binding ShowNextButton}"
+              Width="80" Margin="0,0,8,0"/>
+      <Button Grid.Column="2"
+              Content="Cancel"
+              Click="OnCancelClick"
+              Width="80"/>
+    </Grid>
+
+  </Grid>
+</Window>

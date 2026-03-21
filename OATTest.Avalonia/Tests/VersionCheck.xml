@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestSuites>
+	<TestSuite Name="Version Check" Description="Tests the Firmware version">
+		<Test Description="Get Product">
+			<Command>:GVP#</Command>
+			<ExpectedReply Type="#">OpenAstroTracker</ExpectedReply>
+		</Test>
+		<Test Description="Get FirmwareVersion">
+			<Command>:GVN#</Command>
+			<ExpectedReply Type="#"></ExpectedReply>
+		</Test>
+	</TestSuite>
+</TestSuites>

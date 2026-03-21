@@ -16,7 +16,7 @@ namespace OATCommunications.Model
 				dRa = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0 + int.Parse(parts[2]) / 3600.0;
 				return true;
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				Log.WriteLine("OAT: Can't parse RA from {0}", ra);
 			}
@@ -47,7 +47,7 @@ namespace OATCommunications.Model
 				dDec = sign * dDec;
 				return true;
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				Log.WriteLine("OAT: Can't parse DEC from {0}", dec);
 			}

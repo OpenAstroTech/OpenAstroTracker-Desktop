@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OATControl.Avalonia.DlgCustomActionSetup"
+        Title="Custom Action Setup"
+        Width="400" Height="220"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+  <StackPanel Margin="16" Spacing="8">
+    <TextBlock Text="Button Text:" Foreground="#CC3333"/>
+    <TextBox x:Name="ButtonTextBox"/>
+    <TextBlock Text="LX200 Command:" Foreground="#CC3333"/>
+    <TextBox x:Name="CommandTextBox"/>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16" Margin="0,16,0,0">
+      <Button Content="OK" Width="80" Click="OnOkClick"/>
+      <Button Content="Cancel" Width="80" Click="OnCancelClick"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

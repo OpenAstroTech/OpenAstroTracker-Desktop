@@ -1,0 +1,268 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:OATControl.Avalonia"
+  xmlns:vm="using:OATControl.ViewModels"
+        x:Class="OATControl.Avalonia.DlgAppSettings"
+        x:DataType="local:DlgAppSettings"
+        Title="Application Settings"
+        Width="900"
+        Height="680"
+        MinWidth="760"
+        MinHeight="560">
+  <Window.Styles>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="#161A1D" />
+      <Setter Property="BorderBrush" Value="#2C3338" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="14" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <Style Selector="TextBlock.sectionTitle">
+      <Setter Property="FontSize" Value="18" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#F6F7F8" />
+      <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#C7D0D7" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.help">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="#9FAAB3" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="Button.action">
+      <Setter Property="MinWidth" Value="120" />
+      <Setter Property="Height" Value="32" />
+    </Style>
+  </Window.Styles>
+
+  <Grid Background="#0F1214" RowDefinitions="Auto,*,Auto">
+    <Border Grid.Row="0" Background="#161A1D" BorderBrush="#22292E" BorderThickness="0,0,0,1" Padding="18,14">
+      <StackPanel>
+        <TextBlock Text="Application Settings" FontSize="24" FontWeight="SemiBold" Foreground="#F6F7F8"/>
+        <TextBlock Classes="help" Text="Configure serial settings, autohoming defaults, target list, and automatic polar-alignment integration." Margin="0,3,0,0"/>
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="1" Margin="16,14,16,10" ColumnDefinitions="180,*">
+      <Border Grid.Column="0" Classes="card" Margin="0,0,12,0" Padding="8">
+        <StackPanel>
+          <TextBlock Classes="sectionTitle" Text="Categories" Margin="4,2,4,8"/>
+          <ListBox SelectedIndex="{Binding SelectedCategoryIndex}">
+            <ListBoxItem Content="General"/>
+            <ListBoxItem Content="Autohoming"/>
+            <ListBoxItem Content="Target List"/>
+            <ListBoxItem Content="Auto PA"/>
+          </ListBox>
+        </StackPanel>
+      </Border>
+
+      <TabControl Grid.Column="1" SelectedIndex="{Binding SelectedTabIndex}">
+      <TabItem Header="General">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="6">
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="Serial Connection"/>
+                <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Default baud rate" Margin="0,0,12,0"/>
+                  <ComboBox Grid.Row="0" Grid.Column="1" Width="180" HorizontalAlignment="Left"
+                            ItemsSource="{Binding AvailableBaudRates}"
+                            SelectedItem="{Binding SelectedBaudRate}"/>
+                  <TextBlock Grid.Row="1" Grid.Column="1" Classes="help" Text="Used when connecting over serial unless overridden by the mount profile." Margin="0,8,0,0"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="Checklist"/>
+                <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Show checklist" Margin="0,0,12,0"/>
+                  <ComboBox Grid.Row="0" Grid.Column="1" Width="180" HorizontalAlignment="Left"
+                            ItemsSource="{Binding AvailableChecklistShowOn}"
+                            SelectedItem="{Binding ShowChecklist}"/>
+
+                  <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Checklist content" Margin="0,14,12,0"/>
+                  <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,14,0,0">
+                    <Button Classes="action" Content="Configure Checklist" Click="OnConfigureChecklist"/>
+                    <TextBlock Classes="help" Margin="12,8,0,0" Text="Edits the startup checklist file used by the Checklist window."/>
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Autohoming">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="6">
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="RA Autohoming"/>
+                <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Start direction" Margin="0,0,12,0"/>
+                  <ComboBox Grid.Row="0" Grid.Column="1" Width="180" HorizontalAlignment="Left"
+                            ItemsSource="{Binding AvailableRaDirections}"
+                            SelectedItem="{Binding RaDirection}"/>
+
+                  <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Distance (degrees)" Margin="0,14,12,0"/>
+                  <TextBox Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Margin="0,14,0,0"
+                           Text="{Binding RaDistance}"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="DEC Autohoming"/>
+                <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Start direction" Margin="0,0,12,0"/>
+                  <ComboBox Grid.Row="0" Grid.Column="1" Width="180" HorizontalAlignment="Left"
+                            ItemsSource="{Binding AvailableDecDirections}"
+                            SelectedItem="{Binding DecDirection}"/>
+
+                  <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Distance (degrees)" Margin="0,14,12,0"/>
+                  <TextBox Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Margin="0,14,0,0"
+                           Text="{Binding DecDistance}"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Target List">
+        <Grid Margin="6" RowDefinitions="Auto,*,Auto">
+          <Border Classes="card" Grid.Row="0">
+            <TextBlock Classes="help" Text="Manage targets used by target chooser and slew-point tools. Double-click a target to edit."/>
+          </Border>
+
+          <Border Grid.Row="1" Classes="card" Padding="0" Margin="0,0,0,10">
+            <Grid RowDefinitions="Auto,*">
+              <Border Grid.Row="0" Background="#141A1F" BorderBrush="#2B3339" BorderThickness="0,0,0,1" Padding="8,6">
+                <Grid ColumnDefinitions="70,2*,1.5*,1.4*,1.4*">
+                  <Button Grid.Column="0" Classes="action" Height="26" MinWidth="0" Padding="6,0" Click="OnSortTargets" Tag="Show" HorizontalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <TextBlock Text="Show"/>
+                      <TextBlock Text="{Binding ShowSortIndicator}" Margin="6,0,0,0" Foreground="#F16C6C"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="1" Classes="action" Height="26" MinWidth="0" Padding="6,0" Click="OnSortTargets" Tag="Name" HorizontalAlignment="Stretch" Margin="6,0,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <TextBlock Text="Name"/>
+                      <TextBlock Text="{Binding NameSortIndicator}" Margin="6,0,0,0" Foreground="#F16C6C"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="2" Classes="action" Height="26" MinWidth="0" Padding="6,0" Click="OnSortTargets" Tag="Catalog" HorizontalAlignment="Stretch" Margin="6,0,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <TextBlock Text="Catalog"/>
+                      <TextBlock Text="{Binding CatalogSortIndicator}" Margin="6,0,0,0" Foreground="#F16C6C"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="3" Classes="action" Height="26" MinWidth="0" Padding="6,0" Click="OnSortTargets" Tag="RA" HorizontalAlignment="Stretch" Margin="6,0,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <TextBlock Text="RA"/>
+                      <TextBlock Text="{Binding RASortIndicator}" Margin="6,0,0,0" Foreground="#F16C6C"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="4" Classes="action" Height="26" MinWidth="0" Padding="6,0" Click="OnSortTargets" Tag="DEC" HorizontalAlignment="Stretch" Margin="6,0,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <TextBlock Text="DEC"/>
+                      <TextBlock Text="{Binding DECSortIndicator}" Margin="6,0,0,0" Foreground="#F16C6C"/>
+                    </StackPanel>
+                  </Button>
+                </Grid>
+              </Border>
+
+              <ListBox Grid.Row="1"
+                     ItemsSource="{Binding AllPointsOfInterest}"
+                     SelectedItem="{Binding SelectedPoint}"
+                     DoubleTapped="OnTargetsDoubleTapped"
+                     Background="#11161A"
+                     BorderThickness="0">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:PointOfInterest">
+                  <Grid ColumnDefinitions="70,2*,1.5*,1.4*,1.4*" Margin="8,5">
+                    <CheckBox Grid.Column="0" IsChecked="{Binding Enabled}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="#E8EEF3" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="{Binding CatalogName}" Foreground="#C7D0D7" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="{Binding RA, StringFormat={}{0:0.0000}}" Foreground="#F16C6C" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="{Binding DEC, StringFormat={}{0:0.0000}}" Foreground="#F16C6C" VerticalAlignment="Center"/>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            </Grid>
+          </Border>
+
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Classes="action" Content="Add Target" Click="OnAddPoint" Margin="0,0,8,0"/>
+            <Button Classes="action" Content="Edit Target" Click="OnEditPoint" IsEnabled="{Binding IsPointSelected}"/>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Auto PA">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="6">
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="N.I.N.A."/>
+                <CheckBox Content="Monitor N.I.N.A. logs for polar-alignment automation" IsChecked="{Binding MonitorNinaForPA}" />
+                <Grid ColumnDefinitions="220,*" Margin="0,10,0,0">
+                  <TextBlock Grid.Column="0" Classes="label" Text="N.I.N.A. log folder" Margin="0,0,12,0"/>
+                  <TextBox Grid.Column="1" Text="{Binding NinaLogFolder}"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="SharpCap"/>
+                <CheckBox Content="Monitor SharpCap logs for polar-alignment automation" IsChecked="{Binding MonitorSharpCapForPA}" />
+                <Grid ColumnDefinitions="220,*" Margin="0,10,0,0">
+                  <TextBlock Grid.Column="0" Classes="label" Text="SharpCap log folder" Margin="0,0,12,0"/>
+                  <TextBox Grid.Column="1" Text="{Binding SharpCapLogFolder}"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="sectionTitle" Text="Adjustment Limits"/>
+                <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Max azimuth move (deg)" Margin="0,0,12,0"/>
+                  <TextBox Grid.Row="0" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding AZLimit}"/>
+
+                  <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Max altitude move (deg)" Margin="0,10,12,0"/>
+                  <TextBox Grid.Row="1" Grid.Column="1" Width="100" HorizontalAlignment="Left" Margin="0,10,0,0" Text="{Binding ALTLimit}"/>
+
+                  <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Minimum total error (arcsec)" Margin="0,10,12,0"/>
+                  <TextBox Grid.Row="2" Grid.Column="1" Width="100" HorizontalAlignment="Left" Margin="0,10,0,0" Text="{Binding PolarAlignmentMinimumTotalError}"/>
+
+                  <CheckBox Grid.Row="3" Grid.Column="1" Content="Invert ALT corrections" Margin="0,12,0,0" IsChecked="{Binding InvertALTCorrections}"/>
+                  <CheckBox Grid.Row="4" Grid.Column="1" Content="Invert AZ corrections" Margin="0,8,0,0" IsChecked="{Binding InvertAZCorrections}"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      </TabControl>
+    </Grid>
+
+    <Border Grid.Row="2" Background="#161A1D" BorderBrush="#22292E" BorderThickness="0,1,0,0" Padding="16,12">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Classes="action" Content="OK" Click="OnCloseClick" Margin="0,0,8,0"/>
+        <Button Classes="action" Content="Cancel" Click="OnCloseCancelClick"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

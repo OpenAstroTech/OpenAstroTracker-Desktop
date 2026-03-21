@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestSuites>
+
+	<!-- ===================== Guiding Tests ============================== -->
+	<TestSuite Name="Parking Tests" Description="Tests parking and unparking functionality">
+
+		<Test Description="Set UTC offset" MinFirmware="11105">
+			<Command>:SG+07#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Latitude">
+			<Command>:St47*44#</Command>
+			<!-- South is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Longitude">
+			<Command>:Sg+121*58#</Command>
+			<!-- East is negative! -->
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Date">
+			<Command>:SC{Time,MM/dd/yy}#</Command>
+			<ExpectedReply Type="##">1Updating Planetary Data</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Time">
+			<Command>:SL{Time,HH:mm:ss}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Time">
+			<Command>:GL#</Command>
+			<ExpectedReply Type="#">23:00:00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get HA">
+			<Command>:XGH#</Command>
+			<ExpectedReply Type="#">071428</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:14:36</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">+90*00'00</ExpectedReply>
+		</Test>
+
+		<!-- Check Tracking -->>
+		<Test Description="Enable Tracking">
+			<Command>:MT1#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 1s">
+			<Command Type="Builtin">Delay,1s</Command>
+		</Test>
+
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<!-- Check Tracking -->>
+
+		<Test Description="Move up 30000 steps">
+			<Command>:MXd30000#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Set Home Position">
+			<Command>:SHP#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Park mount">
+			<Command>:hP#</Command>
+		</Test>
+
+		<Test Description="Wait for Parked">
+			<Command Type="Builtin">WaitForStatus,Parked</Command>
+		</Test>
+
+		<Test Description="Check Tracking Off">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Unpark mount">
+			<Command>:hU#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 500ms">
+			<Command Type="Builtin">Delay,500ms</Command>
+		</Test>
+
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for Tracking">
+			<Command Type="Builtin">WaitForStatus,Tracking</Command>
+		</Test>
+
+		<Test Description="Move up 50000 steps">
+			<Command>:MXd30000#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Move clockwise 100000 steps">
+			<Command>:MXr100000#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Delay 1500ms">
+			<Command Type="Builtin">Delay,1500ms</Command>
+		</Test>
+
+		<Test Description="Park mount">
+			<Command>:hP#</Command>
+		</Test>
+
+		<Test Description="Wait for Parked">
+			<Command Type="Builtin">WaitForStatus,Parked</Command>
+		</Test>
+
+		<Test Description="Check Tracking Off">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Unpark mount">
+			<Command>:hU#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 500ms">
+			<Command Type="Builtin">Delay,500ms</Command>
+		</Test>
+
+		<Test Description="Check Tracking On">
+			<Command>:GIT#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+
+	</TestSuite>
+
+</TestSuites>

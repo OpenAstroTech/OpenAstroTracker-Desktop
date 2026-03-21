@@ -1,0 +1,144 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:OATControl.ViewModels"
+        x:Class="OATControl.Avalonia.MiniController"
+        x:DataType="vm:MountVM"
+        Title="Mini OAT Control"
+        Width="760"
+        Height="160"
+        MinHeight="160"
+        MaxHeight="160"
+        CanResize="False"
+        SystemDecorations="None"
+        Background="#330A0A"
+        PointerReleased="OnWindowPointerReleased">
+  <Window.Styles>
+    <Style Selector="Border.panel">
+      <Setter Property="Background" Value="#2A0E0E"/>
+      <Setter Property="BorderBrush" Value="#5C1A1A"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="10"/>
+    </Style>
+    <Style Selector="TextBlock.caption">
+      <Setter Property="Foreground" Value="#C98A82"/>
+      <Setter Property="FontSize" Value="11"/>
+    </Style>
+    <Style Selector="TextBlock.value">
+      <Setter Property="Foreground" Value="#F8D8CE"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="Button.slew">
+      <Setter Property="MinWidth" Value="34"/>
+      <Setter Property="Height" Value="30"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Background" Value="#6D1B1B"/>
+      <Setter Property="Foreground" Value="#FFF0EA"/>
+      <Setter Property="BorderBrush" Value="#A43A3A"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="Button.rate">
+      <Setter Property="MinWidth" Value="26"/>
+      <Setter Property="Height" Value="24"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Background" Value="#451616"/>
+      <Setter Property="Foreground" Value="#FFE6DE"/>
+      <Setter Property="BorderBrush" Value="#8F2F2F"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+    <Style Selector="Button.action">
+      <Setter Property="MinWidth" Value="74"/>
+      <Setter Property="Height" Value="30"/>
+      <Setter Property="Background" Value="#B63131"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="BorderBrush" Value="#D96B6B"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.stop">
+      <Setter Property="MinWidth" Value="74"/>
+      <Setter Property="Height" Value="64"/>
+      <Setter Property="Background" Value="#8A1F1F"/>
+      <Setter Property="Foreground" Value="#FFE6DE"/>
+      <Setter Property="BorderBrush" Value="#D96B6B"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+  </Window.Styles>
+
+  <Border Classes="panel" Margin="8">
+    <Grid ColumnDefinitions="170,150,56,90,86,86,90,*" RowDefinitions="Auto,Auto">
+      <StackPanel Grid.RowSpan="2" Grid.Column="0" Spacing="4">
+        <TextBlock Classes="caption" Text="RA" PointerPressed="OnDragAreaPressed"/>
+        <TextBlock Classes="value" Text="{Binding CurrentRAString}" PointerPressed="OnDragAreaPressed"/>
+        <TextBlock Classes="caption" Text="DEC" PointerPressed="OnDragAreaPressed"/>
+        <TextBlock Classes="value" Text="{Binding CurrentDECString}" PointerPressed="OnDragAreaPressed"/>
+      </StackPanel>
+
+      <Grid Grid.RowSpan="2" Grid.Column="1" ColumnDefinitions="48,48,48" RowDefinitions="32,32" IsEnabled="{Binding MountConnected}">
+        <Button x:Name="SlewW" Grid.Row="0" Grid.Column="0" Classes="slew" Content="◀" Tag="W"/>
+        <Button x:Name="SlewN" Grid.Row="0" Grid.Column="1" Classes="slew" Content="▲" Tag="N"/>
+        <Button x:Name="SlewS" Grid.Row="1" Grid.Column="1" Classes="slew" Content="▼" Tag="S"/>
+        <Button x:Name="SlewE" Grid.Row="0" Grid.Column="2" Classes="slew" Content="▶" Tag="E"/>
+      </Grid>
+
+      <StackPanel Grid.RowSpan="2" Grid.Column="2" Spacing="4" HorizontalAlignment="Center" IsEnabled="{Binding MountConnected}">
+        <Button Classes="rate" Content="1" Tag="1" Click="OnRateClicked"/>
+        <Button Classes="rate" Content="2" Tag="2" Click="OnRateClicked"/>
+        <Button Classes="rate" Content="3" Tag="3" Click="OnRateClicked"/>
+        <Button Classes="rate" Content="4" Tag="4" Click="OnRateClicked"/>
+        <Button Classes="rate" Content="5" Tag="5" Click="OnRateClicked"/>
+      </StackPanel>
+
+      <StackPanel Grid.RowSpan="2" Grid.Column="3" Spacing="8">
+        <Button Classes="action" Content="Home" Command="{Binding HomeCommand}"/>
+        <Button Classes="action" Content="{Binding ParkCommandString}" Command="{Binding ParkCommand}"/>
+      </StackPanel>
+
+      <Grid Grid.RowSpan="2" Grid.Column="4" ColumnDefinitions="40,40" RowDefinitions="32,32" IsVisible="{Binding ScopeHasALT}" IsEnabled="{Binding MountConnected}">
+        <Button x:Name="SlewA" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Classes="slew" Content="ALT ▲" Tag="A"/>
+        <Button x:Name="SlewZ" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Classes="slew" Content="ALT ▼" Tag="Z"/>
+      </Grid>
+
+      <Grid Grid.RowSpan="2" Grid.Column="5" ColumnDefinitions="40,40" RowDefinitions="32,32" IsVisible="{Binding ScopeHasAZ}" IsEnabled="{Binding MountConnected}">
+        <Button x:Name="SlewL" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Classes="slew" Content="AZ ◀" Tag="L"/>
+        <Button x:Name="SlewR" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Classes="slew" Content="AZ ▶" Tag="R"/>
+      </Grid>
+
+      <Grid Grid.RowSpan="2" Grid.Column="6" ColumnDefinitions="40,40" RowDefinitions="32,32" IsVisible="{Binding ScopeHasFOC}" IsEnabled="{Binding MountConnected}">
+        <Button x:Name="SlewF" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Classes="slew" Content="FOC +" Tag="F"/>
+        <Button x:Name="SlewG" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Classes="slew" Content="FOC -" Tag="G"/>
+      </Grid>
+
+      <StackPanel Grid.Row="0" Grid.Column="7" Spacing="4" VerticalAlignment="Top">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Classes="caption" Text="TRK:"/>
+          <TextBlock Classes="value" Text="{Binding IsTracking}"/>
+          <TextBlock Classes="caption" Text="GUIDE:"/>
+          <TextBlock Classes="value" Text="{Binding IsGuiding}"/>
+        </StackPanel>
+        <TextBlock Classes="caption" Text="{Binding LastSlewCommandStatus}" MaxWidth="300" TextTrimming="CharacterEllipsis"/>
+      </StackPanel>
+
+      <StackPanel Grid.Row="1" Grid.Column="7" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+        <TextBlock Classes="caption" Text="RA:"/>
+        <TextBlock Classes="value" Text="{Binding IsSlewingRa}"/>
+        <TextBlock Classes="caption" Text="DEC:"/>
+        <TextBlock Classes="value" Text="{Binding IsSlewingDec}"/>
+        <TextBlock Classes="caption" Text="AZ:" IsVisible="{Binding ScopeHasAZ}"/>
+        <TextBlock Classes="value" Text="{Binding IsSlewingAz}" IsVisible="{Binding ScopeHasAZ}"/>
+        <TextBlock Classes="caption" Text="ALT:" IsVisible="{Binding ScopeHasALT}"/>
+        <TextBlock Classes="value" Text="{Binding IsSlewingAlt}" IsVisible="{Binding ScopeHasALT}"/>
+        <TextBlock Classes="caption" Text="FOC:" IsVisible="{Binding ScopeHasFOC}"/>
+        <TextBlock Classes="value" Text="{Binding IsSlewingFocus}" IsVisible="{Binding ScopeHasFOC}"/>
+        <Button Classes="stop" Content="STOP" Command="{Binding StopSlewingCommand}" IsEnabled="{Binding MountConnected}" Margin="12,0,0,0"/>
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

@@ -1,0 +1,95 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:OATControl.Avalonia"
+        xmlns:vm="using:OATControl.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="310"
+        x:Class="OATControl.Avalonia.DlgEditPoint"
+        x:DataType="local:DlgEditPoint"
+        Title=""
+        Height="310" Width="300"
+        MinHeight="310" MinWidth="300"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+	<Window.Styles>
+		<Style Selector="TextBox.TextBoxSmall">
+			<Setter Property="Margin" Value="10,2,10,2" />
+			<Setter Property="Height" Value="24" />
+			<Setter Property="Background" Value="#600000" />
+			<Setter Property="Foreground" Value="#FF0000" />
+			<Setter Property="BorderBrush" Value="#800000" />
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		</Style>
+		<Style Selector="TextBlock.TextBlockHeading">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="20" />
+			<Setter Property="Margin" Value="2,0" />
+			<Setter Property="Padding" Value="6,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="Foreground" Value="#BB0000" />
+		</Style>
+		<Style Selector="TextBlock.TextBlockLabel">
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="Margin" Value="0,8,8,8" />
+			<Setter Property="Padding" Value="0,0" />
+			<Setter Property="HorizontalAlignment" Value="Right" />
+			<Setter Property="Foreground" Value="#BB0000" />
+		</Style>
+		<Style Selector="TextBlock.TextBlockOptionHelp">
+			<Setter Property="FontSize" Value="8" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="Width" Value="190" />
+			<Setter Property="Margin" Value="2,0,0,0" />
+			<Setter Property="Foreground" Value="#BB0000" />
+		</Style>
+		<Style Selector="TextBlock.TextBlockDescription">
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontWeight" Value="Normal" />
+			<Setter Property="Margin" Value="0,0,0,0" />
+			<Setter Property="Padding" Value="2,0" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="VerticalAlignment" Value="Top" />
+			<Setter Property="Foreground" Value="#BB0000" />
+		</Style>
+	</Window.Styles>
+	<Grid Margin="8">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="1*" />
+			<ColumnDefinition Width="2*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+		<TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Text="Point Of Interest" Classes="TextBlockHeading" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+		<TextBlock Grid.Column="0" Grid.Row="1" Text="Enabled" Classes="TextBlockLabel" />
+		<CheckBox Grid.Column="1" Grid.Row="1" IsChecked="{Binding Enabled}" Margin="10,0" />
+
+		<TextBlock Grid.Column="0" Grid.Row="2" Text="Name" Classes="TextBlockLabel" />
+		<TextBox Grid.Column="1" Grid.Row="2" Text="{Binding PointName}" Classes="TextBoxSmall" />
+
+		<TextBlock Grid.Column="0" Grid.Row="3" Text="Catalog name" Classes="TextBlockLabel" />
+		<TextBox Grid.Column="1" Grid.Row="3" Text="{Binding CatalogName}" Classes="TextBoxSmall" />
+
+		<TextBlock Grid.Column="0" Grid.Row="4" Text="RA" Classes="TextBlockLabel" />
+		<TextBox Grid.Column="1" Grid.Row="4" Text="{Binding RaCoordinate}" Classes="TextBoxSmall" LostFocus="OnRaLostFocus"/>
+
+		<TextBlock Grid.Column="0" Grid.Row="5" Text="DEC" Classes="TextBlockLabel" />
+		<TextBox Grid.Column="1" Grid.Row="5" Text="{Binding DecCoordinate}" Classes="TextBoxSmall" LostFocus="OnDecLostFocus"/>
+
+		<StackPanel Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="8,16,8,8">
+			<Button Content="Ok" Width="80" Margin="16,0" Command="{Binding OkCommand}"/>
+			<Button Content="Cancel" Width="80" Command="{Binding CancelCommand}"/>
+		</StackPanel>
+	</Grid>
+</Window>

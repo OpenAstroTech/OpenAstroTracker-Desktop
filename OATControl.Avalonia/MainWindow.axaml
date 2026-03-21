@@ -1,0 +1,249 @@
+<Window xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:vm="clr-namespace:OATControl.ViewModels"
+                        x:Class="OATControl.Avalonia.MainWindow"
+                        x:DataType="vm:MountVM"
+                        Title="{Binding Version, StringFormat='OpenAstroTracker Control V{0}'}"
+                        Width="1240"
+                        Height="860"
+                        MinWidth="980"
+                        MinHeight="760"
+                        Background="#120606"
+                        WindowStartupLocation="CenterScreen">
+      <Window.Styles>
+            <Style Selector="Border.card">
+                  <Setter Property="Background" Value="#2A0E0E"/>
+                  <Setter Property="BorderBrush" Value="#5C1A1A"/>
+                  <Setter Property="BorderThickness" Value="1"/>
+                  <Setter Property="CornerRadius" Value="10"/>
+                  <Setter Property="Padding" Value="14"/>
+            </Style>
+
+            <Style Selector="TextBlock.title">
+                  <Setter Property="FontSize" Value="28"/>
+                  <Setter Property="FontWeight" Value="Bold"/>
+                  <Setter Property="Foreground" Value="#F5B3A5"/>
+            </Style>
+
+            <Style Selector="TextBlock.heading">
+                  <Setter Property="FontSize" Value="18"/>
+                  <Setter Property="FontWeight" Value="Bold"/>
+                  <Setter Property="Foreground" Value="#F08A77"/>
+            </Style>
+
+            <Style Selector="TextBlock.label">
+                  <Setter Property="FontSize" Value="12"/>
+                  <Setter Property="Foreground" Value="#C98A82"/>
+            </Style>
+
+            <Style Selector="TextBlock.value">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="FontWeight" Value="SemiBold"/>
+                  <Setter Property="Foreground" Value="#F8D8CE"/>
+            </Style>
+
+            <Style Selector="TextBox.coord">
+                  <Setter Property="Background" Value="#451616"/>
+                  <Setter Property="BorderBrush" Value="#8F2F2F"/>
+                  <Setter Property="Foreground" Value="#FFE6DE"/>
+                  <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                  <Setter Property="MinWidth" Value="56"/>
+                  <Setter Property="FontSize" Value="18"/>
+                  <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+
+            <Style Selector="Button.action">
+                  <Setter Property="Background" Value="#6D1B1B"/>
+                  <Setter Property="Foreground" Value="#FFF0EA"/>
+                  <Setter Property="BorderBrush" Value="#A43A3A"/>
+                  <Setter Property="BorderThickness" Value="1"/>
+                  <Setter Property="Padding" Value="14,10"/>
+                  <Setter Property="CornerRadius" Value="6"/>
+                  <Setter Property="MinWidth" Value="120"/>
+            </Style>
+
+            <Style Selector="Button.primary">
+                  <Setter Property="Background" Value="#B63131"/>
+                  <Setter Property="Foreground" Value="White"/>
+                  <Setter Property="BorderBrush" Value="#D96B6B"/>
+                  <Setter Property="BorderThickness" Value="1"/>
+                  <Setter Property="Padding" Value="18,12"/>
+                  <Setter Property="CornerRadius" Value="8"/>
+                  <Setter Property="MinWidth" Value="130"/>
+                  <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+
+            <Style Selector="ComboBox, CheckBox">
+                  <Setter Property="Foreground" Value="#F8D8CE"/>
+            </Style>
+      </Window.Styles>
+
+      <Grid RowDefinitions="Auto,*">
+            <Border Grid.Row="0" Background="#1E0909" BorderBrush="#632020" BorderThickness="0,0,0,1" Padding="18,14">
+                  <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+                        <StackPanel Grid.Column="0" Spacing="2">
+                              <TextBlock Classes="title" Text="OpenAstroTracker Control"/>
+                              <TextBlock Classes="label" Text="{Binding ScopeName, FallbackValue=Not connected}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="action" Margin="8,0,0,0" Content="Mount Settings" Command="{Binding ShowSettingsCommand}"/>
+                        <Button Grid.Column="2" Classes="action" Margin="8,0,0,0" Content="App Settings" Command="{Binding OpenAppSettingsCommand}"/>
+                        <Button Grid.Column="3" Classes="action" Margin="8,0,0,0" Content="Checklist" Command="{Binding ShowChecklistCommand}"/>
+                        <Button Grid.Column="4" Classes="action" Margin="8,0,0,0" Content="Logs" Command="{Binding ShowLogFolderCommand}"/>
+                        <Button Grid.Column="5" Classes="primary" Margin="12,0,0,0" Content="{Binding ConnectCommandString}" Command="{Binding ConnectScopeCommand}"/>
+                  </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                  <StackPanel Margin="18" Spacing="16">
+                        <Border Classes="card">
+                              <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Connection"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="label" Text="Mount Status"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="Hardware"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="3" Classes="label" Text="Features"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="value" Text="{Binding ConnectionState}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding MountStatus}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="value" Text="{Binding ScopeHardware}" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="3" Classes="value" Text="{Binding ScopeFeatures}" TextWrapping="Wrap"/>
+                              </Grid>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*">
+                              <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
+                                    <StackPanel Spacing="12">
+                                          <TextBlock Classes="heading" Text="Target"/>
+
+                                          <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" VerticalAlignment="Center" Text="RA" Margin="0,0,10,0"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Classes="coord" Tag="RH" Text="{Binding TargetRAHour, Mode=TwoWay}" GotFocus="OnTargetTextBoxGotFocus" LostFocus="OnTargetTextBoxLostFocus" KeyUp="OnTargetTextBoxKeyUp"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" VerticalAlignment="Center" Text="h" Margin="6,0,10,0"/>
+                                                <TextBox Grid.Row="0" Grid.Column="3" Classes="coord" Tag="RM" Text="{Binding TargetRAMinute, Mode=TwoWay}" GotFocus="OnTargetTextBoxGotFocus" LostFocus="OnTargetTextBoxLostFocus" KeyUp="OnTargetTextBoxKeyUp"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="4" Classes="label" VerticalAlignment="Center" Text="m" Margin="6,0,10,0"/>
+                                                <TextBox Grid.Row="0" Grid.Column="5" Classes="coord" Tag="RS" Text="{Binding TargetRASecond, Mode=TwoWay}" GotFocus="OnTargetTextBoxGotFocus" LostFocus="OnTargetTextBoxLostFocus" KeyUp="OnTargetTextBoxKeyUp"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="6" Classes="label" VerticalAlignment="Center" Text="s" Margin="6,0,0,0"/>
+
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" VerticalAlignment="Center" Text="DEC" Margin="0,0,10,0"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Classes="coord" Tag="DD" Text="{Binding TargetDECDegree, Mode=TwoWay}" GotFocus="OnTargetTextBoxGotFocus" LostFocus="OnTargetTextBoxLostFocus" KeyUp="OnTargetTextBoxKeyUp"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" VerticalAlignment="Center" Text="°" Margin="6,0,10,0"/>
+                                                <TextBox Grid.Row="1" Grid.Column="3" Classes="coord" Tag="DM" Text="{Binding TargetDECMinute, Mode=TwoWay}" GotFocus="OnTargetTextBoxGotFocus" LostFocus="OnTargetTextBoxLostFocus" KeyUp="OnTargetTextBoxKeyUp"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="4" Classes="label" VerticalAlignment="Center" Text="m" Margin="6,0,10,0"/>
+                                                <TextBox Grid.Row="1" Grid.Column="5" Classes="coord" Tag="DS" Text="{Binding TargetDECSecond, Mode=TwoWay}" GotFocus="OnTargetTextBoxGotFocus" LostFocus="OnTargetTextBoxLostFocus" KeyUp="OnTargetTextBoxKeyUp"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="6" Classes="label" VerticalAlignment="Center" Text="s" Margin="6,0,0,0"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="7" Classes="value" VerticalAlignment="Center" Text="{Binding TargetDECSign}" Margin="12,0,0,0"/>
+                                          </Grid>
+
+                                          <TextBlock Classes="label" Text="Use Up/Down while focused in a target field for step changes."/>
+                                          <TextBlock Classes="value" Text="{Binding SelectedPointOfInterest.Name, FallbackValue=No target selected}" TextWrapping="Wrap"/>
+
+                                          <WrapPanel ItemWidth="140" Orientation="Horizontal">
+                                                <Button Classes="action" Content="Choose Target" Command="{Binding ChooseTargetCommand}"/>
+                                                <Button Classes="action" Content="Update ←" Command="{Binding SyncToCurrentCommand}"/>
+                                                <Button Classes="primary" Content="Slew To Target" Command="{Binding SlewToTargetCommand}"/>
+                                                <Button Classes="action" Content="Sync →" Command="{Binding SyncToTargetCommand}"/>
+                                          </WrapPanel>
+                                    </StackPanel>
+                              </Border>
+
+                              <Border Grid.Column="1" Classes="card" Margin="8,0,0,0">
+                                    <StackPanel Spacing="12">
+                                          <TextBlock Classes="heading" Text="Current Position"/>
+                                          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                                                      <TextBlock Classes="label" Text="RA"/>
+                                                      <TextBlock Classes="value" Text="{Binding CurrentRAString}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                                                      <TextBlock Classes="label" Text="DEC"/>
+                                                      <TextBlock Classes="value" Text="{Binding CurrentDECString}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                                                      <TextBlock Classes="label" Text="Hour Angle"/>
+                                                      <TextBlock Classes="value" Text="{Binding CurrentHA}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                                                      <TextBlock Classes="label" Text="Safe RA Time"/>
+                                                      <TextBlock Classes="value" Text="{Binding RemainingRATime}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
+                                                      <TextBlock Classes="label" Text="ALT"/>
+                                                      <TextBlock Classes="value" Text="{Binding CurrentALTDegrees, StringFormat='{}{0:00}°'}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                                                      <TextBlock Classes="label" Text="AZ"/>
+                                                      <TextBlock Classes="value" Text="{Binding CurrentAZDegrees, StringFormat='{}{0:00}°'}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="3" Grid.Column="0" Spacing="4">
+                                                      <TextBlock Classes="label" Text="Tracking Speed"/>
+                                                      <TextBlock Classes="value" Text="{Binding TrackingSpeed, StringFormat='{}{0:0.###}'}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4">
+                                                      <TextBlock Classes="label" Text="Firmware"/>
+                                                      <TextBlock Classes="value" Text="{Binding ScopeVersion}"/>
+                                                </StackPanel>
+                                          </Grid>
+                                    </StackPanel>
+                              </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="1.1*,0.9*">
+                              <Border Grid.Column="0" Classes="card" Margin="0,0,8,0">
+                                    <StackPanel Spacing="12">
+                                          <TextBlock Classes="heading" Text="Controls"/>
+                                          <WrapPanel ItemWidth="140" Orientation="Horizontal">
+                                                <Button Classes="action" Content="Home" Command="{Binding HomeCommand}"/>
+                                                <Button Classes="action" Content="Set Home" Command="{Binding SetHomeCommand}"/>
+                                                <Button Classes="action" Content="{Binding ParkCommandString}" Command="{Binding ParkCommand}"/>
+                                                <Button Classes="action" Content="Polar Align" Command="{Binding PolarAlignCommand}"/>
+                                                <Button Classes="action" Content="Mini Controller" Command="{Binding ShowMiniControllerCommand}"/>
+                                                <Button Classes="action" Content="Slew Points" Command="{Binding ShowSlewPointsCommand}"/>
+                                                <Button Classes="action" Content="Factory Reset" Command="{Binding FactoryResetCommand}"/>
+                                          </WrapPanel>
+
+                                          <Separator Background="#5C1A1A"/>
+
+                                          <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Tracking" VerticalAlignment="Center" Margin="0,0,12,10"/>
+                                                <CheckBox Grid.Row="0" Grid.Column="1" Content="Enabled" IsChecked="{Binding IsTracking, Mode=TwoWay}" Margin="0,0,12,10"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="Tracking Mode" VerticalAlignment="Center" Margin="0,0,12,10"/>
+                                                <ComboBox Grid.Row="0" Grid.Column="3" ItemsSource="{Binding AvailableTrackingModes}" SelectedItem="{Binding SelectedTrackingMode, Mode=TwoWay}" Margin="0,0,0,10"/>
+
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="N.I.N.A." VerticalAlignment="Center" Margin="0,0,12,10"/>
+                                                <CheckBox Grid.Row="1" Grid.Column="1" Content="Monitor Polar Align" IsChecked="{Binding MonitorNinaForPA, Mode=TwoWay}" Margin="0,0,12,10"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" Text="SharpCap" VerticalAlignment="Center" Margin="0,0,12,10"/>
+                                                <CheckBox Grid.Row="1" Grid.Column="3" Content="Monitor Polar Align" IsChecked="{Binding MonitorSharpCapForPA, Mode=TwoWay}" Margin="0,0,0,10"/>
+
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Log Status" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Classes="value" Text="{Binding NinaLogState}"/>
+                                          </Grid>
+                                    </StackPanel>
+                              </Border>
+
+                              <Border Grid.Column="1" Classes="card" Margin="8,0,0,0">
+                                    <StackPanel Spacing="12">
+                                          <TextBlock Classes="heading" Text="Mount Details"/>
+                                          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Board" Margin="0,0,12,8"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ScopeBoard}"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Display" Margin="0,0,12,8"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding ScopeDisplay}"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Latitude" Margin="0,0,12,8"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding ScopeLatitude}"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Longitude" Margin="0,0,12,8"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding ScopeLongitude}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Hemisphere" Margin="0,0,12,8"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding ScopeHemisphere}"/>
+                                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Temperature" Margin="0,0,12,8"/>
+                                                <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding ScopeTemperature}"/>
+                                                <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Sidereal Time" Margin="0,0,12,8"/>
+                                                <TextBlock Grid.Row="6" Grid.Column="1" Classes="value" Text="{Binding ScopeSiderealTime}"/>
+                                                <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="Polaris HA" Margin="0,0,12,0"/>
+                                                <TextBlock Grid.Row="7" Grid.Column="1" Classes="value" Text="{Binding ScopePolarisHourAngle}"/>
+                                          </Grid>
+                                    </StackPanel>
+                              </Border>
+                        </Grid>
+                  </StackPanel>
+            </ScrollViewer>
+      </Grid>
+</Window>

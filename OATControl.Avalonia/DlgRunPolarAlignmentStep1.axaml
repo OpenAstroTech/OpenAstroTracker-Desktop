@@ -1,0 +1,8 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OATControl.Avalonia.DlgRunPolarAlignmentStep1"
+        Title="Polar Alignment - Step 1"
+        Width="678" Height="442"
+        CanResize="False">
+  <TextBlock Text="Polar Alignment Step 1 - TODO" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#CC3333"/>
+</Window>

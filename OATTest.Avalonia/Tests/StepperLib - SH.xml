@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestSuites>
+	<IncludeSuite Filename="VersionCheck.xml" />
+	<IncludeSuite Filename="ReadConfigSettings.xml" />
+	<IncludeSuite Filename="SH - LocationTime.xml" />
+	<!--<IncludeSuite Filename="Guiding.xml" />-->
+
+	<!-- ===================== RA Slewing ============================== -->
+	<TestSuite Name="SH - RA Movement Check" Description="Moves RA back and forth in southern Hemisphere">
+		<Test IncludedName="Version Check" />
+		<Test IncludedName="SH - Location, Time Check" />
+		<Test IncludedName="Read OAT Settings" />
+
+		<Test Description="Move DEC up 1 deg">
+			<Command>:MXd{Calc,1.0 * $DECSteps}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:24:56</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#" Fuzzy="Degrees">-89*00'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Target DEC to current">
+			<Command>:Sd-89*00:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		
+		<!-- Slew West 30m . Current RA in SH is 11:24:56 -->
+		<Test Description="Set Target RA">
+			<Command>:Sr11:54:56#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 30m West">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:54:56</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<!-- Slew East -->
+		<Test Description="Set Target RA">
+			<Command>:Sr11:24:56#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 30m East">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 200ms">
+			<Command Type="Builtin">Delay,200ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:24:56</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<!-- Slew West 5s -->
+		<Test Description="Set Target RA">
+			<Command>:Sr11:24:51#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 5s West">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:24:51</ExpectedReply>
+		</Test>
+
+		<!-- Slew East 15s -->
+		<Test Description="Set Target RA">
+			<Command>:Sr11:24:36#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew RA 15s East">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:24:36</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+
+	<!-- ===================== DEC Slewing ============================== -->
+	<TestSuite Name="SH - DEC Movement Check" Description="Moves DEC up and down and checks coords">
+		<Test IncludedName="Version Check" />
+		<Test IncludedName="SH - Location, Time Check" />
+		<Test IncludedName="Read OAT Settings" />
+
+		<!-- Slew Up -->
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew Up 4.5deg">
+			<Command>:MXd{Calc,4.5*$DECSteps}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 100ms">
+			<Command Type="Builtin">Delay,100ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#" Fuzzy="Degrees">-85*30'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">11:24:56</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew Down 9deg">
+			<Command>:MXd{Calc,-9.0*$DECSteps}#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Delay 200ms">
+			<Command Type="Builtin">Delay,200ms</Command>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#" Fuzzy="Degrees">-85*30'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">23:24:56</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+
+
+	<!-- ===================== Sync ============================== -->
+	<TestSuite Name="SH - Sync Check" Description="Checks to make sure syncing works">
+		<Test IncludedName="Version Check" />
+		<Test IncludedName="SH - Location, Time Check" />
+		<!-- Mount is at 11:24:56 -->
+
+		<!-- Slew 1.5h ahead and 30 degrees up -->
+		<Test Description="Set Target RA 1,5h ahead">
+			<Command>:Sr12:54:56#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+		<Test Description="Set Target DEC 15deg up">
+			<Command>:Sd-75*00:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Slewing">
+			<Command>:GIS#</Command>
+			<ExpectedReply Type="#">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Slew to Target">
+			<Command>:MS#</Command>
+			<ExpectedReply Type="n">0</ExpectedReply>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#" Fuzzy="Degrees">-75*00'00</ExpectedReply>
+		</Test>
+		
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">12:54:56</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Target RA to 30mins back">
+			<Command>:Sr12:24:56#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Set Target DEC to -65">
+			<Command>:Sd-65*00:00#</Command>
+			<ExpectedReply Type="n">1</ExpectedReply>
+		</Test>
+
+		<Test Description="Sync mount">
+			<Command>:CM#</Command>
+			<ExpectedReply Type="#">NONE</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">12:24:56</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#" Fuzzy="Degrees">-65*00'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Go Home">
+			<Command>:hF#</Command>
+		</Test>
+
+		<Test Description="Wait for slew end">
+			<Command Type="Builtin">WaitForSlewEnd</Command>
+		</Test>
+
+		<Test Description="Get Current DEC">
+			<Command>:GD#</Command>
+			<ExpectedReply Type="#">-80*00'00</ExpectedReply>
+		</Test>
+
+		<Test Description="Get Current RA">
+			<Command>:GR#</Command>
+			<ExpectedReply Type="#">10:54:56</ExpectedReply>
+		</Test>
+
+	</TestSuite>
+
+</TestSuites>

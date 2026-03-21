@@ -1,0 +1,352 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:OATControl.ViewModels"
+        x:Class="OATControl.Avalonia.SettingsDialog"
+  x:DataType="vm:MountVM"
+        Title="Mount Settings"
+        Width="1040"
+        Height="820"
+        MinWidth="900"
+        MinHeight="700">
+  <Window.Styles>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="#161A1D" />
+      <Setter Property="BorderBrush" Value="#2C3338" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="16" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <Style Selector="TextBlock.title">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#F6F7F8" />
+    </Style>
+    <Style Selector="TextBlock.sectionTitle">
+      <Setter Property="FontSize" Value="17" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#F6F7F8" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <Style Selector="TextBlock.caption">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="#9FAAB3" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#C7D0D7" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0,0,10,0" />
+    </Style>
+    <Style Selector="TextBlock.value">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="#F16C6C" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.action">
+      <Setter Property="MinWidth" Value="150" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Margin" Value="0,6,0,0" />
+    </Style>
+    <Style Selector="Button.adjust">
+      <Setter Property="Width" Value="28" />
+      <Setter Property="Height" Value="28" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,6,0" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Background="#0F1214">
+    <Border DockPanel.Dock="Top" Background="#161A1D" BorderBrush="#22292E" BorderThickness="0,0,0,1" Padding="20,16">
+      <StackPanel>
+        <TextBlock Classes="title" Text="Mount Settings" />
+        <TextBlock Classes="caption" Text="Live mount information, calibration controls, and firmware-level maintenance commands." Margin="0,4,0,0" />
+      </StackPanel>
+    </Border>
+
+    <Border DockPanel.Dock="Bottom" Background="#161A1D" BorderBrush="#22292E" BorderThickness="0,1,0,0" Padding="20,14">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Classes="action" Content="Application Settings" Command="{Binding OpenAppSettingsCommand}" Margin="0,0,10,0" />
+        <Button Classes="action" Content="Close" Click="OnCloseClick" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <Grid Margin="20,18,20,8" ColumnDefinitions="1.08*,0.92*" RowDefinitions="Auto,Auto,Auto">
+        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+          <Border Classes="card">
+            <StackPanel>
+              <TextBlock Classes="sectionTitle" Text="Mount Information" />
+
+              <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Firmware" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ScopeVersion}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Controller Board" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding ScopeBoard}" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Display" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding ScopeDisplay}" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Features" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding ScopeFeatures}" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="RA Stepper" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding ScopeRAStepper}" />
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="RA Driver" />
+                <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding ScopeRADriver}" />
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="DEC Stepper" />
+                <TextBlock Grid.Row="6" Grid.Column="1" Classes="value" Text="{Binding ScopeDECStepper}" />
+
+                <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="DEC Driver" />
+                <TextBlock Grid.Row="7" Grid.Column="1" Classes="value" Text="{Binding ScopeDECDriver}" />
+              </Grid>
+
+              <Grid Margin="0,14,0,0" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="caption" Text="RA Slew MS" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="caption" Text="RA Track MS" Margin="8,0,0,0" />
+                <TextBlock Grid.Row="0" Grid.Column="2" Classes="caption" Text="DEC Slew MS" Margin="8,0,0,0" />
+                <TextBlock Grid.Row="0" Grid.Column="3" Classes="caption" Text="DEC Guide MS" Margin="8,0,0,0" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="value" Text="{Binding ScopeRASlewMS}" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding ScopeRATrackMS}" Margin="8,0,0,0" />
+                <TextBlock Grid.Row="1" Grid.Column="2" Classes="value" Text="{Binding ScopeDECSlewMS}" Margin="8,0,0,0" />
+                <TextBlock Grid.Row="1" Grid.Column="3" Classes="value" Text="{Binding ScopeDECGuideMS}" Margin="8,0,0,0" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel>
+              <TextBlock Classes="sectionTitle" Text="Realtime Status" />
+
+              <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Latitude" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ScopeLatitude}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Longitude" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding ScopeLongitude}" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Hemisphere" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding ScopeHemisphere}" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Time" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding ScopeTime}" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Date" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding ScopeDate}" />
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Sidereal Time" />
+                <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding ScopeSiderealTime}" />
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Polaris HA" />
+                <TextBlock Grid.Row="6" Grid.Column="1" Classes="value" Text="{Binding ScopePolarisHourAngle}" />
+
+                <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="Temperature" />
+                <TextBlock Grid.Row="7" Grid.Column="1" Classes="value" Text="{Binding ScopeTemperature}" />
+              </Grid>
+
+              <Separator Margin="0,14,0,12" />
+
+              <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Network" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ScopeNetworkState}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="IP Address" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding ScopeNetworkIPAddress}" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="SSID" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding ScopeNetworkSSID}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel>
+              <TextBlock Classes="sectionTitle" Text="Calibration" />
+
+              <Grid ColumnDefinitions="150,Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,8">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="RA Steps / Degree" />
+                <Button Grid.Row="0" Grid.Column="1" Classes="adjust" Content="-" Command="{Binding StartChangingCommand}" CommandParameter="SR+" />
+                <TextBlock Grid.Row="0" Grid.Column="2" Classes="value" Text="{Binding RAStepsPerDegreeEdit, StringFormat={}{0:0.0}}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Button Grid.Row="0" Grid.Column="3" Classes="adjust" Content="+" Command="{Binding StartChangingCommand}" CommandParameter="SR-" Margin="6,0,0,0" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="DEC Steps / Degree" Margin="0,10,10,0" />
+                <Button Grid.Row="1" Grid.Column="1" Classes="adjust" Content="-" Command="{Binding StartChangingCommand}" CommandParameter="SD+" Margin="0,10,0,0" />
+                <TextBlock Grid.Row="1" Grid.Column="2" Classes="value" Text="{Binding DECStepsPerDegreeEdit, StringFormat={}{0:0.0}}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                <Button Grid.Row="1" Grid.Column="3" Classes="adjust" Content="+" Command="{Binding StartChangingCommand}" CommandParameter="SD-" Margin="6,10,0,0" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Tracking Speed" Margin="0,10,10,0" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Classes="value" Text="{Binding TrackingSpeed, StringFormat={}{0:0.00000}}" Margin="0,10,0,0" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Speed Calibration" Margin="0,10,10,0" />
+                <Button Grid.Row="3" Grid.Column="1" Classes="adjust" Content="-" Command="{Binding StartChangingCommand}" CommandParameter="SS+" Margin="0,10,0,0" />
+                <TextBlock Grid.Row="3" Grid.Column="2" Classes="value" Text="{Binding SpeedCalibrationFactorDisplay}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                <Button Grid.Row="3" Grid.Column="3" Classes="adjust" Content="+" Command="{Binding StartChangingCommand}" CommandParameter="SS-" Margin="6,10,0,0" />
+              </Grid>
+
+              <Separator Margin="0,10,0,12" />
+
+              <Grid ColumnDefinitions="150,Auto,*,Auto" RowDefinitions="Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Tracking Rate" />
+                <Button Grid.Row="0" Grid.Column="1" Classes="adjust" Content="-" Command="{Binding StartChangingCommand}" CommandParameter="TR-" IsEnabled="{Binding IsManualTrackingMode}" />
+                <TextBlock Grid.Row="0" Grid.Column="2" Classes="value" Text="{Binding TrackingRateHz, StringFormat={}{0:0.00}}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Button Grid.Row="0" Grid.Column="3" Classes="adjust" Content="+" Command="{Binding StartChangingCommand}" CommandParameter="TR+" Margin="6,0,0,0" IsEnabled="{Binding IsManualTrackingMode}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Tracking Mode" Margin="0,12,10,0" />
+                <ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,12,0,0" Width="180" HorizontalAlignment="Left"
+                          ItemsSource="{Binding AvailableTrackingModes}"
+                          SelectedItem="{Binding SelectedTrackingMode}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+          <Border Classes="card">
+            <StackPanel>
+              <TextBlock Classes="sectionTitle" Text="Homing And Park" />
+
+              <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,0">
+                  <TextBlock Classes="label" Text="Auto-center RA ring" />
+                  <TextBlock Classes="caption" Text="Requires firmware 1.9.21+ and the RA hall sensor add-on." />
+                </StackPanel>
+                <Button Grid.Row="0" Grid.Column="1" Classes="action" Content="Auto-Home RA" Command="{Binding AutoHomeRACommand}" />
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Auto-center DEC ring" />
+                  <TextBlock Classes="caption" Text="Requires firmware 1.12.1+ and the DEC hall sensor add-on." />
+                </StackPanel>
+                <Button Grid.Row="1" Grid.Column="1" Classes="action" Content="Auto-Home DEC" Command="{Binding AutoHomeDECCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Move DEC from power-on position to home" />
+                  <TextBlock Classes="caption" Text="Uses the stored DEC home offset when supported by firmware." />
+                </StackPanel>
+                <Button Grid.Row="2" Grid.Column="1" Classes="action" Content="Unpark DEC" Command="{Binding GotoDECHomeFromPowerOnCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Move DEC to park before power off" />
+                  <TextBlock Classes="caption" Text="Stores the parked orientation so power-on recovery is consistent." />
+                </StackPanel>
+                <Button Grid.Row="3" Grid.Column="1" Classes="action" Content="Park DEC" Command="{Binding GotoDECParkBeforePowerOffCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Use custom park position" />
+                  <TextBlock Classes="caption" Text="Enable a park position that differs from the home position." />
+                </StackPanel>
+                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,16,0,0">
+                  <CheckBox IsChecked="{Binding UseCustomParkPosition}" VerticalAlignment="Center" />
+                  <TextBlock Classes="caption" Text="Enabled" VerticalAlignment="Center" Margin="8,0,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Save current park position" />
+                  <TextBlock Classes="caption" Text="Writes the current position as the park target when custom park is enabled." />
+                </StackPanel>
+                <Button Grid.Row="5" Grid.Column="1" Classes="action" Content="Save Park Position" Command="{Binding SaveParkPositionCommand}" Margin="0,16,0,0" IsVisible="{Binding UseCustomParkPosition}" />
+
+                <StackPanel Grid.Row="6" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Set RA home offset" />
+                  <TextBlock Classes="caption" Text="Store the center of the RA hall sensor range as home." />
+                </StackPanel>
+                <Button Grid.Row="6" Grid.Column="1" Classes="action" Content="Set RA Home Offset" Command="{Binding SetRAHomeOffsetCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="7" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Set DEC home offset" />
+                  <TextBlock Classes="caption" Text="Store the DEC home offset from the power-on orientation." />
+                </StackPanel>
+                <Button Grid.Row="7" Grid.Column="1" Classes="action" Content="Set DEC Home Offset" Command="{Binding SetDECHomeOffsetFromPowerOnCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="8" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Set AZ / ALT home" />
+                  <TextBlock Classes="caption" Text="Available on firmware 1.13.7+ when the mount exposes AZ or ALT axes." />
+                </StackPanel>
+                <Button Grid.Row="8" Grid.Column="1" Classes="action" Content="Set AZ/ALT Home" Command="{Binding SetAzAltHomeCommand}" Margin="0,16,0,0" IsVisible="{Binding ScopeHasAZ}" />
+
+                <StackPanel Grid.Row="9" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Move AZ / ALT to home" />
+                  <TextBlock Classes="caption" Text="Return the auxiliary axes to the stored home position." />
+                </StackPanel>
+                <Button Grid.Row="9" Grid.Column="1" Classes="action" Content="Move AZ/ALT To Home" Command="{Binding MoveAzAltToHomeCommand}" Margin="0,16,0,0" IsVisible="{Binding ScopeHasALT}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel>
+              <TextBlock Classes="sectionTitle" Text="Custom Actions" />
+              <TextBlock Classes="caption" Text="These labels and responses come from the mount firmware and app settings." Margin="0,0,0,12" />
+
+              <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,4">
+                <Button Grid.Row="0" Grid.Column="0" Classes="action" Content="{Binding CustomAction1Text}" Command="{Binding CustomActionCommand}" CommandParameter="0" Margin="0,0,6,8" />
+                <Button Grid.Row="0" Grid.Column="1" Classes="action" Content="{Binding CustomAction2Text}" Command="{Binding CustomActionCommand}" CommandParameter="1" Margin="6,0,0,8" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="caption" Text="{Binding CustomAction1ResultStatus}" Margin="0,0,6,0" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="caption" Text="{Binding CustomAction2ResultStatus}" Margin="6,0,0,0" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Classes="value" Text="{Binding CustomAction1ResultText}" Margin="0,2,6,10" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding CustomAction2ResultText}" Margin="6,2,0,10" />
+
+                <Button Grid.Row="3" Grid.Column="0" Classes="action" Content="{Binding CustomAction3Text}" Command="{Binding CustomActionCommand}" CommandParameter="2" Margin="0,0,6,8" />
+                <Button Grid.Row="3" Grid.Column="1" Classes="action" Content="{Binding CustomAction4Text}" Command="{Binding CustomActionCommand}" CommandParameter="3" Margin="6,0,0,8" />
+              </Grid>
+
+              <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="caption" Text="{Binding CustomAction3ResultStatus}" Margin="0,0,6,0" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Classes="caption" Text="{Binding CustomAction4ResultStatus}" Margin="6,0,0,0" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="value" Text="{Binding CustomAction3ResultText}" Margin="0,2,6,0" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding CustomAction4ResultText}" Margin="6,2,0,0" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel>
+              <TextBlock Classes="sectionTitle" Text="Maintenance" />
+
+              <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,0">
+                  <TextBlock Classes="label" Text="Reset focuser position" />
+                  <TextBlock Classes="caption" Text="Requires firmware 1.9.19 or later." />
+                </StackPanel>
+                <Button Grid.Row="0" Grid.Column="1" Classes="action" Content="Reset Focuser" Command="{Binding FocuserResetCommand}" />
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Run step calibration" />
+                  <TextBlock Classes="caption" Text="Launch the platesolve-assisted calibration wizard for mount axes." />
+                </StackPanel>
+                <Button Grid.Row="1" Grid.Column="1" Classes="action" Content="Run Step Calibration" Command="{Binding RunStepCalibrationCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Polar alignment" />
+                  <TextBlock Classes="caption" Text="Start the mount-guided polar alignment flow." />
+                </StackPanel>
+                <Button Grid.Row="2" Grid.Column="1" Classes="action" Content="Polar Alignment" Command="{Binding PolarAlignCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Factory reset" />
+                  <TextBlock Classes="caption" Text="Reset EEPROM-stored configuration back to firmware defaults." />
+                </StackPanel>
+                <Button Grid.Row="3" Grid.Column="1" Classes="action" Content="Factory Reset" Command="{Binding FactoryResetCommand}" Margin="0,16,0,0" />
+
+                <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,10,12,0">
+                  <TextBlock Classes="label" Text="Open log folder" />
+                  <TextBlock Classes="caption" Text="Open the OATControl session logs for diagnostics and support." />
+                </StackPanel>
+                <Button Grid.Row="4" Grid.Column="1" Classes="action" Content="Open Log Folder" Command="{Binding ShowLogFolderCommand}" Margin="0,16,0,0" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

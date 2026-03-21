@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:OATControl.Avalonia"
+        xmlns:vm="using:OATControl.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="180"
+        x:Class="OATControl.Avalonia.DlgMessageBox"
+        x:DataType="local:DlgMessageBox"
+        Title="{Binding Title}"
+        Height="180" Width="520"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+	<Window.Styles>
+		<Style Selector="TextBlock.MessageText">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="FontSize" Value="16" />
+			<Setter Property="Margin" Value="10,0" />
+			<Setter Property="Padding" Value="0,0" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="Foreground" Value="#B00" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+		</Style>
+	</Window.Styles>
+
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="40"/>
+		</Grid.RowDefinitions>
+		<TextBlock Grid.Row="0" Text="{Binding Message}" Classes="MessageText" />
+		<Button Grid.Row="1" Content="OK" Margin="20,5,20,5" Width="80" HorizontalAlignment="Center" Command="{Binding CloseCommand}"/>
+	</Grid>
+</Window>

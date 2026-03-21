@@ -1,0 +1,103 @@
+<Window x:Class="OATControl.DlgChecklistEditor"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OATControl"
+        mc:Ignorable="d"
+        x:DataType="local:DlgChecklistEditor"
+        Title="Edit Startup Checklist" Height="525" Width="360" MinWidth="392"
+        WindowStartupLocation="CenterOwner">
+    <Window.Styles>
+        <Style Selector="TextBox.TextBoxSmall">
+            <Setter Property="Margin" Value="10,2,10,2" />
+            <Setter Property="Height" Value="11" />
+            <Setter Property="Background" Value="#770000" />
+            <Setter Property="Foreground" Value="#F00" />
+            <Setter Property="Width" Value="60" />
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <Style Selector="TextBlock.TextBlockHeading">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+        <Style Selector="TextBlock.TextBlockLabel">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+        <Style Selector="TextBlock.TextBlockLabelSmall">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Foreground" Value="#B00" />
+        </Style>
+    </Window.Styles>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <!-- Multi-line TextBox for editing -->
+        <Border BorderBrush="#622" BorderThickness="1" Grid.Row="0">
+            <TextBox x:Name="ChecklistTextBox"
+                 AcceptsReturn="True"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 FontFamily="Consolas"
+                 FontSize="14"
+                 TextWrapping="NoWrap"
+                 Text="{Binding ChecklistText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 Foreground="#F40"
+                 Background="#400000"
+                 BorderThickness="0"
+                 CaretBrush="#FFF"
+                 />
+        </Border>
+        <TextBlock Grid.Row="1" Text="One checklist item line. Headers start with '*', subitems with '-'." Foreground="#A30"/>
+        <!-- Buttons -->
+        <Grid Grid.Row="2"
+                    HorizontalAlignment="Stretch"
+                    Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="List title:"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0"
+                       Classes="TextBlockLabelSmall"/>
+            <TextBox Grid.Column="1" Width="120"
+                     HorizontalAlignment="Left"
+                     Margin="0,0"
+                     Text="{Binding ListTitle}"
+                     Classes="TextBoxSmall"
+                     />
+            <Button Grid.Column="2" Content="OK"
+                    Width="55"
+                    Margin="0,0,10,0"
+                    IsDefault="True"
+                    Click="OKButton_Click" />
+            <Button Grid.Column="3" Content="Cancel"
+                    Width="55"
+                    Click="CancelButton_Click" />
+        </Grid>
+    </Grid>
+</Window>
