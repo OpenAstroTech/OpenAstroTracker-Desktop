@@ -41,6 +41,8 @@ namespace OATControl.ViewModels
 		bool _monitorSharpCapForPA = false;
 		bool _invertAzCorrections = false;
 		bool _invertAltCorrections = false;
+		string _activeMiniControllerKeyCommand = string.Empty;
+		CancellationTokenSource? _miniControllerKeyStopCts;
 		string _ninaLogState = string.Empty;
 		string _sharpCapLogState = string.Empty;
 
@@ -1341,11 +1343,96 @@ namespace OATControl.ViewModels
 		private void OnShowLogFolder()
 		{
 			var logDir = Path.GetDirectoryName(Log.Filename);
-			if (!string.IsNullOrEmpty(logDir))
+			if (string.IsNullOrWhiteSpace(logDir))
 			{
-				ProcessStartInfo info = new ProcessStartInfo(logDir) { UseShellExecute = true };
-				Process.Start(info);
+				Log.WriteLine("MOUNT: Unable to open log folder. Log directory is empty.");
+				new DlgMessageBox("Unable to open logs: log directory is not available.").Show();
+				return;
 			}
+
+			if (!Directory.Exists(logDir))
+			{
+				Log.WriteLine("MOUNT: Unable to open log folder. Directory does not exist: {0}", logDir);
+				new DlgMessageBox($"Unable to open logs: directory does not exist.\n\n{logDir}").Show();
+				return;
+			}
+
+			static bool TryOpenPath(string path, out string error)
+			{
+				error = string.Empty;
+				try
+				{
+					Process? process = null;
+
+					if (OperatingSystem.IsWindows())
+					{
+						process = Process.Start(new ProcessStartInfo("explorer.exe")
+						{
+							UseShellExecute = false,
+							ArgumentList = { path }
+						});
+					}
+					else if (OperatingSystem.IsMacOS())
+					{
+						process = Process.Start(new ProcessStartInfo("open")
+						{
+							UseShellExecute = false,
+							ArgumentList = { path }
+						});
+					}
+					else if (OperatingSystem.IsLinux())
+					{
+						process = Process.Start(new ProcessStartInfo("xdg-open")
+						{
+							UseShellExecute = false,
+							ArgumentList = { path }
+						});
+					}
+
+					if (process == null)
+					{
+						Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+						return true;
+					}
+
+					if (process.HasExited && process.ExitCode != 0)
+					{
+						error = $"Process exited with code {process.ExitCode}";
+						return false;
+					}
+
+					return true;
+				}
+				catch (Exception ex)
+				{
+					error = ex.Message;
+					return false;
+				}
+			}
+
+			string latestLogFile = Directory.GetFiles(logDir, "OATControl*.log")
+				.OrderByDescending(p => p)
+				.FirstOrDefault() ?? Log.Filename;
+
+			if (!string.IsNullOrWhiteSpace(latestLogFile) && File.Exists(latestLogFile))
+			{
+				if (TryOpenPath(latestLogFile, out string fileOpenError))
+				{
+					Log.WriteLine("MOUNT: Opened log file [{0}]", latestLogFile);
+					return;
+				}
+
+				Log.WriteLine("MOUNT: Failed to open log file [{0}]. {1}", latestLogFile, fileOpenError);
+			}
+
+			if (TryOpenPath(logDir, out string folderOpenError))
+			{
+				Log.WriteLine("MOUNT: Opened log folder [{0}]", logDir);
+				return;
+			}
+
+			Log.WriteLine("MOUNT: Failed to open log folder [{0}]. {1}", logDir, folderOpenError);
+			new DlgMessageBox($"Unable to open logs.\n\nTried file:\n{latestLogFile}\n\nTried folder:\n{logDir}\n\nError:\n{folderOpenError}").Show();
 		}
 
 		public bool IsLoggingEnabled
@@ -2687,10 +2774,17 @@ namespace OATControl.ViewModels
 					RequeryCommands();
 
 					Log.WriteLine("MOUNT: Connect to OAT requested");
-					bool connected = await TryAutoConnect();
-					if (!connected)
+					bool connected;
+					if (ForceShowDialog || AppSettings.Instance.AlwaysShowConnectDialog)
 					{
+						ForceShowDialog = false;
 						connected = await this.ChooseTelescope();
+					}
+					else
+					{
+						connected = await TryAutoConnect();
+						if (!connected)
+							connected = await this.ChooseTelescope();
 					}
 					if (connected)
 					{
@@ -3598,6 +3692,7 @@ namespace OATControl.ViewModels
 
 		public ICommand ArrowCommand { get { return _arrowCommand; } }
 		public ICommand ConnectScopeCommand { get { return _connectScopeCommand; } }
+		public bool ForceShowDialog { get; set; }
 		public ICommand SlewToTargetCommand { get { return _slewToTargetCommand; } }
 		public ICommand SyncToTargetCommand { get { return _syncToTargetCommand; } }
 		public ICommand SyncToCurrentCommand { get { return _syncToCurrentCommand; } }
@@ -3661,9 +3756,27 @@ namespace OATControl.ViewModels
 				return false;
 			}
 
+			_miniControllerKeyStopCts?.Cancel();
+			_miniControllerKeyStopCts = null;
+
+			if (_activeMiniControllerKeyCommand == cmdParam)
+			{
+				return true;
+			}
+
+			if (!string.IsNullOrEmpty(_activeMiniControllerKeyCommand))
+			{
+				string stopPrevious = $"-{_activeMiniControllerKeyCommand.Substring(1)}";
+				if (_changeSlewingStateCommand.CanExecute(stopPrevious))
+				{
+					_changeSlewingStateCommand.Execute(stopPrevious);
+				}
+			}
+
 			if (_changeSlewingStateCommand.CanExecute(cmdParam))
 			{
 				_changeSlewingStateCommand.Execute(cmdParam);
+				_activeMiniControllerKeyCommand = cmdParam;
 				return true;
 			}
 
@@ -3676,7 +3789,10 @@ namespace OATControl.ViewModels
 			{
 				if (_miniController != null && _miniController.IsVisible)
 				{
+					_miniControllerKeyStopCts?.Cancel();
+					_miniControllerKeyStopCts = null;
 					_miniController.Hide();
+					_activeMiniControllerKeyCommand = string.Empty;
 					return true;
 				}
 				return false;
@@ -3745,13 +3861,50 @@ namespace OATControl.ViewModels
 				return false;
 			}
 
-			if (_changeSlewingStateCommand.CanExecute(cmdParam))
+			string startCommand = $"+{cmdParam.Substring(1)}";
+			if (_activeMiniControllerKeyCommand != startCommand)
 			{
-				_changeSlewingStateCommand.Execute(cmdParam);
-				return true;
+				return false;
 			}
 
-			return false;
+			var stopCts = new CancellationTokenSource();
+			_miniControllerKeyStopCts?.Cancel();
+			_miniControllerKeyStopCts = stopCts;
+			_ = StopMiniControllerKeyAfterDelayAsync(cmdParam, startCommand, stopCts);
+			return true;
+		}
+
+		private async Task StopMiniControllerKeyAfterDelayAsync(string stopCommand, string startCommand, CancellationTokenSource stopCts)
+		{
+			try
+			{
+				await Task.Delay(80, stopCts.Token);
+			}
+			catch (TaskCanceledException)
+			{
+				return;
+			}
+
+			if (stopCts.Token.IsCancellationRequested)
+			{
+				return;
+			}
+
+			if (_activeMiniControllerKeyCommand != startCommand)
+			{
+				return;
+			}
+
+			if (_changeSlewingStateCommand.CanExecute(stopCommand))
+			{
+				_changeSlewingStateCommand.Execute(stopCommand);
+				_activeMiniControllerKeyCommand = string.Empty;
+			}
+
+			if (ReferenceEquals(_miniControllerKeyStopCts, stopCts))
+			{
+				_miniControllerKeyStopCts = null;
+			}
 		}
 
 		public double TargetRATotalHours

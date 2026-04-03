@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
 using OATCommunications;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using OATCommunications.Avalonia;
 using OATCommunications.Avalonia.CommunicationHandlers;
 using OATCommunications.CommunicationHandlers;
@@ -70,6 +72,10 @@ namespace OATControl.Avalonia.ViewModels
 
             _stateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _stateTimer.Tick += (s, e) => ProcessStateMachine();
+            INDICommunicationHandler.DefaultHost = AppSettings.Instance.IndiServerHost;
+            INDICommunicationHandler.DefaultPort = AppSettings.Instance.IndiServerPort;
+            INDICommunicationHandler.ForceAltAzControls = AppSettings.Instance.IndiForceAltAzControls;
+
 
             Task.Run(async () => await DiscoverDevices());
             _stateTimer.Start();
@@ -200,7 +206,30 @@ namespace OATControl.Avalonia.ViewModels
                 var handler = CommunicationHandlerFactory.AvailableHandlers.FirstOrDefault(h => h.IsDriverForDevice(device));
                 if (handler == null) continue;
                 var driver = new DeviceDriverVM(new DeviceDriver(device, handler.SupportsSetupDialog,
-                    new DelegateCommand(_ => handler.RunSetupDialog())));
+                    handler.SupportsSetupDialog && handler is INDICommunicationHandler
+                        ? new DelegateCommand(async _ =>
+                        {
+                            var desktop = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+                            var parent = desktop?.MainWindow;
+                            if (parent == null) return;
+                            var setupDlg = new DlgIndiSetup(
+                                INDICommunicationHandler.DefaultHost,
+                                INDICommunicationHandler.DefaultPort,
+                                INDICommunicationHandler.ForceAltAzControls);
+                            await setupDlg.ShowDialog(parent);
+                            if (setupDlg.Confirmed)
+                            {
+                                INDICommunicationHandler.DefaultHost = setupDlg.Host;
+                                INDICommunicationHandler.DefaultPort = setupDlg.Port;
+                                INDICommunicationHandler.ForceAltAzControls = setupDlg.ForceAltAzControls;
+                                AppSettings.Instance.IndiServerHost = setupDlg.Host;
+                                AppSettings.Instance.IndiServerPort = setupDlg.Port;
+                                AppSettings.Instance.IndiForceAltAzControls = setupDlg.ForceAltAzControls;
+                                AppSettings.Instance.Save();
+                                await DiscoverDevices();
+                            }
+                        })
+                        : new DelegateCommand(_ => handler.RunSetupDialog())));
                 AvaloniaUtilities.RunOnUiThread(() => AvailableDevices.Add(driver));
             }
         }

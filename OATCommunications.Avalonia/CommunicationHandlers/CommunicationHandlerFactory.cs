@@ -19,6 +19,7 @@ namespace OATCommunications.Avalonia.CommunicationHandlers
         {
             AddHandler(new SerialCommunicationHandler());
             AddHandler(new TcpCommunicationHandler());
+            AddHandler(new INDICommunicationHandler());
         }
 
         public static void DiscoverDevices()

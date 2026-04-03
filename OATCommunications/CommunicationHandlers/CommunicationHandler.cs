@@ -67,10 +67,12 @@ namespace OATCommunications.CommunicationHandlers
 				_processJobs = false;
 				_jobsAvailable.Set();
 				if (_logJobs) Log.WriteLine("COMMS: Waiting for Jobs processor stop event");
-				_jobsProcessorStopped.WaitOne();
+				// Use a timeout so a blocked RunJob() (e.g. serial read after USB removal)
+				// cannot block the caller indefinitely. Normal path resolves in milliseconds.
+				_jobsProcessorStopped.WaitOne(5000);
 				_jobsProcessorStopped.Reset();
 				if (_logJobs) Log.WriteLine("COMMS: Waiting for Jobs processor thread end");
-				_jobProcessingThread.Join();
+				_jobProcessingThread.Join(5000);
 				_jobProcessingThread = null;
 				if (_logJobs) Log.WriteLine("COMMS: Done stopping Jobs processor");
 			}

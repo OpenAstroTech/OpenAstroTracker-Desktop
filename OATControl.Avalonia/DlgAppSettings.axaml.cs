@@ -31,6 +31,7 @@ namespace OATControl.Avalonia
         private string _ninaLogFolder = string.Empty;
         private bool _monitorSharpCapForPA;
         private string _sharpCapLogFolder = string.Empty;
+        private bool _alwaysShowConnectDialog;
         private int _selectedCategoryIndex;
         private int _selectedTabIndex;
         private string _sortField = "Name";
@@ -61,6 +62,7 @@ namespace OATControl.Avalonia
             NinaLogFolder = AppSettings.Instance.NinaLogFolder;
             MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
             SharpCapLogFolder = AppSettings.Instance.SharpCapLogFolder;
+            AlwaysShowConnectDialog = AppSettings.Instance.AlwaysShowConnectDialog;
             _pointsView = _mount.AllPointsOfInterest.ToList();
             ApplySorting();
 
@@ -216,6 +218,12 @@ namespace OATControl.Avalonia
             set => SetPropertyValue(ref _monitorSharpCapForPA, value);
         }
 
+        public bool AlwaysShowConnectDialog
+        {
+            get => _alwaysShowConnectDialog;
+            set => SetPropertyValue(ref _alwaysShowConnectDialog, value);
+        }
+
         public string SharpCapLogFolder
         {
             get => _sharpCapLogFolder;
@@ -289,6 +297,7 @@ namespace OATControl.Avalonia
             AppSettings.Instance.NinaLogFolder = NinaLogFolder;
             AppSettings.Instance.MonitorSharpCapPA = MonitorSharpCapForPA;
             AppSettings.Instance.SharpCapLogFolder = SharpCapLogFolder;
+            AppSettings.Instance.AlwaysShowConnectDialog = AlwaysShowConnectDialog;
             AppSettings.Instance.Save();
 
             _mount.SelectedBaudRate = SelectedBaudRate;

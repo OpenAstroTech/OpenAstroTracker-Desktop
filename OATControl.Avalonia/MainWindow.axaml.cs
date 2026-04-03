@@ -78,6 +78,11 @@ namespace OATControl.Avalonia
             AppSettings.Instance.Save();
         }
 
+        private void OnConnectButtonPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            mountVm.ForceShowDialog = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+        }
+
         private void OnTargetTextBoxGotFocus(object? sender, RoutedEventArgs e)
         {
             if (sender is TextBox textBox)

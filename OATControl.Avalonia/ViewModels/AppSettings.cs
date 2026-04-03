@@ -390,6 +390,34 @@ namespace OATControl.ViewModels
             set => this["LastConnectedDevice"] = value;
         }
 
+        [DefaultValueAttribute("False")]
+        public bool AlwaysShowConnectDialog
+        {
+            get => Convert.ToBoolean(this["AlwaysShowConnectDialog"] ?? "False");
+            set => this["AlwaysShowConnectDialog"] = value.ToString();
+        }
+
+        [DefaultValueAttribute("localhost")]
+        public string IndiServerHost
+        {
+            get => this["IndiServerHost"] ?? "localhost";
+            set => this["IndiServerHost"] = value;
+        }
+
+        [DefaultValueAttribute("7624")]
+        public int IndiServerPort
+        {
+            get => int.TryParse(this["IndiServerPort"], out var p) ? p : 7624;
+            set => this["IndiServerPort"] = value.ToString();
+        }
+
+        [DefaultValueAttribute("False")]
+        public bool IndiForceAltAzControls
+        {
+            get => Convert.ToBoolean(this["IndiForceAltAzControls"] ?? "False");
+            set => this["IndiForceAltAzControls"] = value.ToString();
+        }
+
         public (double Left, double Top, double Width, double Height) EnsureRectIsOnScreen(string posPropertyName, object? unused)
         {
             (double X, double Y) pos = posPropertyName switch

@@ -122,7 +122,9 @@ namespace OATCommunications.Avalonia.CommunicationHandlers
 
         public override void Disconnect()
         {
-            StopJobsProcessor();
+            // Close the port BEFORE stopping the job processor so that any
+            // blocked ReadTo/ReadChar in RunJob() (e.g. after USB removal) gets
+            // an IOException immediately, letting the processor thread exit cleanly.
             if (_port != null && _port.IsOpen)
             {
                 try
@@ -144,6 +146,7 @@ namespace OATCommunications.Avalonia.CommunicationHandlers
                 }
                 _port = null;
             }
+            StopJobsProcessor();
         }
 
         public override void DiscoverDeviceInstances(Action<string> addDevice)

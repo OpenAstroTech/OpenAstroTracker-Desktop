@@ -159,22 +159,35 @@ namespace OATCommunications.WPF.CommunicationHandlers
 
 		public override void Disconnect()
 		{
-			Log.WriteLine("SERIAL: Stopping Jobs processor.");
-			StopJobsProcessor();
+			// Close the port BEFORE stopping the job processor so that any
+			// blocked ReadTo/ReadChar in RunJob() (e.g. after USB removal) gets
+			// an IOException immediately, letting the processor thread exit cleanly.
 			if (_port != null && _port.IsOpen)
 			{
-				// Log.WriteLine("SERIAL: Port is open, closing.");
 				Log.WriteLine("SERIAL: Port is open, sending shutdown command [:Qq#]");
-				if (_port.IsOpen)
+				try
 				{
 					_port.Write(":Qq#");
 					Thread.Sleep(10);
-					Log.WriteLine("SERIAL: Closing port...");
+				}
+				catch (Exception ex)
+				{
+					Log.WriteLine("SERIAL: Failed to send disconnect command (port may have been lost). {0}", ex.Message);
+				}
+				Log.WriteLine("SERIAL: Closing port...");
+				try
+				{
 					_port.Close();
+				}
+				catch (Exception ex)
+				{
+					Log.WriteLine("SERIAL: Failed to close port. {0}", ex.Message);
 				}
 				_port = null;
 				Log.WriteLine("SERIAL: Disconnected...");
 			}
+			Log.WriteLine("SERIAL: Stopping Jobs processor.");
+			StopJobsProcessor();
 		}
 
 		public override void DiscoverDeviceInstances(Action<string> addDevice)

@@ -14,6 +14,7 @@ namespace OATControl.Avalonia
     {
         private MountVM? Mount => DataContext as MountVM;
         private string _lastCommand = string.Empty;
+        private string _activePointerDirection = string.Empty;
         private bool _parkedWarningShown = false;
         private DateTime _lastPointerEventAt = DateTime.MinValue;
 
@@ -86,7 +87,6 @@ namespace OATControl.Avalonia
         protected override void OnOpened(EventArgs e)
         {
             base.OnOpened(e);
-            HookNamedSlewButtons();
             Log.WriteLine("MiniCtrl: OnOpened MountConnected={0}, Status={1}, ParkButton={2}", Mount?.MountConnected, Mount?.MountStatus, Mount?.ParkCommandString);
             Activate();
             Focus();
@@ -212,6 +212,15 @@ namespace OATControl.Avalonia
                 {
                     return;
                 }
+
+                if (_activePointerDirection == direction)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                e.Pointer?.Capture(button);
+                _activePointerDirection = direction;
                 SendSlewCommand($"+{direction}");
                 e.Handled = true;
             }
@@ -221,10 +230,20 @@ namespace OATControl.Avalonia
         {
             if (sender is Button button && button.Tag is string direction && direction.Length > 0)
             {
+                e.Pointer?.Capture(null);
+
+                if (_activePointerDirection != direction)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
                 if (Mount?.MountConnected == true)
                 {
                     SendSlewCommand($"-{direction}");
                 }
+
+                _activePointerDirection = string.Empty;
                 e.Handled = true;
             }
         }
@@ -233,6 +252,13 @@ namespace OATControl.Avalonia
         {
             if (Mount?.MountConnected != true)
             {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(_activePointerDirection))
+            {
+                SendSlewCommand($"-{_activePointerDirection}");
+                _activePointerDirection = string.Empty;
                 return;
             }
 

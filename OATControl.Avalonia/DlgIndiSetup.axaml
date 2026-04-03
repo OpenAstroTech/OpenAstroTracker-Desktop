@@ -1,0 +1,61 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:OATControl.Avalonia"
+        x:Class="OATControl.Avalonia.DlgIndiSetup"
+        x:DataType="local:DlgIndiSetup"
+        Title="INDI Server Setup"
+        Width="400" Height="210"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        Foreground="#CCCCCC"
+        FontSize="13" FontWeight="Bold">
+
+  <Window.Styles>
+    <Style Selector="TextBlock">
+      <Setter Property="Foreground" Value="#CC3333"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="#2A2A2A"/>
+      <Setter Property="Foreground" Value="#CCCCCC"/>
+      <Setter Property="BorderBrush" Value="#CC3333"/>
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="Background" Value="#3A1A1A"/>
+      <Setter Property="Foreground" Value="#CC3333"/>
+      <Setter Property="BorderBrush" Value="#CC3333"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="8,4"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto">
+
+    <Grid Grid.Row="0" ColumnDefinitions="60,*,16,56,90" Margin="0,0,0,10">
+      <TextBlock Grid.Column="0" Text="Host:"/>
+      <TextBox   Grid.Column="1" Text="{Binding Host}" Margin="8,0,0,0"/>
+      <TextBlock Grid.Column="3" Text="Port:" HorizontalAlignment="Right"/>
+      <TextBox   Grid.Column="4" Text="{Binding PortText}" Margin="8,0,0,0"/>
+    </Grid>
+
+    <TextBlock Grid.Row="1"
+               Text="Click Rescan in the connection dialog after changing server settings."
+               Foreground="#888888"
+               FontWeight="Normal"
+               TextWrapping="Wrap"
+               Margin="0,0,0,12"/>
+
+    <CheckBox Grid.Row="2"
+              Content="Always enable ALT/AZ controls (INDI fallback)"
+              IsChecked="{Binding ForceAltAzControls}"
+              Foreground="#CCCCCC"
+              Margin="0,0,0,12"/>
+
+    <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto">
+      <Button Grid.Column="1" Content="OK"     Width="80" Margin="0,0,8,0" Click="OnOkClick"/>
+      <Button Grid.Column="2" Content="Cancel" Width="80"                  Click="OnCancelClick"/>
+    </Grid>
+
+  </Grid>
+</Window>
