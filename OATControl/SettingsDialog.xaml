@@ -11,7 +11,8 @@
 	<Window.Resources>
 		<converters:IntToVisibilityConverter x:Key="VisibleIfVersionLater" Operator=">=" VisibleValue="10876" UseCollapse="True"/>
 		<converters:StringToVisibilityConverter x:Key="CollapseOnStringEqual" EqualState="Collapsed" />
-        <converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
+		<converters:BoolToVisibilityConverter x:Key="TrueBoolToVisible" Collapse="False" />
+		<converters:BoolToVisibilityConverter x:Key="FalseBoolToVisible" Collapse="False" IsReversed="True" />
 
 		<Style x:Key="CommandButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentedSquareButtonStyle}">
 			<Setter Property="Padding" Value="15,0" />
@@ -407,7 +408,17 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <controls:PushButton Grid.Column="0" Width="20" Height="20" Direction="W" IsEnabled="{Binding IsManualTrackingMode}" Command="{Binding StartChangingCommand}" CommandParameter="TR-" />
-                <TextBlock Grid.Column="1" Text="{Binding TrackingRateHz,StringFormat={}{0:0.00}}"  Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding TrackingRateHz,StringFormat={}{0:0.000}}"  Style="{StaticResource TextBlockLabelValue}" HorizontalAlignment="Stretch" TextAlignment="Center"
+                           Visibility="{Binding IsManualTrackingMode, Converter={StaticResource FalseBoolToVisible}}"/>
+                <TextBox Grid.Column="1" Text="{Binding ManualTrackingRateHzEdit, StringFormat={}{0:0.000}, UpdateSourceTrigger=LostFocus}"
+                         Style="{StaticResource MetroTextBox}"
+                         Background="{StaticResource AccentColorBrush2}" Foreground="#F00" FontWeight="Bold" FontSize="14"
+                         CaretBrush="#F00" SelectionBrush="#800"
+                         HorizontalAlignment="Stretch" TextAlignment="Center" HorizontalContentAlignment="Center"
+                         Padding="12,2" Margin="0,4"
+                         IsEnabled="{Binding IsManualTrackingMode}"
+                         Visibility="{Binding IsManualTrackingMode, Converter={StaticResource TrueBoolToVisible}}"
+                         ToolTip="Enter tracking rate in Hz (e.g. 59.853). Sends :STxx.xxx# to mount." />
                 <controls:PushButton Grid.Column="2" Width="20" Height="20" Direction="E" IsEnabled="{Binding IsManualTrackingMode}" Command="{Binding StartChangingCommand}" CommandParameter="TR+" />
             </Grid>
 
@@ -415,7 +426,7 @@
 
         <ComboBox Grid.Row="18" Grid.Column="4" 
 					  ItemsSource="{Binding AvailableTrackingModes}" 
-					  SelectedValue="{Binding SelectedTrackingMode}"
+					  SelectedItem="{Binding SelectedTrackingMode}"
 					
 					  Width="120" 
 					  Height="24"

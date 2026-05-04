@@ -678,8 +678,8 @@ namespace ASCOM.OpenAstroTracker
 			if (Rate == 0)
 			{
 				LogMessage(LoggingFlags.Scope, $"MoveAxis - {sAxis} Rate is zero, so stopping Slew and setting Rate S");
-				// if at some point we support multiple tracking rates this should set
-				// the value back to the previous rate...
+				// The mount preserves the tracking rate mode (sidereal/lunar/solar) when tracking is stopped/started,
+				// so restoring tracking state below is sufficient to resume at the correct rate.
 				CommandBlind($":{cmd}");
 				// Restore slewing rate to max
 				CommandBlind($":RS");
@@ -1242,16 +1242,59 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
+				LogMessage(LoggingFlags.Scope, "TrackingRate Get");
+				if (FirmwareVersion > 11317)
+				{
+					var mode = CommandString(":Gk#,#");
+					LogMessage(LoggingFlags.Scope, $"TrackingRate Get - mount returned mode '{mode}'");
+					switch (mode)
+					{
+						case "Lunar":
+							driveRate = DriveRates.driveLunar;
+							break;
+						case "Solar":
+							driveRate = DriveRates.driveSolar;
+							break;
+						case "Sidereal":
+						case "Manual":
+						default:
+							driveRate = DriveRates.driveSidereal;
+							break;
+					}
+				}
 				LogMessage(LoggingFlags.Scope, $"TrackingRate Get => {Enum.GetName(typeof(DriveRates), driveRate)}");
 				return driveRate;
 			}
 			set
 			{
-				LogMessage(LoggingFlags.Scope, $"TrackingRate Set - Ignoring value {value}. Only sidereal supported.");
-				driveRate = DriveRates.driveSidereal;
-				if (value != DriveRates.driveSidereal)
+				LogMessage(LoggingFlags.Scope, $"TrackingRate Set - {value}");
+				if (FirmwareVersion >= 11314)
 				{
-					throw new InvalidValueException("Only sidereal tracking rate supported.");
+					switch (value)
+					{
+						case DriveRates.driveSidereal:
+							CommandBlind(":TQ#");
+							break;
+						case DriveRates.driveLunar:
+							CommandBlind(":TL#");
+							break;
+						case DriveRates.driveSolar:
+							CommandBlind(":TS#");
+							break;
+						default:
+							LogMessage(LoggingFlags.Scope, $"TrackingRate Set - Unsupported rate {value}");
+							throw new InvalidValueException($"Tracking rate {value} is not supported.");
+					}
+					driveRate = value;
+					LogMessage(LoggingFlags.Scope, $"TrackingRate Set - complete => {Enum.GetName(typeof(DriveRates), driveRate)}");
+				}
+				else
+				{
+					LogMessage(LoggingFlags.Scope, $"TrackingRate Set - Firmware too old, only sidereal supported");
+					if (value != DriveRates.driveSidereal)
+					{
+						throw new InvalidValueException("Firmware does not support multiple tracking rates. Update to V1.13.14 or later.");
+					}
 				}
 			}
 		}

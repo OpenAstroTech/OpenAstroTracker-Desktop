@@ -489,6 +489,10 @@ namespace OATControl.ViewModels
 			AutoHomeRaDirection = AppSettings.Instance.AutoHomeRaDirection;
 			AutoHomeDecDirection = AppSettings.Instance.AutoHomeDecDirection;
 			_trackingMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
+			if (!_trackingModes.Contains(_trackingMode))
+			{
+				_trackingMode = "Sidereal";
+			}
 
 			ScopeType = "OAM";
 
@@ -1880,7 +1884,16 @@ namespace OATControl.ViewModels
 
 						if (FirmwareVersion > 11317)
 						{
-							this.SendOatCommand(":Gk#,#", (a) => { _trackingMode = a.Data; failed |= !a.Success; });
+							this.SendOatCommand(":Gk#,#", (a) =>
+						{
+							if (a.Success)
+							{
+								_trackingMode = a.Data;
+								IsManualTrackingMode = a.Data == "Manual";
+								OnPropertyChanged("SelectedTrackingMode");
+							}
+							failed |= !a.Success;
+						});
 							this.SendOatCommand(":hCq#,#", (a) =>
 							{
 								if (a.Data == "0")
@@ -2537,6 +2550,14 @@ namespace OATControl.ViewModels
 				KeepMiniControlOnTop = AppSettings.Instance.KeepMiniControlOnTop;
 				DECStepperLowerLimit = AppSettings.Instance.LowerDecLimit;
 				DECStepperUpperLimit = AppSettings.Instance.UpperDecLimit;
+
+				// Apply saved tracking mode to mount (mount defaults to Sidereal on boot)
+				if (FirmwareVersion >= 11314)
+				{
+					string savedMode = AppSettings.Instance.TrackingRate ?? "Sidereal";
+					Log.WriteLine("MOUNT: Applying saved tracking mode '{0}' to mount...", savedMode);
+					SelectedTrackingMode = savedMode;
+				}
 
 				OnPropertyChanged("ScopeType");
 
@@ -3978,9 +3999,48 @@ namespace OATControl.ViewModels
 			get { return _trackingRateHz; }
 			set
 			{
+				float oldValue = _trackingRateHz;
 				SetPropertyValue(ref _trackingRateHz, value);
-				_oatMount?.SendCommand(string.Format(_oatCulture, ":TD{0:0.0000}#", _trackingRateHz), (a) => { });
+				if (value > oldValue)
+				{
+					_oatMount?.SendCommand(":T+#", (a) => { });
+				}
+				else if (value < oldValue)
+				{
+					_oatMount?.SendCommand(":T-#", (a) => { });
+				}
 				OnPropertyChanged("ManualTrackingRateEdit");
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the manual tracking rate in Hz via direct numeric entry.
+		/// Sends :TM# to switch to custom mode, then :STxxx.xxx# to set the exact rate.
+		/// </summary>
+		public float ManualTrackingRateHzEdit
+		{
+			get { return _trackingRateHz; }
+			set
+			{
+				if (value <= 0) return;
+				SetPropertyValue(ref _trackingRateHz, value);
+				// Ensure we are in custom/manual mode, then set exact Hz
+				this.SendOatCommand(":TM#", (a) => { });
+				this.SendOatCommand(string.Format(_oatCulture, ":ST{0:0.000}#,n", value), (a) =>
+				{
+					// Refresh displayed speed after applying
+					this.SendOatCommand(":XGT#,#", (r) =>
+					{
+						if (r.Success) TrackingSpeed = float.Parse(r.Data, _oatCulture);
+					});
+					this.SendOatCommand(":GT#,#", (r) =>
+					{
+						if (r.Success) TrackingRateHz = float.Parse(r.Data, _oatCulture);
+					});
+				});
+				IsManualTrackingMode = true;
+				OnPropertyChanged("ManualTrackingRateHzEdit");
+				OnPropertyChanged("TrackingRateHz");
 			}
 		}
 
@@ -4818,28 +4878,37 @@ namespace OATControl.ViewModels
 					IsManualTrackingMode = false;
 					if (value == "Sidereal")
 					{
-						this.SendOatCommand(":TQ#,n", (a) => { });
+						this.SendOatCommand(":TQ#", (a) => { });
 					}
 					else if (value == "Lunar")
 					{
-						this.SendOatCommand(":TL#,n", (a) => { });
+						this.SendOatCommand(":TL#", (a) => { });
 					}
 					else if (value == "Solar")
 					{
-						this.SendOatCommand(":TS#,n", (a) => { });
-					}
-					else if (value == "King")
-					{
-						this.SendOatCommand(":TK#,n", (a) => { });
+						this.SendOatCommand(":TS#", (a) => { });
 					}
 					else if (value == "Manual")
 					{
-						this.SendOatCommand(":TM#,n", (a) => { });
+						this.SendOatCommand(":TM#", (a) => { });
 						IsManualTrackingMode = true;
 					}
 					else
 					{
-						this.SendOatCommand(":TQ#,n", (a) => { });
+						this.SendOatCommand(":TQ#", (a) => { });
+					}
+
+					// Refresh displayed tracking speed and Hz immediately after changing mode
+					this.SendOatCommand(":XGT#,#", (a) =>
+					{
+						if (a.Success) TrackingSpeed = float.Parse(a.Data, _oatCulture);
+					});
+					if (FirmwareVersion >= 11316)
+					{
+						this.SendOatCommand(":GT#,#", (a) =>
+						{
+							if (a.Success) TrackingRateHz = float.Parse(a.Data, _oatCulture);
+						});
 					}
 
 					Log.WriteLine("MOUNT: Changing tracking rate to " + value);
@@ -4885,7 +4954,6 @@ namespace OATControl.ViewModels
 					"Sidereal",
 					"Lunar",
 					"Solar",
-					"King",
 					"Manual"
 				};
 
