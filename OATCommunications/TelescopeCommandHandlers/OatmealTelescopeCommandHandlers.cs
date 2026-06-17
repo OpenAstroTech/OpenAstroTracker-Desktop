@@ -43,6 +43,7 @@ namespace OATCommunications
 					MountState.Declination = GetCompactDec(parts[6]);
 					success = true;
 				}
+				doneEvent.Set();
 			});
 
 			await doneEvent.WaitAsync();
@@ -273,6 +274,7 @@ namespace OATCommunications
 			SendCommand($":MS#,n", (moveResult) =>
 			{
 				success = success && moveResult.Success && moveResult.Data == "1";
+				doneEvent.Set();
 			});
 
 			await doneEvent.WaitAsync();
@@ -361,8 +363,6 @@ namespace OATCommunications
 			bool success = false;
 			AsyncAutoResetEvent doneEvent = new AsyncAutoResetEvent();
 
-
-			await doneEvent.WaitAsync();
 			// Longitude
 			success = await SetSiteLongitude((float)lon) == "1";
 

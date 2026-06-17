@@ -87,8 +87,23 @@ namespace ASCOM.OpenAstroTracker
 		///     ''' the new settings are saved, otherwise the old values are reloaded.
 		///     ''' THIS IS THE ONLY PLACE WHERE SHOWING USER INTERFACE IS ALLOWED!
 		///     ''' </summary>
+		[System.Runtime.InteropServices.DllImport("user32.dll")]
+		private static extern bool SetForegroundWindow(IntPtr hWnd);
+
 		public void SetupDialog()
 		{
+			// When started by COM (-embedding), Windows denies this process foreground
+			// privilege, so SetupDialogForm.ShowDialog() opens but never gets focus.
+			// Call SetForegroundWindow on the main form's handle to regain foreground
+			// status before showing the modal setup dialog. SetupDialog() runs on the
+			// main STA thread, so we can call these APIs directly.
+			var mainForm = System.Windows.Forms.Application.OpenForms.Count > 0
+				? System.Windows.Forms.Application.OpenForms[0] : null;
+			if (mainForm != null)
+			{
+				mainForm.WindowState = System.Windows.Forms.FormWindowState.Normal;
+				SetForegroundWindow(mainForm.Handle);
+			}
 			using (var f = new SetupDialogForm(Profile, this, (s) => this.LogMessage(LoggingFlags.Setup, s)))
 			{
 				if (f.ShowDialog() == DialogResult.OK)
@@ -97,6 +112,9 @@ namespace ASCOM.OpenAstroTracker
 					SharedResources.SetTraceFlags(Profile.TraceFlags);
 				}
 			}
+			// Re-minimize frmMain after setup dialog is dismissed
+			if (mainForm != null && Server.StartedByCOM)
+				mainForm.WindowState = System.Windows.Forms.FormWindowState.Minimized;
 		}
 
 		public ArrayList SupportedActions

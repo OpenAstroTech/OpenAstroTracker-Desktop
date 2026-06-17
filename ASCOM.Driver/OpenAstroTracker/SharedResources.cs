@@ -257,6 +257,10 @@ namespace ASCOM.OpenAstroTracker
 				else
 				{
 					LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} - Not connected or Empty Message: " + message);
+					if (!SharedSerial.Connected)
+					{
+						throw new ASCOM.NotConnectedException($"SendMessage called while serial port is disconnected. Command: {message}");
+					}
 				}
 				LogMessage(LoggingFlags.Serial, $"SendMessage Nr{messageNr,0:0000} - Releasing lock");
 			}

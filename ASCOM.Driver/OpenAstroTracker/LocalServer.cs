@@ -397,7 +397,7 @@ namespace ASCOM.OpenAstroTracker
                         key.CreateSubKey("Programmable");
                         using (RegistryKey key2 = key.CreateSubKey("LocalServer32"))
                         {
-                            key2.SetValue(null, Application.ExecutablePath);
+                            key2.SetValue(null, "\"" + Application.ExecutablePath + "\"");
                         }
                     }
                     //
