@@ -34,7 +34,7 @@ namespace OATCommunications.CommunicationHandlers
 
 		public override string Name => "ASCOM";
 
-		public override bool Connected { get { return _oat.Connected; } }
+		public override bool Connected { get { return _oat?.Connected ?? false; } }
 
 		protected override void RunJob(Job job)
 		{
@@ -95,6 +95,14 @@ namespace OATCommunications.CommunicationHandlers
 
 		public override bool Connect()
 		{
+			// _oat can be null here if RunSetupDialog() was called since this handler was
+			// created (it previously left _oat null after the setup dialog closed), so
+			// re-create it defensively rather than risk an unhandled NullReferenceException
+			// taking down the whole app.
+			if (_oat == null)
+			{
+				_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
+			}
 			_oat.Connected = true;
 			StopJobsProcessor();
 			StartJobsProcessor();
@@ -105,7 +113,10 @@ namespace OATCommunications.CommunicationHandlers
 		{
 			Log.WriteLine("ASCOM: Stopping Jobs processor.");
 			StopJobsProcessor();
-			_oat.Connected = false;
+			if (_oat != null)
+			{
+				_oat.Connected = false;
+			}
 		}
 
 		public override void DiscoverDeviceInstances(Action<string> addDevice)
@@ -129,9 +140,18 @@ namespace OATCommunications.CommunicationHandlers
 		public override bool RunSetupDialog()
 		{
 			_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
-			_oat.SetupDialog();
-			_oat.Dispose();
-			_oat = null;
+			try
+			{
+				_oat.SetupDialog();
+			}
+			finally
+			{
+				_oat.Dispose();
+				// Re-create the handler's driver instance rather than leaving _oat null:
+				// the setup dialog may have connected/disconnected this instance, and a
+				// subsequent Connect() on this same handler must not dereference null.
+				_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
+			}
 			return true;
 		}
 
