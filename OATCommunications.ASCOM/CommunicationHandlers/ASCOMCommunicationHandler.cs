@@ -107,10 +107,10 @@ namespace OATCommunications.CommunicationHandlers
 
 		public override bool Connect()
 		{
-			// _oat can be null here if RunSetupDialog() was called since this handler was
-			// created (it previously left _oat null after the setup dialog closed), so
-			// re-create it defensively rather than risk an unhandled NullReferenceException
-			// taking down the whole app.
+			// Defensive: _oat is normally set by the constructor, but RunSetupDialog() can
+			// leave it null on whichever handler instance it was called on. Re-create it
+			// here rather than risk an unhandled NullReferenceException taking down the
+			// whole app if this ever runs on an instance whose _oat is null.
 			if (_oat == null)
 			{
 				_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
@@ -151,6 +151,17 @@ namespace OATCommunications.CommunicationHandlers
 
 		public override bool RunSetupDialog()
 		{
+			// This handler instance is the long-lived template from
+			// CommunicationHandlerFactory's static handler list, not the instance that
+			// Connect() is later called on (ConnectToDevice() creates a fresh handler via
+			// CreateHandler() for that). So _oat here must NOT be left holding a live COM
+			// reference after this method returns: the ASCOM local server only exits itself
+			// once every served object's reference count drops to zero, and a reference
+			// pinned in this template for the rest of the app's lifetime would prevent
+			// that, leaving the local server process running in the background even after
+			// the real connection (on the other handler instance) is fully disconnected.
+			// Null it out instead; Connect()'s own null-check lazily creates a fresh
+			// instance on whichever handler instance actually needs one.
 			_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
 			try
 			{
@@ -159,10 +170,7 @@ namespace OATCommunications.CommunicationHandlers
 			finally
 			{
 				_oat.Dispose();
-				// Re-create the handler's driver instance rather than leaving _oat null:
-				// the setup dialog may have connected/disconnected this instance, and a
-				// subsequent Connect() on this same handler must not dereference null.
-				_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
+				_oat = null;
 			}
 			return true;
 		}
