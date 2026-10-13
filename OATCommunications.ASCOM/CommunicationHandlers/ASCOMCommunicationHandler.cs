@@ -25,16 +25,28 @@ namespace OATCommunications.CommunicationHandlers
 			Log.WriteLine($"COMMFACTORY: Creating ASCOM handler for {device} ...");
 			_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
 
-			foreach (var action in _oat.SupportedActions)
+			// This probe runs before Connect() is ever called on this handler, so _oat is not
+			// yet connected: the :I# passthrough normally throws NotConnectedException here
+			// unless some other still-open connection happens to leave the shared serial port
+			// open underneath it. It's a best-effort early log/probe, not a required step, so
+			// a failure here must not crash the app - Connect() does the real connection.
+			try
 			{
-				Log.WriteLine($"COMMFACTORY: ASCOM handler supported action: {action} ...");
+				foreach (var action in _oat.SupportedActions)
+				{
+					Log.WriteLine($"COMMFACTORY: ASCOM handler supported action: {action} ...");
+				}
+				_oat.Action("Serial:PassThroughCommand", "I#");
 			}
-			_oat.Action("Serial:PassThroughCommand", "I#");
+			catch (Exception ex)
+			{
+				Log.WriteLine($"COMMFACTORY: ASCOM handler initial probe failed (device not yet connected?): {ex.Message}");
+			}
 		}
 
 		public override string Name => "ASCOM";
 
-		public override bool Connected { get { return _oat.Connected; } }
+		public override bool Connected { get { return _oat?.Connected ?? false; } }
 
 		protected override void RunJob(Job job)
 		{
@@ -95,6 +107,14 @@ namespace OATCommunications.CommunicationHandlers
 
 		public override bool Connect()
 		{
+			// Defensive: _oat is normally set by the constructor, but RunSetupDialog() can
+			// leave it null on whichever handler instance it was called on. Re-create it
+			// here rather than risk an unhandled NullReferenceException taking down the
+			// whole app if this ever runs on an instance whose _oat is null.
+			if (_oat == null)
+			{
+				_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
+			}
 			_oat.Connected = true;
 			StopJobsProcessor();
 			StartJobsProcessor();
@@ -105,7 +125,10 @@ namespace OATCommunications.CommunicationHandlers
 		{
 			Log.WriteLine("ASCOM: Stopping Jobs processor.");
 			StopJobsProcessor();
-			_oat.Connected = false;
+			if (_oat != null)
+			{
+				_oat.Connected = false;
+			}
 		}
 
 		public override void DiscoverDeviceInstances(Action<string> addDevice)
@@ -128,10 +151,27 @@ namespace OATCommunications.CommunicationHandlers
 
 		public override bool RunSetupDialog()
 		{
+			// This handler instance is the long-lived template from
+			// CommunicationHandlerFactory's static handler list, not the instance that
+			// Connect() is later called on (ConnectToDevice() creates a fresh handler via
+			// CreateHandler() for that). So _oat here must NOT be left holding a live COM
+			// reference after this method returns: the ASCOM local server only exits itself
+			// once every served object's reference count drops to zero, and a reference
+			// pinned in this template for the rest of the app's lifetime would prevent
+			// that, leaving the local server process running in the background even after
+			// the real connection (on the other handler instance) is fully disconnected.
+			// Null it out instead; Connect()'s own null-check lazily creates a fresh
+			// instance on whichever handler instance actually needs one.
 			_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
-			_oat.SetupDialog();
-			_oat.Dispose();
-			_oat = null;
+			try
+			{
+				_oat.SetupDialog();
+			}
+			finally
+			{
+				_oat.Dispose();
+				_oat = null;
+			}
 			return true;
 		}
 
