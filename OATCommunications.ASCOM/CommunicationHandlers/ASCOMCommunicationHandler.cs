@@ -25,11 +25,23 @@ namespace OATCommunications.CommunicationHandlers
 			Log.WriteLine($"COMMFACTORY: Creating ASCOM handler for {device} ...");
 			_oat = new ASCOM.DriverAccess.Telescope("ASCOM.OpenAstroTracker.Telescope");
 
-			foreach (var action in _oat.SupportedActions)
+			// This probe runs before Connect() is ever called on this handler, so _oat is not
+			// yet connected: the :I# passthrough normally throws NotConnectedException here
+			// unless some other still-open connection happens to leave the shared serial port
+			// open underneath it. It's a best-effort early log/probe, not a required step, so
+			// a failure here must not crash the app - Connect() does the real connection.
+			try
 			{
-				Log.WriteLine($"COMMFACTORY: ASCOM handler supported action: {action} ...");
+				foreach (var action in _oat.SupportedActions)
+				{
+					Log.WriteLine($"COMMFACTORY: ASCOM handler supported action: {action} ...");
+				}
+				_oat.Action("Serial:PassThroughCommand", "I#");
 			}
-			_oat.Action("Serial:PassThroughCommand", "I#");
+			catch (Exception ex)
+			{
+				Log.WriteLine($"COMMFACTORY: ASCOM handler initial probe failed (device not yet connected?): {ex.Message}");
+			}
 		}
 
 		public override string Name => "ASCOM";
