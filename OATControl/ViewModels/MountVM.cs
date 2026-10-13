@@ -1803,7 +1803,7 @@ namespace OATControl.ViewModels
 
                 if (!string.IsNullOrEmpty(safeTimeRemaining))
                 {
-                    if (float.TryParse(safeTimeRemaining, out float remainingTime))
+                    if (float.TryParse(safeTimeRemaining, NumberStyles.Float, _oatCulture, out float remainingTime))
                     {
                         TimeSpan remaining = TimeSpan.FromHours(remainingTime);
                         RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
@@ -1831,7 +1831,7 @@ namespace OATControl.ViewModels
                 await done.WaitAsync();
                 if (!string.IsNullOrEmpty(safeTimeRemaining))
                 {
-                    if (float.TryParse(safeTimeRemaining, out float remainingTime))
+                    if (float.TryParse(safeTimeRemaining, NumberStyles.Float, _oatCulture, out float remainingTime))
                     {
                         TimeSpan remaining = TimeSpan.FromHours(remainingTime);
                         RemainingRATime = $"{remaining.Hours}h {remaining.Minutes}m";
