@@ -1,4 +1,4 @@
-﻿using OATCommunications.ClientAdapters;
+using OATCommunications.ClientAdapters;
 using OATCommunications.Utilities;
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ namespace OATCommunications.CommunicationHandlers
 		private IPAddress _ip;
 		private int _port;
 		private TcpClient _client;
+		private NetworkStream _stream;
 		private List<string> _available;
 		private Action<string> _addCallback;
 
@@ -67,12 +68,17 @@ namespace OATCommunications.CommunicationHandlers
 			while ((attempt < 4) && (_client != null))
 			{
 				Log.WriteLine("TCP: [{0}] Attempt {1} to send command.", command, attempt);
-				if (!_client.Connected)
+
+				// Only (re)connect when the stream has been closed due to an error, or on first use.
+				if (_stream == null)
 				{
 					try
 					{
 						_client = new TcpClient();
 						_client.Connect(_ip, _port);
+						_client.ReceiveTimeout = 1000;
+						_client.SendTimeout = 1000;
+						_stream = _client.GetStream();
 					}
 					catch (Exception e)
 					{
@@ -82,21 +88,19 @@ namespace OATCommunications.CommunicationHandlers
 					}
 				}
 
-				_client.ReceiveTimeout = 1000;
-				_client.SendTimeout = 1000;
-
 				string error = String.Empty;
 
-				var stream = _client.GetStream();
 				var bytes = Encoding.ASCII.GetBytes(command);
 				try
 				{
-					stream.Write(bytes, 0, bytes.Length);
+					_stream.Write(bytes, 0, bytes.Length);
 					Log.WriteLine("TCP: [{0}] Sent command!", command);
 				}
 				catch (Exception e)
 				{
 					Log.WriteLine("TCP: [{0}] Unable to write command to stream: {1}", command, e.Message);
+					_stream.Close();
+					_stream = null;
 					job.OnFulFilled(new CommandResponse("", false, $"Failed to send message: {e.Message}"));
 					return;
 				}
@@ -110,13 +114,12 @@ namespace OATCommunications.CommunicationHandlers
 							Log.WriteLine("TCP: [{0}] No reply needed to command", command);
 							break;
 
-						case ResponseType.DoubleFullResponse:
 						case ResponseType.DigitResponse:
 						case ResponseType.FullResponse:
 							{
 								Log.WriteLine("TCP: [{0}] Expecting a {1} reply to command, waiting...", command, job.ResponseType.ToString());
 								var response = new byte[256];
-								var respCount = stream.Read(response, 0, response.Length);
+								var respCount = _stream.Read(response, 0, response.Length);
 								respString = Encoding.ASCII.GetString(response, 0, respCount);
 								Log.WriteLine("TCP: [{0}] Received reply to command -> [{1}], trimming", command, respString);
 								int hashPos = respString.IndexOf('#');
@@ -128,22 +131,43 @@ namespace OATCommunications.CommunicationHandlers
 								attempt = 10;
 							}
 							break;
+
+						case ResponseType.DoubleFullResponse:
+							{
+								Log.WriteLine("TCP: [{0}] Expecting a DoubleFullResponse reply to command, waiting...", command);
+								var response = new byte[256];
+								var respCount = _stream.Read(response, 0, response.Length);
+								respString = Encoding.ASCII.GetString(response, 0, respCount);
+								Log.WriteLine("TCP: [{0}] Received first reply to command -> [{1}], trimming", command, respString);
+								int hashPos = respString.IndexOf('#');
+								if (hashPos > 0)
+								{
+									respString = respString.Substring(0, hashPos);
+								}
+								Log.WriteLine("TCP: [{0}] Returning first reply to command -> [{1}]", command, respString);
+								// Read and discard the second response
+								var response2 = new byte[256];
+								_stream.Read(response2, 0, response2.Length);
+								attempt = 10;
+							}
+							break;
 					}
 				}
 				catch (Exception e)
 				{
 					Log.WriteLine("TCP: [{0}] Failed to read reply to command. {1} thrown", command, e.GetType().Name);
-					if (job.ResponseType != ResponseType.NoResponse)
-					{
-						respString = "0#";
-					}
+					_stream.Close();
+					_stream = null;
+					respString = string.Empty;
 				}
 
-				stream.Close();
 				attempt++;
+				// Stream is intentionally left open for the next command.
 			}
 
-			job.OnFulFilled(new CommandResponse(respString));
+			bool succeeded = job.ResponseType == ResponseType.NoResponse || !string.IsNullOrEmpty(respString);
+			job.OnFulFilled(new CommandResponse(respString, succeeded, succeeded ? string.Empty : $"Failed to read reply to [{command}]"));
+
 		}
 
 		public override bool Connected
@@ -185,6 +209,11 @@ namespace OATCommunications.CommunicationHandlers
 				waitQuit.WaitOne();
 
 				Log.WriteLine("TCP: Closing port.");
+				if (_stream != null)
+				{
+					_stream.Close();
+					_stream = null;
+				}
 				_client.Close();
 				_client = null;
 				Log.WriteLine("TCP: Disconnected...");
