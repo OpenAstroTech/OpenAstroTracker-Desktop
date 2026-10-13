@@ -63,6 +63,7 @@ namespace OATCommunications.CommunicationHandlers
 
 			int attempt = 1;
 			var respString = String.Empty;
+			bool gotReply = false;
 			string command = job.Command;
 
 			while ((attempt < 4) && (_client != null))
@@ -88,7 +89,18 @@ namespace OATCommunications.CommunicationHandlers
 					}
 				}
 
-				string error = String.Empty;
+				// Discard any bytes left over from earlier replies, like the serial
+				// handler's DiscardInBuffer, so they cannot corrupt this command's reply.
+				if (_stream.DataAvailable)
+				{
+					int staleBytes = 0;
+					var stale = new byte[256];
+					while (_stream.DataAvailable && (staleBytes < 4096))
+					{
+						staleBytes += _stream.Read(stale, 0, stale.Length);
+					}
+					Log.WriteLine("TCP: [{0}] Discarded {1} stale bytes in input buffer!", command, staleBytes);
+				}
 
 				var bytes = Encoding.ASCII.GetBytes(command);
 				try
@@ -115,8 +127,9 @@ namespace OATCommunications.CommunicationHandlers
 							break;
 
 						case ResponseType.DigitResponse:
-						case ResponseType.FullResponse:
 							{
+								// Digits may arrive with or without a trailing '#', so take whatever
+								// one read returns and trim at the '#' if there is one.
 								Log.WriteLine("TCP: [{0}] Expecting a {1} reply to command, waiting...", command, job.ResponseType.ToString());
 								var response = new byte[256];
 								var respCount = _stream.Read(response, 0, response.Length);
@@ -128,6 +141,17 @@ namespace OATCommunications.CommunicationHandlers
 									respString = respString.Substring(0, hashPos);
 								}
 								Log.WriteLine("TCP: [{0}] Returning reply to command -> [{1}]", command, respString);
+								gotReply = respCount > 0;
+								attempt = 10;
+							}
+							break;
+
+						case ResponseType.FullResponse:
+							{
+								Log.WriteLine("TCP: [{0}] Expecting a {1} reply to command, waiting...", command, job.ResponseType.ToString());
+								respString = ReadHashTerminatedResponses(1);
+								Log.WriteLine("TCP: [{0}] Returning reply to command -> [{1}]", command, respString);
+								gotReply = true;
 								attempt = 10;
 							}
 							break;
@@ -135,19 +159,11 @@ namespace OATCommunications.CommunicationHandlers
 						case ResponseType.DoubleFullResponse:
 							{
 								Log.WriteLine("TCP: [{0}] Expecting a DoubleFullResponse reply to command, waiting...", command);
-								var response = new byte[256];
-								var respCount = _stream.Read(response, 0, response.Length);
-								respString = Encoding.ASCII.GetString(response, 0, respCount);
-								Log.WriteLine("TCP: [{0}] Received first reply to command -> [{1}], trimming", command, respString);
-								int hashPos = respString.IndexOf('#');
-								if (hashPos > 0)
-								{
-									respString = respString.Substring(0, hashPos);
-								}
+								// The second #-terminated reply (e.g. "Updating planetary data"
+								// for :SC) is consumed and discarded, only the first is returned.
+								respString = ReadHashTerminatedResponses(2);
 								Log.WriteLine("TCP: [{0}] Returning first reply to command -> [{1}]", command, respString);
-								// Read and discard the second response
-								var response2 = new byte[256];
-								_stream.Read(response2, 0, response2.Length);
+								gotReply = true;
 								attempt = 10;
 							}
 							break;
@@ -165,9 +181,44 @@ namespace OATCommunications.CommunicationHandlers
 				// Stream is intentionally left open for the next command.
 			}
 
-			bool succeeded = job.ResponseType == ResponseType.NoResponse || !string.IsNullOrEmpty(respString);
+			bool succeeded = job.ResponseType == ResponseType.NoResponse || gotReply;
 			job.OnFulFilled(new CommandResponse(respString, succeeded, succeeded ? string.Empty : $"Failed to read reply to [{command}]"));
 
+		}
+
+		/// <summary>
+		/// Reads #-terminated replies from the TCP stream until the given number of '#'
+		/// terminators has been seen, returning the text before the first '#'. Reassembling
+		/// across reads like this (like SerialPort.ReadTo) works whether the mount's replies
+		/// arrive in one TCP segment or several. Throws if the read times out or the mount
+		/// closes the connection.
+		/// </summary>
+		private string ReadHashTerminatedResponses(int responseCount)
+		{
+			var reply = new StringBuilder();
+			var buffer = new byte[256];
+			int terminatorsSeen = 0;
+			while (terminatorsSeen < responseCount)
+			{
+				int bytesRead = _stream.Read(buffer, 0, buffer.Length);
+				if (bytesRead == 0)
+				{
+					throw new System.IO.EndOfStreamException("The mount closed the connection.");
+				}
+				for (int i = 0; (i < bytesRead) && (terminatorsSeen < responseCount); i++)
+				{
+					char c = (char)buffer[i];
+					if (c == '#')
+					{
+						terminatorsSeen++;
+					}
+					else if (terminatorsSeen == 0)
+					{
+						reply.Append(c);
+					}
+				}
+			}
+			return reply.ToString();
 		}
 
 		public override bool Connected
