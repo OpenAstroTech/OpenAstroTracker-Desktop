@@ -47,6 +47,7 @@ namespace ASCOM.OpenAstroTracker
 		private bool _isConnected = false;
 		private long _fwVersion = 0;
 		private readonly object _fwVersionLock = new object();
+		private readonly PolarAlignActions _polarAlign;
 
 		private ProfileData Profile => SharedResources.ReadProfile();
 
@@ -73,6 +74,9 @@ namespace ASCOM.OpenAstroTracker
 			_azAltTransform.SiteElevation = SiteElevation;
 			_azAltTransform.SiteLatitude = SiteLatitude;
 			_azAltTransform.SiteLongitude = SiteLongitude;
+
+			_polarAlign = new PolarAlignActions(SharedResources.SendMessage, () => FirmwareVersion, () => AtPark,
+				(s) => LogMessage(LoggingFlags.Scope, s));
 
 			LogMessage(LoggingFlags.Scope, "Completed initialization");
 		}
@@ -125,6 +129,7 @@ namespace ASCOM.OpenAstroTracker
 				actionList.Add("Telescope:getFirmwareVer");
 				actionList.Add("Utility:JNowtoJ2000");
 				actionList.Add("Serial:PassThroughCommand");
+				actionList.AddRange(PolarAlignActions.Names);
 				LogMessage(LoggingFlags.Scope, "SupportedActions Get => " + actionList.Count.ToString() + " item(s)");
 				return actionList;
 			}
@@ -132,6 +137,25 @@ namespace ASCOM.OpenAstroTracker
 
 		public string Action(string ActionName, string ActionParameters)
 		{
+			if (PolarAlignActions.CanonicalName(ActionName) != null)
+			{
+				LogMessage(LoggingFlags.Scope, $"Action > ({ActionName}, {ActionParameters}) called");
+				CheckConnected("Action " + ActionName);
+				var result = _polarAlign.Execute(ActionName, ActionParameters);
+				LogMessage(LoggingFlags.Scope, $"Action < result: {result}");
+				return result;
+			}
+
+			// ASCOM action names are case-insensitive: use the spelling from SupportedActions.
+			foreach (string supported in SupportedActions)
+			{
+				if (string.Equals(supported, ActionName, StringComparison.OrdinalIgnoreCase))
+				{
+					ActionName = supported;
+					break;
+				}
+			}
+
 			if (SupportedActions.Contains(ActionName))
 			{
 				LogMessage(LoggingFlags.Scope, $"Action > ({ActionName}, {ActionParameters}) called");
