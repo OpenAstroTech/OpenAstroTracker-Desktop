@@ -538,6 +538,12 @@ namespace OATControl
 			}
 		}
 
+		private void OnFlashFirmware(object sender, RoutedEventArgs e)
+		{
+			var dlg = new DlgFirmwareFlasher(_mount) { Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+			dlg.ShowDialog();
+		}
+
 		private void OnCheckForUpdates(object sender, RoutedEventArgs e)
 		{
 			CheckForUpdatesButton.IsEnabled = false;

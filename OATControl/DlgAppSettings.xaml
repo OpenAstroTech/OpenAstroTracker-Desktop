@@ -401,6 +401,9 @@
                         <Button Content="Check For Updates" Width="130" Height="24"
 							HorizontalAlignment="Left" VerticalAlignment="Top"
 							Style="{StaticResource MainButtonStyle}" Click="OnCheckForUpdates" x:Name="CheckForUpdatesButton"/>
+                        <Button Content="Configure &amp; Flash Firmware..." Width="190" Height="24" Margin="0,8,0,0"
+							HorizontalAlignment="Left" VerticalAlignment="Top"
+							Style="{StaticResource MainButtonStyle}" Click="OnFlashFirmware"/>
                         <TextBlock x:Name="UpdateCheckResultText" FontSize="10" Margin="0,4,0,0"
 							   Foreground="{DynamicResource AppForegroundBrush}" TextWrapping="Wrap"
 							   Visibility="Collapsed"/>
