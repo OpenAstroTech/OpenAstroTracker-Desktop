@@ -24,22 +24,89 @@ namespace OATControl
 		private readonly Dictionary<string, TextBox> _textInputs = new Dictionary<string, TextBox>();
 		private CancellationTokenSource _cts;
 		private string _firmwareDir;
-		private FirmwareRelease _downloadedRelease;
+		private FirmwareRelease _downloadedRelease; // the release _firmwareDir holds; the custom folder entry when building in place
+		private FirmwareRelease _customRelease;
 		private bool _busy;
 		private bool _loadingReleases;
 		private string _autoSelectedFwVersion;
 
-		public DlgFirmwareFlasher(MountVM mount)
+		private readonly UpdateCheckResult _update; // set when opened from a firmware update notification
+		private string _selectZipUrl; // that update's firmware, to select when the list has loaded
+
+		public DlgFirmwareFlasher(MountVM mount, UpdateCheckResult update = null)
 		{
 			_mount = mount;
+			_update = update;
+			_selectZipUrl = update?.DownloadUrl;
 			InitializeComponent();
 			Closing += OnClosing;
 			_wizard = new FirmwareConfigWizard(FirmwareConfigWizard.LoadEmbeddedSchema());
+			LoadState();
 			ShowStep();
+		}
+
+		private static string StateFile => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OpenAstroTracker", "FirmwareConfig.json");
+
+		/// <summary>Restores the answers (and custom firmware folder) from the last time the dialog was used.</summary>
+		private void LoadState()
+		{
+			try
+			{
+				if (!System.IO.File.Exists(StateFile))
+				{
+					return;
+				}
+
+				var state = Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(StateFile));
+				try
+				{
+					if (state["answers"] is Newtonsoft.Json.Linq.JArray answers)
+					{
+						_wizard.ReplayAnswers(answers);
+					}
+				}
+				catch (Exception ex)
+				{
+					// Malformed answers: keep what was replayed so far and still restore the folder below.
+					Log.WriteLine("FIRMWARE: Could not restore all saved answers: {0}", ex);
+				}
+
+				var folder = (string)state["folder"];
+				if (!string.IsNullOrEmpty(folder) && System.IO.File.Exists(System.IO.Path.Combine(folder, "platformio.ini")))
+				{
+					// Selecting the entry makes OnReleaseChanged use the folder; the releases are added when they load.
+					_customRelease = new FirmwareRelease { Name = "Folder: " + folder, LocalPath = folder, IsPrerelease = true };
+					ReleaseCombo.ItemsSource = new List<FirmwareRelease> { _customRelease };
+					ReleaseCombo.SelectedItem = _customRelease;
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.WriteLine("FIRMWARE: Could not restore the saved configuration: {0}", ex);
+			}
+		}
+
+		private void SaveState()
+		{
+			try
+			{
+				var state = new Newtonsoft.Json.Linq.JObject
+				{
+					["answers"] = _wizard.ExportAnswers(),
+					["folder"] = _downloadedRelease?.LocalPath,
+				};
+				System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(StateFile));
+				System.IO.File.WriteAllText(StateFile, state.ToString());
+			}
+			catch (Exception ex)
+			{
+				Log.WriteLine("FIRMWARE: Could not save the configuration: {0}", ex);
+			}
 		}
 
 		private void ShowStep()
 		{
+			SaveState();
 			RefreshAnswers();
 			if (_wizard.IsComplete)
 			{
@@ -148,6 +215,12 @@ namespace OATControl
 				return;
 			}
 
+			if (_wizard.CanGoBack && MessageBox.Show(this, "Discard your answers and start the configuration again?", "Firmware",
+				MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes)
+			{
+				return;
+			}
+
 			_wizard = new FirmwareConfigWizard(FirmwareConfigWizard.LoadEmbeddedSchema());
 			ShowStep();
 		}
@@ -177,7 +250,7 @@ namespace OATControl
 			}
 
 			var releases = ReleaseCombo.ItemsSource as List<FirmwareRelease>;
-			if (releases == null)
+			if (releases == null || releases.All(r => r.LocalPath != null))
 			{
 				await LoadReleasesAsync();
 			}
@@ -199,12 +272,50 @@ namespace OATControl
 		{
 			SetStatus("Getting firmware versions from GitHub...");
 			_loadingReleases = true;
-			FlashBackButton.IsEnabled = RestartButton.IsEnabled = false;
+			FlashBackButton.IsEnabled = RestartButton.IsEnabled = AllBranchesCheck.IsEnabled = false;
 			try
 			{
-				var releases = await FirmwareBuilder.GetReleasesAsync();
+				var releases = await FirmwareBuilder.GetReleasesAsync(AllBranchesCheck.IsChecked == true);
+				var customSelected = IsCustomSelected;
+				var previousUrl = (ReleaseCombo.SelectedItem as FirmwareRelease)?.ZipUrl;
+				var previous = previousUrl == null ? null : releases.FirstOrDefault(r => r.ZipUrl == previousUrl);
+				if (_customRelease != null)
+				{
+					releases.Add(_customRelease);
+				}
+
+				var requested = _selectZipUrl == null ? null : releases.FirstOrDefault(r => r.ZipUrl == _selectZipUrl);
+				if (requested == null && _selectZipUrl != null)
+				{
+					// The announced firmware isn't in the list (for example a release GitHub marks as latest that isn't the newest): add it.
+					requested = new FirmwareRelease { Name = "Firmware " + _update.LatestVersion, ZipUrl = _selectZipUrl, IsPrerelease = true };
+					releases.Insert(0, requested);
+				}
+
+				_selectZipUrl = null;
 				ReleaseCombo.ItemsSource = releases;
-				SelectReleaseForWizard(releases);
+				if (requested != null)
+				{
+					// Opened from an update notification: that firmware wins over a saved folder or the wizard's choice.
+					_autoSelectedFwVersion = _wizard.GetValue("fwversion");
+					ReleaseCombo.SelectedItem = requested;
+				}
+				else if (customSelected)
+				{
+					ReleaseCombo.SelectedItem = _customRelease;
+					_autoSelectedFwVersion = _wizard.GetValue("fwversion");
+					SetStatus($"Using firmware folder {_customRelease.LocalPath}.");
+				}
+				else if (previous != null)
+				{
+					// The list was reloaded (all branches switched on or off): keep what was selected.
+					ReleaseCombo.SelectedItem = previous;
+					SetStatus($"Firmware {previous.Name} selected.");
+				}
+				else
+				{
+					SelectReleaseForWizard(releases);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -213,7 +324,15 @@ namespace OATControl
 			finally
 			{
 				_loadingReleases = false;
-				FlashBackButton.IsEnabled = RestartButton.IsEnabled = !_busy;
+				FlashBackButton.IsEnabled = RestartButton.IsEnabled = AllBranchesCheck.IsEnabled = !_busy;
+			}
+		}
+
+		private async void OnAllBranchesChanged(object sender, RoutedEventArgs e)
+		{
+			if (!_busy && !_loadingReleases)
+			{
+				await LoadReleasesAsync();
 			}
 		}
 
@@ -221,14 +340,90 @@ namespace OATControl
 		{
 			// The OAT wizard asks whether to target the official V1.11 line; otherwise use the newest stable release.
 			_autoSelectedFwVersion = _wizard.GetValue("fwversion");
+			if (IsCustomSelected)
+			{
+				// A custom folder was picked on purpose; don't switch away from it.
+				return;
+			}
+
 			var stable = releases.Where(r => !r.IsPrerelease).ToList();
 			var wanted = _autoSelectedFwVersion == "O" ? stable.FirstOrDefault(r => r.Name.Contains("1.11.")) : null;
-			ReleaseCombo.SelectedItem = wanted ?? stable.FirstOrDefault() ?? releases.First();
+			ReleaseCombo.SelectedItem = wanted ?? stable.FirstOrDefault(); // never an unreleased version automatically
+		}
+
+		private bool IsCustomSelected => _customRelease != null && ReleaseCombo.SelectedItem == _customRelease;
+
+		private void OnCustomFolder(object sender, RoutedEventArgs e)
+		{
+			if (_busy)
+			{
+				return;
+			}
+
+			using (var dlg = new System.Windows.Forms.FolderBrowserDialog())
+			{
+				dlg.Description = "Select the firmware folder to build (the one containing platformio.ini). It is built in place.";
+				dlg.ShowNewFolderButton = false;
+				dlg.SelectedPath = _customRelease?.LocalPath ?? string.Empty;
+				if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+				{
+					return;
+				}
+
+				if (_busy)
+				{
+					// A download started while the folder dialog was open; it would overwrite this choice when it finishes.
+					SetStatus("Busy. Select the folder again when the current operation has finished.");
+					return;
+				}
+
+				if (!System.IO.File.Exists(System.IO.Path.Combine(dlg.SelectedPath, "platformio.ini")))
+				{
+					SetStatus($"{dlg.SelectedPath} is not a firmware folder: it has no platformio.ini.");
+					return;
+				}
+
+				var workDir = System.IO.Path.GetFullPath(FirmwareBuilder.WorkDirectory).TrimEnd('\\') + "\\";
+				if ((System.IO.Path.GetFullPath(dlg.SelectedPath).TrimEnd('\\') + "\\").StartsWith(workDir, StringComparison.OrdinalIgnoreCase))
+				{
+					SetStatus($"Folders inside {FirmwareBuilder.WorkDirectory} can't be used: they are deleted when a firmware version is downloaded. Copy the folder elsewhere first.");
+					return;
+				}
+
+				// Replace any earlier custom entry and select the new one, which makes OnReleaseChanged use the folder.
+				var releases = (ReleaseCombo.ItemsSource as List<FirmwareRelease> ?? new List<FirmwareRelease>()).Where(r => r.LocalPath == null).ToList();
+				_customRelease = new FirmwareRelease { Name = "Folder: " + dlg.SelectedPath, LocalPath = dlg.SelectedPath, IsPrerelease = true };
+				releases.Add(_customRelease);
+				ReleaseCombo.ItemsSource = releases;
+				ReleaseCombo.SelectedItem = _customRelease;
+			}
 		}
 
 		private async void OnReleaseChanged(object sender, SelectionChangedEventArgs e)
 		{
 			var release = ReleaseCombo.SelectedItem as FirmwareRelease;
+			if (release?.LocalPath != null)
+			{
+				try
+				{
+					EnvCombo.ItemsSource = FirmwareBuilder.ReadEnvironments(release.LocalPath);
+					_firmwareDir = release.LocalPath;
+					_downloadedRelease = release;
+					SelectEnvironmentForBoard();
+					SetStatus($"Using firmware folder {release.LocalPath}.");
+					SaveState();
+				}
+				catch (Exception ex)
+				{
+					EnvCombo.ItemsSource = null;
+					_firmwareDir = null;
+					_downloadedRelease = null;
+					SetStatus("Could not read the firmware folder: " + ex.Message);
+				}
+
+				return;
+			}
+
 			if (release == null || release.ZipUrl == _downloadedRelease?.ZipUrl)
 			{
 				SelectEnvironmentForBoard();
@@ -240,6 +435,7 @@ namespace OATControl
 				EnvCombo.ItemsSource = null;
 				_firmwareDir = null;
 				_downloadedRelease = null;
+				SaveState(); // a custom folder is no longer the choice, even if the download fails
 				try
 				{
 					_firmwareDir = await FirmwareBuilder.DownloadAsync(release, AppendLog, token);
@@ -320,24 +516,101 @@ namespace OATControl
 				return;
 			}
 
-			var board = _wizard.GetChosenDefineValue("board");
-			if (board != null && env.Board != null && board != env.Board)
+			if (upload && _mount?.MountConnected == true)
 			{
-				SetStatus($"Board '{env.Name}' does not match the configuration ({board}); the firmware would refuse to build.");
-				return;
+				// This dialog is modal, so the user can't disconnect in the main window: offer to do it here.
+				if (MessageBox.Show(this, "OATControl is connected to the mount, which keeps the serial port busy.\n\nDisconnect from the mount now?", "Firmware",
+					MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes)
+				{
+					_mount.Disconnect();
+				}
+
+				if (_mount.MountConnected)
+				{
+					SetStatus("OATControl is connected to the mount. Disconnect first so the serial port is free for flashing.");
+					return;
+				}
 			}
 
-			if (upload && _mount.MountConnected)
+			if (upload)
 			{
-				SetStatus("OATControl is connected to the mount. Disconnect first so the serial port is free for flashing.");
+				// Over ASCOM the driver keeps the port while any other client is connected, so test it for real.
+				string portError = null;
+				await RunBusyAsync(async token => portError = await FirmwareBuilder.CheckPortFreeAsync(port.Port));
+				if (portError != null)
+				{
+					SetStatus(portError);
+					return;
+				}
+			}
+
+			// A custom folder is the user's own: never replace its configuration without asking.
+			var content = _wizard.GenerateFileContent();
+			var custom = _downloadedRelease?.LocalPath != null;
+			var writeConfig = true;
+			if (custom)
+			{
+				string existing;
+				try
+				{
+					existing = FirmwareBuilder.ReadConfiguration(_firmwareDir);
+				}
+				catch (Exception ex)
+				{
+					SetStatus("Could not read the firmware folder: " + ex.Message);
+					return;
+				}
+
+				if (existing == content)
+				{
+					writeConfig = false; // already identical: leave the file untouched
+				}
+				else if (existing != null)
+				{
+					var answer = MessageBox.Show(this, "The firmware folder already has a Configuration_local.hpp that differs from the configuration made here.\n\n" +
+						"Yes: replace it with the configuration from this wizard.\nNo: keep the folder's file and build with it.",
+						"Firmware", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
+					if (answer == MessageBoxResult.Cancel || answer == MessageBoxResult.None)
+					{
+						return;
+					}
+
+					writeConfig = answer == MessageBoxResult.Yes;
+				}
+			}
+
+			var board = _wizard.GetChosenDefineValue("board");
+			if (writeConfig && board != null && env.Board != null && board != env.Board)
+			{
+				SetStatus($"Board '{env.Name}' does not match the configuration ({board}); the firmware would refuse to build.");
 				return;
 			}
 
 			var pio = FirmwareBuilder.FindPlatformIO();
 			await RunBusyAsync(async token =>
 			{
-				FirmwareBuilder.WriteConfiguration(_firmwareDir, _wizard.GenerateFileContent());
-				FirmwareBuilder.ApplyHotPatches(_firmwareDir, env, AppendLog);
+				if (writeConfig)
+				{
+					FirmwareBuilder.WriteConfiguration(_firmwareDir, content);
+				}
+				else
+				{
+					AppendLog("Building with the Configuration_local.hpp already in the folder");
+				}
+
+				if (custom)
+				{
+					// No hot patches either: they are for old releases and would edit the user's platformio.ini.
+					foreach (var name in FirmwareBuilder.BoardSpecificConfigurations(_firmwareDir))
+					{
+						AppendLog($"Note: the folder contains {name}, which the firmware uses instead of Configuration_local.hpp for its board");
+					}
+				}
+				else
+				{
+					FirmwareBuilder.ApplyHotPatches(_firmwareDir, env, AppendLog);
+				}
+
 				SetStatus(upload ? $"Building and flashing to {port.Port}... (the first build downloads compilers and can take several minutes)" : "Building... (the first build downloads compilers and can take several minutes)");
 				var exitCode = await FirmwareBuilder.BuildAsync(pio, _firmwareDir, env, upload ? port.Port : null, AppendLog, token);
 				if (token.IsCancellationRequested)
@@ -347,6 +620,20 @@ namespace OATControl
 				else if (exitCode == 0)
 				{
 					SetStatus(upload ? "Firmware flashed successfully." : "Firmware built successfully.");
+					if (upload)
+					{
+						// A develop build reports the release's version, so the mount can't tell us what it runs. Remember
+						// the develop commit flashed here, so the "unreleased changes" notice doesn't announce it again.
+						// Flashing anything else forgets it: the mount no longer has that commit.
+						var settings = OATControl.ViewModels.AppSettings.Instance;
+						var isDevelop = _downloadedRelease?.ZipUrl == FirmwareBuilder.DevelopZipUrl && _downloadedRelease.CommitSha != null;
+						var wasCommit = System.Text.RegularExpressions.Regex.IsMatch(settings.SkippedFirmwareVersion ?? "", "^[0-9a-f]{40}$");
+						if (isDevelop || wasCommit)
+						{
+							settings.SkippedFirmwareVersion = isDevelop ? _downloadedRelease.CommitSha : "";
+							settings.Save();
+						}
+					}
 				}
 				else
 				{
@@ -416,6 +703,8 @@ namespace OATControl
 			BuildButton.IsEnabled = !busy && pioAvailable;
 			FlashButton.IsEnabled = !busy && pioAvailable;
 			ReleaseCombo.IsEnabled = !busy && pioAvailable;
+			FolderButton.IsEnabled = !busy && pioAvailable;
+			AllBranchesCheck.IsEnabled = !busy && pioAvailable && !_loadingReleases;
 			EnvCombo.IsEnabled = !busy && pioAvailable;
 			PortCombo.IsEnabled = !busy && pioAvailable;
 			RefreshButton.IsEnabled = !busy && pioAvailable;

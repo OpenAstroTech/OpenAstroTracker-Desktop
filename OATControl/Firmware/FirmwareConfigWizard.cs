@@ -30,6 +30,7 @@ namespace OATControl.Firmware
 		{
 			public int StepIndex;
 			public List<ConfigEntry> ConfigurationBefore;
+			public JObject Answer; // {step, key} for a choice or {step, text} for a text input step, see ExportAnswers
 		}
 
 		private class EvalResult
@@ -163,7 +164,7 @@ namespace OATControl.Firmware
 			var variable = (string)step["variable"];
 			var chosen = Choices(step).FirstOrDefault(c => (string)c["key"] == key) ?? throw new ArgumentException("Unknown choice " + key);
 
-			PushHistory();
+			PushHistory(new JObject { ["step"] = step["id"], ["key"] = key });
 			_configuration = _configuration.Where(c => c.Variable != variable).ToList();
 			_configuration.Add(new ConfigEntry { Variable = variable, Value = key });
 
@@ -188,7 +189,13 @@ namespace OATControl.Firmware
 			var step = CurrentStep ?? throw new InvalidOperationException("No current step");
 			var variable = (string)step["variable"];
 
-			PushHistory();
+			var text = new JObject();
+			foreach (var kv in editedValues ?? new Dictionary<string, string>())
+			{
+				text[kv.Key] = kv.Value;
+			}
+
+			PushHistory(new JObject { ["step"] = step["id"], ["text"] = text });
 			var values = new JArray();
 			if (editedValues == null || editedValues.Count == 0)
 			{
@@ -226,6 +233,43 @@ namespace OATControl.Firmware
 			_configuration = entry.ConfigurationBefore;
 			StepIndex = entry.StepIndex;
 			IsComplete = false;
+		}
+
+		/// <summary>The answers given so far, in order, for saving and replaying with <see cref="ReplayAnswers"/>.</summary>
+		public JArray ExportAnswers()
+		{
+			return new JArray(_history.Reverse().Select(h => h.Answer.DeepClone()));
+		}
+
+		/// <summary>
+		/// Gives saved answers again on a fresh wizard. Stops at the first answer that no longer fits the steps (for
+		/// example after the step definitions changed), so the user continues from there.
+		/// </summary>
+		public void ReplayAnswers(JArray answers)
+		{
+			foreach (var answer in answers.OfType<JObject>())
+			{
+				var step = CurrentStep;
+				if (step == null || (string)step["id"] != (string)answer["step"])
+				{
+					return;
+				}
+
+				var keys = EnabledChoices(step).Select(c => (string)c["key"]).ToList();
+				var isText = (string)step["control"]["type"] == "textinput";
+				if (isText && answer["text"] is JObject text && text.Properties().All(p => keys.Contains(p.Name)))
+				{
+					SubmitText(text.Properties().ToDictionary(p => p.Name, p => (string)p.Value));
+				}
+				else if (!isText && answer["key"] != null && keys.Contains((string)answer["key"]))
+				{
+					Select((string)answer["key"]);
+				}
+				else
+				{
+					return;
+				}
+			}
 		}
 
 		public List<string> GenerateLines()
@@ -384,10 +428,11 @@ namespace OATControl.Firmware
 			}
 		}
 
-		private void PushHistory()
+		private void PushHistory(JObject answer)
 		{
 			_history.Push(new HistoryEntry
 			{
+				Answer = answer,
 				StepIndex = StepIndex,
 				ConfigurationBefore = _configuration.Select(c => new ConfigEntry { Variable = c.Variable, Value = c.Value.DeepClone() }).ToList()
 			});

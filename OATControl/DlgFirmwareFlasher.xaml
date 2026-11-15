@@ -23,6 +23,85 @@
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="VerticalContentAlignment" Value="Top"/>
         </Style>
+        <!-- Themed drop-down: the default template shows the theme's light text on a white system popup. Same as ComboBoxStyle in DlgAppSettings, but stretching. -->
+        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="ToolTip" Value="{Binding SelectedItem, RelativeSource={RelativeSource Self}}" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="{DynamicResource AppButtonBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AppButtonHoverBrush}" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="MainBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="2" ClipToBounds="True">
+                                <Grid>
+                                    <ToggleButton Focusable="False" ClickMode="Press" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                        <ToggleButton.Template>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border Background="Transparent" />
+                                            </ControlTemplate>
+                                        </ToggleButton.Template>
+                                    </ToggleButton>
+                                    <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      Margin="6,2,20,2" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False" />
+                                    <Path Data="M0,0 L4,4 8,0" Stroke="{DynamicResource AppForegroundBrush}" StrokeThickness="1.5" Width="8" Height="5"
+                                          HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0" Stretch="Uniform" IsHitTestVisible="False" />
+                                </Grid>
+                            </Border>
+                            <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" PopupAnimation="Slide" AllowsTransparency="True">
+                                <Border Background="{DynamicResource AppButtonBackgroundBrush}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="2"
+                                        MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <StackPanel IsItemsHost="True" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource AppButtonHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource AppButtonPressedBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource AppDisabledBackgroundBrush}" />
+                                <Setter TargetName="MainBorder" Property="BorderBrush" Value="{DynamicResource AppDisabledBorderBrush}" />
+                                <Setter TargetName="MainBorder" Property="Opacity" Value="0.6" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+                        <Setter Property="Background" Value="{DynamicResource AppButtonBackgroundBrush}" />
+                        <Setter Property="Padding" Value="6,4" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ComboBoxItem">
+                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AppButtonHoverBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AppButtonHoverBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource AppForegroundStrongBrush}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </controls:ThemedWindow.Resources>
 
     <Grid Margin="12">
@@ -35,6 +114,7 @@
         <Border Grid.Column="0" BorderThickness="1" BorderBrush="{DynamicResource AppButtonBorderBrush}" Margin="0,0,12,0" Padding="8">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top" Text="Your answers" FontWeight="Bold" Style="{StaticResource MetroTextBlock}" Margin="0,0,0,6"/>
+                <Button DockPanel.Dock="Bottom" Content="Redo Config" Height="28" Margin="0,8,0,0" Style="{StaticResource MainButtonStyle}" Click="OnRestart" x:Name="RestartButton" ToolTip="Discard the answers and start the configuration again"/>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="AnswersPanel"/>
                 </ScrollViewer>
@@ -73,17 +153,21 @@
             <DockPanel Grid.Row="0" Margin="0,0,0,6">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="Back" Width="70" Height="26" Margin="0,0,6,0" Style="{StaticResource MainButtonStyle}" Click="OnBack" x:Name="FlashBackButton"/>
-                    <Button Content="Save As..." Width="80" Height="26" Margin="0,0,6,0" Style="{StaticResource MainButtonStyle}" Click="OnSaveConfig"/>
-                    <Button Content="Start Over" Width="80" Height="26" Style="{StaticResource MainButtonStyle}" Click="OnRestart" x:Name="RestartButton"/>
+                    <Button Content="Save As..." Width="80" Height="26" Style="{StaticResource MainButtonStyle}" Click="OnSaveConfig"/>
                 </StackPanel>
                 <TextBlock Text="Configuration_local.hpp" Style="{StaticResource StepTitle}" Margin="0"/>
             </DockPanel>
             <TextBox Grid.Row="1" x:Name="ConfigText" Style="{StaticResource Mono}"/>
 
             <Grid Grid.Row="2" Margin="0,10,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -91,12 +175,15 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Firmware" Style="{StaticResource Label}"/>
-                <ComboBox Grid.Column="1" x:Name="ReleaseCombo" Height="26" Margin="0,0,12,0" SelectionChanged="OnReleaseChanged"/>
-                <TextBlock Grid.Column="2" Text="Board" Style="{StaticResource Label}"/>
-                <ComboBox Grid.Column="3" x:Name="EnvCombo" Height="26" Margin="0,0,12,0"/>
-                <TextBlock Grid.Column="4" Text="Port" Style="{StaticResource Label}"/>
-                <ComboBox Grid.Column="5" x:Name="PortCombo" Height="26" Margin="0,0,6,0"/>
-                <Button Grid.Column="6" Content="Refresh" Width="70" Height="26" Style="{StaticResource MainButtonStyle}" Click="OnRefreshPorts" x:Name="RefreshButton"/>
+                <ComboBox Grid.Column="1" x:Name="ReleaseCombo" Height="26" Margin="0,0,6,0" SelectionChanged="OnReleaseChanged"/>
+                <Button Grid.Column="2" Content="Folder..." Width="70" Height="26" Margin="0,0,12,0" Style="{StaticResource MainButtonStyle}" Click="OnCustomFolder" x:Name="FolderButton" ToolTip="Build firmware from a local folder, for example a checkout with your own changes"/>
+                <TextBlock Grid.Column="3" Text="Board" Style="{StaticResource Label}"/>
+                <ComboBox Grid.Column="4" x:Name="EnvCombo" Height="26" Margin="0,0,12,0"/>
+                <TextBlock Grid.Column="5" Text="Port" Style="{StaticResource Label}"/>
+                <ComboBox Grid.Column="6" x:Name="PortCombo" Height="26" Margin="0,0,6,0"/>
+                <Button Grid.Column="7" Content="Refresh" Width="70" Height="26" Style="{StaticResource MainButtonStyle}" Click="OnRefreshPorts" x:Name="RefreshButton"/>
+                <CheckBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" x:Name="AllBranchesCheck" Content="List all releases and branches" Margin="0,4,0,0"
+                          Checked="OnAllBranchesChanged" Unchecked="OnAllBranchesChanged" ToolTip="Also list the older releases and every branch of the firmware repository"/>
             </Grid>
 
             <DockPanel Grid.Row="3" Margin="0,10,0,6">

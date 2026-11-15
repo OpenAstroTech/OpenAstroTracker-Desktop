@@ -30,9 +30,12 @@ namespace OATControl
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public DlgUpdateAvailable(UpdateCheckResult result)
+        private readonly MountVM _mount; // needed for firmware updates, which open the firmware dialog
+
+        public DlgUpdateAvailable(UpdateCheckResult result, MountVM mount = null)
         {
             _result = result;
+            _mount = mount;
             this.Owner = Application.Current.MainWindow;
             this.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             InitializeComponent();
@@ -56,12 +59,45 @@ namespace OATControl
             MarkdownViewer.MarkdownStyle = themedStyle;
 
             _skipCommand = new DelegateCommand(s => Close());
-            _skipVersionCommand = new DelegateCommand(s => { AppSettings.Instance.SkippedDesktopVersion = _result.LatestVersion; AppSettings.Instance.Save(); Close(); });
-            _upgradeCommand = new DelegateCommand(s => StartDownload());
+            _skipVersionCommand = new DelegateCommand(s =>
+            {
+                if (_result.IsFirmware)
+                {
+                    AppSettings.Instance.SkippedFirmwareVersion = _result.SkipKey;
+                }
+                else
+                {
+                    AppSettings.Instance.SkippedDesktopVersion = _result.LatestVersion;
+                }
+
+                AppSettings.Instance.Save();
+                Close();
+            });
+            _upgradeCommand = new DelegateCommand(s =>
+            {
+                if (_result.IsFirmware)
+                {
+                    OpenFirmwareDialog();
+                }
+                else
+                {
+                    StartDownload();
+                }
+            });
             _cancelCommand = new DelegateCommand(s => CancelDownload());
         }
 
-        public string VersionInfo => $"OATControl {_result.LatestVersion} is now available (you have {_result.CurrentVersion})";
+        public string VersionInfo => _result.IsFirmware
+            ? $"Firmware {_result.LatestVersion} is now available (your mount has {_result.CurrentVersion})"
+            : $"OATControl {_result.LatestVersion} is now available (you have {_result.CurrentVersion})";
+
+        private void OpenFirmwareDialog()
+        {
+            var owner = Owner;
+            Close();
+            var dlg = new DlgFirmwareFlasher(_mount, _result) { Owner = owner, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+            dlg.ShowDialog();
+        }
         public string Changelog => _result.Changelog;
 
         public bool IsDownloading

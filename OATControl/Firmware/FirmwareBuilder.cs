@@ -19,6 +19,8 @@ namespace OATControl.Firmware
 		public string Name { get; set; }
 		public string ZipUrl { get; set; }
 		public bool IsPrerelease { get; set; }
+		public string LocalPath { get; set; } // set for a custom firmware folder, which is built in place instead of downloaded
+		public string CommitSha { get; set; } // the commit that was downloaded, known after DownloadAsync
 		public override string ToString() => Name;
 	}
 
@@ -44,7 +46,10 @@ namespace OATControl.Firmware
 	public static class FirmwareBuilder
 	{
 		private const string ReleasesUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Firmware/releases";
+		private const string BranchesUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Firmware/branches?per_page=100";
 		private const string BranchZipUrl = "https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/archive/refs/heads/{0}.zip";
+
+		public static string DevelopZipUrl => string.Format(BranchZipUrl, "develop");
 
 		private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
 
@@ -58,23 +63,56 @@ namespace OATControl.Firmware
 
 		public static string FirmwareDirectory => Path.Combine(WorkDirectory, "fw");
 
-		public static async Task<List<FirmwareRelease>> GetReleasesAsync()
+		/// <summary>
+		/// Lists the latest release, the develop branch, the release before the latest and the newest V1.11 release (the
+		/// wizard's "Official Versions (V1.11.x)" answer needs it). If <paramref name="all"/> is set, every release and
+		/// every other branch of the firmware repository is listed as well (for testing). Branches are marked as
+		/// prerelease so they are never selected automatically.
+		/// </summary>
+		public static async Task<List<FirmwareRelease>> GetReleasesAsync(bool all)
 		{
-			var releases = new List<FirmwareRelease>();
 			var json = await _httpClient.GetStringAsync(ReleasesUrl).ConfigureAwait(false);
-			foreach (var release in JArray.Parse(json))
+			var releases = JArray.Parse(json).Select(release =>
 			{
 				var name = (string)release["name"];
-				releases.Add(new FirmwareRelease
+				return new FirmwareRelease
 				{
 					Name = string.IsNullOrWhiteSpace(name) ? (string)release["tag_name"] : name,
 					ZipUrl = (string)release["zipball_url"],
 					IsPrerelease = (bool?)release["prerelease"] ?? false,
-				});
+				};
+			}).ToList();
+
+			// GitHub lists the newest release first.
+			var stable = releases.Where(r => !r.IsPrerelease).ToList();
+			if (!all)
+			{
+				releases = stable.Take(2).ToList();
+				var v111 = stable.FirstOrDefault(r => r.Name.Contains("1.11."));
+				if (v111 != null && !releases.Contains(v111))
+				{
+					releases.Add(v111);
+				}
 			}
 
-			releases.Add(new FirmwareRelease { Name = "develop (unreleased)", ZipUrl = string.Format(BranchZipUrl, "develop"), IsPrerelease = true });
-			releases.Add(new FirmwareRelease { Name = "oae-fw (unreleased)", ZipUrl = string.Format(BranchZipUrl, "oae-fw"), IsPrerelease = true });
+			var develop = new FirmwareRelease { Name = "Latest develop branch (unreleased)", ZipUrl = DevelopZipUrl, IsPrerelease = true };
+			var latest = stable.FirstOrDefault();
+			releases.Remove(latest);
+			releases.Insert(0, develop);
+			if (latest != null)
+			{
+				releases.Insert(0, latest);
+			}
+
+			if (all)
+			{
+				var branches = await _httpClient.GetStringAsync(BranchesUrl).ConfigureAwait(false);
+				foreach (var name in JArray.Parse(branches).Select(b => (string)b["name"]).Where(n => n != "develop").OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+				{
+					releases.Add(new FirmwareRelease { Name = "Branch: " + name, ZipUrl = string.Format(BranchZipUrl, name), IsPrerelease = true });
+				}
+			}
+
 			return releases;
 		}
 
@@ -110,9 +148,29 @@ namespace OATControl.Firmware
 
 			Directory.Move(topDirs[0], FirmwareDirectory);
 			DeleteDirectory(extractDir);
+			release.CommitSha = ReadZipCommit(zipPath);
 			File.Delete(zipPath);
 			log($"Firmware extracted to {FirmwareDirectory}");
 			return FirmwareDirectory;
+		}
+
+		/// <summary>GitHub writes the commit of an archive as the zip file's comment, which is the end of the file. Null if absent.</summary>
+		private static string ReadZipCommit(string zipPath)
+		{
+			var bytes = new byte[40];
+			using (var file = File.OpenRead(zipPath))
+			{
+				if (file.Length < 40)
+				{
+					return null;
+				}
+
+				file.Seek(-40, SeekOrigin.End);
+				file.Read(bytes, 0, 40);
+			}
+
+			var text = Encoding.ASCII.GetString(bytes);
+			return Regex.IsMatch(text, "^[0-9a-f]{40}$") ? text : null;
 		}
 
 		public static List<PioEnvironment> ReadEnvironments(string firmwareDir)
@@ -186,6 +244,19 @@ namespace OATControl.Firmware
 			}
 		}
 
+		/// <summary>Returns the folder's Configuration_local.hpp, or null if it has none.</summary>
+		public static string ReadConfiguration(string firmwareDir)
+		{
+			var path = Path.Combine(firmwareDir, "Configuration_local.hpp");
+			return File.Exists(path) ? File.ReadAllText(path) : null;
+		}
+
+		/// <summary>Board specific Configuration_local_*.hpp files, which the firmware prefers over Configuration_local.hpp.</summary>
+		public static List<string> BoardSpecificConfigurations(string firmwareDir)
+		{
+			return Directory.GetFiles(firmwareDir, "Configuration_local_*.hpp").Select(Path.GetFileName).ToList();
+		}
+
 		public static void WriteConfiguration(string firmwareDir, string content)
 		{
 			File.WriteAllText(Path.Combine(firmwareDir, "Configuration_local.hpp"), content, new UTF8Encoding(false));
@@ -224,6 +295,40 @@ namespace OATControl.Firmware
 			return System.IO.Ports.SerialPort.GetPortNames().Distinct().Select(p => new SerialPortEntry { Port = p }).ToList();
 		}
 
+		/// <summary>
+		/// Checks that the serial port can be opened, so a busy port is reported before the build instead of by a failed
+		/// upload after it. Returns null if the port is free, otherwise a message for the user.
+		/// </summary>
+		public static async Task<string> CheckPortFreeAsync(string portName)
+		{
+			// A few attempts: a program that just disconnected (such as the ASCOM driver) can take a moment to let go.
+			for (int attempt = 0; ; attempt++)
+			{
+				try
+				{
+					using (var port = new System.IO.Ports.SerialPort(portName))
+					{
+						port.Open();
+					}
+
+					return null;
+				}
+				catch (UnauthorizedAccessException)
+				{
+					if (attempt >= 4)
+					{
+						return $"{portName} is in use by another program (for example NINA or PHD2 through the ASCOM driver, or a serial monitor). Close it and try again.";
+					}
+				}
+				catch (Exception ex)
+				{
+					return $"{portName} can't be opened: {ex.Message}";
+				}
+
+				await Task.Delay(400).ConfigureAwait(false);
+			}
+		}
+
 		/// <summary>Builds the firmware and, if <paramref name="uploadPort"/> is set, uploads it to the board.</summary>
 		public static Task<int> BuildAsync(string pio, string firmwareDir, PioEnvironment env, string uploadPort, Action<string> log, CancellationToken token)
 		{
@@ -238,6 +343,7 @@ namespace OATControl.Firmware
 			{
 				// The ESP32 framework passes too many -I flags for the Windows command line limit; OATFWGUI's
 				// pre-script shortens them. Assumes anything that isn't AVR is ESP32, like OATFWGUI does.
+				Directory.CreateDirectory(WorkDirectory); // not there yet when building a custom folder without any download
 				var script = Path.Combine(WorkDirectory, "pre_script_esp32_iprefix.py");
 				WriteEmbeddedResource("pre_script_esp32_iprefix.py", script);
 				environment["PLATFORMIO_EXTRA_SCRIPTS"] = "pre:" + script;

@@ -74,6 +74,9 @@ namespace OATControl
 			this.DataContext = this;
 
 			InitializeComponent();
+			FirmwareBetaCheck.IsChecked = AppSettings.Instance.NotifyFirmwareBeta;
+			FirmwareBetaCheck.Checked += OnFirmwareBetaChanged;
+			FirmwareBetaCheck.Unchecked += OnFirmwareBetaChanged;
 			SelectedBaudRate = AppSettings.Instance.BaudRate;
 			RaStartEast = AppSettings.Instance.AutoHomeRaDirection == "East";
 			RaDistance = AppSettings.Instance.AutoHomeRaDistance;
@@ -538,6 +541,12 @@ namespace OATControl
 			}
 		}
 
+		private void OnFirmwareBetaChanged(object sender, RoutedEventArgs e)
+		{
+			AppSettings.Instance.NotifyFirmwareBeta = FirmwareBetaCheck.IsChecked == true;
+			AppSettings.Instance.Save();
+		}
+
 		private void OnFlashFirmware(object sender, RoutedEventArgs e)
 		{
 			var dlg = new DlgFirmwareFlasher(_mount) { Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
@@ -564,9 +573,9 @@ namespace OATControl
 							var dlg = new DlgUpdateAvailable(t.Result) { Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
 							dlg.ShowDialog();
 						}
-						else if (t.IsFaulted || t.IsCanceled)
+						else if (t.IsFaulted || t.IsCanceled || t.Result?.Failed == true)
 						{
-							UpdateCheckResultText.Text = "Could not check for updates.";
+							UpdateCheckResultText.Text = "Could not check for updates. Check your internet connection.";
 							UpdateCheckResultText.Visibility = Visibility.Visible;
 						}
 						else
