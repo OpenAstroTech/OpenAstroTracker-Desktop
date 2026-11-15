@@ -248,7 +248,31 @@ namespace OATControl.Firmware
 		public static string ReadConfiguration(string firmwareDir)
 		{
 			var path = Path.Combine(firmwareDir, "Configuration_local.hpp");
-			return File.Exists(path) ? File.ReadAllText(path) : null;
+			return File.Exists(path) ? File.ReadAllText(path, ConfigurationEncoding(path)) : null;
+		}
+
+		/// <summary>UTF-8, or Latin-1 for an existing file that isn't valid UTF-8, so a hand-written ANSI file survives an edit.</summary>
+		private static Encoding ConfigurationEncoding(string path)
+		{
+			if (File.Exists(path))
+			{
+				var bytes = File.ReadAllBytes(path);
+				if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+				{
+					return new UTF8Encoding(true);
+				}
+
+				try
+				{
+					new UTF8Encoding(false, true).GetString(bytes);
+				}
+				catch (DecoderFallbackException)
+				{
+					return Encoding.GetEncoding(28591); // Latin-1 maps every byte to a character and back, whatever the system code page
+				}
+			}
+
+			return new UTF8Encoding(false);
 		}
 
 		/// <summary>Board specific Configuration_local_*.hpp files, which the firmware prefers over Configuration_local.hpp.</summary>
@@ -259,7 +283,8 @@ namespace OATControl.Firmware
 
 		public static void WriteConfiguration(string firmwareDir, string content)
 		{
-			File.WriteAllText(Path.Combine(firmwareDir, "Configuration_local.hpp"), content, new UTF8Encoding(false));
+			var path = Path.Combine(firmwareDir, "Configuration_local.hpp");
+			File.WriteAllText(path, content, ConfigurationEncoding(path));
 		}
 
 		/// <summary>Finds pio.exe on the PATH or in the default PlatformIO install (also used by the VS Code extension).</summary>

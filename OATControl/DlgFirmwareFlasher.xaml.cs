@@ -29,6 +29,10 @@ namespace OATControl
 		private bool _busy;
 		private bool _loadingReleases;
 		private string _autoSelectedFwVersion;
+		private string _folderConfigDir; // the custom folder whose Configuration_local.hpp is in the editor; null while the wizard's is shown
+		private string _folderConfigSaved; // that file's content as last read or written
+		private string _wizardWritten; // the wizard configuration a build here wrote into a folder that had none
+		private bool _askingToSave;
 
 		private readonly UpdateCheckResult _update; // set when opened from a firmware update notification
 		private string _selectZipUrl; // that update's firmware, to select when the list has loaded
@@ -230,15 +234,114 @@ namespace OATControl
 			var dlg = new SaveFileDialog { FileName = "Configuration_local.hpp", Filter = "C++ header (*.hpp)|*.hpp|All files (*.*)|*.*" };
 			if (dlg.ShowDialog(this) == true)
 			{
-				System.IO.File.WriteAllText(dlg.FileName, _wizard.GenerateFileContent());
+				try
+				{
+					System.IO.File.WriteAllText(dlg.FileName, ConfigText.Text);
+				}
+				catch (Exception ex)
+				{
+					SetStatus("Could not save the file: " + ex.Message);
+				}
 			}
+		}
+
+		private bool ConfigDirty => _folderConfigDir != null && ConfigText.Text != _folderConfigSaved;
+
+		/// <summary>Shows the selected folder's own Configuration_local.hpp (editable) if it has one, else the wizard's.</summary>
+		private void UpdateConfigView()
+		{
+			var dir = _downloadedRelease?.LocalPath;
+			if (dir != null && dir == _folderConfigDir)
+			{
+				return; // already in the editor: keep any unsaved edits
+			}
+
+			string existing = null;
+			if (dir != null)
+			{
+				try
+				{
+					existing = FirmwareBuilder.ReadConfiguration(dir);
+				}
+				catch (Exception ex)
+				{
+					Log.WriteLine("FIRMWARE: Could not read the folder's configuration: {0}", ex);
+				}
+			}
+
+			ShowConfig(existing != null ? dir : null, existing);
+		}
+
+		private void ShowConfig(string folderDir, string folderContent)
+		{
+			_folderConfigDir = folderDir;
+			_folderConfigSaved = folderContent;
+			var text = folderContent ?? (_wizard.IsComplete ? _wizard.GenerateFileContent() : ""); // also called while the wizard page is still up
+			if (ConfigText.Text != text)
+			{
+				ConfigText.Text = text;
+			}
+
+			ConfigText.IsReadOnly = folderDir == null;
+			ConfigTitleText.Text = folderDir == null ? "Configuration_local.hpp" : "Configuration_local.hpp (from the folder, editable)";
+			SaveConfigButton.Visibility = UseWizardButton.Visibility = folderDir == null ? Visibility.Collapsed : Visibility.Visible;
+		}
+
+		private bool SaveFolderConfig()
+		{
+			try
+			{
+				if (FirmwareBuilder.ReadConfiguration(_folderConfigDir) != _folderConfigSaved && MessageBox.Show(this,
+					"Configuration_local.hpp in the firmware folder was changed by another program. Overwrite it with your changes from this window?",
+					"Firmware", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+				{
+					SetStatus("Configuration_local.hpp was not saved.");
+					return false;
+				}
+
+				FirmwareBuilder.WriteConfiguration(_folderConfigDir, ConfigText.Text);
+				_folderConfigSaved = ConfigText.Text;
+				SetStatus($"Saved Configuration_local.hpp in {_folderConfigDir}.");
+				return true;
+			}
+			catch (Exception ex)
+			{
+				SetStatus("Could not save Configuration_local.hpp: " + ex.Message);
+				return false;
+			}
+		}
+
+		private void OnSaveFolderConfig(object sender, RoutedEventArgs e)
+		{
+			if (_busy)
+			{
+				SetStatus("Busy. Save again when the current operation has finished.");
+			}
+			else if (_folderConfigDir != null)
+			{
+				SaveFolderConfig();
+			}
+		}
+
+		private void OnUseWizardConfig(object sender, RoutedEventArgs e)
+		{
+			// Only fills the editor; the folder's file changes on Save or a build.
+			ConfigText.Text = _wizard.GenerateFileContent();
+			SelectEnvironmentForBoard();
 		}
 
 		private async void ShowFlashPage()
 		{
 			WizardPage.Visibility = Visibility.Collapsed;
 			FlashPage.Visibility = Visibility.Visible;
-			ConfigText.Text = _wizard.GenerateFileContent();
+			UpdateConfigView();
+			var wizardContent = _wizard.GenerateFileContent();
+			if (_folderConfigDir != null && _wizardWritten != null && ConfigText.Text == _wizardWritten && wizardContent != _wizardWritten)
+			{
+				// The folder's file is the wizard configuration a build here wrote, unedited: follow the changed answers.
+				ConfigText.Text = _wizardWritten = wizardContent;
+			}
+
 			FooterText.Text = $"Wizard steps from config.openastrotech.com v{_wizard.SourceVersion}. Firmware is downloaded to {FirmwareBuilder.WorkDirectory}.";
 
 			var pio = FirmwareBuilder.FindPlatformIO();
@@ -401,7 +504,32 @@ namespace OATControl
 
 		private async void OnReleaseChanged(object sender, SelectionChangedEventArgs e)
 		{
+			if (_askingToSave)
+			{
+				return; // the list changed under the question below; the handler asking it picks up the selection afterwards
+			}
+
 			var release = ReleaseCombo.SelectedItem as FirmwareRelease;
+			if (release != null && release.LocalPath != _folderConfigDir && ConfigDirty)
+			{
+				// Switching away from the folder whose configuration was edited here.
+				_askingToSave = true;
+				try
+				{
+					var question = $"Save your changes to Configuration_local.hpp in {_folderConfigDir}?";
+					while (MessageBox.Show(this, question, "Firmware", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes) == MessageBoxResult.Yes && !SaveFolderConfig())
+					{
+						question = StatusText.Text + "\n\nTry again? No discards your changes.";
+					}
+				}
+				finally
+				{
+					_askingToSave = false;
+				}
+
+				release = ReleaseCombo.SelectedItem as FirmwareRelease;
+			}
+
 			if (release?.LocalPath != null)
 			{
 				try
@@ -409,6 +537,7 @@ namespace OATControl
 					EnvCombo.ItemsSource = FirmwareBuilder.ReadEnvironments(release.LocalPath);
 					_firmwareDir = release.LocalPath;
 					_downloadedRelease = release;
+					UpdateConfigView();
 					SelectEnvironmentForBoard();
 					SetStatus($"Using firmware folder {release.LocalPath}.");
 					SaveState();
@@ -418,6 +547,11 @@ namespace OATControl
 					EnvCombo.ItemsSource = null;
 					_firmwareDir = null;
 					_downloadedRelease = null;
+					if (!ConfigDirty)
+					{
+						UpdateConfigView(); // unsaved edits stay in the editor, where Save still works
+					}
+
 					SetStatus("Could not read the firmware folder: " + ex.Message);
 				}
 
@@ -435,6 +569,7 @@ namespace OATControl
 				EnvCombo.ItemsSource = null;
 				_firmwareDir = null;
 				_downloadedRelease = null;
+				UpdateConfigView();
 				SaveState(); // a custom folder is no longer the choice, even if the download fails
 				try
 				{
@@ -457,6 +592,13 @@ namespace OATControl
 		private void SelectEnvironmentForBoard()
 		{
 			var board = _wizard.GetChosenDefineValue("board");
+			if (_folderConfigDir != null)
+			{
+				// The folder's configuration decides, not the wizard answers.
+				var match = System.Text.RegularExpressions.Regex.Match(ConfigText.Text, @"^[ \t]*#define[ \t]+BOARD[ \t]+(\w+)", System.Text.RegularExpressions.RegexOptions.Multiline);
+				board = match.Success ? match.Groups[1].Value : null;
+			}
+
 			var environments = EnvCombo.ItemsSource as List<PioEnvironment>;
 			EnvCombo.SelectedItem = environments?.FirstOrDefault(env => env.Board == board);
 		}
@@ -544,7 +686,8 @@ namespace OATControl
 				}
 			}
 
-			// A custom folder is the user's own: never replace its configuration without asking.
+			// A custom folder's own Configuration_local.hpp is used as is, with any edits made here; the wizard's
+			// configuration is only written to a folder that has none.
 			var content = _wizard.GenerateFileContent();
 			var custom = _downloadedRelease?.LocalPath != null;
 			var writeConfig = true;
@@ -561,26 +704,37 @@ namespace OATControl
 					return;
 				}
 
-				if (existing == content)
+				if (!ConfigDirty)
 				{
-					writeConfig = false; // already identical: leave the file untouched
+					// Pick up the file as it is now: it may have been changed, added or deleted in another editor.
+					ShowConfig(existing != null ? _firmwareDir : null, existing);
 				}
-				else if (existing != null)
+				else if (existing != _folderConfigSaved)
 				{
-					var answer = MessageBox.Show(this, "The firmware folder already has a Configuration_local.hpp that differs from the configuration made here.\n\n" +
-						"Yes: replace it with the configuration from this wizard.\nNo: keep the folder's file and build with it.",
-						"Firmware", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
+					var answer = MessageBox.Show(this, "Configuration_local.hpp in the firmware folder was changed by another program, and you have unsaved changes here.\n\n" +
+						"Yes: overwrite the file with your changes from this window.\nNo: discard your changes and build with the file in the folder.",
+						"Firmware", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
 					if (answer == MessageBoxResult.Cancel || answer == MessageBoxResult.None)
 					{
 						return;
 					}
 
-					writeConfig = answer == MessageBoxResult.Yes;
+					if (answer == MessageBoxResult.No)
+					{
+						ShowConfig(existing != null ? _firmwareDir : null, existing);
+					}
+				}
+
+				if (_folderConfigDir != null)
+				{
+					content = ConfigText.Text;
+					writeConfig = content != existing; // unchanged: leave the file untouched
 				}
 			}
 
+			// Not checked for a folder's own configuration: a Configuration_local_<board>.hpp there can override it.
 			var board = _wizard.GetChosenDefineValue("board");
-			if (writeConfig && board != null && env.Board != null && board != env.Board)
+			if (_folderConfigDir == null && board != null && env.Board != null && board != env.Board)
 			{
 				SetStatus($"Board '{env.Name}' does not match the configuration ({board}); the firmware would refuse to build.");
 				return;
@@ -592,6 +746,15 @@ namespace OATControl
 				if (writeConfig)
 				{
 					FirmwareBuilder.WriteConfiguration(_firmwareDir, content);
+					if (custom)
+					{
+						if (_folderConfigDir == null)
+						{
+							_wizardWritten = content;
+						}
+
+						ShowConfig(_firmwareDir, content); // the folder has this file now: show it as the folder's
+					}
 				}
 				else
 				{
@@ -649,6 +812,17 @@ namespace OATControl
 
 		private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
+			if (ConfigDirty)
+			{
+				var save = MessageBox.Show(this, $"Save your changes to Configuration_local.hpp in {_folderConfigDir}?", "Firmware",
+					MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Yes);
+				if (save == MessageBoxResult.Cancel || save == MessageBoxResult.None || (save == MessageBoxResult.Yes && !SaveFolderConfig()))
+				{
+					e.Cancel = true;
+					return;
+				}
+			}
+
 			if (!_busy)
 			{
 				return;

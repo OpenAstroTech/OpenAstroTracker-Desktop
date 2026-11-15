@@ -153,11 +153,13 @@
             <DockPanel Grid.Row="0" Margin="0,0,0,6">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Content="Back" Width="70" Height="26" Margin="0,0,6,0" Style="{StaticResource MainButtonStyle}" Click="OnBack" x:Name="FlashBackButton"/>
+                    <Button Content="Use Wizard Config" Width="120" Height="26" Margin="0,0,6,0" Style="{StaticResource MainButtonStyle}" Click="OnUseWizardConfig" x:Name="UseWizardButton" Visibility="Collapsed" ToolTip="Replace the text below with the configuration made in the wizard"/>
+                    <Button Content="Save" Width="60" Height="26" Margin="0,0,6,0" Style="{StaticResource MainButtonStyle}" Click="OnSaveFolderConfig" x:Name="SaveConfigButton" Visibility="Collapsed" ToolTip="Save your changes to Configuration_local.hpp in the firmware folder (building saves them too)"/>
                     <Button Content="Save As..." Width="80" Height="26" Style="{StaticResource MainButtonStyle}" Click="OnSaveConfig"/>
                 </StackPanel>
-                <TextBlock Text="Configuration_local.hpp" Style="{StaticResource StepTitle}" Margin="0"/>
+                <TextBlock x:Name="ConfigTitleText" Text="Configuration_local.hpp" Style="{StaticResource StepTitle}" Margin="0"/>
             </DockPanel>
-            <TextBox Grid.Row="1" x:Name="ConfigText" Style="{StaticResource Mono}"/>
+            <TextBox Grid.Row="1" x:Name="ConfigText" Style="{StaticResource Mono}" AcceptsReturn="True" AcceptsTab="True"/>
 
             <Grid Grid.Row="2" Margin="0,10,0,0">
                 <Grid.RowDefinitions>
