@@ -1,6 +1,6 @@
 # Configure & flash firmware from OATControl: test version (2026-11-14, extended 2026-11-15 and 2026-11-20)
 
-Branch: `feature/firmware-flasher-test` (not committed yet). Status: prototype; the questions for the other devs at the end are still open.
+Branch: `integrate-fwgui`. Status: prototype; the questions for the other devs at the end are still open.
 
 ## Goal
 
