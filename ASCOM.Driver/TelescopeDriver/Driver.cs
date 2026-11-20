@@ -833,17 +833,20 @@ namespace ASCOM.OpenAstroTracker
 		{
 			get
 			{
-				// Read once to avoid multiple serial round-trips and to keep the comparison consistent.
-				double lst = SiderealTime;
-				double ra = RightAscension;
+				// SideOfPier is the pointing state, which only changes when the mount flips during a slew, not when
+				// the target crosses the meridian. The firmware flips by turning DEC through the pole, so the sign
+				// of the DEC stepper position (field 3 of :GX#) is the pointing state, in both hemispheres:
+				// positive = not flipped = pierWest, negative = flipped = pierEast, zero = at the pole.
+				var cmdResult = CommandString(":GX#,#");
+				var fields = cmdResult.Split(',');
+				if (fields.Length < 4 || !long.TryParse(fields[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out long decSteps))
+				{
+					LogMessage(LoggingFlags.Scope, $"SideOfPier Get - unexpected :GX# response '{cmdResult}' => pierUnknown");
+					return PierSide.pierUnknown;
+				}
 
-				// Compute how far the RA is ahead of the LST, wrapping correctly around 0h/24h.
-				// hourAngle > 0 means the object has already crossed the meridian (telescope pointing west = pier east).
-				// hourAngle in [0, 12): pier east.  hourAngle in [12, 24): pier west.
-				double hourAngle = (lst - ra + 24.0) % 24.0;
-				PierSide retVal = hourAngle < 12.0 ? PierSide.pierEast : PierSide.pierWest;
-
-				LogMessage(LoggingFlags.Scope, $"SideOfPier Get => {Enum.GetName(typeof(PierSide), retVal)} (LST={lst:0.000}, RA={ra:0.000}, HA={hourAngle:0.000})");
+				PierSide retVal = decSteps > 0 ? PierSide.pierWest : decSteps < 0 ? PierSide.pierEast : PierSide.pierUnknown;
+				LogMessage(LoggingFlags.Scope, $"SideOfPier Get => {Enum.GetName(typeof(PierSide), retVal)} (DEC steps={decSteps})");
 				return retVal;
 			}
 			set
