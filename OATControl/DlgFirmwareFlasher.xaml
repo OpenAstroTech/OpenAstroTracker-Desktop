@@ -146,6 +146,7 @@
                 <RowDefinition Height="2*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="3*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -180,7 +181,7 @@
                 <ComboBox Grid.Column="1" x:Name="ReleaseCombo" Height="26" Margin="0,0,6,0" SelectionChanged="OnReleaseChanged"/>
                 <Button Grid.Column="2" Content="Folder..." Width="70" Height="26" Margin="0,0,12,0" Style="{StaticResource MainButtonStyle}" Click="OnCustomFolder" x:Name="FolderButton" ToolTip="Build firmware from a local folder, for example a checkout with your own changes"/>
                 <TextBlock Grid.Column="3" Text="Board" Style="{StaticResource Label}"/>
-                <ComboBox Grid.Column="4" x:Name="EnvCombo" Height="26" Margin="0,0,12,0"/>
+                <ComboBox Grid.Column="4" x:Name="EnvCombo" Height="26" Margin="0,0,12,0" SelectionChanged="OnEnvChanged"/>
                 <TextBlock Grid.Column="5" Text="Port" Style="{StaticResource Label}"/>
                 <ComboBox Grid.Column="6" x:Name="PortCombo" Height="26" Margin="0,0,6,0"/>
                 <Button Grid.Column="7" Content="Refresh" Width="70" Height="26" Style="{StaticResource MainButtonStyle}" Click="OnRefreshPorts" x:Name="RefreshButton"/>
@@ -188,7 +189,18 @@
                           Checked="OnAllBranchesChanged" Unchecked="OnAllBranchesChanged" ToolTip="Also list the older releases and every branch of the firmware repository"/>
             </Grid>
 
-            <DockPanel Grid.Row="3" Margin="0,10,0,6">
+            <!-- Shown when no usable PlatformIO was found -->
+            <Border Grid.Row="3" x:Name="ToolsPanel" Visibility="Collapsed" BorderThickness="1" BorderBrush="{DynamicResource AppButtonBorderBrush}" Margin="0,10,0,0" Padding="8">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" x:Name="ToolsButton" Content="Download Flash Tools" MinWidth="200" Height="28" Padding="10,0" Margin="8,0,0,0" Style="{StaticResource MainButtonStyle}" Click="OnInstallTools" VerticalAlignment="Top"/>
+                    <StackPanel>
+                        <TextBlock x:Name="ToolsText" Style="{StaticResource MetroTextBlock}" TextWrapping="Wrap"/>
+                        <ProgressBar x:Name="ToolsProgress" Height="8" Margin="0,6,0,0" Minimum="0" Maximum="1" Visibility="Collapsed"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <DockPanel Grid.Row="4" Margin="0,10,0,6">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button x:Name="BuildButton" Content="Build Only" Width="90" Height="28" Margin="0,0,6,0" Style="{StaticResource MainButtonStyle}" Click="OnBuild"/>
                     <Button x:Name="FlashButton" Content="Build &amp; Flash" Width="110" Height="28" Margin="0,0,6,0" Style="{StaticResource MainButtonStyle}" Click="OnFlash"/>
@@ -196,8 +208,8 @@
                 </StackPanel>
                 <TextBlock x:Name="StatusText" Style="{StaticResource MetroTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" FontWeight="Bold"/>
             </DockPanel>
-            <TextBox Grid.Row="4" x:Name="LogText" Style="{StaticResource Mono}"/>
-            <TextBlock Grid.Row="5" x:Name="FooterText" Style="{StaticResource MetroTextBlock}" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"/>
+            <TextBox Grid.Row="5" x:Name="LogText" Style="{StaticResource Mono}"/>
+            <TextBlock Grid.Row="6" x:Name="FooterText" Style="{StaticResource MetroTextBlock}" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"/>
         </Grid>
     </Grid>
 </controls:ThemedWindow>

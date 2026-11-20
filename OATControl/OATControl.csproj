@@ -204,6 +204,7 @@
     </Compile>
     <Compile Include="Firmware\FirmwareBuilder.cs" />
     <Compile Include="Firmware\FirmwareConfigWizard.cs" />
+    <Compile Include="Firmware\FlashTools.cs" />
     <Page Include="DlgFirmwareFlasher.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

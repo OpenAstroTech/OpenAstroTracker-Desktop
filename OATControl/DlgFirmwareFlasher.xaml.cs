@@ -33,6 +33,10 @@ namespace OATControl
 		private string _folderConfigSaved; // that file's content as last read or written
 		private string _wizardWritten; // the wizard configuration a build here wrote into a folder that had none
 		private bool _askingToSave;
+		private string _pio; // the pio.exe to build with; null until a usable one is found or installed
+		private bool _pioSearched;
+		private Task<string> _pioSearch; // started once; a second ShowFlashPage awaits the same search
+		private bool ToolsMissing => _pio == null || FlashTools.NeedsGit; // the firmware's libraries are git URLs
 
 		private readonly UpdateCheckResult _update; // set when opened from a firmware update notification
 		private string _selectZipUrl; // that update's firmware, to select when the list has loaded
@@ -344,12 +348,16 @@ namespace OATControl
 
 			FooterText.Text = $"Wizard steps from config.openastrotech.com v{_wizard.SourceVersion}. Firmware is downloaded to {FirmwareBuilder.WorkDirectory}.";
 
-			var pio = FirmwareBuilder.FindPlatformIO();
-			if (pio == null)
+			SetBusy(_busy);
+			if (!_pioSearched)
 			{
-				SetStatus("PlatformIO was not found. This test version needs PlatformIO Core installed (pio.exe on the PATH or in %USERPROFILE%\\.platformio).");
-				SetBusy(false, pioAvailable: false);
-				return;
+				SetStatus("Looking for PlatformIO...");
+				_pioSearch = _pioSearch ?? FlashTools.FindPlatformIOAsync(AppendLog);
+				var found = await _pioSearch;
+				_pio = _pio ?? found;
+				_pioSearched = true;
+				SetStatus(ToolsMissing ? "Flash tools are missing. Use Download Flash Tools below." : $"Using PlatformIO at {_pio}");
+				SetBusy(_busy);
 			}
 
 			var releases = ReleaseCombo.ItemsSource as List<FirmwareRelease>;
@@ -610,17 +618,12 @@ namespace OATControl
 
 		private async Task RefreshPortsAsync()
 		{
-			var pio = FirmwareBuilder.FindPlatformIO();
-			if (pio == null)
-			{
-				return;
-			}
-
+			var pio = _pio;
 			var previous = (PortCombo.SelectedItem as SerialPortEntry)?.Port;
 			List<SerialPortEntry> ports;
 			try
 			{
-				ports = await FirmwareBuilder.ListSerialPortsAsync(pio);
+				ports = pio == null ? System.IO.Ports.SerialPort.GetPortNames().Distinct().Select(p => new SerialPortEntry { Port = p }).ToList() : await FirmwareBuilder.ListSerialPortsAsync(pio);
 			}
 			catch (Exception ex)
 			{
@@ -649,6 +652,12 @@ namespace OATControl
 			if (_firmwareDir == null || env == null)
 			{
 				SetStatus("Select a firmware version and board first.");
+				return;
+			}
+
+			if (ToolsMissing)
+			{
+				SetStatus("Flash tools are needed to build. Use Download Flash Tools first.");
 				return;
 			}
 
@@ -740,7 +749,7 @@ namespace OATControl
 				return;
 			}
 
-			var pio = FirmwareBuilder.FindPlatformIO();
+			var pio = _pio;
 			await RunBusyAsync(async token =>
 			{
 				if (writeConfig)
@@ -803,6 +812,71 @@ namespace OATControl
 					SetStatus($"PlatformIO failed (exit code {exitCode}). See the log above.");
 				}
 			});
+		}
+
+		private void OnEnvChanged(object sender, SelectionChangedEventArgs e)
+		{
+			UpdateToolsPanel();
+		}
+
+		/// <summary>Shows the flash tools download, sized for what is missing, while no usable PlatformIO was found.</summary>
+		private void UpdateToolsPanel()
+		{
+			ToolsPanel.Visibility = ToolsMissing && _pioSearched ? Visibility.Visible : Visibility.Collapsed;
+			if (ToolsPanel.Visibility != Visibility.Visible)
+			{
+				return;
+			}
+
+			var missing = _pio == null && FlashTools.NeedsGit ? $"PlatformIO {FlashTools.MinPlatformIOVersion} or newer and Git"
+				: _pio == null ? $"PlatformIO {FlashTools.MinPlatformIOVersion} or newer" : "Git";
+			var env = EnvCombo.SelectedItem as PioEnvironment;
+			if (_firmwareDir == null || env == null)
+			{
+				ToolsButton.Content = "Download Flash Tools";
+				ToolsButton.IsEnabled = false;
+				ToolsText.Text = $"Missing on this PC: {missing}, needed to build the firmware. Select the firmware and board first: the download includes the compiler for that board.";
+				return;
+			}
+
+			var restart = FlashTools.NeedsGit ? " If you install Git yourself instead, restart OATControl." : "";
+			var parts = _pio == null && FlashTools.NeedsGit ? "a private Python, PlatformIO and Git" : _pio == null ? "a private Python and PlatformIO" : "a private Git";
+			var mb = FlashTools.DownloadSizeMB(_pio, _firmwareDir, env, out var compilerKnown);
+			ToolsButton.Content = compilerKnown ? $"Download Flash Tools, about {mb} MB" : $"Download Flash Tools, {mb} MB + compiler";
+			ToolsButton.IsEnabled = !_busy;
+			ToolsText.Text = $"Missing on this PC: {missing}, needed to build the firmware. This downloads {parts} into {FlashTools.ToolsDirectory}, " +
+				$"and the compiler for {env.Name}. Nothing else on this PC is changed.{restart}";
+		}
+
+		private async void OnInstallTools(object sender, RoutedEventArgs e)
+		{
+			var env = EnvCombo.SelectedItem as PioEnvironment;
+			if (_busy || !ToolsMissing || _firmwareDir == null || env == null)
+			{
+				return;
+			}
+
+			var progress = new Progress<double>(p =>
+			{
+				ToolsProgress.IsIndeterminate = p < 0;
+				ToolsProgress.Value = Math.Max(0, p);
+			});
+			ToolsProgress.Visibility = Visibility.Visible;
+			await RunBusyAsync(async token =>
+			{
+				if (_downloadedRelease?.LocalPath == null)
+				{
+					// The compiler version can depend on them (old releases pin atmelavr@4.2.0).
+					FirmwareBuilder.ApplyHotPatches(_firmwareDir, env, AppendLog);
+				}
+
+				SetStatus("Downloading flash tools... (the compiler can take several minutes)");
+				_pio = await FlashTools.InstallAsync(_pio, _firmwareDir, env, AppendLog, progress, token);
+				SetStatus("Flash tools installed. You can build and flash now.");
+			});
+			ToolsProgress.Visibility = Visibility.Collapsed;
+			UpdateToolsPanel();
+			await RefreshPortsAsync();
 		}
 
 		private void OnCancel(object sender, RoutedEventArgs e)
@@ -871,20 +945,21 @@ namespace OATControl
 			}
 		}
 
-		private void SetBusy(bool busy, bool pioAvailable = true)
+		private void SetBusy(bool busy)
 		{
 			_busy = busy;
-			BuildButton.IsEnabled = !busy && pioAvailable;
-			FlashButton.IsEnabled = !busy && pioAvailable;
-			ReleaseCombo.IsEnabled = !busy && pioAvailable;
-			FolderButton.IsEnabled = !busy && pioAvailable;
-			AllBranchesCheck.IsEnabled = !busy && pioAvailable && !_loadingReleases;
-			EnvCombo.IsEnabled = !busy && pioAvailable;
-			PortCombo.IsEnabled = !busy && pioAvailable;
-			RefreshButton.IsEnabled = !busy && pioAvailable;
+			BuildButton.IsEnabled = !busy && !ToolsMissing;
+			FlashButton.IsEnabled = !busy && !ToolsMissing;
+			ReleaseCombo.IsEnabled = !busy;
+			FolderButton.IsEnabled = !busy;
+			AllBranchesCheck.IsEnabled = !busy && !_loadingReleases;
+			EnvCombo.IsEnabled = !busy;
+			PortCombo.IsEnabled = !busy;
+			RefreshButton.IsEnabled = !busy;
 			FlashBackButton.IsEnabled = !busy && !_loadingReleases;
 			RestartButton.IsEnabled = !busy && !_loadingReleases;
 			CancelButton.IsEnabled = busy;
+			UpdateToolsPanel();
 		}
 
 		private void SetStatus(string text)

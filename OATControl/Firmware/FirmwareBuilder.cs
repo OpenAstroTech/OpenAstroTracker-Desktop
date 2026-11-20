@@ -51,11 +51,11 @@ namespace OATControl.Firmware
 
 		public static string DevelopZipUrl => string.Format(BranchZipUrl, "develop");
 
-		private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+		internal static readonly HttpClient HttpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
 
 		static FirmwareBuilder()
 		{
-			_httpClient.DefaultRequestHeaders.Add("User-Agent", "OATControl");
+			HttpClient.DefaultRequestHeaders.Add("User-Agent", "OATControl");
 		}
 
 		/// <summary>Kept short on purpose: PlatformIO builds exceed the 260 character Windows path limit in deep folders.</summary>
@@ -71,7 +71,7 @@ namespace OATControl.Firmware
 		/// </summary>
 		public static async Task<List<FirmwareRelease>> GetReleasesAsync(bool all)
 		{
-			var json = await _httpClient.GetStringAsync(ReleasesUrl).ConfigureAwait(false);
+			var json = await HttpClient.GetStringAsync(ReleasesUrl).ConfigureAwait(false);
 			var releases = JArray.Parse(json).Select(release =>
 			{
 				var name = (string)release["name"];
@@ -106,7 +106,7 @@ namespace OATControl.Firmware
 
 			if (all)
 			{
-				var branches = await _httpClient.GetStringAsync(BranchesUrl).ConfigureAwait(false);
+				var branches = await HttpClient.GetStringAsync(BranchesUrl).ConfigureAwait(false);
 				foreach (var name in JArray.Parse(branches).Select(b => (string)b["name"]).Where(n => n != "develop").OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
 				{
 					releases.Add(new FirmwareRelease { Name = "Branch: " + name, ZipUrl = string.Format(BranchZipUrl, name), IsPrerelease = true });
@@ -124,7 +124,7 @@ namespace OATControl.Firmware
 			var extractDir = Path.Combine(WorkDirectory, "extract");
 
 			log($"Downloading {release.Name} from {release.ZipUrl}");
-			using (var response = await _httpClient.GetAsync(release.ZipUrl, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false))
+			using (var response = await HttpClient.GetAsync(release.ZipUrl, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false))
 			{
 				response.EnsureSuccessStatusCode();
 				using (var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
@@ -287,18 +287,6 @@ namespace OATControl.Firmware
 			File.WriteAllText(path, content, ConfigurationEncoding(path));
 		}
 
-		/// <summary>Finds pio.exe on the PATH or in the default PlatformIO install (also used by the VS Code extension).</summary>
-		public static string FindPlatformIO()
-		{
-			var candidates = (Environment.GetEnvironmentVariable("PATH") ?? "")
-				.Split(Path.PathSeparator)
-				.Where(p => !string.IsNullOrWhiteSpace(p))
-				.Select(p => Path.Combine(p.Trim('"'), "pio.exe"))
-				.ToList();
-			candidates.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".platformio", "penv", "Scripts", "pio.exe"));
-			return candidates.FirstOrDefault(File.Exists);
-		}
-
 		public static async Task<List<SerialPortEntry>> ListSerialPortsAsync(string pio)
 		{
 			var output = new StringBuilder();
@@ -357,7 +345,7 @@ namespace OATControl.Firmware
 		/// <summary>Builds the firmware and, if <paramref name="uploadPort"/> is set, uploads it to the board.</summary>
 		public static Task<int> BuildAsync(string pio, string firmwareDir, PioEnvironment env, string uploadPort, Action<string> log, CancellationToken token)
 		{
-			var args = $"run --environment {env.Name} --project-dir \"{firmwareDir}\"";
+			var args = $"run --environment {env.Name} --project-dir {QuoteArgument(firmwareDir)}";
 			if (!string.IsNullOrEmpty(uploadPort))
 			{
 				args += $" --target upload --upload-port {uploadPort}";
@@ -378,6 +366,12 @@ namespace OATControl.Firmware
 			return RunAsync(pio, args, environment, log, log, token);
 		}
 
+		/// <summary>Quotes a path for a command line; a trailing backslash is doubled so it doesn't escape the closing quote (D:\).</summary>
+		internal static string QuoteArgument(string path)
+		{
+			return "\"" + (path.EndsWith("\\") ? path + "\\" : path) + "\"";
+		}
+
 		private static string EnvExtraScripts(string firmwareDir)
 		{
 			var text = File.ReadAllText(Path.Combine(firmwareDir, "platformio.ini"));
@@ -396,7 +390,7 @@ namespace OATControl.Firmware
 			}
 		}
 
-		private static Task<int> RunAsync(string exe, string args, IDictionary<string, string> environment, Action<string> stdout, Action<string> stderr, CancellationToken token)
+		internal static Task<int> RunAsync(string exe, string args, IDictionary<string, string> environment, Action<string> stdout, Action<string> stderr, CancellationToken token)
 		{
 			var psi = new ProcessStartInfo(exe, args)
 			{
@@ -409,6 +403,23 @@ namespace OATControl.Firmware
 			};
 			psi.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
 			psi.EnvironmentVariables["PLATFORMIO_DISABLE_PROGRESSBAR"] = "true";
+
+			// Keep a Python the user configured elsewhere from leaking into PlatformIO's (private or venv) Python.
+			psi.EnvironmentVariables.Remove("PYTHONHOME");
+			psi.EnvironmentVariables.Remove("PYTHONPATH");
+			psi.EnvironmentVariables["PYTHONNOUSERSITE"] = "1";
+			psi.EnvironmentVariables["PIP_USER"] = "0";
+			var gitDir = FlashTools.GitPathOverride;
+			if (gitDir != null)
+			{
+				psi.EnvironmentVariables["PATH"] = gitDir + Path.PathSeparator + psi.EnvironmentVariables["PATH"];
+			}
+
+			var coreDir = FlashTools.CoreDirectoryOverride;
+			if (coreDir != null)
+			{
+				psi.EnvironmentVariables["PLATFORMIO_CORE_DIR"] = coreDir;
+			}
 			if (environment != null)
 			{
 				foreach (var kv in environment)

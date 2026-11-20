@@ -1,4 +1,4 @@
-# Configure & flash firmware from OATControl: test version (2026-11-14, extended 2026-11-15)
+# Configure & flash firmware from OATControl: test version (2026-11-14, extended 2026-11-15 and 2026-11-20)
 
 Branch: `feature/firmware-flasher-test` (not committed yet). Status: prototype; the questions for the other devs at the end are still open.
 
@@ -40,7 +40,7 @@ The test folds steps 1 and 2 into OATControl. OATFWGUI stays for Linux users, si
 2. **Unreleased changes:** App Settings → "Notify about unreleased firmware changes (dev branch)", off by default. For a mount on the latest release it lists the commits on `develop` that are not released yet (GitHub compare API). `develop` reports the same version string as the latest release, so OATControl can't tell whether the mount already runs it. The notice therefore repeats at each app start until that develop commit is skipped or flashed from here. Every successful flash of `develop` from this dialog records the exact commit (read from the downloaded zip, where GitHub stores it as the zip comment), so that commit is not announced again; flashing anything else afterwards forgets it. Flashes made outside OATControl can't be detected.
 3. **Flashing while connected:** Build & Flash offers to disconnect the mount, since the dialog is modal and the main window can't be reached. It then tests that the serial port can be opened and stops before the build if another program holds it (over ASCOM the driver keeps the port while any other client is connected).
 4. **No internet:** "Check For Updates" says so instead of reporting the latest version.
-5. **Verified:** the check was run against live GitHub for an old mount version, a skipped release, the toggle off and on, a skipped develop commit and a dead connection. The popup and the upgrade path were not exercised in the running app. Adversarial review: 5 of 8 findings fixed.
+5. **Verified:** the check was run against live GitHub for an old mount version, a skipped release, the toggle off and on, a skipped develop commit and a dead connection. The update notification has since been confirmed working in the running app (reported by Fabian, 2026-11-18). Adversarial review: 5 of 8 findings fixed.
 6. **Unfixed review findings:** the popup can open over another open dialog if the check finishes after connecting; clicking Upgrade forgets a saved custom folder; with more than 250 unreleased commits the skip would stick to the wrong commit.
 
 ## How it was verified
@@ -53,17 +53,35 @@ The test folds steps 1 and 2 into OATControl. OATFWGUI stays for Linux users, si
 
 ## Open points / not done
 
-1. Upload to a real board has **not** been tested (no hardware available). Only builds were run.
-2. PlatformIO must already be installed (`pio.exe` on the PATH or in `%USERPROFILE%\.platformio`). Bundling Python and PlatformIO, like OATFWGUI does, is not done.
+1. Upload has been tested on a real ESP32 board, several times (reported by Fabian, 2026-11-18). Upload to an AVR board (RAMPS, MKS Gen L) has not been reported yet.
+2. Missing PlatformIO is solved by the "Download Flash Tools" button (2026-11-20, see below).
 3. The website images (9.7 MB) are not included; the choices are text-only buttons.
 4. `steps.json` is a copy. Until the website itself loads the exported JSON, the export has to be re-run whenever the website changes. The recommended next step is to have the website consume the same JSON, so there is a single source of truth.
 5. Going back in the wizard deliberately differs from the website: it forgets that answer and the ones after it. The website keeps later answers, which makes it skip steps whose answers no longer apply (arguably a website bug).
 6. An existing bug unrelated to this work: the post-build event in `OATCommunications.ASCOM.csproj` doesn't quote its paths, so builds fail in folders with spaces. Workaround: build with `-p:PostBuildEvent=` and copy `OATCommunications.ASCOM.dll` next to the exe by hand.
 7. A saved custom folder is forgotten if its `platformio.ini` can't be read when the dialog opens (for example an unplugged drive), and the dialog can hang for a few seconds on open if the saved folder is on an unreachable network path.
-8. An alternative to local builds that is worth discussing is a cloud build service. OATControl would then only need avrdude/esptool, giving a much smaller install, in exchange for running and paying for a server.
+8. Decided 2026-11-20 (Fabian): local PlatformIO, no cloud build.
+
+## "Download Flash Tools" button (built 2026-11-20)
+
+1. **Finding PlatformIO:** the flash page looks for `pio.exe` on the PATH, in `%USERPROFILE%\.platformio\penv`, then the private copy, and uses the first of version 6.1.16 or newer (the version OATFWGUI pins). Older installs are logged and left alone.
+2. **The button:** shown when no usable PlatformIO was found, or when Git is missing. It is enabled once a firmware and board are selected, and reads "Download Flash Tools, about X MB", where X counts only the missing parts. Build and Flash stay disabled until the tools are there. Releases, the board and the port can be chosen without PlatformIO.
+3. **What it installs** (in `%LocalAppData%\OATFW\tools`, nothing on PATH, nothing else changed):
+   1. Python 3.11.9 from the official python.org NuGet package (17 MB download, 45 MB on disk), checked against a fixed SHA-256.
+   2. PlatformIO 6.1.16 via `pip --isolated` into that Python (2 MB download, 34 MB on disk).
+   3. MinGit 2.56.1 from Git for Windows (38 MB download, 93 MB on disk), checked against a fixed SHA-256, only if `git.exe` is not on the PATH. **Git turned out to be required:** every board's `lib_deps` are `github.com/...#tag` URLs and the RP2040 platform is a git URL, so PlatformIO fails without Git. This was not in the original plan.
+   4. The compiler and libraries of the selected board (`pio pkg install -e <env>`), after the hot patches, since those pin the AVR platform version. Downloads measured for firmware v1.14: AVR about 55 MB (334 MB on disk), ESP32 about 370 MB (1.6 GB on disk). RP2040 is not measured, so the button shows "+ compiler" for it.
+4. **Compilers:** go to `%USERPROFILE%\.platformio` if it exists (reusing what an existing install downloaded), else `%LocalAppData%\OATFW\core`. A `PLATFORMIO_CORE_DIR` set by the user wins.
+5. **Every pio run** drops `PYTHONHOME`/`PYTHONPATH` and sets `PYTHONNOUSERSITE=1` and `PIP_USER=0`, so a Python configured elsewhere can't leak in. The private Git is put first on PATH only for pio.
+6. **Decided:** Python already on the PC is not reused; the board's compiler is part of the button's download.
+7. **Verified (2026-11-20)** with a harness that calls the real `FlashTools` API from the built OATControl.exe:
+   1. With Git removed from PATH, it installed Python, MinGit and PlatformIO, the git-URL libraries installed through the private Git, and a RAMPS build with the private pio succeeded. The reported size was 57 MB before (17 + 2 + 38, the AVR compiler was already in `.platformio`) and 0 after.
+   2. A wrong Python hash was rejected and left no Python folder behind; restoring it reinstalled cleanly with Git on PATH.
+   3. Not done: the dialog itself has not been clicked through, and the install into a fresh `OATFW\core` (no `.platformio`) was only run with pio directly, not through OATControl. On Fabian's PC the button doesn't appear (PlatformIO 6.2.0 and Git are installed); to see it, rename `%USERPROFILE%\.platformio` and remove Git from PATH, or test on another PC.
+8. **Not pinned:** PlatformIO's own pip dependencies are resolved from PyPI at install time (only PlatformIO's version is fixed).
 
 ## Questions for the devs
 
 1. Is folding config and flashing into OATControl the right direction, with OATFWGUI kept for Linux?
-2. Local PlatformIO (bundled on first use) or a cloud build?
+2. ~~Local PlatformIO or a cloud build?~~ Decided: local PlatformIO.
 3. Is it OK to move the website's step definitions to a shared JSON file?
