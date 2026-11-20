@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 1,
   "sourceVersion": "3.11.0",
   "defaults": {
     "PowerRating": {
@@ -869,14 +870,7 @@
               }
             }
           ]
-        },
-        "postamble": [
-          {
-            "literal": [
-              "#define DEC_WHEEL_CIRCUMFERENCE        816.814f"
-            ]
-          }
-        ]
+        }
       },
       {
         "id": "DDT",

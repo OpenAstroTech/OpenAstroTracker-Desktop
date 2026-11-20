@@ -19,7 +19,7 @@ The test folds steps 1 and 2 into OATControl. OATFWGUI stays for Linux users, si
 
 ## What was built
 
-1. `tools/firmware-config/export-steps.mjs`: exports the website's step definitions to `OATControl/Resources/FirmwareConfig/steps.json`. Conditions are pre-parsed with the website's own `parser.js`, so OATControl doesn't reimplement the parser. Usage: `node export-steps.mjs <config-web-checkout> <out.json>`.
+1. The export of the website's step definitions to JSON, with conditions pre-parsed by the website's own `parser.js` so OATControl doesn't reimplement the parser. It started as `tools/firmware-config/export-steps.mjs` here; since 2026-11-20 it lives in the website repo as `scripts/export-steps.mjs` (see "Shared wizard steps" below), and the copy here was removed.
 2. `OATControl/Firmware/FirmwareConfigWizard.cs`: C# port of the `WizardStep.jsx` logic (step skipping, conditions, defaults, file generation). JavaScript quirks that affect the output are kept on purpose (for example a default of `0` becomes empty, like `0 || ''`).
 3. `OATControl/Firmware/FirmwareBuilder.cs`: lists the firmware versions from GitHub, downloads and extracts to `%LocalAppData%\OATFW\fw` (a short path to stay under the Windows path limit), maps the board answer to the PlatformIO env via `-D BOARD=...` in `platformio.ini`, applies OATFWGUI's hot patches, and runs `pio` to build or upload.
 4. `OATControl/DlgFirmwareFlasher.xaml(.cs)`: the wizard plus a build & flash page. It's opened from App Settings → General → "Configure & Flash Firmware...".
@@ -56,7 +56,7 @@ The test folds steps 1 and 2 into OATControl. OATFWGUI stays for Linux users, si
 1. Upload has been tested on a real ESP32 board, several times (reported by Fabian, 2026-11-18). Upload to an AVR board (RAMPS, MKS Gen L) has not been reported yet.
 2. Missing PlatformIO is solved by the "Download Flash Tools" button (2026-11-20, see below).
 3. The website images (9.7 MB) are not included; the choices are text-only buttons.
-4. `steps.json` is a copy. Until the website itself loads the exported JSON, the export has to be re-run whenever the website changes. The recommended next step is to have the website consume the same JSON, so there is a single source of truth.
+4. Solved 2026-11-20: OATControl downloads the steps from the website (see "Shared wizard steps" below). The embedded `steps.json` is only the offline fallback.
 5. Going back in the wizard deliberately differs from the website: it forgets that answer and the ones after it. The website keeps later answers, which makes it skip steps whose answers no longer apply (arguably a website bug).
 6. An existing bug unrelated to this work: the post-build event in `OATCommunications.ASCOM.csproj` doesn't quote its paths, so builds fail in folders with spaces. Workaround: build with `-p:PostBuildEvent=` and copy `OATCommunications.ASCOM.dll` next to the exe by hand.
 7. A saved custom folder is forgotten if its `platformio.ini` can't be read when the dialog opens (for example an unplugged drive), and the dialog can hang for a few seconds on open if the saved folder is on an unreachable network path.
@@ -80,8 +80,48 @@ The test folds steps 1 and 2 into OATControl. OATFWGUI stays for Linux users, si
    3. Not done: the dialog itself has not been clicked through, and the install into a fresh `OATFW\core` (no `.platformio`) was only run with pio directly, not through OATControl. On Fabian's PC the button doesn't appear (PlatformIO 6.2.0 and Git are installed); to see it, rename `%USERPROFILE%\.platformio` and remove Git from PATH, or test on another PC.
 8. **Not pinned:** PlatformIO's own pip dependencies are resolved from PyPI at install time (only PlatformIO's version is fixed).
 
+## Config website findings (2026-11-20)
+
+1. **Converting the steps to JSON is easy:** the step files (`commonSteps.js`, `oatSteps.js`, `oamSteps.js`, `oaeSteps.js`, `sharedDefaults.js`, about 1,500 lines) are already plain data. The factories take no arguments, nothing is a function, and defaults are strings like `'{Defaults.PowerRating.rastpr}'` resolved at runtime. The only JavaScript parts are imports, the factory wrappers and `...createWiFiSteps()`-style reuse. Before PR #38, the export from website master (`3c384e2`, v3.11.0) was byte-identical to the embedded `steps.json`.
+2. **Recommended way to share them:** keep the JavaScript files as the source. Move `export-steps.mjs` into the website repo and run it at build time to write `public/steps.json`, which the site then serves at config.openastrotech.com. OATControl downloads it at runtime and keeps the embedded copy as an offline fallback. The alternative is to rewrite the step files as JSON, which touches every file the website devs edit for little gain.
+3. **Deployment:** a push to master runs `.github/workflows/deploy.yml`. It SSHes to the server, which runs `git pull` and Docker (`npm start`, Node 13.12), and serves `public/`. Node 13.12 can't run the export script (top-level await needs Node 14.8 or newer), so the Dockerfile's Node version must be raised for option 2.
+4. **Drift that JSON doesn't solve:** the rules that turn answers into `#define` lines are in `WizardStep.jsx` (653 lines) and in the C# port. The 400-path parity test (React component vs C# engine) should run in the website's CI.
+5. **Why PRs sit open:** the ruleset "Don't push to master" sets 0 required approvals, but its "Restrict updates" rule blocks every change to master, PR merges included. Only org admins and repo admins can bypass it, with the "Merge without waiting for requirements" checkbox. A review doesn't unblock a merge. To fix it, untick "Restrict updates" and keep "Require a pull request", "Block force pushes" and "Restrict deletions". Set "Required approvals" to 1 if reviews should really be required. Not changed yet; agree it with ClutchplateDude and andre-stefanov first. Copilot code review runs automatically on PRs.
+6. **PR #38, "fix OAT DEC Circumference":**
+   1. **The bug:** since at least V3.00 (2025-09-01), the shared DEC stepper step wrote `#define DEC_WHEEL_CIRCUMFERENCE 816.814f` (the OAM value) into OAT configs too. The firmware's `Configuration_adv.hpp` only sets the OAT value (565.5f) when the local config doesn't, so affected OAT mounts calculate about 44% too many DEC steps (816.814 / 565.5 ≈ 1.44). The OAE was not affected.
+   2. **Affected users:** OAT users who generated a config on the website since then should remove that line from their `Configuration_local.hpp` (or regenerate it) and reflash. This is worth a release note or announcement. OATControl's flasher has the same bug until `steps.json` is re-exported.
+   3. **Fixing the PR:** as first pushed, it also moved `DEC_INVERT_DIR` into a step every OAM goes through. On master it's only written with a TMC2209-UART DEC driver. It also wrote the circumference line as a nested array, which only rendered by accident and would break the C# wizard. Commit `644aeed` fixed both: OAM now uses its own copy of the DEC stepper step that keeps the line. A field-by-field comparison of the step data exported from master and from the PR showed that the only difference is the OAT's circumference line; OAM and OAE are identical.
+   4. **Status:** ready to merge, with the bypass checkbox and squash. A merge deploys to the live site immediately.
+7. **Done:** #38 merged (`b135f57`) and exported into OATControl's embedded `steps.json`. PR #35 ("Add configuration for OpenAstroExplorer and bump to v3.11", open since 2025-10-25) is still open, although master already contains the OAE steps.
+
+## Shared wizard steps (built 2026-11-20)
+
+1. **Website** (branch `feature/download-wizard-steps` in the config-web repo, not pushed yet):
+   1. `scripts/export-steps.mjs` writes `public/steps.json`, adding `"schemaVersion": 1`. It loads the step files from a temp copy marked as ES modules, because the server's Node 13.12 can't load them directly.
+   2. `prestart` and `prebuild` npm scripts run the export, and the Dockerfile runs it once more while building the image, as root. A failed export never stops the site: `prestart` continues and the Docker step only prints a message.
+   3. `.gitignore` excludes the generated file.
+2. **Website tests:**
+   1. Node 22: the export works, then react-scripts 4 can't start, as it can't on any Node 17 or newer.
+   2. Node 16.20.2: `npm start` serves `/steps.json` as JSON. A deliberately broken parser made `prestart` print the failure and continue (exit 0), while the script alone exited 1.
+   3. Node 13.12 with npm 6 as root in WSL Ubuntu, replaying the Dockerfile: `npm install`, the build step and `npm start` all worked, and the served file was byte-identical to the Node 22 export. npm 6 didn't drop to an unprivileged user there.
+   4. Not run: a real Docker/Alpine build.
+3. **OATControl:**
+   1. `Firmware/WizardSteps.cs` fetches `https://config.openastrotech.com/steps.json` when the flasher opens, with a 5 s timeout.
+   2. A file is accepted only if it parses, has `schemaVersion` 1, and the C# wizard runs once through every tracker to a generated configuration. The site answers unknown paths with its HTML page, which this rejects.
+   3. A good download is saved to `%LocalAppData%\OATFW\steps.json`. Fallback order: download, then the saved copy (only if it is newer than the OATControl build), then the embedded copy. The footer says which one is in use. A failure to save the copy is only logged.
+   4. Validation runs one path per tracker the first step offers. If a downloaded file fails later in another branch while the dialog opens, the dialog falls back to the built-in copy. The download runs off the UI thread.
+   5. The embedded `steps.json` was re-exported with `schemaVersion` and the #38 fix.
+4. **OATControl tests** (harness against the built exe), all passed:
+   1. The embedded file and a site-served file validate.
+   2. Rejected: HTML, `schemaVersion` 2, a missing `schemaVersion`, and #38's original nested array in a literal.
+   3. Fallback: no download gives the built-in copy, a valid saved copy wins over the built-in one, and a broken saved copy falls back to the built-in one.
+   4. Against a local HTTP server: the download is used and saved, a second download replaces the saved copy without leaving temp files, an HTML answer falls back to the saved copy without overwriting it, and a saved copy older than the build loses to the built-in one.
+   5. An adversarial review found 5 issues, all fixed.
+   6. Not tested: clicking through the dialog, including its fallback when a downloaded file fails, and the live site (it serves the file only after the website branch is deployed; today OATControl gets a 404 there).
+5. **Rule for the website from now on:** step files and `parser.js` must stay within Node 13.12 syntax (no `?.`, `??`) until the site's Node is upgraded. The website can only move past Node 16 by replacing react-scripts 4 (for example with Vite).
+
 ## Questions for the devs
 
 1. Is folding config and flashing into OATControl the right direction, with OATFWGUI kept for Linux?
 2. ~~Local PlatformIO or a cloud build?~~ Decided: local PlatformIO.
-3. Is it OK to move the website's step definitions to a shared JSON file?
+3. ~~Is it OK to move the website's step definitions to a shared JSON file?~~ Done instead by generating `steps.json` from the website's own files (see "Shared wizard steps").

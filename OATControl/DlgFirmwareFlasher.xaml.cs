@@ -39,6 +39,8 @@ namespace OATControl
 		private bool ToolsMissing => _pio == null || FlashTools.NeedsGit; // the firmware's libraries are git URLs
 
 		private readonly UpdateCheckResult _update; // set when opened from a firmware update notification
+		private Newtonsoft.Json.Linq.JObject _steps; // the wizard step definitions, loaded when the window opens
+		private string _stepsSource;
 		private string _selectZipUrl; // that update's firmware, to select when the list has loaded
 
 		public DlgFirmwareFlasher(MountVM mount, UpdateCheckResult update = null)
@@ -48,9 +50,37 @@ namespace OATControl
 			_selectZipUrl = update?.DownloadUrl;
 			InitializeComponent();
 			Closing += OnClosing;
-			_wizard = new FirmwareConfigWizard(FirmwareConfigWizard.LoadEmbeddedSchema());
-			LoadState();
-			ShowStep();
+			Loaded += OnLoaded;
+			StepTitleText.Text = "Loading the configuration steps...";
+			BackButton.IsEnabled = RestartButton.IsEnabled = false;
+		}
+
+		private async void OnLoaded(object sender, RoutedEventArgs e)
+		{
+			// Off the UI thread: .NET Framework resolves the proxy and DNS synchronously before the timeout applies.
+			(_steps, _stepsSource) = await Task.Run(() => WizardSteps.LoadAsync(message => Log.WriteLine("FIRMWARE: {0}", message)));
+			if (!IsVisible)
+			{
+				return; // closed while loading
+			}
+
+			RestartButton.IsEnabled = true;
+			try
+			{
+				_wizard = new FirmwareConfigWizard(_steps);
+				LoadState();
+				ShowStep();
+			}
+			catch (Exception ex)
+			{
+				// Validation runs only one path per tracker; another branch of a downloaded file can still fail.
+				Log.WriteLine("FIRMWARE: The wizard steps ({0}) failed, using the built-in copy: {1}", _stepsSource, ex);
+				_steps = FirmwareConfigWizard.LoadEmbeddedSchema();
+				_stepsSource = "copy built into OATControl, the downloaded steps failed";
+				_wizard = new FirmwareConfigWizard(_steps);
+				LoadState();
+				ShowStep();
+			}
 		}
 
 		private static string StateFile => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OpenAstroTracker", "FirmwareConfig.json");
@@ -207,7 +237,7 @@ namespace OATControl
 
 		private void OnBack(object sender, RoutedEventArgs e)
 		{
-			if (_busy)
+			if (_busy || _wizard == null)
 			{
 				return;
 			}
@@ -218,7 +248,7 @@ namespace OATControl
 
 		private void OnRestart(object sender, RoutedEventArgs e)
 		{
-			if (_busy)
+			if (_busy || _wizard == null)
 			{
 				return;
 			}
@@ -229,7 +259,7 @@ namespace OATControl
 				return;
 			}
 
-			_wizard = new FirmwareConfigWizard(FirmwareConfigWizard.LoadEmbeddedSchema());
+			_wizard = new FirmwareConfigWizard(_steps);
 			ShowStep();
 		}
 
@@ -346,7 +376,7 @@ namespace OATControl
 				ConfigText.Text = _wizardWritten = wizardContent;
 			}
 
-			FooterText.Text = $"Wizard steps from config.openastrotech.com v{_wizard.SourceVersion}. Firmware is downloaded to {FirmwareBuilder.WorkDirectory}.";
+			FooterText.Text = $"Wizard steps v{_wizard.SourceVersion} ({_stepsSource}). Firmware is downloaded to {FirmwareBuilder.WorkDirectory}.";
 
 			SetBusy(_busy);
 			if (!_pioSearched)
