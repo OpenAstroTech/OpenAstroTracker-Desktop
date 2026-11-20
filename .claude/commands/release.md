@@ -38,6 +38,29 @@ Update these two files:
 #define MyAppVersion "$VERSION"
 ```
 
+## Step 2b: Firmware Wizard Steps
+
+The firmware flasher downloads its wizard steps from the config website; the copy built into OATControl is the offline fallback. Refresh it from the site so each release ships the latest steps:
+
+All commands run from the repo root in the Bash tool.
+
+1. Download to a temp file next to the current copy:
+   ```
+   curl -fsSL --max-time 30 -o OATControl/Resources/FirmwareConfig/steps.download.json https://config.openastrotech.com/steps.json
+   ```
+2. Quick check that it's the steps file and not the site's HTML page:
+   ```
+   powershell -NoProfile -Command 'try { if ((Get-Content -Raw OATControl/Resources/FirmwareConfig/steps.download.json | ConvertFrom-Json).schemaVersion -ne 1) { exit 1 } } catch { exit 1 }'
+   ```
+3. If the download or the check fails, delete `steps.download.json`, keep the current `steps.json`, tell the user, and continue with Step 3.
+4. Otherwise move it over the current copy (`mv OATControl/Resources/FirmwareConfig/steps.download.json OATControl/Resources/FirmwareConfig/steps.json`) and show `git diff --stat -- OATControl/Resources/FirmwareConfig/steps.json`, so the user sees whether the steps changed.
+5. If it changed, run the full check OATControl runs on a download (one run through each tracker to a generated configuration): build Debug, then call the check against the new file:
+   ```
+   msbuild OATControl/OATControl.csproj -p:Configuration=Debug -v:m
+   powershell -NoProfile -Command '$ErrorActionPreference="Stop"; try { [void][Reflection.Assembly]::LoadFrom((Resolve-Path OATControl/bin/Debug/OATControl.exe)); [void][OATControl.Firmware.WizardSteps]::Validate([IO.File]::ReadAllText((Resolve-Path OATControl/Resources/FirmwareConfig/steps.json))); "steps.json OK" } catch { "steps.json INVALID: " + $_.Exception.InnerException.Message; exit 1 }'
+   ```
+   If it prints INVALID, restore the file (`git restore OATControl/Resources/FirmwareConfig/steps.json`), tell the user the site's steps fail in OATControl, and continue with the current copy.
+
 ## Step 3: Changelog + Readme
 
 1. Get the last release tag: `git tag --sort=-v:refname | grep -E '^V1\.' | head -1`
@@ -64,7 +87,7 @@ The date format is `%d %b %Y` (e.g. `24 May 2026`). The header line is 65 charac
 
 ## Step 4: Commit
 
-1. Stage only the changed files: `AssemblyInfo.cs`, `OATControl Setup.iss`, `CHANGELOG.md`, `Readme.txt`
+1. Stage only the changed files: `AssemblyInfo.cs`, `OATControl Setup.iss`, `CHANGELOG.md`, `Readme.txt`, and `OATControl/Resources/FirmwareConfig/steps.json` if Step 2b changed it
 2. Commit: `git commit -m "Release $TAG"`
 3. Push the commit to the remote branch
 
