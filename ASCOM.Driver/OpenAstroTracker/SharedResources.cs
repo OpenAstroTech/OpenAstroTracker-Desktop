@@ -53,6 +53,7 @@ namespace ASCOM.OpenAstroTracker
 
 		private static string comPortProfileName = "COM Port";
 		private static string baudRateProfileName = "Baud Rate";
+		private static string dtrEnableProfileName = "DTR Enable";
 		private static string traceStateProfileName = "Trace Level";
 		private static string traceFlagsProfileName = "Trace Flags";
 		private static string latitudeProfileName = "Latitude";
@@ -61,6 +62,7 @@ namespace ASCOM.OpenAstroTracker
 
 		private static string comPortDefault = "COM5";
 		private static string baudRateDefault = "19200";
+		private static string dtrEnableDefault = "False";
 		private static string traceStateDefault = "True";
 		private static string traceFlagsDefault = "Scope, Focuser";
 		private static double latitudeDefault = 30;
@@ -123,6 +125,7 @@ namespace ASCOM.OpenAstroTracker
 						TraceFlags = (LoggingFlags)Enum.Parse(typeof(LoggingFlags), driverProfile.GetValue(driverID, traceFlagsProfileName, String.Empty, traceFlagsDefault)),
 						ComPort = driverProfile.GetValue(driverID, comPortProfileName, string.Empty, comPortDefault),
 						BaudRate = long.Parse(driverProfile.GetValue(driverID, baudRateProfileName, string.Empty, baudRateDefault)),
+						DtrEnable = Convert.ToBoolean(driverProfile.GetValue(driverID, dtrEnableProfileName, string.Empty, dtrEnableDefault)),
 						Latitude = Convert.ToDouble(driverProfile.GetValue(driverID, latitudeProfileName, string.Empty, latitudeDefault.ToString())),
 						Longitude = Convert.ToDouble(driverProfile.GetValue(driverID, longitudeProfileName, string.Empty, longitudeDefault.ToString())),
 						Elevation = Convert.ToDouble(driverProfile.GetValue(driverID, elevationProfileName, string.Empty, elevationDefault.ToString()))
@@ -141,6 +144,7 @@ namespace ASCOM.OpenAstroTracker
 				driverProfile.WriteValue(driverID, traceFlagsProfileName, profile.TraceFlags.ToString());
 				driverProfile.WriteValue(driverID, comPortProfileName, profile.ComPort?.ToString() ?? "");
 				driverProfile.WriteValue(driverID, baudRateProfileName, profile.BaudRate.ToString());
+				driverProfile.WriteValue(driverID, dtrEnableProfileName, profile.DtrEnable.ToString());
 				driverProfile.WriteValue(driverID, latitudeProfileName, profile.Latitude.ToString());
 				driverProfile.WriteValue(driverID, longitudeProfileName, profile.Longitude.ToString());
 				driverProfile.WriteValue(driverID, elevationProfileName, profile.Elevation.ToString());
@@ -298,7 +302,7 @@ namespace ASCOM.OpenAstroTracker
 							LogMessage(LoggingFlags.Server, $"Connected Set - No connections active");
 							try
 							{
-								SharedSerial.DTREnable = false;
+								SharedSerial.DTREnable = ReadProfile().DtrEnable;
 								SharedSerial.PortName = ReadProfile().ComPort;
 								SharedSerial.ReceiveTimeoutMs = 2000;
 								SharedSerial.Speed = (SerialSpeed)ReadProfile().BaudRate;

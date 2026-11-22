@@ -204,6 +204,7 @@ namespace ASCOM.OpenAstroTracker
 			// Update the state variables with results from the dialogue
 			_profile.ComPort = (string)ComboBoxComPort.SelectedItem;
 			_profile.BaudRate = Convert.ToInt64(comboBoxBaudRate.SelectedItem);
+			_profile.DtrEnable = chkDTR.Checked;
 			this.DialogResult = System.Windows.Forms.DialogResult.OK;
 			this.Close();
 		}
@@ -277,6 +278,7 @@ namespace ASCOM.OpenAstroTracker
 			chkTelescope.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Scope) != 0;
 			chkFocuser.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Focuser) != 0;
 			chkSetupDialog.Checked = (_profile.TraceFlags & SharedResources.LoggingFlags.Setup) != 0;
+			chkDTR.Checked = _profile.DtrEnable;
 
 			// Set the list of com ports to those that are currently available using System.IO because it's static
 			ComboBoxComPort.Items.Clear();
@@ -967,6 +969,10 @@ namespace ASCOM.OpenAstroTracker
 				{
 					_profile.TraceFlags &= ~SharedResources.LoggingFlags.Setup;
 				}
+			}
+			else if (sender == chkDTR)
+			{
+				_profile.DtrEnable = chkDTR.Checked;
 			}
 		}
 

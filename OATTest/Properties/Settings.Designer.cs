@@ -106,5 +106,29 @@ namespace OATTest.Properties {
                 this["COMBaud"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CommandDTR {
+            get {
+                return ((bool)(this["CommandDTR"]));
+            }
+            set {
+                this["CommandDTR"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DebugDTR {
+            get {
+                return ((bool)(this["DebugDTR"]));
+            }
+            set {
+                this["DebugDTR"] = value;
+            }
+        }
     }
 }

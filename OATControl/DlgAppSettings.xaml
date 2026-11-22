@@ -345,7 +345,8 @@
                         <TextBlock Text="Baudrate" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
                         <TextBlock Text="Speed at which to connect with OAT/OAM. Unless you have changed this in a custom build this should be 19200." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                     </StackPanel>
-                    <ComboBox Grid.Row="0" Grid.Column="1" 
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                        <ComboBox
 							  ItemsSource="{Binding AvailableBaudRates}" 
 							  SelectedValue="{Binding SelectedBaudRate}"
 							  Width="120" 
@@ -353,6 +354,10 @@
 							  Margin="10,10,0,0"
 							  Style="{StaticResource ComboBoxStyle}" 
 					/>
+
+                        <CheckBox Content="DTR" IsChecked="{Binding SerialDtrEnable}" VerticalAlignment="Center" Margin="12,12,0,0"
+                                  ToolTip="Assert the DTR line when connecting over serial. Required for some pass-through devices. Note: this reboots CH340/MKS based mounts once per connect."/>
+                    </StackPanel>
 
                     <StackPanel Grid.Row="1" Grid.Column="0" VerticalAlignment="Top" Margin="8,0,0,0">
                         <TextBlock Text="Checklist" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>

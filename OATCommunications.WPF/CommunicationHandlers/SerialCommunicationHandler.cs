@@ -23,19 +23,19 @@ namespace OATCommunications.WPF.CommunicationHandlers
 		public SerialCommunicationHandler(string comPort)
 		{
 			Log.WriteLine($"COMMFACTORY: Creating Serial handler on {comPort} ...");
-			var regex = new System.Text.RegularExpressions.Regex(@"([A-z]+:\s*)(COM\d+)?@?(\d+)?");
+			var regex = new System.Text.RegularExpressions.Regex(@"([A-z]+:\s*)(COM\d+)?@?(\d+)?(\+DTR)?");
 			var result = regex.Match(comPort);
 			if (result.Success)
 			{
 				_portName = result.Groups[2].Value;
 				_port = new SerialPort(_portName);
 				int rate = 19200;
-				if (result.Groups.Count == 4)
+				if (!string.IsNullOrEmpty(result.Groups[3].Value))
 				{
 					int.TryParse(result.Groups[3].Value, out rate);
 				}
 				_port.BaudRate = rate;
-				_port.DtrEnable = false;
+				_port.DtrEnable = result.Groups[4].Success;
 				_port.ReadTimeout = 2000;
 				_port.WriteTimeout = 2000;
 			}

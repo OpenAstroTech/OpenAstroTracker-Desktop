@@ -66,6 +66,8 @@
         <TextBox Grid.Row="1" Grid.Column="5" HorizontalAlignment="Stretch" Height="Auto" Margin="4,6,4,3" Text="{Binding UseTime}" VerticalAlignment="Center" />
 
         <CheckBox Grid.Row="2" Grid.Column="0" Content="Stop on Error" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" IsChecked="{Binding StopOnError}"/>
+        <CheckBox Grid.Row="2" Grid.Column="1" Content="Command DTR" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" IsChecked="{Binding CommandDTR}"/>
+        <CheckBox Grid.Row="2" Grid.Column="2" Content="Debug DTR" HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top" IsChecked="{Binding DebugDTR}"/>
 
         <Grid Grid.Row="3" Grid.ColumnSpan="7" HorizontalAlignment="Stretch" Margin="5,10,5,5">
             <Grid.ColumnDefinitions>

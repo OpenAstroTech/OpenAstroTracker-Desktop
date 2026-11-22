@@ -23,5 +23,11 @@
     <Setting Name="COMBaud" Type="System.String" Scope="User">
       <Value Profile="(Default)">19200</Value>
     </Setting>
+    <Setting Name="CommandDTR" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="DebugDTR" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
