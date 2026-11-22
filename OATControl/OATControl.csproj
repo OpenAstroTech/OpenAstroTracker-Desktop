@@ -62,6 +62,8 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -197,6 +199,19 @@
     <Compile Include="DlgChecklistEditor.xaml.cs">
       <DependentUpon>DlgChecklistEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DlgFirmwareFlasher.xaml.cs">
+      <DependentUpon>DlgFirmwareFlasher.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Firmware\FirmwareBuilder.cs" />
+    <Compile Include="Firmware\FirmwareConfigWizard.cs" />
+    <Compile Include="Firmware\FlashTools.cs" />
+    <Compile Include="Firmware\WizardSteps.cs" />
+    <Page Include="DlgFirmwareFlasher.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <EmbeddedResource Include="Resources\FirmwareConfig\steps.json" />
+    <EmbeddedResource Include="Firmware\pre_script_esp32_iprefix.py" />
     <Page Include="Controls\StopButton.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

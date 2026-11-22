@@ -201,6 +201,8 @@ namespace OATControl.ViewModels
         private bool _firmwareUpdateAvailable;
         private string _latestFirmwareVersion;
         private string _latestFirmwareReleaseUrl;
+        private UpdateCheckResult _pendingFirmwareUpdate;
+        private bool _connectingMount;
         private float _slewYSpeed;
         private float _slewXSpeed;
         private int _slewRate = 5;
@@ -2347,6 +2349,7 @@ namespace OATControl.ViewModels
 
         public void Disconnect()
         {
+            _pendingFirmwareUpdate = null;
             if (_miniController != null)
             {
                 _miniController.Close();
@@ -2578,15 +2581,41 @@ namespace OATControl.ViewModels
                 RequeryCommands();
 
                 Log.WriteLine("MOUNT: Connect to OAT requested");
-                if (await this.ChooseTelescope())
+                _connectingMount = true;
+                _pendingFirmwareUpdate = null; // a result from an earlier, failed or cancelled connect belongs to another attempt
+                try
                 {
-                    await RecalculatePointsPositions(true);
+                    if (await this.ChooseTelescope())
+                    {
+                        await RecalculatePointsPositions(true);
+                    }
+                }
+                finally
+                {
+                    _connectingMount = false;
                 }
                 if (_showChecklist == ChecklistShowOn.OnConnect)
                 {
                     OnShowChecklist();
                 }
+                ShowPendingFirmwareUpdate();
             }
+        }
+
+        /// <summary>
+        /// Shows the firmware update notification once the connection wizard and homing are done, so it doesn't
+        /// pop up in the middle of them. Called both when the check completes and when connecting has finished.
+        /// </summary>
+        private void ShowPendingFirmwareUpdate()
+        {
+            var update = _pendingFirmwareUpdate;
+            if (update == null || _connectingMount || !MountConnected)
+            {
+                return;
+            }
+
+            _pendingFirmwareUpdate = null;
+            new DlgUpdateAvailable(update, this).ShowDialog();
         }
 
         private async Task SetMountTimeData()
@@ -2867,6 +2896,11 @@ namespace OATControl.ViewModels
                         FirmwareUpdateAvailable = true;
                         LatestFirmwareVersion = t.Result.LatestVersion;
                         LatestFirmwareReleaseUrl = t.Result.ReleasePageUrl;
+                        if (!t.Result.Skipped)
+                        {
+                            _pendingFirmwareUpdate = t.Result;
+                            ShowPendingFirmwareUpdate();
+                        }
                     }
                 }, TaskScheduler.FromCurrentSynchronizationContext());
 

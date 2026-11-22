@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,6 +16,10 @@ namespace OATControl
         public string Changelog { get; set; }
         public string DownloadUrl { get; set; }
         public string ReleasePageUrl { get; set; }
+        public bool Failed { get; set; }      // the check could not be made (no internet, GitHub unreachable)
+        public bool IsFirmware { get; set; }
+        public string SkipKey { get; set; }   // what "Skip This Version" remembers: the release tag, or the develop commit
+        public bool Skipped { get; set; }     // the user chose to skip this one: no popup
 
         public static UpdateCheckResult NoUpdate => new UpdateCheckResult();
     }
@@ -23,6 +28,8 @@ namespace OATControl
     {
         private const string DesktopRepoUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Desktop/releases/latest";
         private const string FirmwareRepoUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Firmware/releases/latest";
+
+        private const string FirmwareCompareUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Firmware/compare/{0}...develop";
 
         private static DateTime _lastDesktopCheck = DateTime.MinValue;
         private static DateTime _lastFirmwareCheck = DateTime.MinValue;
@@ -77,7 +84,7 @@ namespace OATControl
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"UpdateChecker desktop check failed: {ex.Message}");
-                return UpdateCheckResult.NoUpdate;
+                return new UpdateCheckResult { Failed = true };
             }
         }
 
@@ -122,11 +129,41 @@ namespace OATControl
                     return new UpdateCheckResult
                     {
                         UpdateAvailable = true,
+                        IsFirmware = true,
                         LatestVersion = tagName,
                         CurrentVersion = UppercaseVersion(currentFirmwareVersion),
                         Changelog = release["body"]?.ToString() ?? "",
-                        ReleasePageUrl = release["html_url"]?.ToString()
+                        DownloadUrl = release["zipball_url"]?.ToString(),
+                        ReleasePageUrl = release["html_url"]?.ToString(),
+                        SkipKey = tagName,
+                        Skipped = AppSettings.Instance.SkippedFirmwareVersion == tagName
                     };
+                }
+
+                if (AppSettings.Instance.NotifyFirmwareBeta)
+                {
+                    // The develop branch reports the same version as the latest release, so the mount can't tell us
+                    // whether it already runs it. Notify once per develop commit instead ("Skip This Version").
+                    var compare = await FetchLatestReleaseAsync(string.Format(FirmwareCompareUrl, release["tag_name"]));
+                    var commits = compare["commits"] as JArray;
+                    var ahead = (int?)compare["ahead_by"] ?? 0;
+                    if (ahead > 0 && commits != null && commits.Count > 0)
+                    {
+                        var head = commits.Last["sha"]?.ToString();
+                        _lastFirmwareCheck = DateTime.UtcNow;
+                        return new UpdateCheckResult
+                        {
+                            UpdateAvailable = true,
+                            IsFirmware = true,
+                            LatestVersion = $"develop ({ahead} unreleased change{(ahead == 1 ? "" : "s")} after {tagName})",
+                            CurrentVersion = UppercaseVersion(currentFirmwareVersion),
+                            Changelog = string.Join("\n", commits.Reverse().Select(c => "- " + c["commit"]?["message"]?.ToString().Split('\n')[0].Trim())),
+                            DownloadUrl = Firmware.FirmwareBuilder.DevelopZipUrl,
+                            ReleasePageUrl = compare["html_url"]?.ToString(),
+                            SkipKey = head,
+                            Skipped = AppSettings.Instance.SkippedFirmwareVersion == head
+                        };
+                    }
                 }
 
                 return UpdateCheckResult.NoUpdate;

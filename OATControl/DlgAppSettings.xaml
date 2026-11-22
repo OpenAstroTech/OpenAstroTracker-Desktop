@@ -310,6 +310,7 @@
         <Border Margin="4,2,12,1">
             <ListView Name="CategorySelector" DockPanel.Dock="Left" Width="120" SelectionChanged="OnCategorySelected" Background="{DynamicResource AppNestedBackgroundBrush}">
                 <ListViewItem Content="General" Style="{StaticResource CategoryItem}"/>
+                <ListViewItem Content="Updates" Style="{StaticResource CategoryItem}"/>
                 <ListViewItem Content="Autohoming" Style="{StaticResource CategoryItem}"/>
                 <ListViewItem Content="Target List" Style="{StaticResource CategoryItem}"/>
                 <ListViewItem Content="Auto PA" Style="{StaticResource CategoryItem}"/>
@@ -393,11 +394,26 @@
 								Style="{StaticResource MainButtonStyle}" x:Name="EditThemeButton"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Row="4" Grid.Column="0" VerticalAlignment="Top" Margin="8,12,0,0">
+                </Grid>
+            </TabItem>
+            <TabItem Header="Updates">
+                <!--     UPDATES     -->
+                <Grid Background="{DynamicResource AppNestedBackgroundBrush}" Margin="-2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Top" Margin="8,12,0,0">
                         <TextBlock Text="Software Updates" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
                         <TextBlock Text="Check GitHub for a newer version of OATControl." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                     </StackPanel>
-                    <StackPanel Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="10,22,58,0">
+                    <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Margin="10,22,0,0" Width="188" HorizontalAlignment="Left">
                         <Button Content="Check For Updates" Width="130" Height="24"
 							HorizontalAlignment="Left" VerticalAlignment="Top"
 							Style="{StaticResource MainButtonStyle}" Click="OnCheckForUpdates" x:Name="CheckForUpdatesButton"/>
@@ -405,6 +421,22 @@
 							   Foreground="{DynamicResource AppForegroundBrush}" TextWrapping="Wrap"
 							   Visibility="Collapsed"/>
                     </StackPanel>
+
+                    <StackPanel Grid.Row="1" Grid.Column="0" VerticalAlignment="Top" Margin="8,12,0,0">
+                        <TextBlock Text="Mount Firmware" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+                        <TextBlock Text="Configure the firmware and flash to connected mount" Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Margin="10,22,0,0" Width="188" HorizontalAlignment="Left">
+                        <Button Content="Flash Firmware" Width="130" Height="24"
+							HorizontalAlignment="Left" VerticalAlignment="Top"
+							Style="{StaticResource MainButtonStyle}" Click="OnFlashFirmware"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="8,12,0,0">
+                        <TextBlock Text="Unreleased firmware changes" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+                        <TextBlock Text="When a mount connects, also notify about changes on the firmware's develop branch that are not in a release yet." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                    <controls:LabeledToggleSwitch Grid.Row="2" Grid.Column="1" Margin="10,0,20,0" VerticalAlignment="Center" HorizontalAlignment="Left" Width="56" OnLabel="YES" OffLabel="No" IsChecked="{Binding NotifyFirmwareBeta}"/>
 
                 </Grid>
             </TabItem>

@@ -49,6 +49,7 @@ namespace OATControl
 		private bool _invertALTCorrections;
 		private bool _invertAZCorrections;
 		private bool _monitorNinaForPA;
+		private bool _notifyFirmwareBeta;
 		private string _ninaLogFolder = String.Empty;
 		private bool _monitorSharpCapForPA;
 		private string _sharpCapLogFolder = String.Empty;
@@ -89,6 +90,7 @@ namespace OATControl
 			NinaLogFolder = AppSettings.Instance.NinaLogFolder;
 			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
 			SharpCapLogFolder = AppSettings.Instance.SharpCapLogFolder;
+			NotifyFirmwareBeta = AppSettings.Instance.NotifyFirmwareBeta;
 
 			ContentTabs.SelectedIndex = 0;
 			CategorySelector.SelectedIndex = 0;
@@ -199,6 +201,19 @@ namespace OATControl
 				if (_monitorSharpCapForPA != value)
 				{
 					_monitorSharpCapForPA = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool NotifyFirmwareBeta
+		{
+			get { return _notifyFirmwareBeta; }
+			set
+			{
+				if (_notifyFirmwareBeta != value)
+				{
+					_notifyFirmwareBeta = value;
 					OnPropertyChanged();
 				}
 			}
@@ -337,15 +352,18 @@ namespace OATControl
 				case "General":
 					ContentTabs.SelectedIndex = 0;
 					break;
-				case "Autohoming":
+				case "Updates":
 					ContentTabs.SelectedIndex = 1;
 					break;
-				case "Target List":
+				case "Autohoming":
 					ContentTabs.SelectedIndex = 2;
+					break;
+				case "Target List":
+					ContentTabs.SelectedIndex = 3;
 					SetInitialSortIndicator(this.sortField);
 					break;
 				case "Auto PA":
-					ContentTabs.SelectedIndex = 3;
+					ContentTabs.SelectedIndex = 4;
 					break;
 			}
 		}
@@ -375,6 +393,7 @@ namespace OATControl
 			AppSettings.Instance.NinaLogFolder = NinaLogFolder;
 			AppSettings.Instance.MonitorSharpCapPA = MonitorSharpCapForPA;
 			AppSettings.Instance.SharpCapLogFolder = SharpCapLogFolder;
+			AppSettings.Instance.NotifyFirmwareBeta = NotifyFirmwareBeta;
 
 			AppSettings.Instance.Save();
 			_mount.SelectedBaudRate = _serialBaudRate;
@@ -538,6 +557,12 @@ namespace OATControl
 			}
 		}
 
+		private void OnFlashFirmware(object sender, RoutedEventArgs e)
+		{
+			var dlg = new DlgFirmwareFlasher(_mount) { Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+			dlg.ShowDialog();
+		}
+
 		private void OnCheckForUpdates(object sender, RoutedEventArgs e)
 		{
 			CheckForUpdatesButton.IsEnabled = false;
@@ -558,9 +583,9 @@ namespace OATControl
 							var dlg = new DlgUpdateAvailable(t.Result) { Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
 							dlg.ShowDialog();
 						}
-						else if (t.IsFaulted || t.IsCanceled)
+						else if (t.IsFaulted || t.IsCanceled || t.Result?.Failed == true)
 						{
-							UpdateCheckResultText.Text = "Could not check for updates.";
+							UpdateCheckResultText.Text = "Could not check for updates. Check your internet connection.";
 							UpdateCheckResultText.Visibility = Visibility.Visible;
 						}
 						else

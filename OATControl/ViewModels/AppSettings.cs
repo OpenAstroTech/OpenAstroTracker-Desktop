@@ -573,5 +573,19 @@ namespace OATControl.ViewModels
             get { return this["SkippedDesktopVersion"]; }
             set { this["SkippedDesktopVersion"] = value; }
         }
+
+        [DefaultValueAttribute("")]
+        public string SkippedFirmwareVersion
+        {
+            get { return this["SkippedFirmwareVersion"]; }
+            set { this["SkippedFirmwareVersion"] = value; }
+        }
+
+        [DefaultValueAttribute("False")]
+        public bool NotifyFirmwareBeta
+        {
+            get { return Convert.ToBoolean(this["NotifyFirmwareBeta"] ?? "False"); }
+            set { this["NotifyFirmwareBeta"] = value.ToString(); }
+        }
     }
 }
