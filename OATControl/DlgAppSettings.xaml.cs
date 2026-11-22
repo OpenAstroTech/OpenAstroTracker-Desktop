@@ -340,15 +340,18 @@ namespace OATControl
 				case "General":
 					ContentTabs.SelectedIndex = 0;
 					break;
-				case "Autohoming":
+				case "Updates":
 					ContentTabs.SelectedIndex = 1;
 					break;
-				case "Target List":
+				case "Autohoming":
 					ContentTabs.SelectedIndex = 2;
+					break;
+				case "Target List":
+					ContentTabs.SelectedIndex = 3;
 					SetInitialSortIndicator(this.sortField);
 					break;
 				case "Auto PA":
-					ContentTabs.SelectedIndex = 3;
+					ContentTabs.SelectedIndex = 4;
 					break;
 			}
 		}
