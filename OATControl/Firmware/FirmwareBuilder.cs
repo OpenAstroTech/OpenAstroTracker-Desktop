@@ -45,7 +45,10 @@ namespace OATControl.Firmware
 	/// </summary>
 	public static class FirmwareBuilder
 	{
-		private const string ReleasesUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Firmware/releases";
+		// per_page=100 (the maximum): with the default of 30, the newest V1.11 release the wizard's
+		// "Official Versions (V1.11.x)" answer needs falls off the first page once the repo has more
+		// than 30 releases, and the wizard silently selects the newest release instead.
+		private const string ReleasesUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Firmware/releases?per_page=100";
 		private const string BranchesUrl = "https://api.github.com/repos/OpenAstroTech/OpenAstroTracker-Firmware/branches?per_page=100";
 		private const string BranchZipUrl = "https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/archive/refs/heads/{0}.zip";
 

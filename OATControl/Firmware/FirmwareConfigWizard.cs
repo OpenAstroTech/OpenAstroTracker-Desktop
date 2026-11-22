@@ -359,7 +359,14 @@ namespace OATControl.Firmware
 					}
 					else
 					{
-						var propertyValue = Choices(property).First(c => (string)c["key"] == JsString(config.Value));
+						var propertyValue = Choices(property).FirstOrDefault(c => (string)c["key"] == JsString(config.Value));
+						if (propertyValue == null)
+						{
+							// A saved answer that the current steps no longer offer, e.g. because a newer
+							// steps.json was downloaded after the questions were answered. BuildAsync reports
+							// this message in the flasher's status line; the user has to redo the config.
+							throw new InvalidOperationException("The saved answer '" + config.Value + "' for '" + config.Variable + "' is not offered by the current configuration steps; they may have changed since they were answered. Use Redo Config in the firmware dialog and answer the questions again.");
+						}
 						configKey += ":" + (string)propertyValue["key"];
 						if (property["preamble"] is JArray preamble)
 						{
