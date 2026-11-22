@@ -49,6 +49,7 @@ namespace OATControl
 		private bool _invertALTCorrections;
 		private bool _invertAZCorrections;
 		private bool _monitorNinaForPA;
+		private bool _notifyFirmwareBeta;
 		private string _ninaLogFolder = String.Empty;
 		private bool _monitorSharpCapForPA;
 		private string _sharpCapLogFolder = String.Empty;
@@ -74,9 +75,6 @@ namespace OATControl
 			this.DataContext = this;
 
 			InitializeComponent();
-			FirmwareBetaCheck.IsChecked = AppSettings.Instance.NotifyFirmwareBeta;
-			FirmwareBetaCheck.Checked += OnFirmwareBetaChanged;
-			FirmwareBetaCheck.Unchecked += OnFirmwareBetaChanged;
 			SelectedBaudRate = AppSettings.Instance.BaudRate;
 			RaStartEast = AppSettings.Instance.AutoHomeRaDirection == "East";
 			RaDistance = AppSettings.Instance.AutoHomeRaDistance;
@@ -92,6 +90,7 @@ namespace OATControl
 			NinaLogFolder = AppSettings.Instance.NinaLogFolder;
 			MonitorSharpCapForPA = AppSettings.Instance.MonitorSharpCapPA;
 			SharpCapLogFolder = AppSettings.Instance.SharpCapLogFolder;
+			NotifyFirmwareBeta = AppSettings.Instance.NotifyFirmwareBeta;
 
 			ContentTabs.SelectedIndex = 0;
 			CategorySelector.SelectedIndex = 0;
@@ -202,6 +201,19 @@ namespace OATControl
 				if (_monitorSharpCapForPA != value)
 				{
 					_monitorSharpCapForPA = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool NotifyFirmwareBeta
+		{
+			get { return _notifyFirmwareBeta; }
+			set
+			{
+				if (_notifyFirmwareBeta != value)
+				{
+					_notifyFirmwareBeta = value;
 					OnPropertyChanged();
 				}
 			}
@@ -381,6 +393,7 @@ namespace OATControl
 			AppSettings.Instance.NinaLogFolder = NinaLogFolder;
 			AppSettings.Instance.MonitorSharpCapPA = MonitorSharpCapForPA;
 			AppSettings.Instance.SharpCapLogFolder = SharpCapLogFolder;
+			AppSettings.Instance.NotifyFirmwareBeta = NotifyFirmwareBeta;
 
 			AppSettings.Instance.Save();
 			_mount.SelectedBaudRate = _serialBaudRate;
@@ -542,12 +555,6 @@ namespace OATControl
 				AppSettings.Instance.ThemeName = themeId;
 				AppSettings.Instance.Save();
 			}
-		}
-
-		private void OnFirmwareBetaChanged(object sender, RoutedEventArgs e)
-		{
-			AppSettings.Instance.NotifyFirmwareBeta = FirmwareBetaCheck.IsChecked == true;
-			AppSettings.Instance.Save();
 		}
 
 		private void OnFlashFirmware(object sender, RoutedEventArgs e)

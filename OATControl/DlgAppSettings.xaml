@@ -402,6 +402,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -429,10 +430,13 @@
                         <Button Content="Flash Firmware" Width="130" Height="24"
 							HorizontalAlignment="Left" VerticalAlignment="Top"
 							Style="{StaticResource MainButtonStyle}" Click="OnFlashFirmware"/>
-                        <CheckBox x:Name="FirmwareBetaCheck" Margin="0,8,0,0" ToolTip="When a mount connects, also notify about changes on the firmware's develop branch that are not in a release yet">
-                            <TextBlock Text="Notify about unreleased firmware changes (dev branch)" TextWrapping="Wrap" MaxWidth="160" Foreground="{DynamicResource AppForegroundBrush}"/>
-                        </CheckBox>
                     </StackPanel>
+
+                    <StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Margin="8,12,0,0">
+                        <TextBlock Text="Unreleased firmware changes" Style="{StaticResource TextBlockLabel}" VerticalAlignment="Top"/>
+                        <TextBlock Text="When a mount connects, also notify about changes on the firmware's develop branch that are not in a release yet." Style="{StaticResource TextBlockOptionHelp}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                    <controls:LabeledToggleSwitch Grid.Row="2" Grid.Column="1" Margin="10,0,20,0" VerticalAlignment="Center" HorizontalAlignment="Left" Width="56" OnLabel="YES" OffLabel="No" IsChecked="{Binding NotifyFirmwareBeta}"/>
 
                 </Grid>
             </TabItem>
