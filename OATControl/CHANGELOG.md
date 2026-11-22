@@ -1,5 +1,15 @@
 # Changelog
 
+## V1.3.0.0
+
+- **New Firmware Configurator**: configure and flash mount firmware directly from OATControl, including editing a custom folder's local config. Flash tools (PlatformIO) are downloaded automatically when missing, and wizard steps load from config.openastrotech.com with a bundled offline fallback.
+- **Firmware update notices**: new "Updates" category in App Settings, with a toggle for showing unreleased firmware.
+- **New opt-in DTR option** for serial connections (App Settings, OATTest, and ASCOM driver setup) for pass-through devices that require DTR to be asserted.
+- TCP/WiFi connections now read replies until the `#` terminator, fixing dropped or garbled responses.
+- Fixed communication deadlocks and improved TCP stability and ASCOM registration reliability.
+- Fixed a crash when connecting to the mount after running the ASCOM setup dialog.
+- Fixed remaining-safe-time parsing on non-English (e.g. German) locales.
+
 ## V1.2.1.0
 
 ### Update Checker

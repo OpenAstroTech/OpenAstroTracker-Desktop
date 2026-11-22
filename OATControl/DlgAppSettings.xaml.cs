@@ -38,6 +38,7 @@ namespace OATControl
 
 		private MountVM _mount;
 		private string _serialBaudRate;
+		private bool _serialDtrEnable;
 		private ChecklistShowOn _showChecklist;
 		private bool _raStartEast;
 		private bool _decStartSouth;
@@ -76,6 +77,7 @@ namespace OATControl
 
 			InitializeComponent();
 			SelectedBaudRate = AppSettings.Instance.BaudRate;
+			SerialDtrEnable = AppSettings.Instance.SerialDtrEnable;
 			RaStartEast = AppSettings.Instance.AutoHomeRaDirection == "East";
 			RaDistance = AppSettings.Instance.AutoHomeRaDistance;
 			DecStartSouth = AppSettings.Instance.AutoHomeDecDirection == "South";
@@ -225,6 +227,16 @@ namespace OATControl
 			set
 			{
 				_serialBaudRate = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public bool SerialDtrEnable
+		{
+			get { return _serialDtrEnable; }
+			set
+			{
+				_serialDtrEnable = value;
 				OnPropertyChanged();
 			}
 		}
@@ -379,6 +391,7 @@ namespace OATControl
 		{
 			// Transfer to MountVM
 			AppSettings.Instance.BaudRate = _serialBaudRate;
+			AppSettings.Instance.SerialDtrEnable = _serialDtrEnable;
 			AppSettings.Instance.AutoHomeRaDirection = RaStartEast ? "East" : "West";
 			AppSettings.Instance.AutoHomeRaDistance = RaDistance;
 			AppSettings.Instance.AutoHomeDecDirection = DecStartSouth ? "South" : "North";

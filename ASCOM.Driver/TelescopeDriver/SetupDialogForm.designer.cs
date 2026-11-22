@@ -44,6 +44,7 @@ namespace ASCOM.OpenAstroTracker
 			this.Cancel_Button = new System.Windows.Forms.Button();
 			this.pictureBox2 = new System.Windows.Forms.PictureBox();
 			this.comboBoxBaudRate = new System.Windows.Forms.ComboBox();
+			this.chkDTR = new System.Windows.Forms.CheckBox();
 			this.label6 = new System.Windows.Forms.Label();
 			this.label9 = new System.Windows.Forms.Label();
 			this.label10 = new System.Windows.Forms.Label();
@@ -264,7 +265,7 @@ namespace ASCOM.OpenAstroTracker
 			// 
 			this.pictureBox2.Cursor = System.Windows.Forms.Cursors.Hand;
 			this.pictureBox2.Image = global::ASCOM.OpenAstroTracker.Properties.Resources.OATAscom;
-			this.pictureBox2.Location = new System.Drawing.Point(32, 84);
+			this.pictureBox2.Location = new System.Drawing.Point(32, 101);
 			this.pictureBox2.Name = "pictureBox2";
 			this.pictureBox2.Size = new System.Drawing.Size(189, 167);
 			this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -279,6 +280,18 @@ namespace ASCOM.OpenAstroTracker
 			this.comboBoxBaudRate.Name = "comboBoxBaudRate";
 			this.comboBoxBaudRate.Size = new System.Drawing.Size(84, 21);
 			this.comboBoxBaudRate.TabIndex = 31;
+			//
+			// chkDTR
+			//
+			this.chkDTR.AutoSize = true;
+			this.chkDTR.Location = new System.Drawing.Point(94, 80);
+			this.chkDTR.Name = "chkDTR";
+			this.chkDTR.Size = new System.Drawing.Size(80, 17);
+			this.chkDTR.TabIndex = 116;
+			this.chkDTR.Text = "Enable DTR";
+			this.chkDTR.UseVisualStyleBackColor = true;
+			this.toolTip1.SetToolTip(this.chkDTR, "Assert the DTR line on the serial port when connecting. Required for some pass-through devices. Note: this reboots CH340/MKS based mounts once per connect.");
+			this.chkDTR.CheckedChanged += new System.EventHandler(this.chkTraceFlag_CheckedChanged);
 			// 
 			// label6
 			// 
@@ -1342,6 +1355,7 @@ namespace ASCOM.OpenAstroTracker
 			this.Controls.Add(this.label10);
 			this.Controls.Add(this.label9);
 			this.Controls.Add(this.comboBoxBaudRate);
+			this.Controls.Add(this.chkDTR);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.pictureBox2);
 			this.Controls.Add(this.Label5);
@@ -1392,6 +1406,7 @@ namespace ASCOM.OpenAstroTracker
         internal System.Windows.Forms.Button Cancel_Button;
 		internal System.Windows.Forms.PictureBox pictureBox2;
 		internal System.Windows.Forms.ComboBox comboBoxBaudRate;
+		internal System.Windows.Forms.CheckBox chkDTR;
 		internal System.Windows.Forms.Label label6;
 		internal System.Windows.Forms.Label label9;
 		internal System.Windows.Forms.Label label10;

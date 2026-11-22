@@ -392,6 +392,13 @@ namespace OATControl.ViewModels
             set { this["BaudRate"] = value; }
         }
 
+        [DefaultValueAttribute("False")]
+        public bool SerialDtrEnable
+        {
+            get { return Convert.ToBoolean(this["SerialDtrEnable"]); }
+            set { this["SerialDtrEnable"] = value.ToString(); }
+        }
+
         [DefaultValueAttribute("Sidereal")]
         public string TrackingRate
         {

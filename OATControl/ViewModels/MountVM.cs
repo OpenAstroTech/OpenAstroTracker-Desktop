@@ -4874,6 +4874,12 @@ namespace OATControl.ViewModels
             }
         }
 
+        public bool SerialDtrEnable
+        {
+            get { return AppSettings.Instance.SerialDtrEnable; }
+            set { AppSettings.Instance.SerialDtrEnable = value; }
+        }
+
         public String SelectedTrackingMode
         {
             get { return _trackingMode; }

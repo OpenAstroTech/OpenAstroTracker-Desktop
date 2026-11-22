@@ -60,6 +60,8 @@ namespace OATTest
 		private string _skippedTests;
 		private string _completedTests;
 		private bool _stopOnError;
+		private bool _commandDTR;
+		private bool _debugDTR;
 		private bool _canStep;
 		private bool _canStop;
 
@@ -111,6 +113,8 @@ namespace OATTest
 			_seperateDebugPort = Settings.Default.SeparateDebugPort;
 
 			_stopOnError = Settings.Default.StopOnError;
+			_commandDTR = Settings.Default.CommandDTR;
+			_debugDTR = Settings.Default.DebugDTR;
 
 			foreach (var testSuite in _testManager.TestSuites)
 			{
@@ -229,6 +233,10 @@ namespace OATTest
 				if (IsDebugPortSeperate)
 				{
 					string debugPort = DebugPort.DeviceName + "@" + DebugBaudRate;
+					if (DebugPort.DeviceName.StartsWith("Serial: ") && DebugDTR)
+					{
+						debugPort += "+DTR";
+					}
 					Debug($"TESTVM: Connecting Debug channel to OAT on {debugPort}...");
 					AppStatus = "Connecting debug channel to OAT ...";
 
@@ -239,6 +247,10 @@ namespace OATTest
 				}
 
 				string port = CommandDevice.DeviceName + "@" + "19200";
+				if (CommandDevice.DeviceName.StartsWith("Serial: ") && CommandDTR)
+				{
+					port += "+DTR";
+				}
 				Debug($"TESTVM: Connecting to OAT on {port}...");
 				AppStatus = "Connecting to OAT ...";
 				_handler = CommunicationHandlerFactory.ConnectToDevice(port);
@@ -554,6 +566,36 @@ namespace OATTest
 				{
 					_stopOnError = value;
 					Settings.Default.StopOnError = StopOnError;
+					Settings.Default.Save();
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool CommandDTR
+		{
+			get { return _commandDTR; }
+			set
+			{
+				if (_commandDTR != value)
+				{
+					_commandDTR = value;
+					Settings.Default.CommandDTR = CommandDTR;
+					Settings.Default.Save();
+					OnPropertyChanged();
+				}
+			}
+		}
+
+		public bool DebugDTR
+		{
+			get { return _debugDTR; }
+			set
+			{
+				if (_debugDTR != value)
+				{
+					_debugDTR = value;
+					Settings.Default.DebugDTR = DebugDTR;
 					Settings.Default.Save();
 					OnPropertyChanged();
 				}

@@ -25,19 +25,19 @@ namespace OATCommunications.WPF
         {
             _serialOutput = serialOutput;
             Log.WriteLine($"SERIAL: Creating Serial Listener on {comPort} ...");
-            var regex = new System.Text.RegularExpressions.Regex(@"([A-z]+:\s*)(COM\d+)?@?(\d+)?");
+            var regex = new System.Text.RegularExpressions.Regex(@"([A-z]+:\s*)(COM\d+)?@?(\d+)?(\+DTR)?");
             var result = regex.Match(comPort);
             if (result.Success)
             {
                 _portName = result.Groups[2].Value;
                 _port = new SerialPort(_portName);
                 int rate = 57600;
-                if (result.Groups.Count == 4)
+                if (!string.IsNullOrEmpty(result.Groups[3].Value))
                 {
                     int.TryParse(result.Groups[3].Value, out rate);
                 }
                 _port.BaudRate = rate;
-                _port.DtrEnable = false;
+                _port.DtrEnable = result.Groups[4].Success;
                 _port.ReadTimeout = 1000;
                 _port.WriteTimeout = 1000;
                 _port.DataReceived += SerialDataReceived;

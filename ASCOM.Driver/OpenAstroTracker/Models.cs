@@ -11,6 +11,7 @@ namespace ASCOM.OpenAstroTracker
         public LoggingFlags TraceFlags;
         public string ComPort;
         public long BaudRate;
+        public bool DtrEnable;
         public double Latitude;
         public double Longitude;
         public double Elevation; 

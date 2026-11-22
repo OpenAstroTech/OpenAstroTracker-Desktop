@@ -583,7 +583,12 @@ namespace OATControl
 
 				case Steps.CheckHardware:
 					{
-						var connectResult = await _mountViewModel.ConnectToOat(SelectedDevice.DeviceName + "@" + SelectedBaudRate);
+						var deviceName = SelectedDevice.DeviceName;
+						if (deviceName.StartsWith("Serial: ") && _mountViewModel.SerialDtrEnable)
+						{
+							deviceName += "+DTR";
+						}
+						var connectResult = await _mountViewModel.ConnectToOat(deviceName + "@" + SelectedBaudRate);
 
 						ShowGPSStatus = false;
 						GPSStatus = string.Empty;
