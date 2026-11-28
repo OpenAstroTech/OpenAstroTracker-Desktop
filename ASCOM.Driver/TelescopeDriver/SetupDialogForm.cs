@@ -349,12 +349,17 @@ namespace ASCOM.OpenAstroTracker
 			try
 			{
 				var parts = dec.Split('*', '\'');
-				dDec = int.Parse(parts[0]) + int.Parse(parts[1]) / 60.0;
+				bool isNegative = parts[0].StartsWith("-");
+				dDec = Math.Abs(int.Parse(parts[0])) + int.Parse(parts[1]) / 60.0;
 				if (parts.Length > 2)
 				{
 					dDec += int.Parse(parts[2]) / 3600.0;
 				}
-
+				if (isNegative)
+				{
+					dDec = -dDec;
+				}
+				
 				return true;
 			}
 			catch (Exception)
